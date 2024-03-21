@@ -148,6 +148,7 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
         }
     }
 
+    @Override
     ColumnWriter createColumnWriter( ColumnInfo cinfo, int[] shape,
                                      boolean varShape, int eSize,
                                      int maxEls, long totalEls,

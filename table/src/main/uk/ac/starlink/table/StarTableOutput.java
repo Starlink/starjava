@@ -42,22 +42,19 @@ import uk.ac.starlink.util.Loader;
  * By default, if the corresponding classes are present, the following
  * handlers are installed:
  * <ul>
- * <li> {@link uk.ac.starlink.votable.FitsPlusTableWriter}
- * <li> {@link uk.ac.starlink.fits.FitsTableWriter}
- * <li> {@link uk.ac.starlink.fits.VariableFitsTableWriter}
- * <li> {@link uk.ac.starlink.fits.HealpixFitsTableWriter}
+ * <li> {@link uk.ac.starlink.votable.UnifiedFitsTableWriter}
  * <li> {@link uk.ac.starlink.votable.VOTableWriter}
+ * <li> {@link uk.ac.starlink.fits.HealpixFitsTableWriter}
  * <li> {@link uk.ac.starlink.ecsv.EcsvTableWriter}
  * <li> {@link uk.ac.starlink.parquet.ParquetTableWriter}
- * <li> {@link uk.ac.starlink.feather.FeatherTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.TextTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.AsciiTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.CsvTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.IpacTableWriter}
- * <li> {@link uk.ac.starlink.table.formats.TstTableWriter}
- * <li> {@link uk.ac.starlink.votable.ColFitsPlusTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.HTMLTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.LatexTableWriter}
+ * <li> {@link uk.ac.starlink.table.formats.TstTableWriter}
+ * <li> {@link uk.ac.starlink.feather.FeatherTableWriter}
  * <li> {@link uk.ac.starlink.mirage.MirageTableWriter}
  * </ul>
  * Additionally, any classes named in the <tt>startable.writers</tt>
@@ -74,23 +71,20 @@ public class StarTableOutput {
     private List<StarTableWriter> handlers_;
     private JDBCHandler jdbcHandler_;
     private static String[] defaultHandlerClasses = {
-        "uk.ac.starlink.votable.FitsPlusTableWriter",
-        "uk.ac.starlink.fits.FitsTableWriter",
-        "uk.ac.starlink.fits.VariableFitsTableWriter",
-        "uk.ac.starlink.fits.HealpixFitsTableWriter",
-        "uk.ac.starlink.votable.ColFitsPlusTableWriter",
-        "uk.ac.starlink.fits.ColFitsTableWriter",
+        "uk.ac.starlink.votable.UnifiedFitsTableWriter",
+        "uk.ac.starlink.votable.UnifiedFitsTableWriter$Col",
         "uk.ac.starlink.votable.VOTableWriter",
+        "uk.ac.starlink.fits.HealpixFitsTableWriter",
         "uk.ac.starlink.ecsv.EcsvTableWriter",
         "uk.ac.starlink.parquet.ParquetTableWriter",
-        "uk.ac.starlink.feather.FeatherTableWriter",
         TextTableWriter.class.getName(),
         AsciiTableWriter.class.getName(),
         CsvTableWriter.class.getName(),
         IpacTableWriter.class.getName(),
-        TstTableWriter.class.getName(),
         HTMLTableWriter.class.getName(),
         LatexTableWriter.class.getName(),
+        TstTableWriter.class.getName(),
+        "uk.ac.starlink.feather.FeatherTableWriter",
         "uk.ac.starlink.mirage.MirageTableWriter",
     };
     private static Map<String,String> legacyHandlerMap_ =
@@ -466,9 +460,16 @@ public class StarTableOutput {
         }
 
         /* Otherwise, try to create a handler based on the given name,
-         * which may be a handler name or a StarTableWriter classname,
-         * and configure it if so required. */
+         * which may be a handler name or a StarTableWriter classname. */
         StarTableWriter handler = createNamedHandler( fname );
+
+        /* Hack to maintain backward compatibility with some variant handlers
+         * available pre-STIL4. */
+        if ( handler == null ) {
+            handler = createLegacyHandler( fname );
+        }
+
+        /* Configure the handler if so required. */
         if ( handler != null ) {
             try {
                 config.configBean( handler );
@@ -478,13 +479,6 @@ public class StarTableOutput {
                                               + e, e );
             }
             return handler;
-        }
-
-        /* Hack to maintain backward compatibility with some variant handlers
-         * available pre-STIL4. */
-        StarTableWriter legHandler = getLegacyHandler( fname );
-        if ( legHandler != null ) {
-            return legHandler;
         }
 
         /* No luck - throw an exception. */
@@ -699,7 +693,7 @@ public class StarTableOutput {
      * @return   handler, or null if name does not correspond to a known
      *           legacy name
      */
-    private StarTableWriter getLegacyHandler( String name )
+    private StarTableWriter createLegacyHandler( String name )
             throws TableFormatException {
         for ( Map.Entry<String,String> entry : legacyHandlerMap_.entrySet() ) {
             if ( entry.getKey().startsWith( name ) ) {
@@ -743,6 +737,11 @@ public class StarTableOutput {
                  "votable(format=BINARY2,inline=false)" );
         map.put( "votable-fits-inline",
                  "votable(format=FITS,inline=true)" );
+        map.put( "fits-plus", "fits" );
+        map.put( "fits-basic", "fits(primary=basic)" );
+        map.put( "fits-var", "fits(primary=basic,var=true)" );
+        map.put( "colfits-plus", "fits(col=true)" );
+        map.put( "colfits-basic", "fits(col=true,primary=basic)" );
         map.put( "ecsv-space", "ecsv(delimiter=space)" );
         map.put( "ecsv-comma", "ecsv(delimiter=comma)" );
         map.put( "csv-noheader", "csv(header=false)" );

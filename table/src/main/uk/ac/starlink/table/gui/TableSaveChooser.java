@@ -470,8 +470,10 @@ public abstract class TableSaveChooser extends JPanel {
      */
     public static String[] getExtraWriterNames( boolean multi ) {
         List<String> list = new ArrayList<>();
-        list.add( "votable(format=BINARY)" );
-        list.add( "votable(format=BINARY2)" );
+        list.add( "fits-basic" );
+        list.add( "colfits-basic" );
+        list.add( "votable(format=binary2)" );
+        list.add( "fits(primary=votable,var=true)" );
         if ( ! multi ) {
             list.add( "csv(header=false)" );
             list.add( "ecsv(delimiter=comma)" );
