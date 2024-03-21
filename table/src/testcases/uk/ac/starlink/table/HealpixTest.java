@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.logging.Level;
 import junit.framework.TestCase;
 import uk.ac.starlink.fits.ColFitsTableBuilder;
-import uk.ac.starlink.fits.ColFitsTableWriter;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.fits.HealpixFitsTableWriter;
@@ -17,9 +16,9 @@ import uk.ac.starlink.util.ByteArrayDataSource;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.votable.FitsPlusTableBuilder;
-import uk.ac.starlink.votable.FitsPlusTableWriter;
 import uk.ac.starlink.votable.VOTableBuilder;
 import uk.ac.starlink.votable.VOTableWriter;
+import uk.ac.starlink.votable.UnifiedFitsTableWriter;
 
 public class HealpixTest extends TestCase {
 
@@ -40,11 +39,14 @@ public class HealpixTest extends TestCase {
 
         checkRoundTrip( new FitsTableWriter(), new FitsTableBuilder(),
                         tables, true );
-        checkRoundTrip( new FitsPlusTableWriter(), new FitsPlusTableBuilder(),
+        checkRoundTrip( new UnifiedFitsTableWriter(),
+                        new FitsPlusTableBuilder(),
                         tables, true );
         checkRoundTrip( new VOTableWriter(), new VOTableBuilder(),
                         tables, true );
-        checkRoundTrip( new ColFitsTableWriter(), new ColFitsTableBuilder(),
+        FitsTableWriter colfitsTableWriter = new FitsTableWriter();
+        colfitsTableWriter.setColfits( true );
+        checkRoundTrip( colfitsTableWriter, new ColFitsTableBuilder(),
                         tables, false );
         checkRoundTrip( new CsvTableWriter(), new CsvTableBuilder(),
                         tables, false );

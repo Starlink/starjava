@@ -32,9 +32,12 @@ import uk.ac.starlink.table.formats.DocumentedIOHandler;
  * the VOTMETA card in particular marking that this HDU contains VOTable
  * metadata.
  *
+ * @deprecated  Use {@link UnifiedFitsTableWriter} instead
+ *
  * @author   Mark Taylor (Starlink)
  * @since    26 Aug 2004
  */
+@Deprecated
 public class FitsPlusTableWriter extends VOTableFitsTableWriter
                                  implements DocumentedIOHandler {
 

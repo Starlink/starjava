@@ -11,6 +11,7 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.fits.ColFitsStarTable;
 import uk.ac.starlink.fits.FitsHeader;
 import uk.ac.starlink.fits.FitsUtil;
+import uk.ac.starlink.fits.ParsedCard;
 import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
@@ -42,9 +43,6 @@ import uk.ac.starlink.util.IOUtils;
 public class ColFitsPlusTableBuilder implements TableBuilder {
 
     private final WideFits wide_;
-
-    private static final ColFitsPlusTableWriter writer_ =
-        new ColFitsPlusTableWriter();
 
     /**
      * Default constructor.
@@ -141,8 +139,60 @@ public class ColFitsPlusTableBuilder implements TableBuilder {
         }
     }
 
+    /**
+     * Tests whether a given buffer contains bytes which might be the
+     * first few bytes of a FitsPlus table.
+     * The criterion is that it looks like the start of a FITS header,
+     * and the first few cards look roughly like this:
+     * <pre>
+     *     SIMPLE  =              T
+     *     BITPIX  =              8
+     *     NAXIS   =              1
+     *     NAXIS1  =            ???
+     *     COLFITS =              T
+     *     VOTMETA =              T
+     * </pre>
+     *
+     * @param  buffer  byte buffer containing leading few bytes of data
+     * @return  true  if it looks like a FitsPlus file
+     */
     public static boolean isMagic( byte[] buffer ) {
-        return writer_.isMagic( buffer );
+        final int ntest = 6;
+        if ( buffer.length < ntest * 80 ) {
+            return false;
+        }
+        byte[] cbuf = new byte[ 80 ];
+        for ( int il = 0; il < ntest; il++ ) {
+            System.arraycopy( buffer, il * 80, cbuf, 0, 80 );
+            ParsedCard<?> card = FitsUtil.parseCard( cbuf );
+            if ( ! primaryHeaderCardOK( il, card ) ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Checks whether the i'th card looks like it should do for the file
+     * to be readable by this handler.
+     *
+     * @param  icard  card index
+     * @param  card   header card
+     * @return  true  if <tt>card</tt> looks like the <tt>icard</tt>'th
+     *          header card of a FitsPlus primary header should do
+     */
+    private static boolean primaryHeaderCardOK( int icard,
+                                                ParsedCard<?> card ) {
+        String key = card.getKey();
+        Object value = card.getValue();
+        switch ( icard ) {
+            case 4:
+                return "COLFITS".equals( key ) && Boolean.TRUE.equals( value );
+            case 5:
+                return "VOTMETA".equals( key );
+            default:
+                return FitsPlusTableBuilder.primaryHeaderCardOK( icard, card );
+        }
     }
 
     /**

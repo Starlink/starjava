@@ -43,11 +43,12 @@ public class ServiceDescriptorTest extends TestCase {
                                            new VOTableBuilder() ) );
         checkServiceDescriptor( SerializerTest
                                .roundTrip( table,
-                                           new FitsPlusTableWriter(),
+                                           new UnifiedFitsTableWriter(),
                                            new FitsPlusTableBuilder() ) );
+        UnifiedFitsTableWriter cfpWriter = new UnifiedFitsTableWriter();
+        cfpWriter.setColfits( true );
         checkServiceDescriptor( SerializerTest
-                               .roundTrip( table, 
-                                           new ColFitsPlusTableWriter(),
+                               .roundTrip( table, cfpWriter,
                                            new ColFitsPlusTableBuilder() ) );
 
         /* This isn't good, but it's true: when streaming the document,

@@ -66,12 +66,16 @@ public class CoosysTest extends TestCase {
         ColFitsPlusTableBuilder cfpBuilder = new ColFitsPlusTableBuilder();
 
         VOTableWriter votWriter = new VOTableWriter();
-        FitsPlusTableWriter fpWriter = new FitsPlusTableWriter();
-        ColFitsPlusTableWriter cfpWriter = new ColFitsPlusTableWriter();
+        UnifiedFitsTableWriter fpWriter = new UnifiedFitsTableWriter();
+        UnifiedFitsTableWriter cfpWriter = new UnifiedFitsTableWriter();
+        cfpWriter.setColfits( true );
 
+        UnifiedFitsTableWriter.PrimaryType votType14 =
+            UnifiedFitsTableWriter
+           .createVOTablePrimaryType( VOTableVersion.V14 );
         votWriter.setVotableVersion( VOTableVersion.V14 );
-        fpWriter.setVotableVersion( VOTableVersion.V14 );
-        cfpWriter.setVotableVersion( VOTableVersion.V14 );
+        fpWriter.setPrimaryType( votType14 );
+        cfpWriter.setPrimaryType( votType14 );
 
         checkMeta( roundTrip( t1, votWriter, votBuilder ) );
         checkMeta( roundTrip( t2, fpWriter, fpBuilder ) );

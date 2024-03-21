@@ -31,9 +31,12 @@ import uk.ac.starlink.util.DataBufferedOutputStream;
  * of FITS tables, withouth the considerable disadvantage of being split
  * into two files.
  *
+ * @deprecated  Use {@link UnifiedFitsTableWriter} instead
+ *
  * @author   Mark Taylor (Starlink)
  * @since    26 Aug 2004
  */
+@Deprecated
 public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
 
     private VOTableVersion votVersion_;

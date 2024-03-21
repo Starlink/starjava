@@ -24,9 +24,12 @@ import uk.ac.starlink.table.formats.DocumentedIOHandler;
  * interchange, in practice most non-STIL processors are unlikely to
  * be able to do much useful with it.
  *
+ * @deprecated  Use {@link UnifiedFitsTableWriter} instead
+ *
  * @author   Mark Taylor
  * @since    21 Jun 2006
  */
+@Deprecated
 public class ColFitsPlusTableWriter extends VOTableFitsTableWriter
                                     implements DocumentedIOHandler {
 

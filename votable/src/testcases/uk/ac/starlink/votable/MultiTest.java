@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.logging.Level;
 import uk.ac.starlink.fits.FitsTableBuilder;
-import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
@@ -33,9 +32,11 @@ public class MultiTest extends TestCase {
             createTestTable( 109 ),
         };
         exerciseRW( new VOTableWriter(), new VOTableBuilder(), tables, 0 );
-        exerciseRW( new FitsPlusTableWriter(), new FitsPlusTableBuilder(),
+        exerciseRW( new UnifiedFitsTableWriter(), new FitsPlusTableBuilder(),
                     tables, 1 );
-        exerciseRW( new FitsTableWriter(), new FitsTableBuilder(), tables, 1 );
+        UnifiedFitsTableWriter basicWriter = new UnifiedFitsTableWriter();
+        basicWriter.setPrimaryType( UnifiedFitsTableWriter.BASIC_PRIMARY_TYPE );
+        exerciseRW( basicWriter, new FitsTableBuilder(), tables, 1 );
     }
 
     public void exerciseRW( MultiStarTableWriter writer,
