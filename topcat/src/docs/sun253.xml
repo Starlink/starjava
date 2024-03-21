@@ -33,11 +33,10 @@
   <!ENTITY in-wdc SYSTEM 'in-wdc.xml'>
   <!ENTITY out-ascii SYSTEM 'out-ascii.xml'>
   <!ENTITY out-csv SYSTEM 'out-csv.xml'>
-  <!ENTITY out-colfits SYSTEM 'out-colfits-plus.xml'>
   <!ENTITY out-ecsv SYSTEM 'out-ecsv.xml'>
   <!ENTITY out-parquet SYSTEM 'out-parquet.xml'>
   <!ENTITY out-feather SYSTEM 'out-feather.xml'>
-  <!ENTITY out-fits SYSTEM 'out-fits-plus.xml'>
+  <!ENTITY out-fits SYSTEM 'out-fits.xml'>
   <!ENTITY out-html SYSTEM 'out-html.xml'>
   <!ENTITY out-ipac SYSTEM 'out-ipac.xml'>
   <!ENTITY out-latex SYSTEM 'out-latex.xml'>
@@ -1411,22 +1410,24 @@ the rules for that are described below as well.
 
 <p>The program has no "native" file format, but if you have no particular
 preference about which format to save tables to, 
-<ref id="outFits">FITS</ref> is a good choice.
+<ref id="outFits">FITS</ref> format is a good choice.
 Uncompressed FITS tables do not in most cases have to be read all the
 way through (they are 'mapped' into memory), which makes them very
 fast to load up.
 The FITS format which is written by default
 (also known as "FITS-plus") also uses a trick to 
 store extra metadata, such as table parameters and UCDs 
-in a way TOPCAT can read in again later (see <ref id="outFits"/>). 
+in a way TOPCAT can read in again later.
 These files are quite usable as normal FITS tables by other applications, 
 but they will only be able to see the limited metadata stored in the
 FITS headers.
 For very large files, in some circumstances
-<ref id="outColfits">Column-oriented FITS</ref> format
-format can be more efficient for some applications,
+the Column-Oriented FITS variant (<label>colfits</label>)
+can be more efficient,
 though this is unlikely to be understood except by STIL-based code
 (TOPCAT and STILTS).
+The FITS output handler with its options and variants is documented
+in <ref id="outFits"/>.
 If you want to write to a format which retains all metadata in a portable
 format, then one of the <ref id="outVotable">VOTable</ref>
 formats might be better.
@@ -1435,15 +1436,6 @@ formats might be better.
 <subsubsubsect id="outFits">
 <subhead><title>FITS</title></subhead>
 &out-fits;
-<p>For column-oriented FITS table output, see <ref id="outColfits"/>.
-</p>
-</subsubsubsect>
-
-<subsubsubsect id="outColfits">
-<subhead><title>Column-oriented FITS</title></subhead>
-&out-colfits;
-<p>For normal (row-oriented) FITS output, see <ref id="outFits"/>.
-</p>
 </subsubsubsect>
 
 <subsubsubsect id="outVotable">
@@ -4633,7 +4625,8 @@ report on the console), and there are some things you can do about this:
 
 <dt>Use column-oriented storage</dt>
 <dd><p>For really large tables storing them in 
-    the <ref id="outColfits">colfits</ref> output format 
+    the <label>colfits</label> variant of
+    the <ref id="outFits">FITS</ref> output format
     can significantly improve performance.
     This stores all the elements of a single column contiguously on disk,
     which means that scanning through all the values in one or a few
@@ -28303,7 +28296,7 @@ introduced since the last version:
 
     <dt>Column-oriented storage</dt>
     <dd><p>New features for permitting column-oriented storage
-        (<ref id="outColfits">colfits</ref> format, 
+        (<code>colfits</code> format, 
         <code>startable.storage</code> policy "<code>sideways</code>") 
         have been introduced.
         These can provide considerable efficiency improvements for
@@ -33478,6 +33471,11 @@ introduced since the last version:
     <li>Fits-plus output handlers now honour <code>date</code> 
         config option for VOTable metadata 
         as well as DATE-HDU header card.</li>
+    <li>FITS output handling improved and reorganised to provide
+        more flexible configuration options;
+        this is now all documented under the <ref id="outFits">FITS</ref>
+        heading, there is no longer a separate <code>colfits</code>
+        section in the documentation.</li>
     </ul>
     </p></dd>
 

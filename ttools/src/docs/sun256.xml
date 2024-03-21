@@ -64,11 +64,10 @@
   <!ENTITY in-wdc SYSTEM 'in-wdc.xml'>
   <!ENTITY out-ascii SYSTEM 'out-ascii.xml'>
   <!ENTITY out-csv SYSTEM 'out-csv.xml'>
-  <!ENTITY out-colfits SYSTEM 'out-colfits-plus.xml'>
   <!ENTITY out-ecsv SYSTEM 'out-ecsv.xml'>
   <!ENTITY out-parquet SYSTEM 'out-parquet.xml'>
   <!ENTITY out-feather SYSTEM 'out-feather.xml'>
-  <!ENTITY out-fits SYSTEM 'out-fits-plus.xml'>
+  <!ENTITY out-fits SYSTEM 'out-fits.xml'>
   <!ENTITY out-html SYSTEM 'out-html.xml'>
   <!ENTITY out-ipac SYSTEM 'out-ipac.xml'>
   <!ENTITY out-latex SYSTEM 'out-latex.xml'>
@@ -2302,15 +2301,6 @@ or by setting the format to the classname of a
 <subsubsubsect id="outFits">
 <subhead><title><code>fits</code></title></subhead>
 &out-fits;
-<p>For column-oriented FITS table output, see <ref id="outColfits"/>.
-</p>
-</subsubsubsect>
-
-<subsubsubsect id="outColfits">
-<subhead><title><code>colfits</code></title></subhead>
-&out-colfits;
-<p>For normal (row-oriented) FITS output, see <ref id="outFits"/>.
-</p>
 </subsubsubsect>
 
 <subsubsubsect id="outVotable">
@@ -15216,6 +15206,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fits-plus output handlers now honour <code>date</code>
         config option for VOTable metadata
         as well as DATE-HDU header card.</li>
+    <li>FITS output handling improved and reorganised to provide
+        more flexible configuration options;
+        this is now all documented under the <ref id="outFits">fits</ref>
+        heading, there is no longer a separate <code>colfits</code>
+        section in the documentation.</li>
     </ul>
     </p></dd>
 

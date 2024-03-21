@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat;
 import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
@@ -16,8 +17,7 @@ import javax.swing.table.TableModel;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.gui.TableSaveChooser;
-import uk.ac.starlink.votable.ColFitsPlusTableWriter;
-import uk.ac.starlink.votable.FitsPlusTableWriter;
+import uk.ac.starlink.votable.UnifiedFitsTableWriter;
 import uk.ac.starlink.votable.VOTableWriter;
 
 /**
@@ -110,13 +110,18 @@ public class SessionSavePanel extends SavePanel {
      */
     private static String[] createFormatList() {
         List<StarTableWriter> writerList = new ArrayList<StarTableWriter>();
-        writerList.add( new FitsPlusTableWriter() );
-        writerList.add( new ColFitsPlusTableWriter() );
-        writerList.add( new VOTableWriter() );
-        String[] names = new String[ writerList.size() ];
-        for ( int i = 0; i < names.length; i++ ) {
-            names[ i ] = writerList.get( i ).getFormatName();
-        }
-        return names;
+        UnifiedFitsTableWriter fitsPlus = new UnifiedFitsTableWriter();
+        fitsPlus.setFormatName( "fits-plus" );
+        UnifiedFitsTableWriter colfitsPlus = new UnifiedFitsTableWriter();
+        colfitsPlus.setColfits( true );
+        colfitsPlus.setFormatName( "colfits-plus" );
+        assert fitsPlus.getPrimaryType() ==
+               UnifiedFitsTableWriter.VOTABLE_PRIMARY_TYPE;
+        assert colfitsPlus.getPrimaryType() ==
+               UnifiedFitsTableWriter.VOTABLE_PRIMARY_TYPE;
+        VOTableWriter votable = new VOTableWriter();
+        return Stream.of( fitsPlus, colfitsPlus, votable )
+                     .map( w -> w.getFormatName() )
+                     .toArray( n -> new String[ n ] );
     }
 }
