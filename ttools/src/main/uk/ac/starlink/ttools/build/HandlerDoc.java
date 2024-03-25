@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -282,13 +283,14 @@ public class HandlerDoc {
             "" ) );
             for ( Method meth : meths ) {
                 ConfigMethod ann = meth.getAnnotation( ConfigMethod.class );
+                String dfltTxt = getDefaultConfigString( handler, meth );
                 sbuf.append( "<dt><code>" )
                     .append( ann.property() )
                     .append( " = <![CDATA[" )
                     .append( BeanConfig.getMethodUsage( meth ) )
                     .append( "]]></code></dt>\n" )
                     .append( "<dd>" )
-                    .append( asXml( ann.doc() ) )
+                    .append( docToXml( ann.doc(), dfltTxt ) )
                     .append( "</dd>\n" );
             }
             sbuf.append( "</dl>\n" )
@@ -311,6 +313,100 @@ public class HandlerDoc {
                       .comparingInt( m -> m.getAnnotation( ConfigMethod.class )
                                            .sequence() ) )
               .collect( Collectors.toList() );
+    }
+
+    /**
+     * Attempts to determine a string representation of the default value
+     * corresponding to a mutator method on a handler.
+     * It does this using reflection and bean conventions.
+     *
+     * <p>The return value is, if possible, a string that can be used
+     * with {@link uk.ac.starlink.util.BeanConfig} to configure the
+     * supplied method on the supplied handler to return the value
+     * that it has at call time.
+     *
+     * <p>If no reliable default value or string serialization can be found,
+     * null is returned.  If the default appears to be null, the string
+     * "null" is returned.
+     *
+     * @param  handler  bean
+     * @param  setMethod  method for setting a property on the supplied handler
+     * @return   default value string serialization, or null
+     */
+    private static String getDefaultConfigString( Object handler,
+                                                  Method setMethod ) {
+
+        /* Find the bean property corresponding to the supplied method. */
+        String setName = setMethod.getName();
+        String propName = setName.startsWith( "set" )
+                        ? setName.substring( 3 )
+                        : null;
+        if ( propName == null || setMethod.getParameterCount() != 1 ) {
+            return null;
+        }
+        Class<?> propClazz = setMethod.getParameterTypes()[ 0 ];
+
+        /* Find the get method corresponding to that property. */
+        Class<?> handlerClazz = handler.getClass();
+        Method getMethod;
+        try {
+            getMethod = handlerClazz
+                       .getMethod( "get" + propName, new Class<?>[ 0 ] );
+        }
+        catch ( NoSuchMethodException e ) {
+            if ( boolean.class.equals( propClazz ) ||
+                 Boolean.class.equals( propClazz ) ) {
+                try {
+                    getMethod = handlerClazz
+                               .getMethod( "is" + propName, new Class<?>[ 0 ] );
+                }
+                catch ( NoSuchMethodException e2 ) {
+                    return null;
+                }
+            }
+            else {
+                return null;
+            }
+        }
+        int mods = getMethod.getModifiers();
+        if ( Modifier.isStatic( mods ) ) {
+            return null;
+        }
+
+        /* Invoke that method to find the current property value on the
+         * supplied handler (assumed default). */
+        Object value;
+        try {
+            value = getMethod.invoke( handler, new Object[ 0 ] );
+        }
+        catch ( ReflectiveOperationException e ) {
+            return null;
+        }
+
+        /* Try to return a string serialization of the value that will
+         * work with BeanConfig. */
+        if ( value == null ) {
+            return "null";
+        }
+        if ( value instanceof String ||
+             value instanceof Number ||
+             value instanceof Boolean ||
+             value.getClass().isEnum() ) {
+            return value.toString();
+        }
+        String valueTxt = value.toString();
+        Object decodedValue;
+        try {
+            decodedValue =
+                BeanConfig.decodeTypedValue( propClazz, valueTxt, handler );
+        }
+        catch ( RuntimeException e ) {
+            return null;
+        }
+        if ( value.equals( decodedValue ) ) {
+            return valueTxt;
+        }
+        return null;
     }
 
     /**
@@ -369,22 +465,48 @@ public class HandlerDoc {
     }
 
     /**
-     * Converts text which may or may not be XML to p-level XML.
+     * Converts documentation text which may or may not be XML,
+     * and an optional default value, to p-level XML.
      *
-     * @param  txt  input text
-     * @return  txt if it looks like plain text, or wrapped in a p element
-     *          if it looks like XML
+     * @param  docTxt  documentation text
+     * @param  dlftTxt   default value, or null for no known default
+     * @return  supplied documentation text, and maybe a record of the
+     *          default value, as one or more p elements
      */
-    private static String asXml( String txt ) {
-        return txt.startsWith( "<" )
-             ? txt
-             : new StringBuffer()
-              .append( "<p>" )
-              .append( txt.replaceAll( "&", "&amp;" )
-                          .replaceAll( "<", "&lt;" )
-                          .replaceAll( ">", "&gt;" ) )
-              .append( "</p>" )
-              .toString();
+    private static String docToXml( String docTxt, String dfltTxt ) {
+        String docXml = docTxt.startsWith( "<" )
+                      ? docTxt
+                      : new StringBuffer()
+                       .append( "<p>" )
+                       .append( escapeXml( docTxt ) )
+                       .append( "</p>" )
+                       .toString();
+
+        /* It would be tidier just to add a new p element containing the
+         * default string here, but that uses up a bit too much screen space
+         * when rendered to HTML. */
+        if ( dfltTxt != null ) {
+            int iend = docXml.lastIndexOf( "</p>" );
+            if ( iend > 0 ) {
+                docXml = docXml.substring( 0, iend )
+                       + "\n(Default: <code>" + escapeXml( dfltTxt )
+                                              + "</code>)\n"
+                       + docXml.substring( iend );
+            }
+        }
+        return docXml;
+    }
+
+    /**
+     * Converts plain text into XML-friendly text.
+     *
+     * @param   txt  plain text
+     * @return  XML equivalent
+     */
+    private static String escapeXml( String txt ) {
+        return txt.replaceAll( "&", "&amp;" )
+                  .replaceAll( "<", "&lt;" )
+                  .replaceAll( ">", "&gt;" );
     }
 
     /**

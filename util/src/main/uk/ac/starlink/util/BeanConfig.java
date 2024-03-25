@@ -369,8 +369,8 @@ public class BeanConfig {
      * @throws  RuntimeException  if decoding is unsuccessful
      */
     @SuppressWarnings("unchecked")
-    private static <T> T decodeTypedValue( Class<T> clazz, String txt,
-                                           Object target ) {
+    public static <T> T decodeTypedValue( Class<T> clazz, String txt,
+                                          Object target ) {
         Long hexValue = decode0x( txt );
         if ( txt == null || txt.trim().length() == 0 ) {
             if ( ! clazz.isPrimitive() ) {

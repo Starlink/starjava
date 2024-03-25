@@ -15211,6 +15211,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         this is now all documented under the <ref id="outFits">fits</ref>
         heading, there is no longer a separate <code>colfits</code>
         section in the documentation.</li>
+    <li>Report default values for most configuration options in
+        <ref id="ioFormats">I/O handler</ref> documentation.</li>
     </ul>
     </p></dd>
 
