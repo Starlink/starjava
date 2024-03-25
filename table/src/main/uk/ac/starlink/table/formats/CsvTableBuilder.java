@@ -94,6 +94,17 @@ public class CsvTableBuilder extends DocumentedTableBuilder {
     }
 
     /**
+     * Returns header interpretation policy.
+     *
+     * @return  true if input files are known to contain column names as
+     *          the first line; false if they are known not to;
+     *          null to auto-detect
+     */
+    public Boolean getHasHeader() {
+        return hasHeader_;
+    }
+
+    /**
      * Sets the maximum number of rows that will be sampled to determine
      * column data types.
      *
@@ -123,5 +134,16 @@ public class CsvTableBuilder extends DocumentedTableBuilder {
     )
     public void setMaxSample( int maxSample ) {
         maxSample_ = maxSample;
+    }
+
+    /**
+     * Returns the maximum number of rows that will be sampled to determine
+     * column data types.
+     *
+     * @return   maximum number of rows sampled;
+     *           if &lt;=0, all rows are sampled
+     */
+    public int getMaxSample() {
+        return maxSample_;
     }
 }

@@ -130,6 +130,16 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
     }
 
     /**
+     * Returns policy for table construction.
+     *
+     * @return   true for caching, false for read as required,
+     *           null for adaptive
+     */
+    public Boolean getCacheCols() {
+        return cacheCols_;
+    }
+
+    /**
      * Sets the number of read threads to use when caching column data.
      * This is the value passed to the {@link CachedParquetStarTable}
      * constructor, and ignored when constructing a
