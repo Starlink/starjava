@@ -87,6 +87,15 @@ public class MrtTableBuilder extends DocumentedTableBuilder {
     }
 
     /**
+     * Returns the error handling mode.
+     *
+     * @return  error handling mode
+     */
+    public ErrorMode getErrorMode() {
+        return errorMode_;
+    }
+
+    /**
      * Sets whether the handler will attempt to guess by looking at
      * the file whether it appears to be an MRT file before attempting
      * to parse it as one.  This is generally a good idea,
@@ -111,6 +120,16 @@ public class MrtTableBuilder extends DocumentedTableBuilder {
     )
     public void setCheckMagic( boolean checkMagic ) {
         checkMagic_ = checkMagic;
+    }
+
+    /**
+     * Indicates whether the handler will attempt to guess by looking at
+     * the file whether it is an MRT file.
+     *
+     * @return  check magic flag
+     */
+    public boolean getCheckMagic() {
+        return checkMagic_;
     }
 
     public StarTable makeStarTable( final DataSource datsrc, boolean wantRandom,

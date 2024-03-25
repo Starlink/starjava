@@ -62,7 +62,7 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
 
     /**
      * Sets the location of a header file which will be prepended to
-     * any file read by this handler.  It can be ste to a file containing
+     * any file read by this handler.  It can be set to a file containing
      * an ECSV header, so that this handler can read plain CSV files
      * but include prepared YAML metadata.
      *
@@ -84,6 +84,16 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
         headerLoc_ = headerLoc;
     }
 
+    /**
+     * Returns the location of a header file which will be prepended
+     * to any file read by this handler.
+     *
+     * @return  header file location
+     */
+    public String getHeader() {
+        return headerLoc_;
+    }
+
     @ConfigMethod(
         property = "colcheck",
         doc = "<p>Determines the action taken if the columns named\n"
@@ -93,8 +103,24 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
         example = "FAIL",
         sequence = 2
     )
+    /**
+     * Sets the column checking message policy.
+     *
+     * @param  colCheck  determines action if YAML header columns don't match
+     *                   CSV header
+     */
     public void setColcheck( MessagePolicy colCheck ) {
         colCheck_ = colCheck;
+    }
+
+    /**
+     * Returns the column checking message policy.
+     *
+     * @return  determines action if YAML header columns don't match
+     *          CSV header
+     */
+    public MessagePolicy getColcheck() {
+        return colCheck_;
     }
 
     public void streamStarTable( InputStream in, TableSink sink, String pos )

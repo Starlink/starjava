@@ -278,6 +278,15 @@ public class GbinTableBuilder extends DocumentedTableBuilder {
     }
 
     /**
+     * Returns value of {@link GbinTableProfile#isReadMeta}.
+     *
+     * @return  read meta flag
+     */
+    public boolean getReadMeta() {
+        return profile_.isReadMeta_;
+    }
+
+    /**
      * Configures value of {@link GbinTableProfile#isHierarchicalNames}
      *
      * @param  isHierarchicalNames  whether to name columns hierarchically
@@ -297,6 +306,15 @@ public class GbinTableBuilder extends DocumentedTableBuilder {
     )
     public void setHierarchicalNames( boolean isHierarchicalNames ) {
         profile_.isHierarchicalNames_ = isHierarchicalNames;
+    }
+
+    /**
+     * Returns value of {@link GbinTableProfile#isHierarchicalNames}.
+     *
+     * @return  hierarchical naming flag
+     */
+    public boolean getHierarchicalNames() {
+        return profile_.isHierarchicalNames_;
     }
 
     /**

@@ -86,4 +86,15 @@ public class AsciiTableBuilder extends DocumentedTableBuilder {
     public void setMaxSample( int maxSample ) {
         maxSample_ = maxSample;
     }
+
+    /**
+     * Returns the maximum number of rows that will be sampled to determine
+     * column data types.
+     *
+     * @return  maximum number of rows sampled;
+     *          if &lt;=0, all rows are sampled
+     */
+    public int getMaxSample() {
+        return maxSample_;
+    }
 }

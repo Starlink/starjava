@@ -180,6 +180,16 @@ public class Pds4TableBuilder extends DocumentedTableBuilder
     }
 
     /**
+     * Indicates whether handler will attempt to guess by looking at the file
+     * whether it is PDS4.
+     *
+     * @return  magic checking flag
+     */
+    public boolean getCheckMagic() {
+        return checkMagic_;
+    }
+
+    /**
      * Sets whether only tables within File_Area_Observational elements
      * of the PDS4 label are interpreted as StarTables.
      *
@@ -198,6 +208,16 @@ public class Pds4TableBuilder extends DocumentedTableBuilder
     )
     public void setObservationalOnly( boolean observationalOnly ) {
         observationalOnly_ = observationalOnly;
+    }
+
+    /**
+     * Indicates whether only tables within File_Area_Observational elements
+     * of the PDS4 label are interpreted as StarTables.
+     *
+     * @return  observational-only flag
+     */
+    public boolean getObservationalOnly() {
+        return observationalOnly_;
     }
 
     public void streamStarTable( InputStream in, TableSink sink, String pos )
