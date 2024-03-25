@@ -10,6 +10,7 @@ import javax.xml.transform.stream.StreamSource;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.util.TestCase;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.xdoc.LinkChecker;
 
 public class DocTest extends TestCase {
@@ -41,7 +42,8 @@ public class DocTest extends TestCase {
         boolean attemptExt = Boolean.getBoolean( "tests.withnet" );
         Map<String,String> xsltParams = new HashMap<>();
         xsltParams.put( "BASEDIR", context.toString() );
-        LinkChecker checker = new LinkChecker( context.toURL(), attemptExt );
+        LinkChecker checker =
+            new LinkChecker( URLUtils.makeFileURL( context ), attemptExt );
         checker.checkLinks( new StreamSource( docXslt1 ),
                             new StreamSource( docFile ),
                             xsltParams );
