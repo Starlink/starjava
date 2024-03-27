@@ -380,7 +380,7 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
     	   int[] range=ranges.get(spec);
     	   
            for (int i=0;i<range.length;i+=2) {// have to convert from meters to angstrom
-        	   double []  = getRanges(i, range, lambdas, spec);        	
+        	   double rangeval []  = getRanges(i, range, lambdas, spec);        	
         		   wlist+=" between "+ rangeval[0]*1E10+" and "+rangeval[1]*1E10;
         	
                if (i+1<rangeval.length-1)
