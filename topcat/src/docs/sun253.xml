@@ -33516,6 +33516,8 @@ introduced since the last version:
     <li>Add to this document detailed documentation of
         <ref id="fitsPlus">FITS-plus</ref> and
         <ref id="wideFits">Wide FITS</ref> conventions.</li>
+    <li>MacOS DMG now bundled with Java 11 not Java 8,
+        fixes poor rendering of selected tab label in JTabbedPane.</li>
     </ul>
     </p></dd>
 
