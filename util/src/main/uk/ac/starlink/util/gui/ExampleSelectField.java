@@ -42,6 +42,15 @@ public class ExampleSelectField extends JPanel {
         comboBox_.setEditable( true );
         comboBox_.addItem( "" );
         add( comboBox_ );
+
+        /* Displaying the example text in the combo box before it has been
+         * used is implemented by setting the example text as the editor
+         * content, and then jumping through hoops when some real content
+         * is inserted into the editor to get rid of it again.
+         * This is pretty nasty; really the renderer should be
+         * configured to show the example text when appropriate,
+         * regardless of editor content, but I haven't managed to figure out
+         * a way to get that working. */
         if ( exampleText_ != null ) {
             editor_.setItem( exampleText_ );
             focusListener_ = new FocusListener() {
@@ -110,7 +119,7 @@ public class ExampleSelectField extends JPanel {
     }
 
     /**
-     * Removes an actino listener.
+     * Removes an action listener.
      *
      * @param  l  previously-added listener
      */
@@ -123,14 +132,47 @@ public class ExampleSelectField extends JPanel {
      * and removes listeners.  Only has any effect the first time it's called.
      */
     private void discardExample() {
-        if ( exampleText_ != null &&
-             exampleText_.equals( editor_.getItem() ) ) {
-            editor_.setItem( null );
+        if ( focusListener_ != null ) {
             Component edComp = editor_.getEditorComponent();
             edComp.removeFocusListener( focusListener_ );
+            focusListener_ = null;
             edComp.setForeground( UIManager
                                  .getColor( "TextField.foreground" ) );
-            focusListener_ = null;
+
+            /* This is pretty messy.  We can end up here because a string
+             * has been cut'n'pasted into the editor field, in which case
+             * it can be in the middle of the example text, like
+             * "exampPASTEDle".  So try to pull out the pasted text from
+             * the current contents of the editor, based on the knowledge
+             * we have of the example string it got pasted into. */
+            Object edItem = editor_.getItem();
+            String entryText =
+                  edItem instanceof String && exampleText_ != null
+                ? findEmbeddedText( (String) edItem, exampleText_ )
+                : null;
+            editor_.setItem( entryText );
         }
+    }
+
+    /**
+     * Attempts to extract a string that has been interpolated somewhere
+     * within a given example string.
+     *
+     * @param  txt  supplied text which may consist of the knownTxt with
+     *              a required string somewhere in the middle of it
+     * @param  knownTxt  known text, not null
+     * @return   string that was added to knownTxt to make txt,
+     *           or empty string if it can't be found
+     */
+    private static String findEmbeddedText( String txt, String knownTxt ) {
+        for ( int i = 0; i < knownTxt.length(); i++ ) {
+            int j = knownTxt.length() - i;
+            if ( knownTxt.substring( 0, j ).equals( txt.substring( 0, j ) ) &&
+                 knownTxt.substring( j )
+                         .equals( txt.substring( txt.length() - i ) ) ) {
+                return txt.substring( j, txt.length() - i );
+            }
+        }
+        return "";
     }
 }
