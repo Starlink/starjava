@@ -33478,6 +33478,8 @@ introduced since the last version:
         section in the documentation.</li>
     <li>Report default values for most configuration options in
         <ref id="ioFormats">I/O handler</ref> documentation.</li>
+    <li>Fix annoying bug where text pasted into the TAP window
+        TAP URL selector got mixed up with the placeholder text.</li>
     </ul>
     </p></dd>
 
