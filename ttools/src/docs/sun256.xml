@@ -2556,10 +2556,23 @@ since it passes private information indiscriminately to any
 service that asks for it.
 </p>
 
-<p>There is currently no way to log in to services that provide
-optional authentication (like some TAP services that grant
-enhanced resource limits to authenticated users).
-This may be added in a future release.
+<p>Some TAP services offer optional authentication;
+anonymous access is permitted, but users who log in may
+benefit from restricted data or enhanced resource limits.
+By default, the TAP access commands
+(<ref id="tapquery"><code>tapquery</code></ref>,
+ <ref id="taplint"><code>taplint</code></ref>,
+ <ref id="tapskymatch"><code>tapskymatch</code></ref> and
+ <ref id="tapresume"><code>tapresume</code></ref>)
+will use anonymous access by default in this case.
+But if you prefer to use the service in authenticated mode,
+you can supply the <code><ref id="tapquery-auth">auth</ref>=true</code>
+parameter and an attempt will be made to log in before use.
+</p>
+
+<p>There is currently no way to log in to non-TAP VO services
+that provide optional authentication;
+however at time of writing I'm not aware of any.
 </p>
 
 <p><strong>Note:</strong>
@@ -15214,6 +15227,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Report default values for most configuration options in
         <ref id="ioFormats">I/O handler</ref> documentation.</li>
     <li>Bugfix update of CDS HEALPix library to v0.30.3.</li>
+    <li>Commands <ref id="tapquery"><code>tapquery</code></ref>,
+                 <ref id="tapskymatch"><code>tapskymatch</code></ref>,
+                 <ref id="taplint"><code>taplint</code></ref> and
+                 <ref id="tapresume"><code>tapresume</code></ref>
+        have a new parameter <code>auth</code>;
+        if true then an <ref id="AuthManager">authentication attempt</ref>
+        will be made for TAP services that offer
+        optional authentication.</li>
     </ul>
     </p></dd>
 
