@@ -3,6 +3,7 @@ package uk.ac.starlink.table.join;
 import junit.framework.TestCase;
 import cds.healpix.Healpix;
 import cds.healpix.HealpixNestedBMOC;
+import cds.healpix.HealpixNestedPolygonComputer;
 
 public class CdsHealpixTest extends TestCase {
 
@@ -29,6 +30,29 @@ public class CdsHealpixTest extends TestCase {
                    .newConeComputerApprox(0.001)
                    .overlappingCells(0.002, -1.3);
         assertEquals( 338, bmoc.size() );
+    }
+
+    public void testBug3() {
+
+        // Prior to 0.30_3 this failed with AssertionError or
+        // NullPointerException.
+        int order = 12;
+        HealpixNestedPolygonComputer pc =
+            Healpix.getNested( 12 ).newPolygonComputer();
+        double[][] verts1 = new double[][] {
+            { -1.5702949547333407, -0.7295093151415473 },
+            { -1.5702171673769950, -0.7295093016804524 },
+            { -1.5701393800214274, -0.7295092852142693 },
+            { -1.5700615926667945, -0.7295092657429985 },
+        };
+        double[][] verts2 = new double[][] {
+            { -1.5706045044233712, -0.7295105218483977 },
+            { -1.5705168372776197, -0.7295105199399403 },
+            { -1.5704291701320918, -0.7295105142145686 },
+            { -1.5703415029870114, -0.7295105046722821 },
+        };
+        pc.overlappingCells( verts1 );  // OK
+        pc.overlappingCells( verts2 );  // trouble
     }
 
     void writeBmoc( HealpixNestedBMOC bmoc ) {
