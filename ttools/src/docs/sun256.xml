@@ -15235,6 +15235,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         if true then an <ref id="AuthManager">authentication attempt</ref>
         will be made for TAP services that offer
         optional authentication.</li>
+    <li>Fix authentication bug in <code>taplint</code>;
+        avoid spurious <code>E-UWS-NFND</code> reports
+        when validating authenticated services.</li>
     </ul>
     </p></dd>
 
