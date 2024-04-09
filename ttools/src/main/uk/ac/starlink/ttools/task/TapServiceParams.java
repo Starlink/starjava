@@ -7,6 +7,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.auth.AuthManager;
+import uk.ac.starlink.auth.AuthStatus;
+import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
@@ -29,6 +32,7 @@ public class TapServiceParams {
 
     private final URLParameter baseParam_;
     private final Parameter<String> intfParam_;
+    private final BooleanParameter authParam_;
     private final EndpointParameter syncParam_;
     private final EndpointParameter asyncParam_;
     private final EndpointParameter tablesParam_;
@@ -140,6 +144,23 @@ public class TapServiceParams {
         } );
         intfParam_.setStringDefault( readCapabilitiesDflt ? "cap" : "tap1.0" );
         intfParam_.setNullPermitted( true );
+
+        authParam_ = new BooleanParameter( "auth" );
+        authParam_.setPrompt( "Attempt optional authentication?" );
+        authParam_.setDescription( new String[] {
+            "<p>If true, then an attempt will be made to",
+            "<ref id='AuthManager'>authenticate</ref>",
+            "with the TAP service even if anonymous operation is permitted.",
+            "If the service offers authentication,",
+            "you will be asked for credentials.",
+            "</p>",
+            "<p>To use this option in non-interactive contexts,",
+            "you may want to use the",
+            "<code>auth.username</code> and <code>auth.password</code>",
+            "<ref id='sysProperties'>system properties</ref>.",
+            "</p>",
+        } );
+        authParam_.setBooleanDefault( false );
     }
 
     /**
@@ -152,14 +173,15 @@ public class TapServiceParams {
     }
 
     /**
-     * Returns the parameter used to select the TAP interface,
+     * Returns the parameters used to select the TAP interface,
      * including authentication options.
      *
-     * @return  TAP interface parameter
+     * @return  TAP interface parameters
      */
     public List<Parameter<?>> getInterfaceParameters() {
         List<Parameter<?>> intfParams = new ArrayList<Parameter<?>>();
         intfParams.add( intfParam_ );
+        intfParams.add( authParam_ );
         return intfParams;
     }
 
@@ -249,6 +271,23 @@ public class TapServiceParams {
         if ( ! availabilityUrl.equals( baseService.getAvailabilityEndpoint())) {
             logger_.config( "TAP availability:   " + availabilityUrl );
         }
+
+        /* Perform pre-emptive authentication if so requested. */
+        if ( authParam_.booleanValue( env ) ) {
+            boolean isHead = true;
+            boolean forceLogin = true;
+            AuthStatus status;
+            try {
+                status = AuthManager.getInstance()
+                        .authcheck( capabilitiesUrl, isHead, forceLogin );
+            }
+            catch ( IOException e ) {
+                throw new ExecutionException( "Optional authentication failed",
+                                              e );
+            }
+        }
+
+        /* Return service. */
         return new TapService() {
             public String getIdentity() {
                 return baseUrl;
