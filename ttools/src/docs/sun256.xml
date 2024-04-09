@@ -15213,6 +15213,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         section in the documentation.</li>
     <li>Report default values for most configuration options in
         <ref id="ioFormats">I/O handler</ref> documentation.</li>
+    <li>Bugfix update of CDS HEALPix library to v0.30.3.</li>
     </ul>
     </p></dd>
 

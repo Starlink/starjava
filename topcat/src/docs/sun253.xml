@@ -33480,6 +33480,8 @@ introduced since the last version:
         <ref id="ioFormats">I/O handler</ref> documentation.</li>
     <li>Fix annoying bug where text pasted into the TAP window
         TAP URL selector got mixed up with the placeholder text.</li>
+    <li>Bugfix update of CDS HEALPix library to v0.30.3,
+        prevents occasional plot failures.</li>
     </ul>
     </p></dd>
 
