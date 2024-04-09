@@ -943,8 +943,7 @@ public class JobStage implements Stage {
             int responseCode;
             String responseMsg;
             try {
-                URLConnection conn = url.openConnection();
-                conn = TapQuery.followRedirects( conn );
+                URLConnection conn = AuthManager.getInstance().connect( url );
                 if ( ! ( conn instanceof HttpURLConnection ) ) {
                     reporter_.report( FixedCode.W_HURL,
                                       "Redirect to non-HTTP URL? "

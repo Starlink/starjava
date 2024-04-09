@@ -115,7 +115,7 @@ public abstract class VotLintTapRunner extends TapRunner {
     }
 
     /**
-     * Returns an input stream which should containing the result VOTable
+     * Returns an input stream which should contain the result VOTable
      * from a TAP query, performing checks and making reports as appropriate
      * on the way.
      *
@@ -126,7 +126,6 @@ public abstract class VotLintTapRunner extends TapRunner {
     public InputStream readResultInputStream( Reporter reporter, TapQuery tq )
             throws IOException, SAXException {
         URLConnection conn = getResultConnection( reporter, tq );
-        conn = TapQuery.followRedirects( conn );
         conn.connect();
         String ctype = conn.getContentType();
         if ( doChecks_ ) {
