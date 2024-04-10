@@ -159,6 +159,8 @@
   <!-- Miscellaneous text -->
   <!ENTITY ttypeN-param SYSTEM 'ttypeN-param.xml'>
   <!ENTITY plotserv-syntax SYSTEM 'plotserv-syntax.xml'>
+  <!ENTITY fits-plus SYSTEM 'fits-plus.xml'>
+  <!ENTITY fits-wide SYSTEM 'fits-wide.xml'>
 
   <!-- Automatically generated plot2 figures. -->
   <!ENTITY figs './'>
@@ -2178,6 +2180,7 @@ STILTS will determine whether a FITS file is FITS-plus or not based on its
 content and use the appropriate handler, but if you want to force the
 reader to use or ignore the enriched header, you can explicitly specify
 an input format of "<code>fits-plus</code>" or "<code>fits-basic</code>".
+The details of the FITS-plus convention are described in <ref id="fitsPlus"/>.
 </p>
 </subsubsubsect>
 
@@ -2189,6 +2192,7 @@ an input format of "<code>fits-plus</code>" or "<code>fits-basic</code>".
 two variants are supported:
 with (<code>colfits-plus</code>) or without (<code>colfits-basic</code>)
 metadata stored as a VOTable byte array in the primary HDU.
+For details of the FITS-plus convention, see <ref id="fitsPlus"/>.
 </p>
 </subsubsubsect>
 
@@ -2361,6 +2365,31 @@ or by setting the format to the classname of a
 <subsubsubsect id="outMirage">
 <subhead><title><code>mirage</code></title></subhead>
 &out-mirage;
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="fitsConventions">
+<subhead><title>Non-standard FITS conventions</title></subhead>
+
+<p>STIL, the I/O library underlying STILTS,
+uses a few private conventions when writing and reading FITS files.
+These are not private in the sense that non-STIL code is prevented from
+cooperating with them, but STIL does not assume that other code,
+or FITS tables it encounters, will use these conventions.
+Instead, they offer (in some cases) added value for tables that were
+written by STIL and are subsequently re-read by STIL, while causing
+the minimum of trouble for non-STIL readers.
+</p>
+
+<subsubsubsect id="fitsPlus">
+<subhead><title>FITS-plus</title></subhead>
+&fits-plus;
+</subsubsubsect>
+
+<subsubsubsect id="wideFits">
+<subhead><title>Wide FITS</title></subhead>
+&fits-wide;
 </subsubsubsect>
 
 </subsubsect>
@@ -15238,6 +15267,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix authentication bug in <code>taplint</code>;
         avoid spurious <code>E-UWS-NFND</code> reports
         when validating authenticated services.</li>
+    <li>Add to this document detailed documentation of
+        <ref id="fitsPlus">FITS-plus</ref> and
+        <ref id="wideFits">Wide FITS</ref> conventions.</li>
     </ul>
     </p></dd>
 

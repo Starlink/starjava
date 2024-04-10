@@ -1,0 +1,87 @@
+<p>When writing tables to FITS BINTABLE format,
+STIL can optionally store additional metadata in the FITS file
+using a private convention known as "FITS-plus".
+The table is written exactly as usual in a BINTABLE extension HDU,
+but the primary HDU (HDU#0) contains a sequence of characters,
+stored as a 1-d array of bytes using UTF-8 encoding,
+which forms the text of a DATA-less VOTable document.
+Note that the Primary HDU cannot be used to store table data,
+so under normal circumstances has no interesting content
+in a FITS file used just for table storage.
+The FITS tables in the subsequent extensions are understood to
+contain the data.
+</p>
+
+<p>The point of this is that the VOTable can contain
+all the rich metadata about the table(s), but the bulk data are in a form
+which can be read efficiently.  Crucially, the resulting FITS file
+is a perfectly good FITS table on its own, so non-VOTable-aware readers
+can read it in just the usual way, though of course they do not
+benefit from the additional metadata stored in the VOTable header.
+</p>
+<p>In practice, STIL normally writes FITS files using this convention
+(it writes the VOTable metadata into the Primary HDU)
+and when reading a FITS files it looks for use of this convention
+(examines the Primary HDU for VOTable metadata and uses it if present).
+But if an input file does not follow this convention, the metadata
+is taken directly from the BINTABLE header as normal.
+Non-FITS-plus-aware (i.e. non-STIL) readers will ignore the
+Primary HDU, since it has no purpose in a standard FITS file
+containing only a table, and it doesn't look like anything else
+that such readers are usually expecting.
+The upshot is that for nearly all purposes you can forget about
+use of this convention when writing and reading FITS tables
+using STIL and other libraries, but STIL may be able to recover
+rich metadata from files that it has written itself.
+</p>
+
+<p>To be recognised as a FITS-plus file, the Primary HDU (and hence
+the FITS file) must begin like this:
+<verbatim>
+    SIMPLE  =              T
+    BITPIX  =              8
+    NAXIS   =              1
+    NAXIS1  =            ???
+    VOTMETA =              T
+</verbatim>
+The sequence and values of the given header cards must be as shown,
+except for <code>NAXIS1</code> which contains the number of bytes
+in the data block; any comments are ignored.
+</p>
+
+<p>The content of the Primary HDU must be a VOTable document
+containing zero or more <code>TABLE</code> elements, one for each
+BINTABLE extension appearing later in the FITS file.
+Each such TABLE must <em>not</em> contain a <code>DATA</code> child;
+the table content is taken from the BINTABLE in the next unused
+table HDU.
+For instance the Primary HDU content annotating a single table
+might look like this:
+<verbatim><![CDATA[
+   <?xml version='1.0'?>
+   <VOTABLE version="1.3" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+   <RESOURCE>
+   <TABLE nrows="1000">
+     <FIELD datatype="double" name="RA" ucd="pos.eq.ra;meta.main"/>
+     <FIELD datatype="double" name="Dec" ucd="pos.eq.dec;meta.main"/>
+     <!-- Dummy VOTable - no DATA element here -->
+   </TABLE>
+   </RESOURCE>
+   </VOTABLE>
+]]></verbatim>
+The first extension HDU would then contain the two-column BINTABLE
+corresponding to the given metadata.
+</p>
+
+<p>The VOTable metadata MUST be compatible with the structure
+of the annotated BINTABLE(s) in terms of number and datatypes of columns.
+</p>
+
+<p><strong>Note:</strong>
+This arrangement bears some similarity to VOTable/FITS encoding,
+in which the output file is a VOTable which references an inline or
+external FITS file containing the bulk data.  However, the VOTable/FITS
+format is inconvenient in that either (for in-line data) the FITS file is
+base64-encoded and so hard to read efficiently especially for
+random access, or (for referenced data) the table is split across two files.
+</p>

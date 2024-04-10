@@ -1375,6 +1375,14 @@
       <arg value="sky+1d"/>
     </java>
 
+    <!-- Copy miscellaneous XML -->
+    <copy todir="${build.docs}">
+      <fileset dir="${star.dir}/source/votable/src/docs"
+               includes="fits-plus.xml"/>
+      <fileset dir="${star.dir}/source/fits/src/docs"
+               includes="fits-wide.xml"/>
+    </copy>
+
     <!-- Transform the user document XML to a single HTML document. -->
     <mkdir dir="${build.docs}/${user.doc}"/>
     <copy todir="${build.docs}/${user.doc}">
