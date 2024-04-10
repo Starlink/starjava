@@ -32,6 +32,7 @@ but some non-standard conventions are used:
     <code>primary=votable</code> option or <code>fits-plus</code> alias
     (if you don't want it,
     use <code>primary=basic</code> or <code>fits-basic</code>).
+    This convention is described in more detail in <ref id="fitsPlus"/>.
     </p></dd>
 <dt>colfits</dt>
 <dd><p>In Column-Oriented FITS output, the HDU containing the table data,
@@ -57,15 +58,12 @@ but some non-standard conventions are used:
 <dt>wide</dt>
 <dd><p>A private convention is used where required
     to support encoding of tables with
-    more than 999 columns (not possible in standard FITS);
-    this was discussed on the FITSBITS mailing list in July 2017
-    in the thread
-    <a href="https://listmgr.nrao.edu/pipermail/fitsbits/2017-July/002967.html"
-       >BINTABLE convention for >999 columns</a>.
+    more than 999 columns, which is not possible in standard FITS.
     If software unaware of this convention (e.g. CFITSIO) is used
     to read such tables, it will only see the first 998 columns written
     as intended, plus a column 999 containing an undescribed byte buffer
     where the rest of the column data is stored.
+    This convention is described in more detail in <ref id="wideFits"/>.
     </p></dd>
 </dl>
 </p>

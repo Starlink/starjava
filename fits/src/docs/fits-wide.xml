@@ -1,0 +1,188 @@
+<p>The FITS BINTABLE standard
+
+(<webref url="https://fits.gsfc.nasa.gov/standard40/fits_standard40aa-le.pdf"
+         >FITS Standard v4.0</webref>, section 7.3)
+permits a maximum of 999 columns in a binary table extension.
+Up to version 3.2 of STIL, attempting to write a table with more than
+999 columns using one of the supported FITS-based writers failed with
+an error.
+In later versions, a non-standard convention is used which can
+store wider tables in a FITS BINTABLE extension.
+The various STIL FITS-based readers can (in their default configurations)
+read these tables transparently, allowing round-tripping of
+arbitrarily wide tables to FITS files.  Note however that other
+FITS-compliant software is not in general aware of this convention,
+and will see a 999-column table.  The first 998 columns will appear
+as intended, but subsequent ones will effectively be hidden.
+</p>
+
+<p>The rest of this section describes the convention
+that is used to store tables with more than 999 columns
+in FITS BINTABLE extensions.
+</p>
+
+<p>The BINTABLE extension type requires table column metadata
+to be described using 8-character keywords of the form <code>TXXXXnnn</code>,
+where <code>TXXXX</code> represents one of an open set of mandatory, reserved
+or user-defined root keywords up to five characters in length,
+for instance <code>TFORM</code> (mandatory), <code>TUNIT</code> (reserved),
+<code>TUCD</code> (user-defined).
+The <code>nnn</code> part is an integer between 1 and 999 indicating the
+index of the column to which the keyword in question refers.
+Since the header syntax confines this indexed part of the keyword
+to three digits, there is an upper limit of 999 columns in
+BINTABLE extensions.
+</p>
+
+<p>Note that the FITS/BINTABLE format does not entail any restriction on
+the storage of column <em>data</em> beyond the 999 column limit in the data
+part of the HDU, the problem is just that client software
+cannot be informed about the layout of this data using the
+header cards in the usual way.
+</p>
+
+<p>The following convention is used by STIL FITS-based I/O handlers
+to accommodate wide tables in FITS files:
+
+<dl>
+<dt>Definitions:</dt>
+<dd><p>
+    <ul>
+    <li><em>BINTABLE columns</em> are those columns defined using the
+        FITS BINTABLE standard
+        </li>
+    <li><em>Data columns</em> are the columns to be encoded
+        </li>
+    <li><code>N_TOT</code> is the total number of data columns to be stored
+        </li>
+    <li>Data columns with (1-based) indexes from 999 to <code>N_TOT</code>
+        inclusive are known as <em>extended</em> columns.
+        Their data is stored within the <em>container</em> column.
+        </li>
+    <li>BINTABLE column 999 is known as the <em>container</em> column.
+        It contains the byte data for all the <em>extended</em> columns.
+        </li>
+    </ul>
+    </p></dd>
+<dt>Convention:</dt>
+<dd><p>
+    <ul>
+    <li>All column data (for columns 1 to <code>N_TOT</code>)
+        is laid out in the data part of the HDU in exactly the same way
+        as if there were no 999-column limit.
+        </li>
+    <li>The <code>TFIELDS</code> header is declared with the value 999.
+        </li>
+    <li>The container column is declared in the header with some
+        <code>TFORM999</code> value corresponding to the total field
+        length required by all the extended columns
+        ('<code>B</code>' is the obvious data type,
+        but any legal <code>TFORM</code> value that gives the right
+        width MAY be used).
+        The byte count implied by <code>TFORM999</code> MUST be equal to the
+        total byte count implied by all extended columns.
+        </li>
+    <li>Other <code>TXXXX999</code> headers MAY optionally
+        be declared to describe
+        the container column in accordance with the usual rules,
+        e.g. <code>TTYPE999</code> to give it a name.
+        </li>
+    <li>The <code>NAXIS1</code> header is declared
+        in the usual way to give the width
+        of a table row in bytes.  This is equal to the sum of
+        all the BINTABLE column widths as usual.  It is also equal to
+        the sum of all the data column widths, which has the same value.
+        </li>
+    <li>Headers for Data columns 1-998 are declared as usual,
+        corresponding to BINTABLE columns 1-998.
+        </li>
+    <li>Keyword <code>XT_ICOL</code> indicates the index
+        of the container column.
+        It MUST be present with the integer value 999 to indicate
+        that this convention is in use.
+        </li>
+    <li>Keyword <code>XT_NCOL</code> indicates the total number
+        of data columns encoded.
+        It MUST be present with an integer value equal to <code>N_TOT</code>.
+        </li>
+    <li>Metadata for each extended column is encoded with keywords
+        of the form '<code>HIERARCH XT TXXXXnnnnn</code>',
+        where <code>TXXXX</code> are the same keyword roots as used for normal
+        BINTABLE extensions,
+        and <code>nnnnn</code> is a decimal number written as usual
+        (no leading zeros, as many digits as are required).
+        Thus the formats for data columns 999, 1000, 1001 etc
+        are declared with the keywords
+        <code>HIERARCH XT TFORM999</code>,
+        <code>HIERARCH XT TFORM1000</code>,
+        <code>HIERARCH XT TFORM1001</code>, etc.
+        Note this uses the ESO HIERARCH convention described at
+        <webref url="https://fits.gsfc.nasa.gov/registry/hierarch_keyword.html"
+                />.
+        The <em>name space</em> token has been chosen as
+        '<code>XT</code>' (extended table).
+        </li>
+    <li>This convention MUST NOT be used for <code>N_TOT</code>&lt;=999.
+        </li>
+    </ul>
+    </p></dd>
+</dl>
+</p>
+<p>The resulting HDU is a completely legal FITS BINTABLE extension.
+Readers aware of this convention may use it to extract column
+data and metadata beyond the 999-column limit.
+Readers unaware of this convention will see 998 columns in their
+intended form, and an additional (possibly large) column 999
+which contains byte data but which cannot be easily interpreted.
+</p>
+
+<p>An example header might look like this:
+<verbatim>
+   XTENSION= 'BINTABLE'           /  binary table extension
+   BITPIX  =                    8 /  8-bit bytes
+   NAXIS   =                    2 /  2-dimensional table
+   NAXIS1  =                 9229 /  width of table in bytes
+   NAXIS2  =                   26 /  number of rows in table
+   PCOUNT  =                    0 /  size of special data area
+   GCOUNT  =                    1 /  one data group
+   TFIELDS =                  999 /  number of columns
+   XT_ICOL =                  999 /  index of container column
+   XT_NCOL =                 1204 /  total columns including extended
+   TTYPE1  = 'posid_1 '           /  label for column 1
+   TFORM1  = 'J       '           /  format for column 1
+   TTYPE2  = 'instrument_1'       /  label for column 2
+   TFORM2  = '4A      '           /  format for column 2
+   TTYPE3  = 'edge_code_1'        /  label for column 3
+   TFORM3  = 'I       '           /  format for column 3
+   TUCD3   = 'meta.code.qual'
+    ...
+   TTYPE998= 'var_min_s_2'        /  label for column 998
+   TFORM998= 'D       '           /  format for column 998
+   TUNIT998= 'counts/s'           /  units for column 998
+   TTYPE999= 'XT_MORECOLS'        /  label for column 999
+   TFORM999= '813I    '           /  format for column 999
+   HIERARCH XT TTYPE999         = 'var_min_u_2' / label for column 999
+   HIERARCH XT TFORM999         = 'D' / format for column 999
+   HIERARCH XT TUNIT999         = 'counts/s' / units for column 999
+   HIERARCH XT TTYPE1000        = 'var_prob_h_2' / label for column 1000
+   HIERARCH XT TFORM1000        = 'D' / format for column 1000
+    ...
+   HIERARCH XT TTYPE1203        = 'var_prob_w_2' / label for column 1203
+   HIERARCH XT TFORM1203        = 'D' / format for column 1203
+   HIERARCH XT TTYPE1204        = 'var_sigma_w_2' / label for column 1204
+   HIERARCH XT TFORM1204        = 'D' / format for column 1204
+   HIERARCH XT TUNIT1204        = 'counts/s' / units for column 1204
+   END
+</verbatim>
+</p>
+
+<p>This general approach was suggested by William Pence on the FITSBITS
+list in
+<webref url="https://listmgr.nrao.edu/pipermail/fitsbits/2012-June/002367.html"
+        >June 2012</webref>,
+and by Fran&#xE7;ois-Xavier Pineau (CDS) in private conversation in 2016.
+The details have been filled in by Mark Taylor (Bristol),
+and discussed in some detail on the FITSBITS list in
+<webref url="https://listmgr.nrao.edu/pipermail/fitsbits/2017-July/002967.html"
+        >July 2017</webref>.
+</p>

@@ -45,6 +45,10 @@
   <!ENTITY out-tst SYSTEM 'out-tst.xml'>
   <!ENTITY out-votable SYSTEM 'out-votable.xml'>
 
+  <!-- Miscellaneous text. -->
+  <!ENTITY fits-plus SYSTEM 'fits-plus.xml'>
+  <!ENTITY fits-wide SYSTEM 'fits-wide.xml'>
+
   <!-- Define some character constants. -->
   <!ENTITY column.id.char '$'>
   <!ENTITY subset.id.char '_'>
@@ -1290,6 +1294,7 @@ TOPCAT will determine whether a FITS file is FITS-plus or not based on its
 content and use the appropriate handler, but if you want to force the
 reader to use or ignore the enriched header, you can explicitly select
 an input format of "<code>FITS-plus</code>" or "<code>FITS</code>".
+The details of the FITS-plus convention are described in <ref id="fitsPlus"/>.
 </p>
 </subsubsubsect>
 
@@ -1301,6 +1306,7 @@ an input format of "<code>FITS-plus</code>" or "<code>FITS</code>".
 two variants are supported:
 with (<code>colfits-plus</code>) or without (<code>colfits-basic</code>)
 metadata stored as a VOTable byte array in the primary HDU.
+For details of the FITS-plus convention, see <ref id="fitsPlus"/>.
 </p>
 </subsubsubsect>
 
@@ -1496,6 +1502,31 @@ formats might be better.
 <subsubsubsect id="outMirage">
 <subhead><title>Mirage Format</title></subhead>
 &out-mirage;
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="fitsConventions">
+<subhead><title>Non-standard FITS conventions</title></subhead>
+
+<p>STIL, the I/O library underlying TOPCAT,
+uses a few private conventions when writing and reading FITS files.
+These are not private in the sense that non-STIL code is prevented from
+cooperating with them, but STIL does not assume that other code,
+or FITS tables it encounters, will use these conventions.
+Instead, they offer (in some cases) added value for tables that were
+written by STIL and are subsequently re-read by STIL, while causing
+the minimum of trouble for non-STIL readers.
+</p>
+
+<subsubsubsect id="fitsPlus">
+<subhead><title>FITS-plus</title></subhead>
+&fits-plus;
+</subsubsubsect>
+
+<subsubsubsect id="wideFits">
+<subhead><title>Wide FITS</title></subhead>
+&fits-wide;
 </subsubsubsect>
 
 </subsubsect>
@@ -33482,6 +33513,9 @@ introduced since the last version:
         TAP URL selector got mixed up with the placeholder text.</li>
     <li>Bugfix update of CDS HEALPix library to v0.30.3,
         prevents occasional plot failures.</li>
+    <li>Add to this document detailed documentation of
+        <ref id="fitsPlus">FITS-plus</ref> and
+        <ref id="wideFits">Wide FITS</ref> conventions.</li>
     </ul>
     </p></dd>
 

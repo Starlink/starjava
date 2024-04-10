@@ -24,10 +24,7 @@ and made available for application usage and user examination.
 
 <p>A private convention is used to support encoding of tables with
 more than 999 columns (not possible in standard FITS);
-this was discussed on the FITSBITS mailing list in July 2017
-in the thread
-<a href="https://listmgr.nrao.edu/pipermail/fitsbits/2017-July/002967.html"
-   >BINTABLE convention for >999 columns</a>.
+see <ref id="wideFits"/>.
 </p>
 
 <p>Header cards in the table's HDU header will be
