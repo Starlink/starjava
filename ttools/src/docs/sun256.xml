@@ -15272,6 +15272,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="wideFits">Wide FITS</ref> conventions.</li>
     <li>Parquet reader now copes with some other variants of
         array-valued columns.</li>
+    <li>Upgrade parquet support libraries to parquet-mr 1.13.1.
+        This means that snappy compression is now supported for 
+        MacOS ARM, as well as other, architectures.</li>
     </ul>
     </p></dd>
 

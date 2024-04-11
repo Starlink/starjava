@@ -15,8 +15,10 @@ a message like:
 If you can supply the relevant libaries on the classpath at runtime,
 the parquet support will work.
 At time of writing, the required libraries are included in
-the <code>topcat-extra.jar</code> monolithic jar file;
-they can also be found in the starjava github repository
+the <code>topcat-extra.jar</code> monolithic jar file
+(though not <code>topcat-full.jar</code>),
+and are included if you have the <code>topcat-all.dmg</code> file.
+They can also be found in the starjava github repository
 (<a href="https://github.com/Starlink/starjava/tree/master/parquet/src/lib"
          >https://github.com/Starlink/starjava/tree/master/parquet/src/lib</a>
 or you can acquire them from the
@@ -27,24 +29,29 @@ The required dependencies are a minimal subset of those required
 by the Parquet MR submodule
 <code>parquet-cli</code>,
 in particular the files
-<code>parquet-cli-1.11.1.jar</code>,
-<code>parquet-column-1.11.1.jar</code>,
-<code>parquet-common-1.11.1.jar</code>,
-<code>parquet-encoding-1.11.1.jar</code>,
-<code>parquet-format-structures-1.11.1.jar</code>,
-<code>parquet-hadoop-1.11.1-noshaded.jar</code>,
-<code>parquet-jackson-1.11.1.jar</code>,
-<code>commons-collections-3.2.2.jar</code>,
-<code>commons-configuration-1.6.jar</code>,
-<code>commons-lang-2.6.jar</code>,
-<code>failureaccess-1.0.1.jar</code>,
-<code>guava-27.0.1-jre.jar</code>,
-<code>hadoop-auth-2.7.3.jar</code>,
-<code>hadoop-common-2.7.3.jar</code>,
-<code>log4j-1.2.17.jar</code>,
-<code>slf4j-api-1.7.22.jar</code>,
-<code>slf4j-log4j12-1.7.22.jar</code>,
-<code>snappy-java-1.1.7.3.jar</code>.
+<code>commons-collections-3.2.2.jar</code>
+<code>commons-configuration2-2.1.1.jar</code>
+<code>commons-lang3-3.9.jar</code>
+<code>failureaccess-1.0.1.jar</code>
+<code>guava-27.0.1-jre.jar</code>
+<code>hadoop-auth-3.2.3.jar</code>
+<code>hadoop-common-3.2.3.jar</code>
+<code>hadoop-mapreduce-client-core-3.2.3.jar</code>
+<code>htrace-core4-4.1.0-incubating.jar</code>
+<code>log4j-1.2.17.jar</code>
+<code>parquet-cli-1.13.1.jar</code>
+<code>parquet-column-1.13.1.jar</code>
+<code>parquet-common-1.13.1.jar</code>
+<code>parquet-encoding-1.13.1.jar</code>
+<code>parquet-format-structures-1.13.1.jar</code>
+<code>parquet-hadoop-1.13.1.jar</code>
+<code>parquet-jackson-1.13.1.jar</code>
+<code>parquet-mr-stil.jar</code>
+<code>slf4j-api-1.7.22.jar</code>
+<code>slf4j-log4j12-1.7.22.jar</code>
+<code>snappy-java-1.1.8.3.jar</code>
+<code>stax2-api-4.2.1.jar</code>
+<code>woodstox-core-5.3.0.jar</code>.
 </blockquote>
 <blockquote>
 These libraries support some, but not all, of the compression formats
