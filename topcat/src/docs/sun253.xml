@@ -27418,6 +27418,7 @@ Some of the notable contributers are these:
 <li>John Murrell</li>
 <li>Ada Nebot (CDS)</li>
 <li>Fran&#x00e7;ois Ochsenbein (CDS)</li>
+<li>Masato Onodera (NAOJ)</li>
 <li>Clive Page (Leicester)</li>
 <li>Olivia Panzenb&#x00f6;ck (TU-Wien)</li>
 <li>Menelaus Perdikeas (ESAC)</li>
@@ -33520,6 +33521,9 @@ introduced since the last version:
         fixes poor rendering of selected tab label in JTabbedPane.</li>
     <li>Parquet reader now copes with some other variants of
         array-valued columns.</li>
+    <li>Upgrade parquet support libraries to parquet-mr 1.13.1.
+        This means that snappy compression is now supported for
+        MacOS ARM, as well as other, architectures.</li>
     </ul>
     </p></dd>
 
