@@ -29,6 +29,7 @@ The required dependencies are a minimal subset of those required
 by the Parquet MR submodule
 <code>parquet-cli</code>,
 in particular the files
+<code>aircompressor-0.21.jar</code>
 <code>commons-collections-3.2.2.jar</code>
 <code>commons-configuration2-2.1.1.jar</code>
 <code>commons-lang3-3.9.jar</code>
@@ -56,7 +57,8 @@ in particular the files
 <blockquote>
 These libraries support some, but not all, of the compression formats
 defined for parquet, currently
-<code>uncompressed</code>, <code>gzip</code> and <code>snappy</code>.
+<code>uncompressed</code>, <code>gzip</code>, <code>snappy</code>
+and <code>lz4_raw</code>.
 Supplying more of the parquet-mr dependencies at runtime would
 extend this list.
 </blockquote>

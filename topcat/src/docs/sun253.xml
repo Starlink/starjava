@@ -33524,6 +33524,7 @@ introduced since the last version:
     <li>Upgrade parquet support libraries to parquet-mr 1.13.1.
         This means that snappy compression is now supported for
         MacOS ARM, as well as other, architectures.</li>
+    <li>Add support for LZ4_RAW compression to Parquet I/O handlers.</li>
     </ul>
     </p></dd>
 
