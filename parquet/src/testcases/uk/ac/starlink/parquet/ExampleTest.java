@@ -25,11 +25,25 @@ public class ExampleTest extends TestCase {
         ParquetUtil.silenceLog4j();
     }
  
-    public void testExample() throws IOException {
-        File file =
-            URLUtils
-           .urlToFile( ExampleTest.class.getResource( "example.parquet" )
-           .toString() );
+    public void testExamples() throws IOException {
+        String[] compressFormats = {
+            "none",
+            "gzip",
+            "snappy",
+            "lz4",
+        //  "brotli",  // can't find codec
+        //  "zstd",    // parquet-mr uses zstd-jni
+        };
+        for ( String cf : compressFormats ) {
+            String fname = "example-" + cf + ".parquet";
+            File file = URLUtils
+                       .urlToFile( ExampleTest.class.getResource( fname )
+                                  .toString() );
+            readCompressedFile( file );
+        }
+    }
+
+    private void readCompressedFile( File file ) throws IOException {
         IOSupplier<ParquetFileReader> pfrSupplier = getPfrSupplier( file );
         checkExample( new SequentialParquetStarTable( pfrSupplier ) );
         checkExample( new CachedParquetStarTable( pfrSupplier, 2 ) );
@@ -38,19 +52,23 @@ public class ExampleTest extends TestCase {
     private void checkExample( ParquetStarTable pex ) throws IOException {
         StarTable ex = Tables.randomTable( pex );
         assertEquals( 3, ex.getRowCount() );
-        assertEquals( 4, ex.getColumnCount() );
+        assertEquals( 5, ex.getColumnCount() );
         assertColumnLike( ex.getColumnInfo( 0 ), "ints", Long.class );
         assertColumnLike( ex.getColumnInfo( 1 ), "fps", Double.class );
         assertColumnLike( ex.getColumnInfo( 2 ), "logs", Boolean.class );
         assertColumnLike( ex.getColumnInfo( 3 ), "strs", String.class );
+        assertColumnLike( ex.getColumnInfo( 4 ), "iarrs", long[].class );
         assertArrayEquals( ex.getRow( 0 ), new Object[] { 
             new Long( 1 ), new Double( 2.5 ), Boolean.TRUE, "foo",
+            new long[] { 11, 12, 13, 14 },
         } );
         assertArrayEquals( ex.getRow( 1 ), new Object[] {
             new Long( 2 ), Double.valueOf( Double.NaN ), null, null,
+            new long[] { 21, 22, 23, 24 },
         } );
         assertArrayEquals( ex.getRow( 2 ), new Object[] {
             new Long( 3 ), new Double( 99 ), Boolean.FALSE, "baz",
+            new long[] { 31, 32, 33, 34 },
         } );
         ex.close();
     }
