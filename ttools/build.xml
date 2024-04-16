@@ -1377,9 +1377,9 @@
 
     <!-- Copy miscellaneous XML -->
     <copy todir="${build.docs}">
-      <fileset dir="${star.dir}/source/votable/src/docs"
+      <fileset dir="${star.build.dir}/votable/src/docs"
                includes="fits-plus.xml"/>
-      <fileset dir="${star.dir}/source/fits/src/docs"
+      <fileset dir="${star.build.dir}/fits/src/docs"
                includes="fits-wide.xml"/>
     </copy>
 
