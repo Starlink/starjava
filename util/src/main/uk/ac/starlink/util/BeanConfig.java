@@ -440,8 +440,9 @@ public class BeanConfig {
         }
         else if ( Enum.class.isAssignableFrom( clazz ) ) {
             return Arrays.stream( clazz.getEnumConstants() )
-                         .filter( k -> k.toString().equalsIgnoreCase( txt ) )
-                         .findFirst().orElse( null );
+                  .filter( k -> k.toString().equalsIgnoreCase( txt ) )
+                  .findFirst()
+                  .get();
         }
         else {
             T targetMember = getTypedMember( clazz, txt, target.getClass() );
