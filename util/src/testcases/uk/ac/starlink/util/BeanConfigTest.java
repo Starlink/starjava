@@ -26,7 +26,7 @@ public class BeanConfigTest extends TestCase {
         assertEquals( 42, createTBean( "(ival=0x2a)" ).ival_ );
         assertEquals( Primary.GREEN,
                       createTBean( "(ival=09,primary=Green)" ).primary_ );
-        assertNull( createTBean( "(primary=ORANGE)" ).primary_ );
+        assertNull( createTBean( "(primary=)" ).primary_ );
 
         assertEquals( Dir.LEFT, createTBean( "( dir = LEFT )" ).dir_ );
         assertEquals( TBean.NORTH, createTBean( "(dir=NORTH)" ).dir_ );
