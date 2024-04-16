@@ -556,6 +556,21 @@
        <fileset dir="${dist.bin}"/>
     </chmod>
 
+    <!-- Build a manifest-only jar file referencing third-party libraries. -->
+    <manifestclasspath property="parquet-mr-stil.classpath"
+                       jarfile="${dist.lib.pkg}/parquet-mr-stil.jar">
+      <classpath>
+        <fileset dir="${dist.lib.pkg}"
+                 includes="*.jar"
+                 excludes="parquet-mr-stil.jar"/>
+      </classpath>
+    </manifestclasspath>
+    <jar destfile="${dist.lib.pkg}/parquet-mr-stil.jar">
+      <manifest>
+        <attribute name="Class-Path" value="${parquet-mr-stil.classpath}"/>
+      </manifest>
+    </jar>
+
   </target>
 
   <!--
