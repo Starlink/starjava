@@ -7,6 +7,7 @@ import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.formats.DocumentedIOHandler;
 import uk.ac.starlink.util.ConfigMethod;
+import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
 /**
  * TableWriter implementation for output to Parquet format.
@@ -18,6 +19,7 @@ public class ParquetTableWriter
         implements StarTableWriter, DocumentedIOHandler {
 
     private boolean groupArray_;
+    private CompressionCodecName codec_;
 
     public ParquetTableWriter() {
     }
@@ -115,5 +117,40 @@ public class ParquetTableWriter
      */
     public boolean isGroupArray() {
         return groupArray_;
+    }
+
+    /**
+     * Sets the compression type for data output.
+     * Supported options are currently
+     * <code>uncompressed</code>, <code>snappy</code>,
+     * <code>gzip</code>, <code>lz4_raw</code>.
+     *
+     * @param  codec  compression type
+     */
+    @ConfigMethod(
+        property = "compression",
+        example = "gzip",
+        usage = "uncompressed|snappy|gzip|lz4_raw",
+        doc = "<p>Configures the type of compression used for output.\n"
+            + "Supported values are probably\n"
+            + "<code>uncompressed</code>, <code>snappy</code>,\n"
+            + "<code>gzip</code> and <code>lz4_raw</code>.\n"
+            + "Others may be available if the relevant codecs are on the\n"
+            + "classpath at runtime.\n"
+            + "If no value is specified, the parquet-mr library default\n"
+            + "is used, which is probably <code>uncompressed</code>."
+            + "</p>"
+    )
+    public void setCompressionCodec( CompressionCodecName codec ) {
+        codec_ = codec;
+    }
+
+    /**
+     * Returns the compression type used for data output.
+     *
+     * @return  compression type
+     */
+    public CompressionCodecName getCompressionCodec() {
+        return codec_;
     }
 }
