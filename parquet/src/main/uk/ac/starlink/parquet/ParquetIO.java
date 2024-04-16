@@ -11,6 +11,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.hadoop.ParquetFileWriter;
 import org.apache.parquet.hadoop.ParquetWriter;
+import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import org.apache.parquet.hadoop.util.HadoopInputFile;
 import org.apache.parquet.io.InputFile;
 import org.apache.parquet.io.OutputFile;
@@ -187,6 +188,10 @@ class ParquetIO {
                .withValidation( true )
                .withPageWriteChecksumEnabled( false ) // doesn't seem to help
                .withDictionaryEncoding( true );
+        CompressionCodecName codec = writer.getCompressionCodec();
+        if ( codec != null ) {
+            builder.withCompressionCodec( codec );
+        }
     }
 
     /**
