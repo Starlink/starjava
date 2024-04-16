@@ -18,13 +18,13 @@ At time of writing, the required libraries are included in
 the <code>topcat-extra.jar</code> monolithic jar file;
 they can also be found in the starjava github repository
 (<a href="https://github.com/Starlink/starjava/tree/master/parquet/src/lib"
-         >https://github.com/Starlink/starjava/tree/master/parquet/src/lib</a>,
-use <code>parquet-mr-stil.jar</code> and its dependencies),
+         >https://github.com/Starlink/starjava/tree/master/parquet/src/lib</a>
 or you can acquire them from the
 <a href="https://github.com/apache/parquet-mr">Parquet MR</a> package.
 These arrangements may be revised in future releases, for instance if
 parquet usage becomes more mainstream.
-The required dependencies are those of the Parquet MR submodule
+The required dependencies are a minimal subset of those required
+by the Parquet MR submodule
 <code>parquet-cli</code>,
 in particular the files
 <code>parquet-cli-1.11.1.jar</code>,
@@ -45,5 +45,12 @@ in particular the files
 <code>slf4j-api-1.7.22.jar</code>,
 <code>slf4j-log4j12-1.7.22.jar</code>,
 <code>snappy-java-1.1.7.3.jar</code>.
+</blockquote>
+<blockquote>
+These libraries support some, but not all, of the compression formats
+defined for parquet, currently
+<code>uncompressed</code>, <code>gzip</code> and <code>snappy</code>.
+Supplying more of the parquet-mr dependencies at runtime would
+extend this list.
 </blockquote>
 </p>
