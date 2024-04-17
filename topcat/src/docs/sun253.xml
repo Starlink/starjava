@@ -33518,6 +33518,8 @@ introduced since the last version:
         <ref id="wideFits">Wide FITS</ref> conventions.</li>
     <li>MacOS DMG now bundled with Java 11 not Java 8,
         fixes poor rendering of selected tab label in JTabbedPane.</li>
+    <li>Parquet reader now copes with some other variants of
+        array-valued columns.</li>
     </ul>
     </p></dd>
 

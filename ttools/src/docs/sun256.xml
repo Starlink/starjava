@@ -15270,6 +15270,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add to this document detailed documentation of
         <ref id="fitsPlus">FITS-plus</ref> and
         <ref id="wideFits">Wide FITS</ref> conventions.</li>
+    <li>Parquet reader now copes with some other variants of
+        array-valued columns.</li>
     </ul>
     </p></dd>
 
