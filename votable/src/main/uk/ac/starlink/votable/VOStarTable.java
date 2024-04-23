@@ -56,11 +56,11 @@ import uk.ac.starlink.votable.datalink.ServiceDescriptorInfo;
  */
 public class VOStarTable extends AbstractStarTable {
 
-    private TableElement votable;
-    private TabularData tdata;
-    private ColumnInfo[] colinfos;
-    private boolean doneParams;
-    private static Logger logger_ =
+    private final TableElement tableEl_;
+    private final TabularData tdata_;
+    private ColumnInfo[] colinfos_;
+    private boolean doneParams_;
+    private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.votable" );
 
     /* Public column auxiliary metadata definitions. */
@@ -149,60 +149,60 @@ public class VOStarTable extends AbstractStarTable {
      * The data itself is inferred or constructed from the state and
      * content of the element.
      *
-     * @param  votable  Table VOElement
+     * @param  tableEl  Table VOElement
      */
-    public VOStarTable( TableElement votable ) throws IOException {
-        this( votable, votable.getData() );
+    public VOStarTable( TableElement tableEl ) throws IOException {
+        this( tableEl, tableEl.getData() );
     }
 
     /**
      * Construct a VOStarTable from a TABLE element forcing a particular
      * data implementation.
      *
-     * @param  votable  Table VOElement, which supplies the table's metadata
+     * @param  tableEl  Table VOElement, which supplies the table's metadata
      * @param  tdata   object supplying the table's data
      */
-    VOStarTable( TableElement votable, TabularData tdata ) {
-        this.votable = votable;
-        this.tdata = tdata;
-        setName( calculateName( votable ) );
+    VOStarTable( TableElement tableEl, TabularData tdata ) {
+        tableEl_ = tableEl;
+        tdata_ = tdata;
+        setName( calculateName( tableEl ) );
     }
 
     public int getColumnCount() {
-        return tdata.getColumnCount();
+        return tdata_.getColumnCount();
     }
 
     public long getRowCount() {
-        return votable.getNrows();
+        return tableEl_.getNrows();
     }
 
     public boolean isRandom() {
-        return tdata.isRandom();
+        return tdata_.isRandom();
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
 
         /* Lazily construct the columninfo list. */
-        if ( colinfos == null ) {
-            FieldElement[] fields = votable.getFields();
+        if ( colinfos_ == null ) {
+            FieldElement[] fields = tableEl_.getFields();
             int ncol = fields.length;
-            colinfos = new ColumnInfo[ ncol ];
+            colinfos_ = new ColumnInfo[ ncol ];
             for ( int i = 0; i < ncol; i++ ) {
                 FieldElement field = fields[ i ];
-                colinfos[ i ] = new ColumnInfo( getValueInfo( field ) );
+                colinfos_[ i ] = new ColumnInfo( getValueInfo( field ) );
             }
         }
-        return colinfos[ icol ];
+        return colinfos_[ icol ];
     }
 
     public List<DescribedValue> getParameters() {
 
         /* Lazily construct parameter list. */
-        if ( ! doneParams ) {
-            List<DescribedValue> params = new ArrayList<DescribedValue>();
+        if ( ! doneParams_ ) {
+            List<DescribedValue> params = new ArrayList<>();
 
             /* DESCRIPTION child. */
-            String description = votable.getDescription();
+            String description = tableEl_.getDescription();
             if ( description != null && description.trim().length() > 0 ) {
                 DefaultValueInfo descInfo = 
                     new DefaultValueInfo( "Description", String.class );
@@ -211,18 +211,18 @@ public class VOStarTable extends AbstractStarTable {
             }
 
             /* UCD attribute. */
-            if ( votable.hasAttribute( "ucd" ) ) {
+            if ( tableEl_.hasAttribute( "ucd" ) ) {
                 DescribedValue dval =
                     new DescribedValue( UCD_INFO, 
-                                        votable.getAttribute( "ucd" ) );
+                                        tableEl_.getAttribute( "ucd" ) );
                 params.add( dval );
             }
 
             /* Utype attribute. */
-            if ( votable.hasAttribute( "utype" ) ) {
+            if ( tableEl_.hasAttribute( "utype" ) ) {
                 DescribedValue dval =
                     new DescribedValue( UTYPE_INFO,
-                                        votable.getAttribute( "utype" ) );
+                                        tableEl_.getAttribute( "utype" ) );
                 params.add( dval );
             }
 
@@ -230,7 +230,7 @@ public class VOStarTable extends AbstractStarTable {
              * like elements in this TABLE element and any ancestor 
              * RESOURCE elements. */
             List<VOElement> pelList = new ArrayList<VOElement>();
-            for ( VOElement ancestor = votable; ancestor != null;
+            for ( VOElement ancestor = tableEl_; ancestor != null;
                   ancestor = ancestor.getParent() ) {
                 addParamElements( ancestor, pelList );
             }
@@ -268,7 +268,7 @@ public class VOStarTable extends AbstractStarTable {
             /* Datalink-style Service Descriptors. */
             ServiceDescriptorFactory sdFact = new ServiceDescriptorFactory();
             ServiceDescriptor[] servDescrips =
-                sdFact.readTableServiceDescriptors( votable );
+                sdFact.readTableServiceDescriptors( tableEl_ );
             int nsd = servDescrips.length;
             for ( int isd = 0; isd < nsd; isd++ ) {
                 ServiceDescriptor sd = servDescrips[ isd ];
@@ -293,9 +293,9 @@ public class VOStarTable extends AbstractStarTable {
 
             /* Append this list to the superclass list. */
             synchronized ( this ) {
-                if ( ! doneParams ) {
+                if ( ! doneParams_ ) {
                     super.getParameters().addAll( params );
-                    doneParams = true;
+                    doneParams_ = true;
                 }
             }
         }
@@ -307,12 +307,12 @@ public class VOStarTable extends AbstractStarTable {
     }
 
     public RowSequence getRowSequence() throws IOException {
-        return tdata.getRowSequence();
+        return tdata_.getRowSequence();
     }
 
     public RowAccess getRowAccess() throws IOException {
         if ( isRandom() ) {
-            return tdata.getRowAccess();
+            return tdata_.getRowAccess();
         }
         else {
             throw new UnsupportedOperationException();
@@ -321,7 +321,7 @@ public class VOStarTable extends AbstractStarTable {
 
     public Object[] getRow( long lrow ) throws IOException {
         if ( isRandom() ) {
-            return tdata.getRow( lrow );
+            return tdata_.getRow( lrow );
         }
         else {
             throw new UnsupportedOperationException();
@@ -330,7 +330,7 @@ public class VOStarTable extends AbstractStarTable {
 
     public Object getCell( long lrow, int icol ) throws IOException {
         if ( isRandom() ) {
-            return tdata.getCell( lrow, icol );
+            return tdata_.getCell( lrow, icol );
         }
         else {
             throw new UnsupportedOperationException();
@@ -338,7 +338,16 @@ public class VOStarTable extends AbstractStarTable {
     }
 
     public void close() throws IOException {
-        tdata.close();
+        tdata_.close();
+    }
+
+    /**
+     * Returns the TABLE element on which this VOStarTable is built.
+     *
+     * @return  TABLE element
+     */
+    public TableElement getTableElement() {
+        return tableEl_;
     }
 
     /**
