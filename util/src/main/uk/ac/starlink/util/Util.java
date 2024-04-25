@@ -1,5 +1,6 @@
 package uk.ac.starlink.util;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 
@@ -72,5 +73,19 @@ public class Util {
      */
     public static <T> boolean equals( T t1, T t2 ) {
         return Objects.equals( t1, t2 );
+    }
+
+    /**
+     * Typed contains test.
+     * This simply calls {@link java.util.Collection#contains},
+     * but provides compile-time assurance that the item's type is
+     * compatible with the collection.
+     *
+     * @param   collection   collection
+     * @param  item   item
+     * @return  true iff item is in collection (equality semantics)
+     */
+    public static <T> boolean contains( Collection<T> collection, T item ) {
+        return collection.contains( item );
     }
 }
