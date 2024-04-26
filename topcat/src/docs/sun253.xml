@@ -33529,6 +33529,7 @@ introduced since the last version:
         <ref id="outParquet">Parquet output handler</ref>.</li>
     <li>Initial highlight of selected table in TAP window
         now works as well for delimited-identifer table names.</li>
+    <li>Fix parquet input handler bug related to compression.</li>
     </ul>
     </p></dd>
 

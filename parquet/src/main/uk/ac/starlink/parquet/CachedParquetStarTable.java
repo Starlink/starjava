@@ -8,10 +8,12 @@ import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -47,7 +49,7 @@ public class CachedParquetStarTable extends ParquetStarTable {
 
     private final ColumnStoreStarTable dataTable_;
     private final Path basePath_;
-    private final List<File> tmpFiles_; 
+    private final Collection<File> tmpFiles_; 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.parquet" );
 
@@ -73,7 +75,8 @@ public class CachedParquetStarTable extends ParquetStarTable {
          * pluggable storage policy.  It probably should do. */
         basePath_ = Files.createTempDirectory( "CacheTable" );
         basePath_.toFile().deleteOnExit();
-        tmpFiles_ = Collections.synchronizedList( new ArrayList<File>() );
+        tmpFiles_ =
+            Collections.newSetFromMap( new ConcurrentHashMap<File,Boolean>() );
         logger_.info( "Will cache parquet data in " + basePath_ );
 
         /* Submit one job to read each column.  Parquet is column-oriented,

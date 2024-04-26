@@ -15278,6 +15278,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add support for LZ4_RAW compression to Parquet I/O handlers.</li>
     <li>Add compression type configuration option to
         <ref id="outParquet">Parquet output handler</ref>.</li>
+    <li>Fix parquet input handler bug related to compression.</li>
     </ul>
     </p></dd>
 
