@@ -90,7 +90,11 @@ public class TapMetaTreeModel implements TreeModel {
         if ( schemas_ != null && tname != null ) {
             for ( SchemaMeta schema : schemas_ ) {
                 for ( TableMeta table : schema.getTables() ) {
-                    if ( tname.equalsIgnoreCase( table.getName() ) ) {
+                    String cmpName = table.getName();
+                    if ( cmpName != null && cmpName.startsWith( "\"" ) ) {
+                        cmpName = cmpName.replace( "\"", "" );
+                    }
+                    if ( tname.equalsIgnoreCase( cmpName ) ) {
                         return new TreePath( new Object[] {
                             getRoot(), schema, table,
                         } );
