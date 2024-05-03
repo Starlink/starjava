@@ -345,19 +345,25 @@ public abstract class JELRowReader extends DVMap {
      * Evaluates a given compiled expression at the current row under the
      * assumption that the expression represents a boolean value.
      * The returned value is a boolean.  If a null value was encountered
-     * during evaluation, false is returned.
+     * during evaluation, or the expression is not boolean-valued,
+     * false is returned.
      *
      * @param  compEx  numeric-valued compiled expression
      * @return   expression value at current row
      */
     public synchronized boolean evaluateBoolean( CompiledExpression compEx )
             throws Throwable {
-        try {
-            isNullExpression_ = false;
-            boolean result = compEx.evaluate_boolean( args_ );
-            return isNullExpression_ ? false : result;
+        if ( compEx.getType() == 0 ) {
+            try {
+                isNullExpression_ = false;
+                boolean result = compEx.evaluate_boolean( args_ );
+                return isNullExpression_ ? false : result;
+            }
+            catch ( NullPointerException e ) {
+                return false;
+            }
         }
-        catch ( NullPointerException e ) {
+        else {
             return false;
         }
     }
@@ -366,7 +372,7 @@ public abstract class JELRowReader extends DVMap {
      * Evaluates a given compiled expression at the current row under the 
      * assumption that the expression represents a numeric value.
      * The returned value is a double.  If a null value was encountered
-     * during evaluation, a NaN is returned.
+     * during evaluation, or the expression is not numeric, a NaN is returned.
      *
      * @param  compEx  numeric-valued compiled expression
      * @return   expression value at current row
@@ -375,7 +381,17 @@ public abstract class JELRowReader extends DVMap {
              throws Throwable {
         try {
             isNullExpression_ = false;
-            double result = compEx.evaluate_double( args_ );
+            final double result;
+            switch ( compEx.getType() ) {
+                case 1: result = compEx.evaluate_byte( args_ ); break;
+                case 2: result = compEx.evaluate_char( args_ ); break;
+                case 3: result = compEx.evaluate_short( args_ ); break;
+                case 4: result = compEx.evaluate_int( args_ ); break;
+                case 5: result = compEx.evaluate_long( args_ ); break;
+                case 6: result = compEx.evaluate_float( args_ ); break;
+                case 7: result = compEx.evaluate_double( args_ ); break;
+                default: return Double.NaN;
+            }
             return isNullExpression_ ? Double.NaN : result;
         }
         catch ( NullPointerException e ) {

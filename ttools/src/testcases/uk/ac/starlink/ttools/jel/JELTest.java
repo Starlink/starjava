@@ -9,6 +9,7 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ConstantColumn;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.LoopStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.formats.CsvStarTable;
@@ -267,6 +268,29 @@ public class JELTest extends TableTestCase {
                       evaluate( t1, "(float)valueDouble(\"b_[Fe/H]\")", 0 ) );
         assertEquals( Float.valueOf( -0.8061f ),
                       evaluate( t1, "(float)valueDouble(\"B_[Fe/H]\")", 0 ) );
+    }
+
+    public void testTypedEvaluate() throws Throwable {
+        StarTable t = new LoopStarTable( "i", 0, 1, 1, true );
+        JELRowReader rr = new TablelessJELRowReader();
+        Library lib = JELUtils.getLibrary( rr );
+        assertTrue( rr.evaluateBoolean( JELUtils.compile( lib, t, "1==1" ) ) );
+        assertFalse( rr.evaluateBoolean( JELUtils.compile( lib, t, "1==0" ) ) );
+        assertFalse( rr.evaluateBoolean( JELUtils.compile( lib, t, "23" ) ) );
+        assertEquals( 23, rr.evaluateDouble(
+                             JELUtils.compile( lib, t, "(byte)23" ) ) );
+        assertEquals( 23, rr.evaluateDouble(
+                             JELUtils.compile( lib, t, "(short)23" ) ) );
+        assertEquals( 23, rr.evaluateDouble(
+                             JELUtils.compile( lib, t, "(int)23" ) ) );
+        assertEquals( 23, rr.evaluateDouble(
+                             JELUtils.compile( lib, t, "(long)23" ) ) );
+        assertEquals( 23, rr.evaluateDouble(
+                             JELUtils.compile( lib, t, "(float)23" ) ) );
+        assertEquals( 23, rr.evaluateDouble(
+                             JELUtils.compile( lib, t, "(double)23" ) ) );
+        assertTrue( Double.isNaN( rr.evaluateDouble(
+                                     JELUtils.compile( lib, t, "2>0" ) ) ) );
     }
 
     private Object evaluate( StarTable table, String expr, long irow )
