@@ -526,6 +526,22 @@ public class Gaia {
      * The units used by this function are the units used in
      * the <code>gaia_source</code> table.
      *
+     * <p>Null values for <code>parallax</code>, <code>pmra</code>,
+     * <code>pmdec</code> and <code>radial_velocity</code>
+     * are treated as if zero for the purposes of propagation.
+     * The documentation of the equivalent function in the Gaia archive
+     * comments <em>"This is a reasonable choice for most stars because
+     * those quantities would be either small (parallax and proper motion)
+     * or irrelevant (radial velocity).
+     * However, this is not true for stars very close to the Sun,
+     * where appropriate values need to be taken from the literature
+     * (e.g. average velocity field in the solar neighbourhood)."</em>
+     *
+     * <p>The effect is that the output represents the best estimates
+     * available for propagated astrometry; proper motions, parallax and
+     * RV are applied if present, but if not the output values are calculated
+     * or simply copied across as if those quantities were zero.
+     *
      * @example
      *    <code>epochProp(-15.5,
      *          array(ra,dec,parallax,pmra,pmdec,radial_velocity))</code>
@@ -544,8 +560,42 @@ public class Gaia {
         if ( astrom6 == null || astrom6.length < 5 ) {
             return null;
         }
-        return epochProp( tYr, new AstrometryParams( astrom6 ) )
-              .params;
+
+        /* If position or PM is missing, no propagation is possible;
+         * return the input values. */
+        if ( Double.isNaN( astrom6[ 0 ] ) ||
+             Double.isNaN( astrom6[ 1 ] ) ||
+             Double.isNaN( astrom6[ 3 ] ) ||
+             Double.isNaN( astrom6[ 4 ] ) ) {
+            return new double[] {
+                astrom6[ 0 ],
+                astrom6[ 1 ],
+                astrom6[ 2 ],
+                astrom6[ 3 ],
+                astrom6[ 4 ],
+                astrom6.length > 5 ? astrom6[ 5 ] : Double.NaN,
+            };
+        }
+        
+        /* Otherwise, attempt to propagate.  NaN parallax and RV are
+         * interpreted as zero for this purpose.  */
+        boolean hasPlx = ! Double.isNaN( astrom6[ 2 ] );
+        boolean hasRv = astrom6.length > 5 && !Double.isNaN( astrom6[ 5 ] );
+        double[] out6 = epochProp( tYr, new AstrometryParams( astrom6 ) )
+                       .params;
+
+        /* Postprocess the output: ensure that NaN inputs are represented
+         * in the output as NaN, rather than some definite value that
+         * results from taking them as zero on input.  In absence of
+         * parallax, propagation of RV won't make sense either. */
+        if ( ! hasPlx ) {
+            out6[ 2 ] = Double.NaN;
+            out6[ 5 ] = astrom6[ 5 ];
+        }
+        if ( ! hasRv ) {
+            out6[ 5 ] = Double.NaN;
+        }
+        return out6;
     }
 
     /**
@@ -585,16 +635,32 @@ public class Gaia {
      * Note the correlation coefficients, always in the range -1..1,
      * are dimensionless.
      *
-     * <p>This is clearly an unwieldy function to invoke,
-     * but if you are using it with the gaia_source catalogue itself,
-     * or other similar catalogues with the same column names and
-     * units, you can invoke it by just copying and pasting the
-     * example shown in this documentation.
+     * <p>Null values for <code>parallax</code>, <code>pmra</code>,
+     * <code>pmdec</code> and <code>radial_velocity</code>
+     * are treated as if zero for the purposes of propagation.
+     * The documentation of the equivalent function in the Gaia archive
+     * comments <em>"This is a reasonable choice for most stars because
+     * those quantities would be either small (parallax and proper motion)
+     * or irrelevant (radial velocity).
+     * However, this is not true for stars very close to the Sun,
+     * where appropriate values need to be taken from the literature
+     * (e.g. average velocity field in the solar neighbourhood)."</em>
+     *
+     * <p>The effect is that the output represents the best estimates
+     * available for propagated astrometry; proper motions, parallax and
+     * RV are applied if present, but if not the output values are calculated
+     * or simply copied across as if those quantities were zero.
      *
      * <p>This transformation is only applicable for radial velocities
      * determined independently of the astrometry, such as those
      * obtained with a spectrometer. It is not applicable for the
      * back-transformation of data already propagated to another epoch.
+     *
+     * <p>This is clearly an unwieldy function to invoke,
+     * but if you are using it with the gaia_source catalogue itself,
+     * or other similar catalogues with the same column names and
+     * units, you can invoke it by just copying and pasting the
+     * example shown in this documentation.
      *
      * @example <code>epochPropErr(-15.5, array(
      *    ra,dec,parallax,pmra,pmdec,radial_velocity,
@@ -613,6 +679,22 @@ public class Gaia {
      *          represented by a 22-element array as above
      */
     public static double[] epochPropErr( double tYr, double[] astrom22 ) {
+        if ( astrom22 == null || astrom22.length != 22 ) {
+            return null;
+        }
+
+        /* If position or PM is missing ,no propagation is possible;
+         * return the input values. */
+        if ( Double.isNaN( astrom22[ 0 ] ) ||
+             Double.isNaN( astrom22[ 1 ] ) ||
+             Double.isNaN( astrom22[ 3 ] ) ||
+             Double.isNaN( astrom22[ 4 ] ) ) {
+            return astrom22.clone();
+        }
+
+        /* Otherwise, attempt to propagate.  NaN parallax and RV are
+         * interpreted as zero for this purpose. */
+        boolean hasPlx = ! Double.isNaN( astrom22[ 2 ] );
         boolean hasRv = ! Double.isNaN( astrom22[ 5 ] );
 
         /* Prepare the inputs to the CU1 epoch propagation routine,
@@ -621,7 +703,7 @@ public class Gaia {
          * a matter of getting the units right - radians and years.*/
         double ra0 = astrom22[ 0 ] * DEG2RAD;
         double dec0 = astrom22[ 1 ] * DEG2RAD;
-        double plx0 = astrom22[ 2 ] * MAS2RAD;
+        double plx0 = hasPlx ? astrom22[ 2 ] * MAS2RAD : 0;
         double pmra0 = astrom22[ 3 ] * MAS2RAD;
         double pmdec0 = astrom22[ 4 ] * MAS2RAD;
         double rvkms0 = hasRv ? astrom22[ 5 ] : 0.0;
@@ -716,7 +798,8 @@ public class Gaia {
         /* Invert Michalik et al. 2014 Eq. 17. */
         final double rvkms1;
         final double errRvkms1;
-        if ( hasRv ) {
+        boolean hasRv1 = hasRv && hasPlx && plx1 != 0;
+        if ( hasRv1 ) {
             rvkms1 = RVNORM * zeta1 / plx1;
             errRvkms1 =
                 Math.sqrt( ( RVNORM * RVNORM * cov1[ 5 ][ 5 ] -
@@ -729,29 +812,31 @@ public class Gaia {
         }
 
         /* Assign the values to the output array, with unit conversions
-         * as required. */
+         * as required.  For quantities that may have received spurious
+         * values as a consequence of NaN->0 mapping on input, copy the
+         * input values across to the output unchanged. */
         double[] out22 = new double[ 22 ];
         out22[ 0 ] = ra1 * RAD2DEG;
         out22[ 1 ] = dec1 * RAD2DEG;
-        out22[ 2 ] = plx1 * RAD2MAS;
+        out22[ 2 ] = hasPlx ? plx1 * RAD2MAS : Double.NaN;
         out22[ 3 ] = pmra1 * RAD2MAS;
         out22[ 4 ] = pmdec1 * RAD2MAS;
-        out22[ 5 ] = rvkms1;
+        out22[ 5 ] = hasRv1 ? rvkms1 : astrom22[ 5 ];
         out22[ 6 ] = errRa1 * RAD2MAS;
         out22[ 7 ] = errDec1 * RAD2MAS;
         out22[ 8 ] = errPlx1 * RAD2MAS;
         out22[ 9 ] = errPmra1 * RAD2MAS;
         out22[ 10 ] = errPmdec1 * RAD2MAS;
-        out22[ 11 ] = errRvkms1;
+        out22[ 11 ] = hasRv1 ? errRvkms1 : astrom22[ 11 ];
         out22[ 12 ] = corrRaDec1;
-        out22[ 13 ] = corrRaPlx1;
+        out22[ 13 ] = hasPlx ? corrRaPlx1 : astrom22[ 13 ];
         out22[ 14 ] = corrRaPmra1;
         out22[ 15 ] = corrRaPmdec1;
-        out22[ 16 ] = corrDecPlx1;
+        out22[ 16 ] = hasPlx ? corrDecPlx1 : astrom22[ 16 ];
         out22[ 17 ] = corrDecPmra1;
         out22[ 18 ] = corrDecPmdec1;
-        out22[ 19 ] = corrPlxPmra1;
-        out22[ 20 ] = corrPlxPmdec1;
+        out22[ 19 ] = hasPlx ? corrPlxPmra1 : astrom22[ 19 ];
+        out22[ 20 ] = hasPlx ? corrPlxPmdec1 : astrom22[ 20 ];
         out22[ 21 ] = corrPmraPmdec1;
         return out22;
     }
@@ -770,7 +855,7 @@ public class Gaia {
      * @return  radial velocity in km/s
      */
     public static double rvMasyrToKms( double rvMasyr, double plxMas ) {
-        return rvMasyr * RVNORM / plxMas;
+        return plxMas == 0 ? Double.NaN : rvMasyr * RVNORM / plxMas;
     }
 
     /**
@@ -962,7 +1047,8 @@ public class Gaia {
         double plxMas = plxRad * RAD2MAS;
         double pmraMasyr = pmraRadyr * RAD2MAS;
         double pmdecMasyr = pmdecRadyr * RAD2MAS;
-        double rvKms = normRvRadyr / ( plxRad * RVNORM1 );
+        double rvKms = plxRad == 0 ? Double.NaN
+                                   : normRvRadyr / ( plxRad * RVNORM1 );
         return new AstrometryParams( raDeg, decDeg, plxMas,
                                      pmraMasyr, pmdecMasyr, rvKms );
     }

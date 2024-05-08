@@ -15305,6 +15305,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="tgroup"><code>tgroup</code></ref>
         alongside the predefined quartile specifiers
         (<code>Q1</code>, <code>median</code>, <code>Q3</code>).</li>
+    <li>Treatment of null values in the astrometric epoch propagation
+        functions
+        <ref id="Gaia-epochProp"><code>epochProp</code></ref> and
+        <ref id="Gaia-epochPropErr"><code>epochPropErr</code></ref>
+        has changed; null values for parallax and proper motion are
+        now treated as if zero rather than invalidating the propagation.
+        This (partly) follows behaviour of corresponding functionality
+        in Gaia and VO ADQL propagation UDFs.</li>
     </ul>
     </p></dd>
 
