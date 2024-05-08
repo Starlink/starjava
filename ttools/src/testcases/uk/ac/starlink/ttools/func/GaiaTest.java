@@ -309,6 +309,61 @@ public class GaiaTest extends TestCase {
         assertArrayColumnNearZero( result, "rdiff22_1000", 1e-8 );
     }
 
+    public void testEpochProp() {
+
+        // This tests against the examples included for ivo_epoch_prop
+        // in the UDF Catalogue Endorsed Note
+        // https://www.ivoa.net/documents/udf-catalogue/.
+        // These are from text introduced at
+        // https://github.com/ivoa-std/udf-catalogue/pull/20
+        // which introduced changes in NaN/NULL handling.
+        // Not in PEN (or master) yet so subject to change,
+        // but I'm expecting them to be accepted.
+        double tYr = 1992.25 - 2016.0;
+        double NaN = Double.NaN;
+        checkProp( tYr,
+            7.606083572, 11.79044105, 125, 300, -428.8, 52.51,
+            7.6040614046279735, 11.793270382827929, 125.01993165584682,
+            300.09877325973605, -428.934593565712, 52.50880381775256 );
+        checkProp( tYr,
+            7.606083572, 11.79044105, 125, NaN, NaN, NaN,
+            7.606083572, 11.79044105, 125, NaN, NaN, NaN );
+        checkProp( tYr,
+            7.606083572, 11.79044105, NaN, 300, -428.8, 52.51,
+            7.604061727024453, 11.79326993174991, NaN,
+            300.0030911918108, -428.79783514643105, 52.51 );
+        // This corner case is in the UDF docs, but to me it's arguable what
+        // the correct behaviour is, so I'm not going to reproduce it.
+        // checkProp( tYr,   // this one is arguable
+        //     7.606083572, 11.79044105, 125, 21, NaN, NaN,
+        //     7.606083572, 11.79044105, 125.0, NaN, NaN, NaN );
+        checkProp( tYr,
+            7.606083572, 11.79044105, 125, 300, -428.8, NaN,
+            7.604061727024712, 11.793269931749549, 124.9999997730655,
+            300.0030911152833, -428.79783503705033, NaN  );
+
+        // This one isn't from the UDF docs.
+        checkProp( tYr,
+            7.606083572, 11.79044105, 125, NaN, NaN, 21,
+            7.606083572, 11.79044105, 125, NaN, NaN, 21 );
+    }
+
+    private void checkProp( double tYr,
+                            double inLon, double inLat, double inPlx,
+                            double inPmlon, double inPmlat, double inRv,
+                            double outLon, double outLat, double outPlx,
+                            double outPmlon, double outPmlat, double outRv ){
+        double[] out6 =
+            Gaia.epochProp( tYr, new double[] { inLon, inLat, inPlx,
+                                                inPmlon, inPmlat, inRv } );
+        assertEquals( out6[ 0 ], outLon, 1e-6 );
+        assertEquals( out6[ 1 ], outLat, 1e-6 );
+        assertEquals( out6[ 2 ], outPlx, 1e-6 );
+        assertEquals( out6[ 3 ], outPmlon, 1e-6 );
+        assertEquals( out6[ 4 ], outPmlat, 1e-6 );
+        assertEquals( out6[ 5 ], outRv, 1e-6 );
+    }
+
     public void testXyz() throws IOException, TaskException {
 
         // Perform various tests including propagating the velocities

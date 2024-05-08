@@ -33536,6 +33536,14 @@ introduced since the last version:
     <li>Improve metadata in tables created by
         <ref id="match-windows">Match windows</ref>;
         they now record match parameters such as max error.</li>
+    <li>Treatment of null values in the astrometric epoch propagation 
+        functions
+        <ref id="Gaia-epochProp"><code>epochProp</code></ref> and
+        <ref id="Gaia-epochPropErr"><code>epochPropErr</code></ref>
+        has changed; null values for parallax and proper motion are
+        now treated as if zero rather than invalidating the propagation.
+        This (partly) follows behaviour of corresponding functionality
+        in Gaia and VO ADQL propagation UDFs.</li>
     </ul>
     </p></dd>
 

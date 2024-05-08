@@ -28,21 +28,24 @@ class AstrometryParams {
      *
      * @param   ra     right ascension in degrees
      * @param   dec    declination in degrees
-     * @param   plx    parallax in mas
+     * @param   plx    parallax in mas;
+     *                 if NaN, treated as zero
      * @param   pmra   proper motion in right ascension multiplied by cos(dec)
-     *                 in mas/year
-     * @param   pmdec  proper motion in declination in mas/year
+     *                 in mas/year;
+     *                 if NaN, treated as zero
+     * @param   pmdec  proper motion in declination in mas/year;
+     *                 if NaN, treated as zero
      * @param   rv     radial velocity in barycentric km/s;
-     *                 if NaN, is treated as zero
+     *                 if NaN, treated as zero
      */
     public AstrometryParams( double ra, double dec, double plx,
                              double pmra, double pmdec, double rv ) {
         params = new double[] {
             this.ra = ra,
             this.dec = dec,
-            this.plx = plx,
-            this.pmra = pmra,
-            this.pmdec = pmdec,
+            this.plx = Double.isNaN( plx ) ? 0 : plx,
+            this.pmra = Double.isNaN( pmra ) ? 0 : pmra,
+            this.pmdec = Double.isNaN( pmdec ) ? 0 : pmdec,
             this.rv = Double.isNaN( rv ) ? 0 : rv,
         };
     }
