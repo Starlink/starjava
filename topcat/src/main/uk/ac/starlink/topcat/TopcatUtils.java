@@ -11,6 +11,9 @@ import java.awt.datatransfer.StringSelection;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -730,6 +733,81 @@ public class TopcatUtils {
         JOptionPane.showMessageDialog( parent, msg, "About TOPCAT",
                                        JOptionPane.INFORMATION_MESSAGE,
                                        ResourceIcon.getTopcatLogo() );
+    }
+
+    /**
+     * Invokes the java.awt.Desktop.setAboutHandler method.
+     * Since that method was introduced at Java 9, and at time of writing
+     * the build and minimal target deployment platform is Java 8,
+     * this is done by reflection, and hence will only do useful work
+     * in a runtime environment of &gt;=9.  
+     * This method only does useful work anyway on certain platforms,
+     * notably MacOS, for which an About button is part of the standard
+     * application GUI.
+     * If for whatever reason the assignment doesn't work, it fails silently.
+     *
+     * <p>If the target platform is upgraded one day to Java &gt;= 9,
+     * this reflective code can be eliminated or replaced by something
+     * very much simpler.
+     *
+     * @param  doAbout  callback to display an About Application window
+     * @return  true iff the handler installation apparently succeeded
+     */
+    public static boolean setAboutHandler( Runnable doAbout ) {
+
+        /* See if the AboutHandler interface exists.
+         * If not, we're using a java version <9, so none of this reflection
+         * will work; bail out. */
+        final Class<?> aboutHandlerClazz;
+        try {
+            aboutHandlerClazz =
+                Class.forName( "java.awt.desktop.AboutHandler" );
+        }
+        catch ( Throwable e ) {
+            return false;
+        }
+        try {
+
+            /* Create an AboutHandler instance whose only method (handleAbout)
+             * runs the supplied callback code.  This has to be a proxy. */
+            InvocationHandler handler = new InvocationHandler() {
+                public Object invoke( Object proxy, Method method,
+                                      Object[] args ) {
+                    if ( "handleAbout".equals( method.getName() ) ) {
+                        doAbout.run();
+                    }
+                    return null;
+                }
+            };
+            Object aboutHandler =
+                Proxy.newProxyInstance( TopcatUtils.class.getClassLoader(),
+                                        new Class<?>[] { aboutHandlerClazz },
+                                        handler );
+
+            /* Locate and invoke the Desktop.setAboutHandler method
+             * reflectively. */
+            Method setAboutHandlerMethod =
+                Arrays.stream( Desktop.class.getMethods() )
+                      .filter( m -> "setAboutHandler".equals( m.getName() ) )
+                      .findAny()
+                      .get();
+            setAboutHandlerMethod.invoke( Desktop.getDesktop(), aboutHandler );
+            return true;
+        }
+
+        /* setAboutHandler fails with an UnsupportedOperationException on
+         * non-Mac platforms. */
+        catch ( UnsupportedOperationException e ) {
+            return false;
+        }
+
+        /* Otherwise it looks like we're on Java 9, but something went wrong,
+         * probably with the reflection.  Oh well. */
+        catch ( Throwable e ) {
+            logger_.log( Level.INFO,
+                         "Slightly surprising reflection failure", e );
+            return false;
+        }
     }
 
     /**
