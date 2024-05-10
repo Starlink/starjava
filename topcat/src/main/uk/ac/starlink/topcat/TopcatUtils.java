@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Desktop;
 import java.awt.Dimension;
@@ -713,6 +714,22 @@ public class TopcatUtils {
         for ( int i = 0; i < comps.length; i++ ) {
             comps[ i ].setPreferredSize( prefSize );
         }
+    }
+
+    /**
+     * Displays an informational About TOPCAT window.
+     *
+     * @param  parent  parent component
+     */
+    public static void showAbout( Component parent ) {
+        Object[] msg = new Object[] {
+            TopcatUtils.getAbout(),
+            Box.createVerticalStrut( 10 ),
+            AuxWindow.getSponsorLogos(),
+        };
+        JOptionPane.showMessageDialog( parent, msg, "About TOPCAT",
+                                       JOptionPane.INFORMATION_MESSAGE,
+                                       ResourceIcon.getTopcatLogo() );
     }
 
     /**

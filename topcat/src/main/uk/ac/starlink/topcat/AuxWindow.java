@@ -715,17 +715,7 @@ public class AuxWindow extends JFrame {
                 ControlWindow.getInstance().makeVisible();
             }
             else if ( this == aboutAct ) {
-          
-                Object[] msg = new Object[] {
-                    TopcatUtils.getAbout(),
-                    Box.createVerticalStrut( 10 ), 
-                    getSponsorLogos(),
-                };
-                JOptionPane.showMessageDialog( AuxWindow.this, 
-                                               msg,
-                                               "About TOPCAT",
-                                               JOptionPane.INFORMATION_MESSAGE,
-                                               ResourceIcon.getTopcatLogo() );
+                TopcatUtils.showAbout( AuxWindow.this );
             }
         }
     }

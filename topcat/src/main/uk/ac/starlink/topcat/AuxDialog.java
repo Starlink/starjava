@@ -7,14 +7,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JToolBar;
@@ -131,16 +129,7 @@ public class AuxDialog extends JDialog {
                 new AbstractAction( "About TOPCAT",
                                     ResourceIcon.getTopcatLogoSmall() ) {
             public void actionPerformed( ActionEvent evt ) {
-                Object[] msg = new Object[] {
-                    TopcatUtils.getAbout(),
-                    Box.createVerticalStrut( 10 ),
-                    AuxWindow.getSponsorLogos(),
-                };
-                JOptionPane.showMessageDialog( AuxDialog.this,
-                                               msg,
-                                               "About TOPCAT",
-                                               JOptionPane.INFORMATION_MESSAGE,
-                                               ResourceIcon.getTopcatLogo() );
+                TopcatUtils.showAbout( AuxDialog.this );
             }
         };
         helpMenu_.add( aboutAct );
