@@ -440,6 +440,7 @@ public class Driver {
 
         /* Start up the GUI now. */
         final ControlWindow control = getControlWindow();
+        TopcatUtils.setAboutHandler( () -> TopcatUtils.showAbout( control ) );
 
         /* Start up with demo data if requested. */
         if ( demo ) {

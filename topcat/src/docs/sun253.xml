@@ -27361,6 +27361,7 @@ Some of the notable contributers are these:
 <li>Malcolm Bremer (Bristol)</li>
 <li>Patrick Broos (Penn State)</li>
 <li>Johannes Buchner (MPE)</li>
+<li>Russ Calvert (AstroGrav)</li>
 <li>Baptiste Cecconi (LESIA)</li>
 <li>Igor Chilingarian (CfA)</li>
 <li>Tamara Civera (CEFCA)</li>
@@ -33530,6 +33531,8 @@ introduced since the last version:
     <li>Initial highlight of selected table in TAP window
         now works as well for delimited-identifer table names.</li>
     <li>Fix parquet input handler bug related to compression.</li>
+    <li>About application button on MacOS should now display
+        custom About TOPCAT window.</li>
     </ul>
     </p></dd>
 
