@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.join;
+package uk.ac.starlink.table.join;
 
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -9,7 +9,6 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.Coverage;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchKit;
-import uk.ac.starlink.ttools.func.CoordsRadians;
 
 /**
  * MatchEngine adaptor which transforms the base engine so that it
@@ -34,6 +33,12 @@ public class HumanMatchEngine implements MatchEngine {
     private final ValueInfo scoreInfo_;
     private final int nval_;
     private final boolean isIdentity_;
+
+    /** The size of one degree in radians. */
+    private static final double DEGREE_RADIANS = Math.PI / 180;
+
+    /** The size of one arcsecond in radians. */
+    private static final double ARC_SECOND_RADIANS = Math.PI / 180 / 60 / 60;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.join" );
@@ -218,22 +223,19 @@ public class HumanMatchEngine implements MatchEngine {
 
             /* For small angles, use arcseconds. */
             if ( isSmallAngle( info ) ) {
-                return new DoubleFactorWrapper( CoordsRadians
-                                               .ARC_SECOND_RADIANS, "arcsec" );
+                return new DoubleFactorWrapper( ARC_SECOND_RADIANS, "arcsec" );
             }
 
             /* For large angles, use degrees. */
             else if ( isLargeAngle( info ) ) {
-                return new DoubleFactorWrapper( CoordsRadians.DEGREE_RADIANS,
-                                                "degrees" );
+                return new DoubleFactorWrapper( DEGREE_RADIANS, "deg" );
             }
 
             /* If in doubt, issue a warning and use degrees. */
             else {
                 logger_.warning( "Unknown angular quantity " + info
                                + " - convert to degrees" );
-                return new DoubleFactorWrapper( CoordsRadians.DEGREE_RADIANS,
-                                                "degrees" );
+                return new DoubleFactorWrapper( DEGREE_RADIANS, "deg" );
             }
         }
 
