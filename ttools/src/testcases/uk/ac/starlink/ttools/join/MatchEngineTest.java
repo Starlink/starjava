@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.join;
 
 import junit.framework.TestCase;
+import uk.ac.starlink.table.join.HumanMatchEngine;
 import uk.ac.starlink.table.join.MatchEngine;
 
 public class MatchEngineTest extends TestCase {
