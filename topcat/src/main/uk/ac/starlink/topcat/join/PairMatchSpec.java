@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
@@ -21,6 +22,7 @@ import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.join.HumanMatchEngine;
 import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.LinkSet;
 import uk.ac.starlink.table.join.MatchEngine;
@@ -227,6 +229,9 @@ public class PairMatchSpec extends MatchSpec {
         String type = "Pair match; " + pairMode.getSummary();
         params.add( new DescribedValue( MATCHTYPE_INFO, type ) );
         params.add( new DescribedValue( ENGINE_INFO, engine.toString() ) );
+        params.addAll( Arrays.asList( HumanMatchEngine
+                                     .getHumanMatchEngine( engine )
+                                     .getMatchParameters() ) );
         ValueInfo joinInfo = 
             new DefaultValueInfo( "Join Type", String.class, 
                                   "Determines which rows appear " +

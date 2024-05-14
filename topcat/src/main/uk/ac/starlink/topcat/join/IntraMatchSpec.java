@@ -3,12 +3,17 @@ package uk.ac.starlink.topcat.join;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Supplier;
 import javax.swing.Box;
 import javax.swing.JOptionPane;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.join.HumanMatchEngine;
 import uk.ac.starlink.table.join.LinkSet;
 import uk.ac.starlink.table.join.Match1Type;
 import uk.ac.starlink.table.join.MatchEngine;
@@ -71,8 +76,10 @@ public class IntraMatchSpec extends MatchSpec {
 
         /* Interrogate components for tables to operate on. */
         Match1Type type1 = type1Selector_.getType1();
+        String type1txt = type1Selector_.getType1Text();
         StarTable effTable = tupleSelector_.getEffectiveTable();
-        StarTable appTable = tupleSelector_.getTable().getApparentStarTable();
+        TopcatModel tcModel = tupleSelector_.getTable();
+        StarTable appTable = tcModel.getApparentStarTable();
 
         /* Do the matching. */
         RowMatcher matcher =
@@ -90,6 +97,7 @@ public class IntraMatchSpec extends MatchSpec {
         else {
             Collection<RowLink> links = MatchStarTables.orderLinks( matches );
             result_ = type1.createMatchTable( appTable, links );
+            addMatchMetadata( result_, engine_, type1txt, tcModel );
         }
     }
 
@@ -116,5 +124,28 @@ public class IntraMatchSpec extends MatchSpec {
 
         /* Alert the user that the matching is done. */
         JOptionPane.showMessageDialog( parent, msg, title, msgType );
+    }
+
+    /**
+     * Adds metadata to the output table for a match that has been performed.
+     *
+     * @param  table  output table
+     * @param  engine  match engine
+     * @param  type1txt  description of internal match type
+     * @param  tcModel   input table
+     */
+    private static void addMatchMetadata( StarTable table, MatchEngine engine,
+                                          String type1txt,
+                                          TopcatModel tcModel ) {
+        List<DescribedValue> params = table.getParameters();
+        params.add( new DescribedValue( MATCHTYPE_INFO,
+                                        "Internal match; " + type1txt ) );
+        params.add( new DescribedValue( ENGINE_INFO, engine.toString() ) );
+        params.addAll( Arrays.asList( HumanMatchEngine
+                                     .getHumanMatchEngine( engine )
+                                     .getMatchParameters() ) );
+        params.add( new DescribedValue( new DefaultValueInfo( "Input table",
+                                                              String.class ),
+                                        tcModel.toString() ) );
     }
 }

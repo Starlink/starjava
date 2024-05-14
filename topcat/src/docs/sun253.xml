@@ -33533,6 +33533,9 @@ introduced since the last version:
     <li>Fix parquet input handler bug related to compression.</li>
     <li>About application button on MacOS should now display
         custom About TOPCAT window.</li>
+    <li>Improve metadata in tables created by
+        <ref id="match-windows">Match windows</ref>;
+        they now record match parameters such as max error.</li>
     </ul>
     </p></dd>
 

@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,6 +20,7 @@ import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.join.HumanMatchEngine;
 import uk.ac.starlink.table.join.LinkSet;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchStarTables;
@@ -241,21 +243,21 @@ public class InterMatchSpec extends MatchSpec {
         List<DescribedValue> params = table.getParameters();
         params.add( new DescribedValue( MATCHTYPE_INFO, matchType ) );
         params.add( new DescribedValue( ENGINE_INFO, engine.toString() ) );
-        DescribedValue[] matchParams = engine.getMatchParameters();
-        for ( int i = 0; i < matchParams.length; i++ ) {
-            params.add( matchParams[ i ] );
-        }
+        params.addAll( Arrays.asList( HumanMatchEngine
+                                     .getHumanMatchEngine( engine )
+                                     .getMatchParameters() ) );
         for ( int i = 0; i < effTables.length; i++ ) {
+            StarTable inTable = effTables[ i ];
             int i1 = i + 1;
             String id = null;
             if ( id == null ) {
-                URL url = effTables[ i ].getURL();
+                URL url = inTable.getURL();
                 if ( url != null ) {
                     id = url.toString();
                 }
             }
             if ( id == null ) {
-                id = table.getName();
+                id = inTable.getName();
             }
             if ( id == null ) {
                 id = "(virtual)";

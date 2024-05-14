@@ -85,6 +85,15 @@ public class Match1TypeSelector extends JPanel {
     }
 
     /**
+     * Returns a textual description of the match option selected.
+     *
+     * @return  internal match type description, not null
+     */
+    public String getType1Text() {
+        return option_.getDescription();
+    }
+
+    /**
      * Abstract helper class defining one of the match type options.
      */
     private static abstract class TypeOption {
