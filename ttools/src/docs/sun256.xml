@@ -3137,6 +3137,13 @@ other longitude/latitude coordinate pairs may be used in place of
 right ascension and declination.
 </p>
 
+<p>A variant form <code>skyerr_q</code>
+does the same thing but combines the two per-row <code>error</code> values
+in quadrature rather than by summation.
+In that case the separation between the two positions
+must be no larger than <m>sqrt(error1<sup>2</sup>+error2<sup>2</sup>)</m>.
+</p>
+
 <p><strong>Note:</strong> the semantics of this matcher have changed
 slightly at version 2.4 of STILTS.
 In earlier versions the single parameter was named <code>max-error</code>
@@ -3313,9 +3320,9 @@ Matching in any number of Cartesian dimensions can be done by extending
 this syntax in the obvious way.
 </p>
 
-<p>A variant form <code>1d_qerr</code>, <code>2d_qerr</code>, ...
+<p>A variant form <code>1d_err_q</code>, <code>2d_err_q</code>, ...
 does the same thing but combines the two per-row <code>error</code> values
-in quadrature.
+in quadrature rather than by summation.
 In that case the separation beween the two positions
 must be no larger than <m>sqrt(error1<sup>2</sup>+error2<sup>2</sup>)</m>.
 </p>
@@ -15286,9 +15293,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add compression type configuration option to
         <ref id="outParquet">Parquet output handler</ref>.</li>
     <li>Fix parquet input handler bug related to compression.</li>
-    <li>New <ref id="ErrorCartesianMatchEngine">matcher variants</ref>
-        <code>nd_qerr</code> introduced for combining per-object errors
-        in quadrature.</li>
+    <li>New matcher variants
+        <ref id="ErrorCartesianMatchEngine"><code>nd_err_q</code></ref>
+        and <ref id="SkyMatchEngine-err"><code>skyerr_q</code></ref>
+        introduced for combining per-object errors in quadrature.</li>
     </ul>
     </p></dd>
 

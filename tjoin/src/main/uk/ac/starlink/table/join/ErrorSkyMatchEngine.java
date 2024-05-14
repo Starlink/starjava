@@ -14,8 +14,10 @@ import uk.ac.starlink.table.ValueInfo;
  * respectively, all in radians.  Other similar longitude/latitude-like
  * coordinate system may alternatively be used.
  * Two tuples are considered to match if the distance along a great circle
- * of their central positions is no greater than the sum of their per-object
- * radii.
+ * of their central positions is no greater than the combination
+ * of their per-object radii.
+ * This combination may be either a simple sum or the sum in quadrature,
+ * according to configuration.
  *
  * <p>A length scale must be supplied, which should be of comparable size
  * to the average per-object error, and which affects performance but not
@@ -28,6 +30,7 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
 
+    private final ErrorSummation errorSummation_;
     private final DescribedValue[] matchParams_;
 
     private static final DefaultValueInfo SCALE_INFO =
@@ -55,11 +58,20 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
     /**
      * Constructor.
      *
+     * <p>The <code>errorSummation</code> parameter configures how the
+     * match score is assessed from the error values of two tuples.
+     * The match threshold is determined by summing the error values,
+     * either by simple addition or by addition in quadrature.
+     *
      * @param  pixellator  handles sky pixellisation
+     * @param  errorSummation  how to combine errors; if null, simple is used
      * @param  scale       initial value for length scale, in radians
      */
-    public ErrorSkyMatchEngine( SkyPixellator pixellator, double scale ) {
+    public ErrorSkyMatchEngine( SkyPixellator pixellator,
+                                ErrorSummation errorSummation, double scale ) {
         super( pixellator, scale );
+        errorSummation_ = errorSummation == null ? ErrorSummation.SIMPLE
+                                                 : errorSummation;
         matchParams_ =
             new DescribedValue[] { new SkyScaleParameter( SCALE_INFO ) };
     }
@@ -100,7 +112,8 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
         final Supplier<VariableRadiusConePixer> pixerFact =
             getPixellator().createVariableRadiusPixerFactory();
         final CoordReader coordReader = getCoordReader();
-        return () -> new ErrorMatchKit( pixerFact.get(), coordReader );
+        return () -> new ErrorMatchKit( errorSummation_, pixerFact.get(),
+                                        coordReader );
     }
 
     public Supplier<Coverage> createCoverageFactory() {
@@ -132,7 +145,9 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
     }
 
     public String toString() {
-        return "Sky with Errors";
+        return new StringBuffer( "Sky with Errors" )
+              .append( errorSummation_.getTail() )
+              .toString();
     }
 
     /**
@@ -148,17 +163,21 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
      * MatchKit implementation for use with this class.
      */
     private static class ErrorMatchKit implements MatchKit {
+        final ErrorSummation errorSummation_;
         final VariableRadiusConePixer conePixer_;
         final CoordReader coordReader_;
 
         /**
          * Constructor.
          *
+         * @param  errorSummation  error combination method
          * @param   conePixer  sky pixellation implementation
          * @param   coordReader  extracts coords from tuple
          */
-        ErrorMatchKit( VariableRadiusConePixer conePixer,
+        ErrorMatchKit( ErrorSummation errorSummation,
+                       VariableRadiusConePixer conePixer,
                        CoordReader coordReader ) {
+            errorSummation_ = errorSummation;
             conePixer_ = conePixer;
             coordReader_ = coordReader;
         }
@@ -176,8 +195,9 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
         public double matchScore( Object[] tuple1, Object[] tuple2 ) {
             double delta1 = coordReader_.getDelta( tuple1 );
             double delta2 = coordReader_.getDelta( tuple2 );
-            double maxerr = coordReader_.getError( tuple1 )
-                          + coordReader_.getError( tuple2 );
+            double err1 = coordReader_.getError( tuple1 );
+            double err2 = coordReader_.getError( tuple2 );
+            double maxerr = errorSummation_.combine( err1, err2 );
 
             /* Cheap test which will throw out most comparisons straight away:
              * see if the separation in declination is greater than the maximum
@@ -268,10 +288,13 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
          * Constructor.
          *
          * @param  pixellator  handles sky pixellisation
+         * @param  errorSummation  error combination method
          * @param  scaleRadians  initial value for length scale, in radians
          */
-        public InDegrees( SkyPixellator pixellator, double scaleRadians ) {
-            super( pixellator, scaleRadians );
+        public InDegrees( SkyPixellator pixellator,
+                          ErrorSummation errorSummation,
+                          double scaleRadians ) {
+            super( pixellator, errorSummation, scaleRadians );
             ValueInfo[] infos0 = super.getTupleInfos();
             tupleInfos_ = new ValueInfo[] {
                 inDegreeInfo( infos0[ 0 ] ),

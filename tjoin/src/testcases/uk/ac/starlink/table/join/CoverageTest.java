@@ -109,6 +109,7 @@ public class CoverageTest extends TestCase {
             new FixedSkyMatchEngine( new CdsHealpixSkyPixellator(), 0.0 );
         ErrorSkyMatchEngine errEngine =
             new ErrorSkyMatchEngine( new CdsHealpixSkyPixellator(),
+                                     ErrorSummation.SIMPLE,
                                      Math.toRadians( 0.1 ) );
         MatchEngine combEngine =
             new CombinedMatchEngine( new MatchEngine[] { fixEngine } );

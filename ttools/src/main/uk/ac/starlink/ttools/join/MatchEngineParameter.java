@@ -452,7 +452,15 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
             else if ( "skyerr".equalsIgnoreCase( cName ) ) {
                 component =
                     new ErrorSkyMatchEngine
-                       .InDegrees( new CdsHealpixSkyPixellator(), ARC_SECOND );
+                       .InDegrees( new CdsHealpixSkyPixellator(),
+                                   ErrorSummation.SIMPLE, ARC_SECOND );
+            }
+            else if ( "skyerr_q".equalsIgnoreCase( cName ) ) {
+                component =
+                    new ErrorSkyMatchEngine
+                       .InDegrees( new CdsHealpixSkyPixellator(),
+                                   ErrorSummation.QUADRATURE,
+                                   ARC_SECOND );
             }
             else if ( "skyellipse".equalsIgnoreCase( cName ) ) {
                 component =
@@ -492,7 +500,7 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
                     new ErrorCartesianMatchEngine( ndim, ErrorSummation.SIMPLE,
                                                    1.0 );
             }
-            else if ( cName.toLowerCase().matches( "[0-9]d_qerr" ) ) {
+            else if ( cName.toLowerCase().matches( "[0-9]d_err_q" ) ) {
                 int ndim = Integer.parseInt( cName.substring( 0, 1 ) );
                 component =
                     new ErrorCartesianMatchEngine( ndim,
@@ -626,7 +634,7 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
             "exact", "1d", "2d", "3d",
             "2d_anisotropic", "3d_anisotropic",
             "2d_cuboid", "3d_cuboid",
-            "1d_err", "2d_err", "2d_qerr",
+            "1d_err", "2d_err", "2d_err_q",
             "2d_ellipse",
             "sky+1d",
         };
