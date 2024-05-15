@@ -411,6 +411,7 @@
          basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Main-Class" value="uk.ac.starlink.auth.Get"/>
   <!--  <attribute name="Class-Path" value="${jar.class.path}"/>  -->
       </manifest>
     </jar>
@@ -498,11 +499,9 @@
     <mkdir dir="${dist.docs.pkg}"/>
 
     <!-- Copy any configuration/helper scripts etc. -->
-   <!--
-    <copy todir="${dist.bin.pkg}">
+    <copy todir="${dist.bin}">
       <fileset dir="${script.dir}/" />
     </copy>
-   !-->
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
@@ -517,11 +516,9 @@
            failonerror="${chmod.fail}"/>
     <chmod perm="ugo+r" dir="${dist.dir}" type="file" includes="**"
            failonerror="${chmod.fail}"/>
-   <!--
     <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
        <fileset dir="${dist.bin}"/>
     </chmod>
-    !-->
 
   </target>
 
@@ -617,11 +614,9 @@
       <zipfileset dir="${dist.docs}" prefix="${name}/docs"/>
       <zipfileset dir="${dist.dir}" includes="build.xml" prefix="${name}"/>
 
-     <!--
       <zipfileset dir="${dist.bin}" prefix="${name}/bin">
         <include name="**" if="binary.required"/>
       </zipfileset>
-      !-->
       <zipfileset dir="${dist.lib}" prefix="${name}/lib">
         <include name="**" if="binary.required"/>
       </zipfileset>
@@ -650,11 +645,9 @@
         <include name="build.xml"/>
       </tarfileset>
 
-     <!--
       <tarfileset dir="${dist.bin}" prefix="${name}/bin">
         <include name="**" if="binary.required"/>
       </tarfileset>
-      !-->
       <tarfileset dir="${dist.lib}" prefix="${name}/lib">
         <include name="**" if="binary.required"/>
       </tarfileset>
@@ -728,7 +721,6 @@
      !   the class library may not have any scripts), then make sure
      !   that the first loggedcopy has logfileAppend="false" so that
      !   the copy logfile is initialised -->
-    <!--
     <loggedcopy todir="${star.bin}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
@@ -741,12 +733,11 @@
         <present targetdir="${dist.bin}" present="both"/>
       </fileset>
     </chmod>
-    !-->
 
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
-                logfileAppend="false">
+                logfileAppend="true">
       <fileset dir="${dist.lib}">
         <include name="**/*.jnlp"/>
         <include name="**/*.jar"/>
