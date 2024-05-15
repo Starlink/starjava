@@ -1,0 +1,5 @@
+#!/bin/sh
+
+bindir=`dirname $0`
+libdir=${bindir}/../lib/auth
+java -jar ${libdir}/auth.jar --cmd-name "$0" "$@"
