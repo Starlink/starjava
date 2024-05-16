@@ -25,7 +25,6 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.BooleanParameter;
-import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
@@ -55,7 +54,7 @@ public class GridDensityMap extends SingleMapperTask {
     private final WordsParameter<Double> binsizeParam_;
     private final WordsParameter<Integer> nbinParam_;
     private final StringMultiParameter quantsParam_;
-    private final ChoiceParameter<Combiner> combinerParam_;
+    private final CombinerParameter combinerParam_;
     private final BooleanParameter sparseParam_;
     private final RowRunnerParameter runnerParam_;
 
@@ -164,27 +163,13 @@ public class GridDensityMap extends SingleMapperTask {
             requireDimCount,
         } );
 
-        Combiner[] combiners = Combiner.getKnownCombiners();
-        combinerParam_ = new ChoiceParameter<Combiner>( "combine", combiners );
-        combinerParam_.setPrompt( "Combination method" );
-        StringBuffer lbuf = new StringBuffer();
-        for ( Combiner combiner : combiners ) {
-            lbuf.append( "<li>" )
-                .append( "<code>" )
-                .append( combiner.getName() )
-                .append( "</code>: " )
-                .append( combiner.getDescription() )
-                .append( "</li>\n" );
-        }
-        String combinersDescrip = lbuf.toString();
+        combinerParam_ = new CombinerParameter( "combine" );
         combinerParam_.setDescription( new String[] {
             "<p>Defines the default way that values contributing",
             "to the same density map bin",
             "are combined together to produce the value assigned to that bin.",
             "Possible values are:",
-            "<ul>",
-            lbuf.toString(),
-            "</ul>",
+            combinerParam_.getOptionsDescription(),
             "</p>",
             "<p>Note this value may be overridden on a per-column basis",
             "by the <code>" + quantsName + "</code> parameter.",
@@ -312,7 +297,7 @@ public class GridDensityMap extends SingleMapperTask {
         List<CombinedColumn> qcList = new ArrayList<>();
         for ( String quantity : quants ) {
             CombinedColumn parsedCol =
-                CombinedColumn.parseSpecification( quantity, quantsParam_,
+                CombinedColumn.parseSpecification( env, quantity, quantsParam_,
                                                    combinerParam_ );
             String expr = parsedCol.getExpression();
             Combiner qCombiner = parsedCol.getCombiner();

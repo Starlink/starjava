@@ -15,6 +15,7 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
+import uk.ac.starlink.ttools.task.CombinerParameter;
 import uk.ac.starlink.ttools.task.WordParser;
 import uk.ac.starlink.ttools.task.WordsParameter;
 import uk.ac.starlink.ttools.plot2.layer.Combiner;
@@ -33,7 +34,7 @@ public class CubeMode implements ProcessingMode {
     private final WordsParameter<Double> binsizeParam_;
     private final WordsParameter<Integer> nbinParam_;
     private final OutputStreamParameter outParam_;
-    private final ChoiceParameter<Combiner> combinerParam_;
+    private final CombinerParameter combinerParam_;
     private final ChoiceParameter<Class<?>> typeParam_;
     private final StringParameter scaleParam_;
     private WordsParameter<String> colsParam_;
@@ -101,25 +102,12 @@ public class CubeMode implements ProcessingMode {
             "</p>",
         } );
 
-        Combiner[] combiners = Combiner.getKnownCombiners();
-        combinerParam_ = new ChoiceParameter<Combiner>( "combine", combiners );
-        combinerParam_.setPrompt( "Combination method" );
-        StringBuffer lbuf = new StringBuffer();
-        for ( Combiner combiner : combiners ) {
-            lbuf.append( "<li>" )
-                .append( "<code>" )
-                .append( combiner.getName() )
-                .append( "</code>: " )
-                .append( combiner.getDescription() )
-                .append( "</li>\n" );
-        }
+        combinerParam_ = new CombinerParameter( "combine" );
         combinerParam_.setDescription( new String[] {
             "<p>Defines how values contributing to the same density map bin",
             "are combined together to produce the value assigned to that bin.",
             "Possible values are:",
-            "<ul>",
-            lbuf.toString(),
-            "</ul>",
+            combinerParam_.getOptionsDescription(),
             "</p>",
         } );
         combinerParam_.setDefaultOption( Combiner.SUM );

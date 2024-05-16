@@ -1,8 +1,9 @@
 package uk.ac.starlink.ttools.task;
 
-import uk.ac.starlink.task.ChoiceParameter;
+import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot2.layer.Combiner;
 import uk.ac.starlink.ttools.task.StringMultiParameter;
 
@@ -62,6 +63,7 @@ public class CombinedColumn {
     /**
      * Parses an input expression to a CombinedColumn value.
      *
+     * @param  env  execution environment
      * @param  txt  input expression
      * @param  txtParam   parameter supplying input value,
      *                    used for reference in thrown exceptions
@@ -69,8 +71,9 @@ public class CombinedColumn {
      *                        used to decode combiner specifications
      */
     public static CombinedColumn
-            parseSpecification( String txt, Parameter<?> txtParam,
-                                ChoiceParameter<Combiner> combinerParam )
+            parseSpecification( Environment env, String txt,
+                                Parameter<?> txtParam,
+                                CombinerParameter combinerParam )
             throws ParameterValueException {
         String[] fields = txt.split( ";", 3 );
         int nf = fields.length;
@@ -78,11 +81,14 @@ public class CombinedColumn {
         String expr = fields[ 0 ];
         final Combiner combiner;
         if ( nf > 1 && fields[ 1 ].trim().length() > 0 ) {
-            combiner = combinerParam.getOption( fields[ 1 ] );
-            if ( combiner == null ) {
+            try {
+                combiner = combinerParam.stringToObject( env, fields[ 1 ] );
+            }
+            catch ( TaskException e ) {
                 throw new ParameterValueException( txtParam,
                                                    "No such combination method"
-                                                 + " \"" + fields[ 1 ] + "\"" );
+                                                 + " \"" + fields[ 1 ] + "\"",
+                                                   e );
             }
         }
         else {
@@ -105,7 +111,7 @@ public class CombinedColumn {
      *                             aggregation method, used in documentation
      */
     public static StringMultiParameter createCombinedColumnsParameter(
-                String name, Parameter<Combiner> dfltCombinerParam ) {
+                String name, CombinerParameter dfltCombinerParam ) {
         StringMultiParameter param = new StringMultiParameter( name, ' ' );
         param.setPrompt( "Aggregate column definitions" );
         param.setUsage( "<expr>[;<combiner>[;<name>]] ..." );

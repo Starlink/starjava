@@ -15297,6 +15297,13 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="ErrorCartesianMatchEngine"><code>nd_err_q</code></ref>
         and <ref id="SkyMatchEngine-err"><code>skyerr_q</code></ref>
         introduced for combining per-object errors in quadrature.</li>
+    <li>Arbitrary quantiles (e.g. <code>Q.95</code>, <code>Q.001</code>) 
+        can now be specified as combiners in
+        <ref id="tcube"><code>tcube</code></ref>,
+        <ref id="tgridmap"><code>tgridmap</code></ref> and
+        <ref id="tskymap"><code>tskymap</code></ref>
+        alongside the predefined quartile specifiers
+        (<code>Q1</code>, <code>median</code>, <code>Q3</code>).</li>
     </ul>
     </p></dd>
 
