@@ -15300,8 +15300,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Arbitrary quantiles (e.g. <code>Q.95</code>, <code>Q.001</code>) 
         can now be specified as combiners in
         <ref id="tcube"><code>tcube</code></ref>,
-        <ref id="tgridmap"><code>tgridmap</code></ref> and
-        <ref id="tskymap"><code>tskymap</code></ref>
+        <ref id="tgridmap"><code>tgridmap</code></ref>,
+        <ref id="tskymap"><code>tskymap</code></ref> and
+        <ref id="tgroup"><code>tgroup</code></ref>
         alongside the predefined quartile specifiers
         (<code>Q1</code>, <code>median</code>, <code>Q3</code>).</li>
     </ul>
