@@ -216,6 +216,7 @@ public class StatsFilter extends BasicFilter {
             String name = argIt.next();
             argIt.remove();
             String lname = name.toLowerCase();
+            double quantile = parseQuantileSpecifier( name );
             if ( lname.equals( "-parallel" ) ) {
                 isParallel = true;
             }
@@ -231,10 +232,8 @@ public class StatsFilter extends BasicFilter {
             else if ( infoMap.containsKey( lname ) ) {
                 infoList.add( infoMap.get( lname ) );
             }
-            else if ( name.matches( "^[qQ]\\.[0-9]+$" ) ) {
-                double quant = Double.parseDouble( name.substring( 1 ) );
-                assert quant >= 0.0 && quant <= 1.0;
-                infoList.add( new QuantileInfo( quant ) );
+            else if ( ! Double.isNaN( quantile ) ) {
+                infoList.add( new QuantileInfo( quantile ) );
             }
             else {
                 List<ValueInfo> docInfoList = new ArrayList<>();
@@ -289,6 +288,27 @@ public class StatsFilter extends BasicFilter {
                 return table;
             }
         };
+    }
+
+    /**
+     * Parses a string that represents an arbitrary quantile.
+     * This is of the form Q.xxx, where xxx is the quantile fraction,
+     * so for instance "Q.01" is the first percentile and "Q.4"
+     * is the 40th percentile.
+     *
+     * @param  txt  text which may represent a quantile specifier
+     * @return  value in the range 0..1 giving the quantile level,
+     *          or NaN if it's not a quantile specifier
+     */
+    public static double parseQuantileSpecifier( String txt ) {
+        if ( txt.matches( "^[qQ]\\.[0-9]+$" ) ) {
+            double quant = Double.parseDouble( txt.substring( 1 ) );
+            assert quant >= 0.0 && quant <= 1.0;
+            return quant;
+        }
+        else {
+            return Double.NaN;
+        }
     }
 
     /**
