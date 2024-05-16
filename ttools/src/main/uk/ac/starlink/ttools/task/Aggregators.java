@@ -8,11 +8,13 @@ import java.util.function.Supplier;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.ttools.filter.StatsFilter;
 import uk.ac.starlink.ttools.plot2.layer.Combiner;
 import uk.ac.starlink.util.ByteList;
 import uk.ac.starlink.util.DoubleList;
 import uk.ac.starlink.util.FloatList;
 import uk.ac.starlink.util.IntList;
+import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.LongList;
 import uk.ac.starlink.util.ShortList;
 
@@ -93,6 +95,61 @@ public class Aggregators {
      */
     public static Aggregator[] getAggregators() {
         return INSTANCES.clone();
+    }
+
+    /**
+     * Gets an aggregator instance from its name.
+     *  
+     * @param  aggTxt  string specification of aggregator
+     * @return  aggregator, or null if nothing can be made of it
+     */
+    public static Aggregator getAggregator( String aggTxt ) {
+        if ( aggTxt == null ) {
+            return null;
+        }
+        for ( Aggregator agg : INSTANCES ) {
+            if ( aggTxt.equalsIgnoreCase( agg.getName() ) ) {
+                return agg;
+            }
+        }
+        double quant = StatsFilter.parseQuantileSpecifier( aggTxt );
+        if ( ! Double.isNaN( quant ) ) {
+            Combiner qcombiner =
+                Combiner.createQuantileCombiner( aggTxt, null, quant );
+            return new CombinerAggregator( aggTxt, qcombiner );
+        }
+        Aggregator reflectAgg =
+            Loader.getClassInstance( aggTxt, Aggregator.class );
+        if ( reflectAgg != null ) {
+            return reflectAgg;
+        }
+        return null;
+    }
+
+    /**
+     * Returns an XML element listing the possible options for
+     * specification of an Aggregator.
+     * This corresponds to the suitable inputs for the
+     * {@link #getAggregator(String)} method.
+     *
+     * @return  options description in as a &lt;ul&gt; element
+     */
+    public static String getOptionsDescription() {
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( "<ul>\n" );
+        for ( Aggregator agg : INSTANCES ) {
+            sbuf.append( "<li>" )
+                .append( "<code>" )
+                .append( agg.getName() )
+                .append( "</code>: " )
+                .append( agg.getDescription() )
+                .append( "</li>\n" );
+        }
+        sbuf.append( "<li><code>Q.nnn</code>: " )
+            .append( "quantile nnn (e.g. Q.05 is the fifth percentile)" )
+            .append( "</li>\n" );
+        sbuf.append( "</ul>\n" );
+        return sbuf.toString();
     }
 
     /**

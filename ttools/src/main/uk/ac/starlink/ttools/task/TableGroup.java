@@ -29,9 +29,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
-import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.jel.JELTable;
-import uk.ac.starlink.util.Loader;
 
 /**
  * Task for performing aggregation operations on groups of rows of an
@@ -47,8 +45,6 @@ public class TableGroup extends SingleMapperTask {
     private final RowRunnerParameter runnerParam_;
     private final BooleanParameter sortParam_;
     private final BooleanParameter cacheParam_;
-    private static final Aggregator[] AGGREGATORS =
-        Aggregators.getAggregators();
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
@@ -109,8 +105,7 @@ public class TableGroup extends SingleMapperTask {
             "</p>",
             "<p>The available <code>&lt;aggregator&gt;</code> values",
             "are as follows:",
-            DocUtils.describedList( AGGREGATORS, Aggregator::getName,
-                                    Aggregator::getDescription, false ),
+            Aggregators.getOptionsDescription(),
             "</p>",
         } );
         aggcolsParam_.setNullPermitted( true );
@@ -222,7 +217,7 @@ public class TableGroup extends SingleMapperTask {
         }
         String expr = fields[ 0 ];
         String aggTxt = fields[ 1 ];
-        Aggregator aggregator = getAggregator( aggTxt );
+        Aggregator aggregator = Aggregators.getAggregator( aggTxt );
         if ( aggregator == null ) {
             throw new UsageException( "No such aggregation type "
                                     + "\"" + aggTxt + "\"" );
@@ -454,29 +449,6 @@ public class TableGroup extends SingleMapperTask {
                 }
             }
         };
-    }
-
-    /**
-     * Gets an aggregator instance from its name.
-     *
-     * @param  aggTxt  string specification of aggregator
-     * @return  aggregator, or null if no match is found
-     */
-    private static Aggregator getAggregator( String aggTxt ) {
-        if ( aggTxt == null ) {
-            return null;
-        }
-        for ( Aggregator agg : AGGREGATORS ) {
-            if ( aggTxt.equalsIgnoreCase( agg.getName() ) ) {
-                return agg;
-            }
-        }
-        Aggregator reflectAgg =
-            Loader.getClassInstance( aggTxt, Aggregator.class );
-        if ( reflectAgg != null ) {
-            return reflectAgg;
-        }
-        return null;
     }
 
     /**
