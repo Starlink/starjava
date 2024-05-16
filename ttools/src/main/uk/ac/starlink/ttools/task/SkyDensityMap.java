@@ -58,7 +58,7 @@ public class SkyDensityMap extends SingleMapperTask {
     private final TilingParameter tilingParam_;
     private final BooleanParameter countParam_;
     private final StringMultiParameter quantParam_;
-    private final ChoiceParameter<Combiner> combinerParam_;
+    private final CombinerParameter combinerParam_;
     private final ChoiceParameter<SolidAngleUnit> unitParam_;
     private final BooleanParameter completeParam_;
     private final RowRunnerParameter runnerParam_;
@@ -110,31 +110,17 @@ public class SkyDensityMap extends SingleMapperTask {
         } );
         countParam_.setBooleanDefault( true );
 
-        Combiner[] combiners = Combiner.getKnownCombiners();
-        combinerParam_ = new ChoiceParameter<Combiner>( "combine", combiners );
+        combinerParam_ = new CombinerParameter( "combine" );
 
         SolidAngleUnit[] units = SolidAngleUnit.getKnownUnits();
         unitParam_ = new ChoiceParameter<SolidAngleUnit>( "perunit", units );
 
-        combinerParam_.setPrompt( "Combination method" );
-        StringBuffer lbuf = new StringBuffer();
-        for ( Combiner combiner : combiners ) {
-            lbuf.append( "<li>" )
-                .append( "<code>" )
-                .append( combiner.getName() )
-                .append( "</code>: " )
-                .append( combiner.getDescription() )
-                .append( "</li>\n" );
-        }
-        String combinersDescrip = lbuf.toString();
         combinerParam_.setDescription( new String[] {
             "<p>Defines the default way that values contributing",
             "to the same density map bin",
             "are combined together to produce the value assigned to that bin.",
             "Possible values are:",
-            "<ul>",
-            lbuf.toString(),
-            "</ul>",
+            combinerParam_.getOptionsDescription(),
             "</p>",
             "<p>For density-like values",
             "(<code>" + Combiner.DENSITY + "</code>,",
@@ -245,8 +231,8 @@ public class SkyDensityMap extends SingleMapperTask {
         }
         for ( String quantity : quants ) {
             CombinedColumn parsedCol =
-                CombinedColumn
-               .parseSpecification( quantity, quantParam_, combinerParam_ );
+                CombinedColumn.parseSpecification( env, quantity, quantParam_,
+                                                   combinerParam_ );
             String expr = parsedCol.getExpression();
             Combiner qCombiner = parsedCol.getCombiner();
             Combiner combiner = qCombiner == null ? dfltCombiner : qCombiner;

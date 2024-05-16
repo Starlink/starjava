@@ -52,6 +52,53 @@ public class SkyDensityMapTest extends TestCase {
         }
     }
 
+    public void testQuantiles() throws Exception {
+        MapEnvironment env = new MapEnvironment()
+           .setValue( "in", ":skysim:10000" )
+           .setValue( "icmd", "select dec>0" )
+           .setValue( "tiling", "hpx1" )
+           .setValue( "complete", Boolean.TRUE )
+           .setValue( "lon", "ra" )
+           .setValue( "lat", "dec" )
+           .setValue( "cols", "gmag;min;q_00A gmag;q.0;q_00B "
+                            + "gmag;q1;q_25A; gmag;q.250;q_25B" )
+           .setValue( "ocmd", "keepcols q_*" );
+        new SkyDensityMap().createExecutable( env ).execute();
+        StarTable skymap = env.getOutputTable( "omode" );
+        Tables.checkTable( skymap );
+        int ndiff = 0;
+        int nsameMin = 0;
+        int nsameQ25 = 0;
+        try ( RowSequence rseq = skymap.getRowSequence() ) {
+            while ( rseq.next() ) {
+                Object[] row = rseq.getRow();
+                float minA = toFloat( row[ 0 ] );
+                float minB = toFloat( row[ 1 ] );
+                float q25A = toFloat( row[ 2 ] );
+                float q25B = toFloat( row[ 3 ] );
+                if ( ! ( Float.isNaN( minA ) && Float.isNaN( minB ) ) ) {
+                    assertEquals( minA, minB );
+                    nsameMin++;
+                }
+                if ( ! ( Float.isNaN( q25A ) && Float.isNaN( q25B ) ) ) {
+                    assertEquals( q25A, q25B );
+                    nsameQ25++;
+                }
+                if ( q25A > minA ) {
+                    ndiff++;
+                }
+            }
+        }
+        long nrow = skymap.getRowCount();
+        assertTrue( ndiff > nrow / 2 && ndiff < nrow );
+        assertTrue( nsameMin > nrow / 2 && nsameMin < nrow );
+        assertTrue( nsameQ25 > nrow / 2 && nsameQ25 < nrow );
+    }
+
+    private static float toFloat( Object obj ) {
+        return obj == null ? Float.NaN : ((Number) obj).floatValue();
+    }
+
     private StarTable runMap( StarTable t, int level, boolean isComplete )
             throws Exception {
         MapEnvironment env = new MapEnvironment()
