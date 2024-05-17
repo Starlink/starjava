@@ -523,22 +523,25 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         /* UCD (non-standard). */
         String ucd = colinfo.getUCD();
         if ( ucd != null && ucd.trim().length() > 0 ) {
-            cards.add( cfact.createStringCard( colhead.getKeyName( "TUCD" ),
-                                               ucd, null ) );
+            cards.add( cfact
+                      .createStringCard( colhead.getKeyName( "TUCD" ), ucd,
+                                         "VO Unified Content Descriptor"
+                                       + forcol ) );
         }
 
         /* Utype (non-standard). */
         String utype = colinfo.getUtype();
         if ( utype != null && utype.trim().length() > 0 ) {
             cards.add( cfact.createStringCard( colhead.getKeyName( "TUTYP" ),
-                                               utype, null ) );
+                                               utype, "VO Utype" + forcol ) );
         }
 
         /* Xtype (non-standard). */
         String xtype = colinfo.getXtype();
         if ( xtype != null && xtype.trim().length() > 0 ) {
-            cards.add( cfact.createStringCard( colhead.getKeyName( "TXTYP" ),
-                                               xtype, null ) );
+            cards.add( cfact
+                      .createStringCard( colhead.getKeyName( "TXTYP" ), xtype,
+                                         "VO/DALI extended type" + forcol ) );
         }
         return cards.toArray( new CardImage[ 0 ] );
     }
