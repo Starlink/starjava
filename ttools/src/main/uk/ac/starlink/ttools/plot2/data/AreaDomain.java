@@ -438,15 +438,17 @@ public class AreaDomain implements Domain<AreaMapper> {
             else if ( "BOX".equals( word0 ) ) {
                 Area.Type polygonType = Area.Type.POLYGON;
                 double[] numbers = getNumbers( remainder );
-                return numbers.length == 4
-                     ? new Area( polygonType,
-                                 new double[] {
-                                     numbers[ 0 ],
-                                     numbers[ 1 ],
-                                     numbers[ 0 ] + numbers[ 2 ],
-                                     numbers[ 1 ] + numbers[ 3 ],
-                                 } )
-                     : null;
+                if ( numbers.length == 4 ) {
+                    double x1 = numbers[ 0 ];
+                    double y1 = numbers[ 1 ];
+                    double x2 = x1 + numbers[ 2 ];
+                    double y2 = y1 + numbers[ 3 ];
+                    double[] vertices = { x1, y1, x2, y1, x2, y2, x1, y2 };
+                    return new Area( Area.Type.POLYGON, vertices );
+                }
+                else {
+                    return null;
+                }
             }
             else if ( allowPoint && "POSITION".equals( word0 ) ) {
                 Area.Type pointType = Area.Type.POINT;
