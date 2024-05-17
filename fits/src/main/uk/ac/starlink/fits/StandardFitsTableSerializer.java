@@ -533,6 +533,13 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             cards.add( cfact.createStringCard( colhead.getKeyName( "TUTYP" ),
                                                utype, null ) );
         }
+
+        /* Xtype (non-standard). */
+        String xtype = colinfo.getXtype();
+        if ( xtype != null && xtype.trim().length() > 0 ) {
+            cards.add( cfact.createStringCard( colhead.getKeyName( "TXTYP" ),
+                                               xtype, null ) );
+        }
         return cards.toArray( new CardImage[ 0 ] );
     }
 

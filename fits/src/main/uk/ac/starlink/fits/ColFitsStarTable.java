@@ -189,6 +189,10 @@ public class ColFitsStarTable extends AbstractStarTable {
             if ( tutype != null ) {
                 cinfo.setUtype( tutype );
             }
+            String txtype = hdr.getStringValue( colhead.getKeyName( "TXTYP" ) );
+            if ( txtype != null ) {
+                cinfo.setXtype( txtype );
+            }
 
             /* Create a column reader for the current column. */
             valReaders_[ icol ] =

@@ -121,7 +121,10 @@ public class FormatsTest extends TableCase {
                                         new int[] { 4, 5, } ) );
         ctable.setParameters( params );
 
-        ctable.addColumn( new ColumnData( DRINK_INFO ) {
+        ColumnInfo drinkInfo = new ColumnInfo( DRINK_INFO );
+        drinkInfo.setUtype( "mbt:liquid" );
+        drinkInfo.setXtype( "mbt:beverage" );
+        ctable.addColumn( new ColumnData( drinkInfo ) {
             public Object readValue( long irow ) {
                 return "Drink " + irow;
             }
@@ -834,6 +837,9 @@ public class FormatsTest extends TableCase {
                           c2.getName().toUpperCase() );
             assertEquals( c1.getUnitString(),
                           c2.getUnitString() );
+            assertEquals( c1.getUCD(), c2.getUCD() );
+            assertEquals( c1.getUtype(), c2.getUtype() );
+            assertEquals( c1.getXtype(), c2.getXtype() );
             int[] dims1 = c1.getShape();
             int[] dims2 = c2.getShape();
             if ( dims1 == null ) {

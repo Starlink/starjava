@@ -208,6 +208,13 @@ abstract class FileColumnStore implements ColumnStore {
             cards.add( cfact.createStringCard( colhead.getKeyName( "TUTYP" ),
                                                utype, null ) );
         }
+
+        /* Xtype. */
+        String xtype = info_.getXtype();
+        if ( xtype != null && xtype.trim().length() > 0 ) {
+            cards.add( cfact.createStringCard( colhead.getKeyName( "TXTYP" ),
+                                               xtype, null ) );
+        }
         return cards;
     }
 
