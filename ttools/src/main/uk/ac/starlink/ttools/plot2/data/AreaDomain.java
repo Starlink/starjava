@@ -36,23 +36,18 @@ public class AreaDomain implements Domain<AreaMapper> {
 
     /** Mapper for (x,y,r) circles - see DALI 1.1 section 3.3.6. */
     public static final AreaMapper CIRCLE_MAPPER =
-        createDaliMapper( Area.Type.CIRCLE,
-                          "3-element array "
-                        + "(<code>x</code>,<code>y</code>,<code>r</code>)" );
+        createSimpleNumericDaliMapper( Area.Type.CIRCLE,
+                                       "3-element array (<code>x</code>, "
+                                     + "<code>y</code>,<code>r</code>)" );
 
     /** Mapper for (xi,yi,...) polygons - see DALI 1.1 section 3.3.7. */
-    public static final AreaMapper POLYGON_MAPPER =
-        createDaliMapper( Area.Type.POLYGON,
-                          "2n-element array "
-                        + "(<code>x1</code>,<code>y1</code>,"
-                        + " <code>x2</code>,<code>y2</code>,...);\n"
-                        + "a <code>NaN</code>,<code>NaN</code> pair "
-                        + "can be used to delimit distinct polygons." );
+    public static final AreaMapper POLYGON_MAPPER = createPolygonMapper();
 
     /** Mapper for (x,y) points - see DALI 1.1 section 3.3.5. */
     public static final AreaMapper POINT_MAPPER =
-        createDaliMapper( Area.Type.POINT,
-                          "2-element array (<code>x</code>,<code>y</code>)" );
+        createSimpleNumericDaliMapper( Area.Type.POINT,
+                                       "2-element array "
+                                     + "(<code>x</code>,<code>y</code>)" );
 
     /** Mapper for ASCII format MOCs. */
     public static final AreaMapper ASCIIMOC_MAPPER = createAsciiMocMapper();
@@ -362,20 +357,25 @@ public class AreaDomain implements Domain<AreaMapper> {
     /**
      * Returns a mapper that can turn a particular type of area represented
      * as a numerical array as described in DALI 1.1. section 3.3
-     * into an area object.
+     * into an area object.  All numeric values are required to be definite
+     * (not NaN).
+     * This only works if the numeric array matches the requirements of
+     * the AreaType constructor.
      *
      * @param   areaType   area type
      * @param   descrip    description of mapping type
      */
-    private static AreaMapper createDaliMapper( final Area.Type areaType,
-                                                String descrip ) {
+    private static AreaMapper
+            createSimpleNumericDaliMapper( final Area.Type areaType,
+                                           String descrip ) {
         return new AreaMapper( areaType.toString(), descrip, Object.class ) {
             public Function<Object,Area> areaFunction( Class<?> clazz ) {
                 if ( double[].class.equals( clazz ) ) {
                     return obj -> {
                         if ( obj instanceof double[] ) {
                             double[] data = (double[]) obj;
-                            if ( areaType.isLegalArrayLength( data.length ) ) {
+                            if ( areaType.isLegalArrayLength( data.length ) &&
+                                 allDefinite( data ) ) {
                                 return new Area( areaType, data );
                             }
                         }
@@ -387,7 +387,8 @@ public class AreaDomain implements Domain<AreaMapper> {
                         if ( obj instanceof float[] ) {
                             float[] fdata = (float[]) obj;
                             int nd = fdata.length;
-                            if ( areaType.isLegalArrayLength( nd ) ) {
+                            if ( areaType.isLegalArrayLength( nd ) &&
+                                 allDefinite( fdata ) ) {
                                 double[] ddata = new double[ nd ];
                                 for ( int i = 0; i < nd; i++ ) {
                                     ddata[ i ] = fdata[ i ];
@@ -396,6 +397,103 @@ public class AreaDomain implements Domain<AreaMapper> {
                             }
                         }
                         return null;
+                    };
+                }
+                else {
+                    return null;
+                }
+            }
+        };
+    }
+
+    /**
+     * Returns a mapper that turns numeric arrays into polygons
+     * or multipolygons.  Arrays consist of pairs of coordinates (x, y)
+     * and polygons may be delimited by (NaN, NaN).
+     * This works for DALI 1.1 polygon (sec 3.3.7).
+     *
+     * @return  polygon mapper
+     */
+    private static AreaMapper createPolygonMapper() {
+        final Area.Type polygonType = Area.Type.POLYGON;
+        String descrip = "2n-element array "
+                       + "(<code>x1</code>,<code>y1</code>,"
+                       + " <code>x2</code>,<code>y2</code>,...);\n"
+                       + "a <code>NaN</code>,<code>NaN</code> pair "
+                       + "can be used to delimit distinct polygons.";
+
+        /* In many cases the array length may be fixed but not filled up
+         * with useful polygon data, so take steps to compact the arrays
+         * and only pass on the useful data to the Area constructor. */
+        return new AreaMapper( "POLYGON", descrip, Object.class ) {
+            public Function<Object,Area> areaFunction( Class<?> clazz ) {
+                if ( double[].class.equals( clazz ) ) {
+                    return obj -> {
+                        if ( obj instanceof double[] ) {
+                            double[] data = (double[]) obj;
+                            int nd = data.length;
+                            if ( polygonType.isLegalArrayLength( nd ) ) {
+                                int ndef = 0;
+                                for ( int i = nd - 1; i >= ndef; i-- ) {
+                                    if ( ! Double.isNaN( data[ i ] ) ) {
+                                        ndef = i + 1;
+                                    }
+                                }
+                                if ( polygonType.isLegalArrayLength( ndef ) ) {
+                                    final double[] pdata;
+                                    if ( ndef == nd ) {
+                                        pdata = data;
+                                    }
+                                    else {
+                                        pdata = new double[ ndef ];
+                                        System.arraycopy( data, 0, pdata, 0,
+                                                          ndef );
+                                    }
+                                    return new Area( polygonType, pdata );
+                                }
+                                else {
+                                    return null;
+                                }
+                            }
+                            else {
+                                return null;
+                            }
+                        }
+                        else {
+                            return null;
+                        }
+                    };
+                }
+                else if ( float[].class.equals( clazz ) ) {
+                    return obj -> {
+                        if ( obj instanceof float[] ) {
+                            float[] data = (float[]) obj;
+                            int nd = data.length;
+                            if ( polygonType.isLegalArrayLength( nd ) ) {
+                                int ndef = 0;
+                                for ( int i = nd - 1; i >= ndef; i-- ) {
+                                    if ( ! Float.isNaN( data[ i ] ) ) {
+                                        ndef = i + 1;
+                                    }
+                                }
+                                if ( polygonType.isLegalArrayLength( ndef ) ) {
+                                    double[] pdata = new double[ ndef ];
+                                    for ( int i = 0; i < ndef; i++ ) {
+                                        pdata[ i ] = data[ i ];
+                                    }
+                                    return new Area( polygonType, pdata );
+                                }
+                                else {
+                                    return null;
+                                }
+                            }
+                            else {
+                                return null;
+                            }
+                        }
+                        else {
+                            return null;
+                        }
                     };
                 }
                 else {
@@ -623,6 +721,48 @@ public class AreaDomain implements Domain<AreaMapper> {
             dlist.add( Double.parseDouble( matcher.group( 1 ) ) );
         }
         return dlist.toDoubleArray(); 
+    }
+
+    /**
+     * Indicates whether all elements of a given double array are non-NaN.
+     *
+     * @param  data  floating point array
+     * @return  false if any element is NaN
+     */
+    private static boolean allDefinite( double[] data ) {
+        if ( data != null ) {
+            int n = data.length;
+            for ( int i = 0; i < n; i++ ) {
+                if ( Double.isNaN( data[ i ] ) ) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Indicates whether all elements of a given float array are non-NaN.
+     *
+     * @param  data  floating point array
+     * @return  false if any element is NaN
+     */
+    private static boolean allDefinite( float[] data ) {
+        if ( data != null ) {
+            int n = data.length;
+            for ( int i = 0; i < n; i++ ) {
+                if ( Float.isNaN( data[ i ] ) ) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     /**
