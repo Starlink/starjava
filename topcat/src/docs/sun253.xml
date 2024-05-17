@@ -33563,6 +33563,8 @@ introduced since the last version:
         in Gaia and VO ADQL propagation UDFs.</li>
     <li>Column XType is now displayed in the
         <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
+    <li>Fix broken STC-S BOX parsing for 
+        <ref id="GangLayerControl_area">Area</ref> plots.</li>
     </ul>
     </p></dd>
 
