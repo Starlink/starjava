@@ -6219,8 +6219,18 @@ The metadata items are as follows:
     of the array may be variable.  For scalar columns, this item will be blank.
     </p></dd>
 
+<dt>Element Size</dt>
+<dd><p>Gives the size of a single element from a scalar or array column.
+    It usually denotes the fixed length, if any, of a String value.
+    </p></dd>
+
 <dt>Units</dt>
 <dd><p>The units in which quantities in this column are expressed.
+    </p></dd>
+
+<dt>Domain</dt>
+<dd><p>Indicates whether TOPCAT recognises this column as representing
+    a particular kind of value such as a timestamp.
     </p></dd>
 
 <dt>Expression</dt>
