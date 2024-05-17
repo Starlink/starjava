@@ -352,6 +352,20 @@ public class ColumnInfoWindow extends AuxWindow {
                 return null;
             }
         } );
+ 
+        /* Add Xtype. */
+        metas.add( new MetaColumn( "XType", String.class ) {
+            public Object getValue( int irow ) {
+                return getColumnInfo( irow ).getXtype();
+            }
+            public boolean isEditable( int irow ) {
+                return irow > 0;
+            }
+            public void setValue( int irow, Object value ) {
+                getColumnInfo( irow ).setXtype( (String) value );
+                metaTableModel_.fireTableRowsUpdated( irow, irow );
+            }
+        } );
 
         /* Add Utype. */
         metas.add( new MetaColumn( "Utype", String.class ) {

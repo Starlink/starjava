@@ -6257,6 +6257,13 @@ The metadata items are as follows:
     the standard description associated with that UCD is shown here.
     </p></dd>
 
+<dt>XType</dt>
+<dd><p>The "extended data type" associated with this column.
+    The standard values for xtype are described in the IVOA
+    <webref url="https://www.ivoa.net/documents/DALI/">DALI</webref>
+    standard.
+    </p></dd>
+
 </dl>
 There may be other items in the list specific to the table in question.
 </p>
@@ -33554,6 +33561,8 @@ introduced since the last version:
         now treated as if zero rather than invalidating the propagation.
         This (partly) follows behaviour of corresponding functionality
         in Gaia and VO ADQL propagation UDFs.</li>
+    <li>Column XType is now displayed in the
+        <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
     </ul>
     </p></dd>
 
