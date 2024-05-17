@@ -33572,6 +33572,8 @@ introduced since the last version:
         rather than "<code>+/-Inf"</code>.</li>
     <li>Avoid stack overflow errors for long ASCII MOCs in
         <ref id="Coverage">Coverage</ref> functions.</li>
+    <li>Xtypes are now written into FITS headers using the
+        non-standard header card <code>TXTYPnnn</code>.</li> 
     </ul>
     </p></dd>
 

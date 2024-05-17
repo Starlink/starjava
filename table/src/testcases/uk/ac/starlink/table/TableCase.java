@@ -192,6 +192,7 @@ public class TableCase extends TestCase {
         assertEquals( v1.getDescription(), v2.getDescription() );
         assertEquals( v1.getUCD(), v2.getUCD() );
         assertEquals( v1.getUnitString(), v2.getUnitString() );
+        assertEquals( v1.getUtype(), v2.getUtype() );
         assertEquals( v1.isArray(), v2.isArray() );
         int[] s1 = v1.getShape();
         int[] s2 = v2.getShape();

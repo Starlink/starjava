@@ -32,7 +32,7 @@ import uk.ac.starlink.table.ValueInfo;
  *
  * <p>Some instances of this class hang on to file descriptors.
  * If you are in danger of running out of that resource before
- * insstances are garbage collected, you can call the {@link #close}
+ * instances are garbage collected, you can call the {@link #close}
  * method to release them.  Attempting to read data following
  * such a call may result in an exception.
  *
@@ -302,6 +302,12 @@ public abstract class BintableStarTable extends AbstractStarTable {
             String tutype = hdr.getStringValue( colhead.getKeyName( "TUTYP" ) );
             if ( tutype != null ) {
                 cinfo.setUtype( tutype );
+            }
+
+            /* Xtype (non-standard). */
+            String txtype = hdr.getStringValue( colhead.getKeyName( "TXTYP" ) );
+            if ( txtype != null ) {
+                cinfo.setXtype( txtype );
             }
 
             /* Construct a data reader for this column. */
