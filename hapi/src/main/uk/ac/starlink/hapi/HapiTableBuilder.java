@@ -92,7 +92,7 @@ public class HapiTableBuilder extends DocumentedTableBuilder {
             int b0 = overread1[ 0 ];
             byte0 = ( b0 & 0xff ) == b0 ? Byte.valueOf( (byte) b0 ) : null;
         }
-        HapiTableReader rdr = new HapiTableReader( hdr );
+        HapiTableReader rdr = new HapiTableReader( hdr.getParameters() );
         String fmt = hdr.getFormat();
         IOSupplier<RowSequence> rseqSupplier = () -> {
             InputStream in = new BufferedInputStream( datsrc.getInputStream() );
@@ -109,7 +109,7 @@ public class HapiTableBuilder extends DocumentedTableBuilder {
         String fmt = hdr.getFormat();
         int b0 = overread1[ 0 ];
         Byte byte0 = ( b0 & 0xff ) == b0 ? Byte.valueOf( (byte) b0 ) : null;
-        HapiTableReader rdr = new HapiTableReader( hdr );
+        HapiTableReader rdr = new HapiTableReader( hdr.getParameters() );
         StarTable meta = rdr.createStarTable( null );
         RowSequence rseq = rdr.createRowSequence( in, byte0, fmt );
         sink.acceptMetadata( meta );

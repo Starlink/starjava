@@ -260,16 +260,18 @@ public class ServicePanel extends JPanel {
             String format = reqMap.get( "format" );
             URL dataUrl =
                 service_.createQuery( HapiEndpoint.DATA, reqMap );
-            final HapiInfo loadInfo;
+            final HapiParam[] params;
             if ( dsmeta == null ||
                  ( headerInclusion_ != null &&
                    headerInclusion_.getAsBoolean() ) ) {
-                loadInfo = null;
+                params = null;
             }
             else {
-                loadInfo = createLoadInfo( dsmeta, format );
+                params = Arrays.stream( dsmeta.info_.getParameters() )
+                               .filter( p -> dsmeta.isIncluded( p ) )
+                               .toArray( n -> new HapiParam[ n ] );
             }
-            return new HapiSource( service_, dataUrl, loadInfo );
+            return new HapiSource( service_, dataUrl, params );
         }
         else {
             return null;
@@ -431,58 +433,6 @@ public class ServicePanel extends JPanel {
                 }
             } );
         }, "HAPI service catalog load" ).start();
-    }
-
-    /**
-     * Returns a HapiInfo applicable to the current state of the supplied
-     * dataset metadata.
-     *
-     * @param  dsMeta  dataset metadata, including parameter inclusion state
-     * @param  format  download format
-     * @return   new HapiInfo
-     */
-    private static HapiInfo createLoadInfo( DatasetMeta dsMeta,
-                                            String format ) {
-        final HapiParam[] loadParams =
-            Arrays.stream( dsMeta.info_.getParameters() )
-                  .filter( p -> dsMeta.isIncluded( p ) )
-                  .toArray( n -> new HapiParam[ n ] );
-        final HapiInfo info = dsMeta.info_;
-        return new HapiInfo() {
-            public HapiVersion getHapiVersion() {
-                return info.getHapiVersion();
-            }
-            public HapiParam[] getParameters() {
-                return loadParams;
-            }
-            public String getFormat() {
-                return format == null ? "csv" : format;
-            }
-            public String getStartDate() {
-                return info.getStartDate();
-            }
-            public String getStopDate() {
-                return info.getStopDate();
-            }
-            public String getResourceUrl() {
-                return info.getResourceUrl();
-            }
-            public String getCadence() {
-                return info.getCadence();
-            }
-            public String getMaxRequestDuration() {
-                return info.getMaxRequestDuration();
-            }
-            public String getSampleStartDate() {
-                return info.getSampleStartDate();
-            }
-            public String getSampleStopDate() {
-                return info.getSampleStopDate();
-            }
-            public String getMetadata( String key ) {
-                return info.getMetadata( key );
-            }
-        };
     }
 
     /**

@@ -297,7 +297,7 @@ public class HapiTableScheme implements TableScheme, Documented {
             service.createQuery( HapiEndpoint.DATA, standaloneDataParams );
 
         /* Prepare a row sequence supplier based on the data query. */
-        HapiTableReader rdr = new HapiTableReader( infoHdr );
+        HapiTableReader rdr = new HapiTableReader( infoHdr.getParameters() );
         final boolean[] overflowFlag = new boolean[ 1 ];
         IOConsumer<String> limitCallback = msg -> {
             overflowFlag[ 0 ] = true;
