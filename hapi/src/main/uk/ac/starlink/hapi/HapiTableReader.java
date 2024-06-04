@@ -37,10 +37,9 @@ public class HapiTableReader {
     /**
      * Constructor.
      *
-     * @param  hapiInfo  HAPI table metadata
+     * @param  params  array of parameters that will be read
      */
-    public HapiTableReader( HapiInfo hapiInfo ) {
-        HapiParam[] params = hapiInfo.getParameters();
+    public HapiTableReader( HapiParam[] params ) {
         nparam_ = params.length;
         paramRdrs_ = new ParamReader[ nparam_ ];
         List<ColumnInfo> cinfoList = new ArrayList<>();

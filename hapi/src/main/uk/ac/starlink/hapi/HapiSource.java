@@ -21,7 +21,7 @@ public class HapiSource {
 
     private final HapiService service_;
     private final URL dataUrl_;
-    private final HapiInfo info_;
+    private final HapiParam[] params_;
     private final String urlTxt_;
     private final String format_;
     private final URL standaloneUrl_;
@@ -32,18 +32,19 @@ public class HapiSource {
     /**
      * Constructor.
      *
-     * <p>The <code>info</code> parameter is optional, but if present
+     * <p>The <code>params</code> parameter is optional, but if present
      * must match the data from the dataUrl.
      * If it is absent a query requesting the header data is submitted.
      *
      * @param  service  service
      * @param  dataUrl  URL of HAPI file without header
-     * @param  info   metadata describing dataUrl contents, may be null
+     * @param  params   parameters being read from dataUrl contents,
+     *                  may be null
      */
-    public HapiSource( HapiService service, URL dataUrl, HapiInfo info ) {
+    public HapiSource( HapiService service, URL dataUrl, HapiParam[] params ) {
         service_ = service;
         dataUrl_ = dataUrl;
-        info_ = info;
+        params_ = params;
         urlTxt_ = dataUrl.toString();
         Map<String,String> reqParams =
             HapiService.getRequestParameters( dataUrl );
@@ -120,7 +121,7 @@ public class HapiSource {
     public void streamHapi( TableSink sink, int chunkLimit,
                             IOConsumer<String> limitCallback )
             throws IOException {
-        if ( info_ == null ) {
+        if ( params_ == null ) {
             try ( InputStream in =
                       service_.openChunkedStream( standaloneUrl_, chunkLimit,
                                                   limitCallback ) ) {
@@ -128,7 +129,7 @@ public class HapiSource {
             }
         }
         else {
-            HapiTableReader rdr = new HapiTableReader( info_ );
+            HapiTableReader rdr = new HapiTableReader( params_ );
             StarTable meta = rdr.createStarTable( null );
             try ( InputStream in =
                       service_.openChunkedStream( dataUrl_, chunkLimit,
