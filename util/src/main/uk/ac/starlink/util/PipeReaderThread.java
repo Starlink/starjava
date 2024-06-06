@@ -1,6 +1,7 @@
 package uk.ac.starlink.util;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -154,6 +155,11 @@ public abstract class PipeReaderThread extends Thread {
      * and returns.
      * Any IOException which has occurred during the read will be thrown
      * by this method.
+     *
+     * @throws  InterruptedIOException  if failure was caused by interruption;
+     *          the <code>bytesTransferred</code> field of this exception
+     *          is not set to a useful value
+     * @throws  IOException    in case of some other IO failure
      */
     public void finishReading() throws IOException {
         try {
@@ -162,8 +168,10 @@ public abstract class PipeReaderThread extends Thread {
         }
         catch ( InterruptedException e ) {
             if ( caught == null ) {
-                caught = 
-                    new IOException( "Thread trouble joining stream reader" );
+                caught = new InterruptedIOException( "Stream reader thread "
+                                                   + "interrupted" );
+                ((InterruptedIOException) caught).bytesTransferred = -1;
+                caught.initCause( e );
             }
         }
         if ( caught instanceof IOException ) {
