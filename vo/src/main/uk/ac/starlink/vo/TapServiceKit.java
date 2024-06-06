@@ -11,7 +11,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.FutureTask;
@@ -289,12 +288,9 @@ public class TapServiceKit {
      */
     public void acquireAuthStatus( final ResultHandler<AuthStatus> handler,
                                    boolean forceLogin ) {
-        FutureTask<TapMetaReader> rdrFuture = rdrFuture_;
-        if ( rdrFuture != null ) {
-            rdrFuture.cancel( true );
+        synchronized ( runningMap_ ) {
+            runningMap_.clear();
         }
-        rdrFuture_ = null;
-        runningMap_.clear();
 
         /* These should be defined for TAP by SSO. */
         final boolean isHead = true;
@@ -359,9 +355,10 @@ public class TapServiceKit {
      * @return   metaReader in use, or null
      */
     public TapMetaReader getMetaReader() {
-        if ( rdrFuture_ != null && rdrFuture_.isDone() ) {
+        FutureTask<TapMetaReader> rdrFuture = rdrFuture_;
+        if ( rdrFuture != null && rdrFuture.isDone() ) {
             try {
-                return rdrFuture_.get( 0, TimeUnit.SECONDS );
+                return rdrFuture.get( 0, TimeUnit.SECONDS );
             }
             catch ( Exception e ) {
                 return null;
@@ -380,30 +377,15 @@ public class TapServiceKit {
      * @return  a tap meta reader for use by this object, not null
      */
     private TapMetaReader acquireMetaReader() {
-        final boolean runNow;
 
-        /* Prepare to initiate acquisition only if no other process has
-         * got there first. */
+        /* Initiate acquisition only if no other process has got there first. */
         synchronized ( this ) {
             if ( rdrFuture_ == null ) {
-                runNow = true;
                 rdrFuture_ = new FutureTask<TapMetaReader>(
-                                 new Callable<TapMetaReader>() {
-                    public TapMetaReader call() {
-                        return metaPolicy_
-                              .createMetaReader( service_, coding_ );
-                    }
-                } );
+                    () -> metaPolicy_.createMetaReader( service_, coding_ )
+                );
+                rdrFuture_.run();  // synchronous
             }
-            else {
-                runNow = false;
-            }
-        }
-
-        /* If this invocation is responsible for obtaining the value,
-         * do it synchronously. */
-        if ( runNow ) {
-            rdrFuture_.run();
         }
 
         /* Obtain the value, which may entail waiting for another thread. */

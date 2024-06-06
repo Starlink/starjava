@@ -33565,8 +33565,8 @@ introduced since the last version:
         <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
     <li>Fix broken STC-S BOX parsing for 
         <ref id="GangLayerControl_area">Area</ref> plots.</li>
-    <li>Fix bug that lost authentication state when resetting
-        TAP metadata acquisition mode.</li>
+    <li>Fix some bugs to do with authentication and metadata acquisition
+        in the TAP window.</li>
     </ul>
     </p></dd>
 
