@@ -367,7 +367,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
             if ( tqPanel_ != null ) {
                 TapServiceKit serviceKit = createServiceKit();
                 if ( serviceKit != null ) {
-                    tqPanel_.setServiceKit( serviceKit );
+                    tqPanel_.updateServiceKit( serviceKit );
                 }
             }
         }
