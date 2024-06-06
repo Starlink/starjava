@@ -31,6 +31,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.IOSupplier;
 
 /**
  * Handles asynchronous population of the TAP metadata hierarchy. 
@@ -185,17 +186,13 @@ public class TapServiceKit {
      * @param  handler  receiver for schema information
      */
     public void acquireSchemas( final ResultHandler<SchemaMeta[]> handler ) {
-        acquireData( handler, new DataCallable<SchemaMeta[]>() {
-            public SchemaMeta[] call() throws IOException {
-                TapMetaReader rdr = acquireMetaReader();
-                try {
-                    return rdr.readSchemas();
-                }
-                catch ( IOException e ) {
-                    throw (IOException)
-                          new IOException( rdr.getSource() + " error: " + e )
-                         .initCause( e );
-                }
+        acquireData( handler, () -> {
+            TapMetaReader rdr = acquireMetaReader();
+            try {
+                return rdr.readSchemas();
+            }
+            catch ( IOException e ) {
+                throw new IOException( rdr.getSource() + " error: " + e, e );
             }
         } );
     }
@@ -207,22 +204,18 @@ public class TapServiceKit {
      */
     public void acquireCapability( final
                                    ResultHandler<TapCapability> handler ) {
-        acquireData( handler, new DataCallable<TapCapability>() {
-            public TapCapability call() throws IOException {
-                URL curl = service_.getCapabilitiesEndpoint();
-                if ( curl == null ) {
-                    throw new IOException( "No capabilities endpoint" );
-                }
-                logger_.info( "Reading capability metadata from " + curl );
-                try {
-                    return TapCapabilitiesDoc.readCapabilities( curl )
-                          .getTapCapability();
-                }
-                catch ( SAXException e ) {
-                    throw (IOException)
-                          new IOException( "Capability parse error: " + e )
-                         .initCause( e );
-                }
+        acquireData( handler, () -> {
+            URL curl = service_.getCapabilitiesEndpoint();
+            if ( curl == null ) {
+                throw new IOException( "No capabilities endpoint" );
+            }
+            logger_.info( "Reading capability metadata from " + curl );
+            try {
+                return TapCapabilitiesDoc.readCapabilities( curl )
+                      .getTapCapability();
+            }
+            catch ( SAXException e ) {
+                throw new IOException( "Capability parse error: " + e, e );
             }
         } );
     }
@@ -237,11 +230,8 @@ public class TapServiceKit {
      */
     public void acquireResource( final
                                  ResultHandler<Map<String,String>> handler ) {
-        acquireData( handler, new DataCallable<Map<String,String>>() {
-            public Map<String,String> call() throws IOException {
-                return readResourceInfo( getRegTapService(), ivoid_ );
-            }
-        } );
+        acquireData( handler,
+                     () -> readResourceInfo( getRegTapService(), ivoid_ ) );
     }
 
     /**
@@ -251,11 +241,9 @@ public class TapServiceKit {
      * @param  handler  receiver for role list
      */
     public void acquireRoles( final ResultHandler<RegRole[]> handler ) {
-        acquireData( handler, new DataCallable<RegRole[]>() {
-            public RegRole[] call() throws IOException {
-                return RegRole.readRoles( getRegTapService(), ivoid_, coding_ );
-            }
-        } );
+        acquireData( handler,
+                     () -> RegRole.readRoles( getRegTapService(),
+                                              ivoid_, coding_ ) );
     }
 
     /**
@@ -268,11 +256,9 @@ public class TapServiceKit {
                                  handler ) {
         final URL examplesUrl = service_.getExamplesEndpoint();
         if ( examplesUrl != null ) {
-            acquireData( handler, new DataCallable<List<Tree<DaliExample>>>() {
-                public List<Tree<DaliExample>> call() throws IOException {
-                    return new DaliExampleReader().readExamples( examplesUrl );
-                }
-            } );
+            acquireData( handler,
+                         () -> new DaliExampleReader()
+                              .readExamples( examplesUrl ) );
         }
         else {
             logger_.warning( "No examples endpoint" );
@@ -530,10 +516,10 @@ public class TapServiceKit {
      * whose methods are invoked on the event dispatch thread.
      *
      * @param  handler  receiver for acquired information
-     * @param  callable   supplier for information
+     * @param  supplier   supplier for information
      */
     private <T> void acquireData( final ResultHandler<T> handler,
-                                  final DataCallable<T> callable ) {
+                                  final IOSupplier<T> supplier ) {
         if ( ! handler.isActive() ) {
             return;
         }
@@ -545,7 +531,7 @@ public class TapServiceKit {
                 }
                 T data;
                 try {
-                    data = callable.call();
+                    data = supplier.get();
                 }
                 catch ( final Throwable error ) {
                     SwingUtilities.invokeLater( new Runnable() {
@@ -696,13 +682,6 @@ public class TapServiceKit {
         return new ThreadPoolExecutor( corePoolSize, maxPoolSize,
                                        30, TimeUnit.SECONDS,
                                        queue, thFact, rejectHandler );
-    }
-
-    /**
-     * Typed callable that only throws an IOException.
-     */
-    private static interface DataCallable<T> extends Callable<T> {
-        T call() throws IOException;
     }
 
     /**
