@@ -385,7 +385,7 @@ public class TableSetPanel extends JPanel {
      * @param  serviceKit  TAP service metadata access kit
      */
     public void setServiceKit( final TapServiceKit serviceKit ) {
-        if ( serviceKit_ != null ) {
+        if ( serviceKit_ != null && serviceKit_ != serviceKit ) {
             serviceKit_.shutdown();
         }
         serviceKit_ = serviceKit;
