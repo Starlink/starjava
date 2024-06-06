@@ -32,7 +32,7 @@ import uk.ac.starlink.vo.VocabTerm;
 
 /**
  * Validation stage for testing EPN-TAP data model metadata and content.
- * This implementation corresponds to PR-EPNTAP-2.0-20210721.
+ * This implementation corresponds to REC-EPNTAP-2.0.
  *
  * @author   Mark Taylor
  * @since    17 Jun 2021
