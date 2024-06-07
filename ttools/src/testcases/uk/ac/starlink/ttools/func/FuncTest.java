@@ -7,6 +7,7 @@ import java.lang.reflect.Modifier;
 import java.util.Locale;
 import java.util.Random;
 import java.util.logging.Level;
+import uk.ac.starlink.ttools.cone.AsciiMocCoverage;
 import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
@@ -515,10 +516,10 @@ public class FuncTest extends TestCase {
             "1/1 2-3 12a",
         };
         for ( String m : asciiMocs ) {
-            assertTrue( Coverage.MOC_REGEX.matcher( m ).matches() );
+            assertTrue( AsciiMocCoverage.looksLikeAsciiMoc( m ) );
         }
         for ( String m : notAsciiMocs ) {
-            assertFalse( Coverage.MOC_REGEX.matcher( m ).matches() );
+            assertFalse( AsciiMocCoverage.looksLikeAsciiMoc( m ) );
         }
         String iphasUrl = FuncTest.class
                          .getResource( "MOC-II_321_iphas2-512.fits" )

@@ -11,8 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import uk.ac.starlink.ttools.cone.AsciiMocCoverage;
 import uk.ac.starlink.ttools.cone.Coverage.Amount;
 import uk.ac.starlink.ttools.cone.MocCoverage;
@@ -60,7 +58,6 @@ public class Coverage {
         new HashMap<String,MocCoverage>();
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.func" );
-    static final Pattern MOC_REGEX = Pattern.compile( asciiMocRegex() );
 
     /**
      * Private constructor prevents instantiation.
@@ -146,7 +143,7 @@ public class Coverage {
      * @return  initialised coverage object, or null
      */
     private static MocCoverage createMocCoverage( String mocTxt ) {
-        if ( MOC_REGEX.matcher( mocTxt ).matches() ) {
+        if ( AsciiMocCoverage.looksLikeAsciiMoc( mocTxt ) ) {
             // Current version of Moc library does not recognise leading "s"
             String spatialMocTxt = mocTxt.replaceFirst( "\\s*s\\s*", "" );
             try {
@@ -194,22 +191,5 @@ public class Coverage {
         }
         logger_.warning( "Unknown MOC: " + mocTxt + " - assume no coverage" );
         return null;
-    }
-
-    /**
-     * Returns the text of a regular expression corresponding to the
-     * ASCII representation of a (spatial) MOC as described in
-     * sec 4.3.2 of MOC 2.0.
-     *
-     * @see  <a href="https://www.ivoa.net/documents/MOC/20220727/REC-moc-2.0-20220727.html#tth_sEc4.3.2"
-     *          >MOC 2.0 sec 4.3.2</a>
-     */
-    private static String asciiMocRegex() {
-        String order = "[0-9]+/";
-        String val = "[0-9]+(-[0-9]+)?";
-        String ordval = order + "\\s*" + val + "(\\s+" + val + ")*";
-        String moc = "s?" + ordval + "(\\s+" + ordval + ")*"
-                   + "(\\s+" + order + ")?";
-        return "\\s*" + moc + "\\s*";
     }
 }
