@@ -33570,6 +33570,8 @@ introduced since the last version:
     <li>Fix VOTable output bug that wrote infinite floating point 
         array elements to TABLEDATA as "<code>+/-Infinity</code>"
         rather than "<code>+/-Inf"</code>.</li>
+    <li>Avoid stack overflow errors for long ASCII MOCs in
+        <ref id="Coverage">Coverage</ref> functions.</li>
     </ul>
     </p></dd>
 

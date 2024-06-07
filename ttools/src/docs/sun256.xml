@@ -15325,6 +15325,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix taplint EPN stage bug that required
         <code>coverage</code> xtype to be
         "<code>MOC</code>" instead of "<code>moc</code>".</li>
+    <li>Avoid stack overflow errors for long ASCII MOCs in
+        <ref id="Coverage">Coverage</ref> functions.</li>
     </ul>
     </p></dd>
 
