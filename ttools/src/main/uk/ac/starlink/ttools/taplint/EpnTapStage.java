@@ -1777,7 +1777,7 @@ public class EpnTapStage implements Stage {
                                         " not Text" );
                 }
                 else {
-                    checkXtype( reporter, tmeta, info, "MOC" );
+                    checkXtype( reporter, tmeta, info, "moc" );
                 }
             }
         },
