@@ -15322,6 +15322,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>BINARY/BINARY2</code>-serialized VOTables having
         columns with <code>arraysize="*"</code> and
         <code>xtype="polygon"</code>.</li>
+    <li>Fix taplint EPN stage bug that required
+        <code>coverage</code> xtype to be
+        "<code>MOC</code>" instead of "<code>moc</code>".</li>
     </ul>
     </p></dd>
 
