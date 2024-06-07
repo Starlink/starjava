@@ -15318,10 +15318,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix VOTable output bug that wrote infinite floating point
         array elements to TABLEDATA as "<code>+/-Infinity</code>"
         rather than "<code>+/-Inf"</code>.</li>
-    <li>Fix <code>votlint</code> bug that caused failure for
-        <code>BINARY/BINARY2</code>-serialized VOTables having
-        columns with <code>arraysize="*"</code> and
-        <code>xtype="polygon"</code>.</li>
+    <li>Fix some <code>votlint</code> bugs that could cause failure
+        for certain inputs.</li>
     <li>Fix taplint EPN stage bug that required
         <code>coverage</code> xtype to be
         "<code>MOC</code>" instead of "<code>moc</code>".</li>
