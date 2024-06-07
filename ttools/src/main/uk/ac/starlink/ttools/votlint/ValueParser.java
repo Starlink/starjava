@@ -652,7 +652,7 @@ public abstract class ValueParser {
                 int nitem = nel >= 0 ? nel : readCount( in );
                 DataInputStream dataIn = new DataInputStream( in );
                 double[] ditems = new double[ nitem ];
-                for ( int i = 0; i < nel; i++ ) {
+                for ( int i = 0; i < nitem; i++ ) {
                     ditems[ i ] = floatReader.readDouble( dataIn );
                 }
                 return ditems;

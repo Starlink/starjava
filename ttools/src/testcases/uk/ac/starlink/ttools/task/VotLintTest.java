@@ -91,12 +91,28 @@ public class VotLintTest extends TableTestCase {
         ColumnStarTable table = ColumnStarTable.makeTableWithRows( nrow );
         ColumnInfo intervalInfo =
             new ColumnInfo( "interval", double[].class, null );
+        intervalInfo.setXtype( "interval" );
         intervalInfo.setShape( new int[] { 2 } );
+        ColumnInfo fpInfo = new ColumnInfo( "f_poly", float[].class, null );
+        fpInfo.setXtype( "polygon" );
+        ColumnInfo dpInfo = new ColumnInfo( "d_poly", double[].class, null );
+        dpInfo.setXtype( "polygon" );
         table.addColumn( ArrayColumn.makeColumn( intervalInfo, new double[][] {
             { 1, 10 },
             {},
             { Double.NEGATIVE_INFINITY, -4 },
         } ) );
+        table.addColumn( ArrayColumn.makeColumn( fpInfo, new float[][] {
+            { 1,1, 1,2, 2,2, 2,1, },
+            {},
+            { 0.1f,0.1f, 0.1f,1.5f, 1.5f,0.1f, },
+        } ) );
+        table.addColumn( ArrayColumn.makeColumn( dpInfo, new double[][] {
+            { 1,1, 1,2, 2,2, 2,1, },
+            {},
+            { 0.1,0.1, 0.1,1.5, 1.5,0.1, },
+        } ) );
+        
         for ( DataFormat format : new DataFormat[] {
                   DataFormat.TABLEDATA, DataFormat.BINARY, DataFormat.BINARY2,
                   DataFormat.FITS,
