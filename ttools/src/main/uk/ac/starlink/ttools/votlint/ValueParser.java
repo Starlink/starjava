@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.StringTokenizer;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.ttools.func.Times;
@@ -95,7 +95,7 @@ public abstract class ValueParser {
     }
 
     /**
-     * Writes an info mesage to the user.
+     * Writes an info message to the user.
      *
      * @param   code  message identifier
      * @param   msg  message text
@@ -105,7 +105,7 @@ public abstract class ValueParser {
     }
 
     /**
-     * Writes a warning mesage to the user.
+     * Writes a warning message to the user.
      *
      * @param   code  message identifier
      * @param   msg  message text
@@ -115,7 +115,7 @@ public abstract class ValueParser {
     }
 
     /**
-     * Writes an error mesage to the user.
+     * Writes an error message to the user.
      *
      * @param   code  message identifier
      * @param   msg  message text
@@ -197,11 +197,94 @@ public abstract class ValueParser {
         }
 
         /* Calculate the total number of elements. */
-        int nel = 1;
-        for ( int i = 0; i < shape.length; i++ ) {
-            nel *= shape[ i ];
+        int nel = Arrays.stream( shape ).reduce( 1, (a, b) -> a * b );
+
+        /* If we can make a parser based on the declared xtype of the field,
+         * return that. */
+        ValueParser xtypeParser =
+            makeXtypeParser( handler.getContext(), xtype, datatype, shape );
+        if ( xtypeParser != null ) {
+            return xtypeParser;
         }
 
+        /* Otherwise, return a suitable generic type-based parser. */
+        else {
+            if ( "char".equals( datatype ) || 
+                 "unicodeChar".equals( datatype ) ) {
+                boolean ascii = "char".equals( datatype );
+                int stringLeng = shape[ 0 ];
+                if ( nel == 1 ) {
+                    return new SingleCharParser( ascii );
+                }
+                else if ( shape.length == 1 ) {
+                    return stringLeng < 0
+                         ? new VariableCharParser( ascii )
+                         : new FixedCharParser( ascii, stringLeng );
+                }
+                else {
+                    return nel < 0
+                         ? new VariableCharArrayParser( ascii )
+                         : new FixedCharArrayParser( ascii, nel, stringLeng );
+                }
+            }
+            else if ( "bit".equals( datatype ) ) {
+                return nel < 0 ? new VariableBitParser()
+                               : new FixedBitParser( nel );
+            }
+            else if ( "floatComplex".equals( datatype ) ) {
+                return nel < 0
+                     ? new VariableArrayParser( new FloatParser(),
+                                                float[].class )
+                     : new FixedArrayParser( new FloatParser(), 
+                                             float[].class, nel * 2 );
+            }
+            else if ( "doubleComplex".equals( datatype ) ) {
+                return nel < 0
+                     ? new VariableArrayParser( new DoubleParser(),
+                                                double[].class )
+                     : new FixedArrayParser( new DoubleParser(), 
+                                             double[].class, nel * 2 );
+            }
+            else {
+                if ( nel == 1 ) {
+                    return makeScalarParser( datatype, handler );
+                }
+                else {
+                    ValueParser base = makeScalarParser( datatype, handler );
+                    if ( base == null ) {
+                        return null;
+                    }
+                    else {
+                        Class<?> clazz =
+                            getArrayClass( base.getContentClass() );
+                        return nel < 0 
+                           ? new VariableArrayParser( base, clazz )
+                           : new FixedArrayParser( base, clazz, nel );
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Attempts to construct a ValueParser based on an Xtype value.
+     * If it can't be done, null is returned.
+     * If the xtype is recognised but there's something wrong with the
+     * metadata, suitable messages may additionally be written to the
+     * context.
+     *
+     * @param  context  reporting context
+     * @param  xtype    xtype attribute value
+     * @param  datatype  datatype attribute value
+     * @param  shape    parsed arraysize (final -1 element indicates unbounded)
+     */
+    private static ValueParser makeXtypeParser( VotLintContext context,
+                                                String xtype, String datatype,
+                                                int[] shape ) {
+        if ( xtype == null || xtype.trim().length() == 0 ) {
+            return null;
+        }
+                                         
         /* Consider xtype values with regard to rules in DALI 1.1 sec 3.3.
          * If the metadata are appropriate for a DALI-endorsed extended type,
          * return an appropriate parser, or if the xtype looks like DALI
@@ -212,151 +295,107 @@ public abstract class ValueParser {
                          || "short".equals( datatype )
                          || "int".equals( datatype )
                          || "long".equals( datatype );
-        VotLintContext context = handler.getContext();
+        boolean isArray1d = shape.length == 1;
+        int arraysize1d = isArray1d ? shape[ 0 ] : 0;
+        int nel = Arrays.stream( shape ).reduce( 1, (a, b) -> a * b );
+
+        /* Note DALI mostly requires explicitly datatype="char" without
+         * allowing for "unicodeChar". */
+        boolean isChars = isArray1d && "char".equals( datatype );
+
         if ( "timestamp".equals( xtype ) ) {
-            if ( "char".equals( datatype ) &&
-                 shape.length == 1 ) {
-                return makeTimestampParser( context, shape[ 0 ] );
-            }
-            else {
+            if ( ! isChars ) {
                 context.error( new VotLintCode( "XTS" ),
                                "xtype='timestamp' for non-string-type value" );
+                return null;
+            }
+            else {
+                return makeTimestampParser( arraysize1d );
             }
         }
+
         else if ( "interval".equals( xtype ) ) {
-            if ( shape.length != 1 || shape[ 0 ] != 2 ) {
+            if ( arraysize1d != 2 ) {
                 context.error( new VotLintCode( "XI2" ),
                                "xtype='interval' for arraysize != 2" );
+                return null;
             }
             else if ( !isNumeric ) {
                 context.error( new VotLintCode( "XI9" ),
                                "xtype='interval' for non-numeric datatype" );
+                return null;
             }
             else if ( isFloating ) {
-                return makeFloatingIntervalParser( datatype, context );
+                return makeFloatingIntervalParser( datatype );
             }
             else {
-                // Fall through, to make a normal array checker.
                 // Integer intervals are permitted, but we don't have
                 // a checker for them.  There's not much to check in any case,
                 // beyond normal 2-element array constraints.
+                return null;
             }
         }
+
         else if ( "point".equals( xtype ) ) {
-            if ( shape.length != 1 || shape[ 0 ] != 2 ) {
+            if ( arraysize1d != 2 ) {
                 context.error( new VotLintCode( "XP2" ),
                                "xtype='point' for arraysize != 2" );
+                return null;
             }
             else if ( !isFloating ) {
                 context.error( new VotLintCode( "XP9" ),
                                "xtype='point' for non-floating datatype" );
+                return null;
             }
             else {
-                return makePointParser( datatype, context );
+                return makePointParser( datatype );
             }
         }
+
         else if ( "circle".equals( xtype ) ) {
-            if ( shape.length != 1 || shape[ 0 ] != 3 ) {
+            if ( arraysize1d != 3 ) {
                 context.error( new VotLintCode( "XC3" ),
                                "xtype='circle' for arraysize != 3" );
+                return null;
             }
             else if ( !isFloating ) {
                 context.error( new VotLintCode( "XC9" ),
                                "xtype='circle' for non-floating datatype" );
+                return null;
             }
             else {
-                return makeCircleParser( datatype, context );
+                return makeCircleParser( datatype );
             }
         }
+
         else if ( "polygon".equals( xtype ) ) {
-            if ( shape.length != 1 ) {
+            if ( !isArray1d ) {
                 context.error( new VotLintCode( "XSV" ),
                                "xtype='polygon' for non-vector arraysize" );
+                return null;
             }
             else if ( !isFloating ) {
                 context.error( new VotLintCode( "XS9" ),
                                "xtype='polygon' for non-floating datatype" );
+                return null;
             }
             else {
-                return makePolygonParser( datatype, shape[ 0 ], context );
+                return makePolygonParser( datatype, arraysize1d );
             }
-        }
-        /* DALI sec 3.3: allow namespaced xtypes,
-         * but warn for non-standard non-namespaced xtypes. */
-        else if ( xtype != null && xtype.indexOf( ':' ) <= 0 ) {
-            context.warning( new VotLintCode( "XDL" ),
-                             "Non-DALI xtype value \"" + xtype + "\"" );
         }
 
-        /* Return a suitable non-xtype parser. */
-        if ( "char".equals( datatype ) || 
-             "unicodeChar".equals( datatype ) ) {
-            boolean ascii = "char".equals( datatype );
-            int stringLeng = shape[ 0 ];
-            if ( nel == 1 ) {
-                return new SingleCharParser( ascii );
-            }
-            else if ( shape.length == 1 ) {
-                if ( stringLeng < 0 ) {
-                    return new VariableCharParser( ascii );
-                }
-                else {
-                    return new FixedCharParser( ascii, stringLeng );
-                }
-            }
-            else {
-                if ( nel < 0 ) {
-                    return new VariableCharArrayParser( ascii );
-                }
-                else {
-                    return new FixedCharArrayParser( ascii, nel, stringLeng );
-                }
-            }
+        /* DALI sec 3.3: namespaced xtypes are explicitly allowed. */
+        else if ( xtype.indexOf( ':' ) > 0 ) {
+            context.info( new VotLintCode( "XNI" ),
+                          "Namespaced non-DALI xtype value \"" + xtype + "\"" );
+            return null;
         }
-        else if ( "bit".equals( datatype ) ) {
-            if ( nel < 0 ) {
-                return new VariableBitParser();
-            }
-            else {
-                return new FixedBitParser( nel );
-            }
-        }
-        else if ( "floatComplex".equals( datatype ) ) {
-            if ( nel < 0 ) {
-                return new VariableArrayParser( new FloatParser(),
-                                                float[].class );
-            }
-            else {
-                return new FixedArrayParser( new FloatParser(), 
-                                             float[].class, nel * 2 );
-            }
-        }
-        else if ( "doubleComplex".equals( datatype ) ) {
-            if ( nel < 0 ) {
-                return new VariableArrayParser( new DoubleParser(),
-                                                double[].class );
-            }
-            else {
-                return new FixedArrayParser( new DoubleParser(), 
-                                             double[].class, nel * 2 );
-            }
-        }
+
+        /* Warn for non-standard non-namespaced xtypes. */
         else {
-            if ( nel == 1 ) {
-                return makeScalarParser( datatype, handler );
-            }
-            else {
-                ValueParser base = makeScalarParser( datatype, handler );
-                if ( base == null ) {
-                    return null;
-                }
-                else {
-                    Class<?> clazz = getArrayClass( base.getContentClass() );
-                    return nel < 0 
-                       ? (ValueParser) new VariableArrayParser( base, clazz )
-                       : (ValueParser) new FixedArrayParser( base, clazz, nel );
-                }
-            }
+            context.warning( new VotLintCode( "XDL" ),
+                             "Non-DALI 1.2 xtype value \"" + xtype + "\"" );
+            return null;
         }
     }
 
@@ -402,48 +441,37 @@ public abstract class ValueParser {
 
     /**
      * Returns a parser for xtype='timestamp' (DALI 1.1 sec 3.3.3).
+     *
+     * @param  stringLeng   fixed element count for array values,
+     *                      or negative value for variable element count
+     * @return  new parser
      */
-    private static ValueParser
-            makeTimestampParser( final VotLintContext context,
-                                 int stringLeng ) {
-        return new AbstractParser( String.class, 1 ) {
-            public void checkString( String txt ) {
-                checkTimestamp( txt );
-            }
-            public void checkStream( InputStream in ) throws IOException {
-                int nchar = stringLeng >= 0 ? stringLeng : readCount( in );
-                // The string should be ASCII, but we can test it as UTF-8,
-                // since if there are non-UTF-8 characters it will fail
-                // the regex match anyway.
-                checkTimestamp( new String( readStreamBytes( in, nchar ),
-                                            StandardCharsets.UTF_8 ) );
-            }
-            private void checkTimestamp( String txt ) {
-                if ( txt != null && txt.trim().length() > 0 ) {
-                    if ( ! ISO_REGEX.matcher( txt ).matches() ) {
-                        context.error( new VotLintCode( "TSR" ),
-                                       "Timestamp value \"" + txt + "\""
-                                     + " does not match "
-                                     + "YYYY-MM-DD['T'hh:mm:ss[.SSS]]['Z']" );
+    private static ValueParser makeTimestampParser( int stringLeng ) {
+        return makeStringParser( stringLeng, (context, txt) -> {
+            if ( txt != null && txt.trim().length() > 0 ) {
+                if ( ! ISO_REGEX.matcher( txt ).matches() ) {
+                    context.error( new VotLintCode( "TSR" ),
+                                   "Timestamp value \"" + txt + "\""
+                                 + " does not match "
+                                 + "YYYY-MM-DD['T'hh:mm:ss[.SSS]]['Z']" );
+                }
+                else {
+                    // This looks like it should be a more rigorous check.
+                    // Actually, it's not because the Times parsing
+                    // currently uses a lenient GregorianCalendar.
+                    // Maybe replace this by a non-lenient parser
+                    // at some point.
+                    try {
+                        Times.isoToMjd( txt );
                     }
-                    else {
-                        // This looks like it should be a more rigorous check.
-                        // Actually, it's not because the Times parsing
-                        // currently uses a lenient GregorianCalendar.
-                        // Maybe replace this by a non-lenient parser
-                        // at some point.
-                        try {
-                            Times.isoToMjd( txt );
-                        }
-                        catch ( RuntimeException e ) {
-                            context.error( new VotLintCode( "TSR" ),
-                                           "Bad timestamp \"" + txt + "\" "
-                                         + e.getMessage() );
-                        }
+                    catch ( RuntimeException e ) {
+                        context.error( new VotLintCode( "TSR" ),
+                                       "Bad timestamp \"" + txt + "\" "
+                                     + e.getMessage() );
                     }
                 }
             }
-        };
+        } );
     }
 
     /**
@@ -452,13 +480,10 @@ public abstract class ValueParser {
      * though integer ones are also permitted.
      *
      * @param  datatype  datatype value
-     * @param  context   reporting context
      * @return  new parser
      */
-    private static ValueParser
-            makeFloatingIntervalParser( String datatype,
-                                        VotLintContext context ) {
-        return makeFloatingArrayParser( datatype, 2, values -> {
+    private static ValueParser makeFloatingIntervalParser( String datatype ) {
+        return makeFloatingArrayParser( datatype, 2, (context, values) -> {
             double d0 = values[ 0 ];
             double d1 = values[ 1 ];
             if ( Double.isNaN( d0 ) != Double.isNaN( d1 ) ) {
@@ -473,12 +498,10 @@ public abstract class ValueParser {
      * Returns a parser for xtype='point' (DALI 1.1 sec 3.3.5).
      *
      * @param  datatype  datatype value
-     * @param  context   reporting context
      * @return  new parser
      */
-    private static ValueParser makePointParser( String datatype,
-                                                VotLintContext context ) {
-        return makeFloatingArrayParser( datatype, 2, values -> {
+    private static ValueParser makePointParser( String datatype ) {
+        return makeFloatingArrayParser( datatype, 2, (context, values) -> {
             double d0 = values[ 0 ];
             double d1 = values[ 1 ];
             if ( Double.isNaN( d0 ) != Double.isNaN( d1 ) ) {
@@ -498,12 +521,10 @@ public abstract class ValueParser {
      * Returns a parser for xtype='circle' (DALI 1.1 sec 3.3.6).
      *
      * @param  datatype  datatype value
-     * @param  context   reporting context
      * @return  new parser
      */
-    private static ValueParser makeCircleParser( String datatype,
-                                                 VotLintContext context ) {
-        return makeFloatingArrayParser( datatype, 3, values -> {
+    private static ValueParser makeCircleParser( String datatype ) {
+        return makeFloatingArrayParser( datatype, 3, (context, values) -> {
             double c1 = values[ 0 ];
             double c2 = values[ 1 ];
             double r = values[ 2 ];
@@ -522,27 +543,51 @@ public abstract class ValueParser {
      * @param  datatype  datatype value
      * @param  nel     fixed element count of array value,
      *                 or negative for variable element count
-     * @param  context   reporting context
      * @return  new parser
      */
-    private static ValueParser makePolygonParser( String datatype, int nel,
-                                                  VotLintContext context ) {
-        return makeFloatingArrayParser( datatype, nel, values -> {
+    private static ValueParser makePolygonParser( String datatype, int nel ) {
+        return makeFloatingArrayParser( datatype, nel, (context, values) -> {
             int ncoord = values.length;
             if ( nel >= 0 && ncoord != nel ) {
                 context.error( new VotLintCode( "E09" ),
-                               "Wrong number of elements in array (" + 
-                               ncoord + " found, " + nel + " expected)" );
+                               "Wrong number of elements in array ("
+                             + ncoord + " found, " + nel + " expected)" );
             }
-            if ( ncoord % 2 != 0 ) {
+            else if ( ncoord % 2 != 0 ) {
                 context.error( new VotLintCode( "XSO" ),
-                               "Odd number of polygon coords (" + ncoord + ")");
+                       "Odd number of polygon coords (" + ncoord + ")");
             }
             else if ( ncoord > 0 && ncoord < 6 ) {
                 context.error( new VotLintCode( "XSF" ),
                                "Too few polygon coords (" + ncoord + ")" );
             }
         } );
+    }
+
+    /**
+     * Creates a generic parser that works with fixed or variable-length
+     * 1-d char arrays.  This is not intended to work for unicodeChar
+     * arrays (though in practice it might do).
+     *
+     * @param  stringLeng   fixed element count for array values,
+     *                      or negative value for variable element count
+     * @param  stringChecker  callback to perform checking on a String value
+     * @return  new parser
+     */
+    private static ValueParser
+            makeStringParser( int stringLeng,
+                              BiConsumer<VotLintContext,String> stringChecker ){
+        return new AbstractParser( String.class, 1 ) {
+            public void checkString( String txt ) {
+                stringChecker.accept( getContext(), txt );
+            }
+            public void checkStream( InputStream in ) throws IOException {
+                int nchar = stringLeng >= 0 ? stringLeng : readCount( in );
+                String txt = new String( readStreamBytes( in, nchar ),
+                                         StandardCharsets.UTF_8 );
+                stringChecker.accept( getContext(), txt );
+            }
+        };
     }
 
     /**
@@ -553,14 +598,17 @@ public abstract class ValueParser {
      *
      * @param  datatype  value of (scalar) datatype attribute;
      * @param  nel   fixed element count for array values,
-     *               or negative value for variable elemen count
-     * @param  arrayChecker  callback to perform checking on an
-     *                       array of floating point values read in
+     *               or negative value for variable element count
+     * @param  arrayChecker  callback to perform checking on an array
+     *                       of floating point values read in;
+     *                       the array passed in is guaranteed to be
+     *                       non-null and consistent with <code>nel</code>
      * @return   new parser
      */
     private static ValueParser
             makeFloatingArrayParser( String datatype, int nel,
-                                     Consumer<double[]> arrayChecker ) {
+                                     BiConsumer<VotLintContext,double[]>
+                                                arrayChecker ) {
         final Class<?> aclazz;
         final int elSize;
 
@@ -584,13 +632,23 @@ public abstract class ValueParser {
             public void checkString( String text ) {
                 double[] values = readString( text );
                 if ( values != null ) {
-                    arrayChecker.accept( values );
+                    VotLintContext context = getContext();
+                    if ( nel >= 0 && values.length != nel ) {
+                        context.error( new VotLintCode( "E08" ),
+                                       "Wrong number of elements in array (" + 
+                                     + values.length + " found, "
+                                     + nel + " expected)" );
+                    }
+                    else {
+                        arrayChecker.accept( context, values );
+                    }
                 }
             }
             public void checkStream( InputStream in ) throws IOException {
                 double[] values = readStream( in );
                 if ( values != null ) {
-                    arrayChecker.accept( values );
+                    assert nel < 0 || values.length == nel;
+                    arrayChecker.accept( getContext(), values );
                 }
             }
 
