@@ -435,142 +435,139 @@ abstract class Encoder {
 
         if ( clazz == boolean[].class ) {
             Encoder1 enc1 = new Encoder1() {
-                public void encode1( Object array, int index, DataOutput out )
+                public void encodeToStream1( Object array, int index,
+                                             DataOutput out )
                         throws IOException {
                     boolean value = ((boolean[]) array)[ index ];
                     out.write( value ? 'T' : 'F' );
                 }
-                public void pad1( DataOutput out ) throws IOException {
+                public void padToStream1( DataOutput out ) throws IOException {
                     out.write( ' ' );
                 }
             };
             return isVariable
-                 ? (Encoder) new VariableArrayEncoder( info, "boolean",
-                                                       dims, enc1 )
-                 : (Encoder) new FixedArrayEncoder( info, "boolean",
-                                                    dims, enc1 );
+                 ? new VariableArrayEncoder( info, "boolean", dims, enc1 )
+                 : new FixedArrayEncoder( info, "boolean", dims, enc1 );
         }
 
         else if ( isUbyte && clazz == short[].class ) {
             Encoder1 enc1 = new Encoder1() {
-                public void encode1( Object array, int index, DataOutput out )
+                public void encodeToStream1( Object array, int index,
+                                             DataOutput out )
                         throws IOException {
                     int value = ((short[]) array)[ index ];
                     out.writeByte( value );
                 }
-                public void pad1( DataOutput out ) throws IOException {
+                public void padToStream1( DataOutput out ) throws IOException {
                     out.writeByte( 0x0 );
                 }
             };
             return isVariable
-                 ? (Encoder) new VariableArrayEncoder( info, "unsignedByte",
-                                                       dims, enc1 )
-                 : (Encoder) new FixedArrayEncoder( info, "unsignedByte",
-                                                    dims, enc1 );
+                 ? new VariableArrayEncoder( info, "unsignedByte", dims, enc1 )
+                 : new FixedArrayEncoder( info, "unsignedByte", dims, enc1 );
         }
 
         else if ( clazz == byte[].class ) {
             Encoder1 enc1 = new Encoder1() {
-                public void encode1( Object array, int index, DataOutput out )
+                public void encodeToStream1( Object array, int index,
+                                             DataOutput out )
                         throws IOException {
                     byte value = ((byte[]) array)[ index ];
                     out.writeShort( value );
                 }
-                public void pad1( DataOutput out ) throws IOException {
+                public void padToStream1( DataOutput out ) throws IOException {
                     out.writeShort( 0x0 );
                 }
             };
             return isVariable
-                ? (Encoder) new VariableArrayEncoder( info, "short",
-                                                      dims, enc1 )
-                : (Encoder) new FixedArrayEncoder( info, "short",
+                ? new VariableArrayEncoder( info, "short", dims, enc1 )
+                : new FixedArrayEncoder( info, "short",
                                                    dims, enc1 );
         }
 
         else if ( clazz == short[].class ) {
             Encoder1 enc1 = new Encoder1() {
-                public void encode1( Object array, int index, DataOutput out )
+                public void encodeToStream1( Object array, int index,
+                                             DataOutput out )
                         throws IOException {
                     short value = ((short[]) array)[ index ];
                     out.writeShort( value );
                 }
-                public void pad1( DataOutput out ) throws IOException {
+                public void padToStream1( DataOutput out ) throws IOException {
                     out.writeShort( 0x0 );
                 }
             };
             return isVariable
-                ? (Encoder) new VariableArrayEncoder( info, "short",
-                                                      dims, enc1 )
-                : (Encoder) new FixedArrayEncoder( info, "short",
-                                                   dims, enc1 );
+                ? new VariableArrayEncoder( info, "short", dims, enc1 )
+                : new FixedArrayEncoder( info, "short", dims, enc1 );
         }
 
         else if ( clazz == int[].class ) {
             Encoder1 enc1 = new Encoder1() {
-                public void encode1( Object array, int index, DataOutput out )
+                public void encodeToStream1( Object array, int index,
+                                             DataOutput out )
                         throws IOException {
                     int value = ((int[]) array)[ index ];
                     out.writeInt( value );
                 }
-                public void pad1( DataOutput out ) throws IOException {
+                public void padToStream1( DataOutput out ) throws IOException {
                     out.writeInt( 0 );
                 }         
             };
             return isVariable
-                ? (Encoder) new VariableArrayEncoder( info, "int", dims, enc1 )
-                : (Encoder) new FixedArrayEncoder( info, "int", dims, enc1 );
+                ? new VariableArrayEncoder( info, "int", dims, enc1 )
+                : new FixedArrayEncoder( info, "int", dims, enc1 );
         }
 
         else if ( clazz == long[].class ) {
             Encoder1 enc1 = new Encoder1() {
-                public void encode1( Object array, int index, DataOutput out )
+                public void encodeToStream1( Object array, int index,
+                                             DataOutput out )
                         throws IOException {
                     long value = ((long[]) array)[ index ];
                     out.writeLong( value );
                 }
-                public void pad1( DataOutput out ) throws IOException {
+                public void padToStream1( DataOutput out ) throws IOException {
                     out.writeLong( 0L );
                 }
             };
             return isVariable 
-                ? (Encoder) new VariableArrayEncoder( info, "long", dims, enc1 )
-                : (Encoder) new FixedArrayEncoder( info, "long", dims, enc1 );
+                ? new VariableArrayEncoder( info, "long", dims, enc1 )
+                : new FixedArrayEncoder( info, "long", dims, enc1 );
         }
 
         else if ( clazz == float[].class ) {
             Encoder1 enc1 = new Encoder1() {
-                public void encode1( Object array, int index, DataOutput out )
+                public void encodeToStream1( Object array, int index,
+                                             DataOutput out )
                         throws IOException {
                     float value = ((float[]) array)[ index ];
                     out.writeFloat( value );
                 }
-                public void pad1( DataOutput out ) throws IOException {
+                public void padToStream1( DataOutput out ) throws IOException {
                     out.writeFloat( Float.NaN );
                 }
             };
             return isVariable
-                ? (Encoder) new VariableArrayEncoder( info, "float",
-                                                      dims, enc1 )
-                : (Encoder) new FixedArrayEncoder( info, "float",
-                                                   dims, enc1 );
+                ? new VariableArrayEncoder( info, "float", dims, enc1 )
+                : new FixedArrayEncoder( info, "float", dims, enc1 );
         }
 
         else if ( clazz == double[].class ) {
             Encoder1 enc1 = new Encoder1() {
-                public void encode1( Object array, int index, DataOutput out )
+                public void encodeToStream1( Object array, int index,
+                                             DataOutput out )
                         throws IOException {
                     double value = ((double[]) array)[ index ];
                     out.writeDouble( value );
                 }
-                public void pad1( DataOutput out ) throws IOException {
+                public void padToStream1( DataOutput out ) throws IOException {
                     out.writeDouble( Double.NaN );
                 }
             };
             return isVariable
-                ? (Encoder) new VariableArrayEncoder( info, "double",
-                                                      dims, enc1 )
-                : (Encoder) new FixedArrayEncoder( info, "double",
-                                                   dims, enc1 );
+                ? new VariableArrayEncoder( info, "double", dims, enc1 )
+                : new FixedArrayEncoder( info, "double", dims, enc1 );
         }
 
         else if ( clazz == String.class ) {
@@ -843,7 +840,7 @@ abstract class Encoder {
                 int nel = Array.getLength( val );
                 out.writeInt( nel );
                 for ( int i = 0; i < nel; i++ ) {
-                    enc1_.encode1( val, i, out );
+                    enc1_.encodeToStream1( val, i, out );
                 }
             }
         }
@@ -871,11 +868,11 @@ abstract class Encoder {
                 int nel = Array.getLength( val );
                 int limit = Math.min( nel, nfixed_ );
                 for ( ; i < limit; i++ ) {
-                    enc1_.encode1( val, i, out );
+                    enc1_.encodeToStream1( val, i, out );
                 }
             }
             for ( ; i < nfixed_; i++ ) {
-                enc1_.pad1( out );
+                enc1_.padToStream1( out );
             }
         }
     }
@@ -893,7 +890,7 @@ abstract class Encoder {
          * @param  index  the index of <tt>array</tt> to be written
          * @param  out   destination stream
          */
-        void encode1( Object array, int index, DataOutput out )
+        void encodeToStream1( Object array, int index, DataOutput out )
             throws IOException;
 
         /**
@@ -903,7 +900,7 @@ abstract class Encoder {
          *
          * @param  out   destination stream
          */
-        void pad1( DataOutput out ) throws IOException;
+        void padToStream1( DataOutput out ) throws IOException;
     }
 
     /**
