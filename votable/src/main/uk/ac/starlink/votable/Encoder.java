@@ -757,7 +757,7 @@ abstract class Encoder {
      */
     private static abstract class ScalarEncoder extends Encoder {
 
-        private final String nullText;
+        private final String nullText_;
 
         /**
          * Constructs a new ScalarEncoder.
@@ -772,11 +772,11 @@ abstract class Encoder {
 
             /* Set up bad value representation. */
             setNullString( nullString );
-            this.nullText = nullString == null ? "" : nullString;
+            nullText_ = nullString == null ? "" : nullString;
         }
 
         public String encodeAsText( Object val ) {
-            return val == null ? nullText : val.toString();
+            return val == null ? nullText_ : val.toString();
         }
     }
 
@@ -784,12 +784,12 @@ abstract class Encoder {
      * Abstract Encoder subclass which can encode arrays.
      */
     private static abstract class ArrayEncoder extends Encoder {
-        final Encoder1 enc1;
+        final Encoder1 enc1_;
 
         ArrayEncoder( ValueInfo info, String datatype, int[] dims,
                       Encoder1 enc1 ) {
             super( info, datatype );
-            this.enc1 = enc1;
+            enc1_ = enc1;
 
             /* Set up the arraysize element. */
             StringBuffer sizeBuf = new StringBuffer();
@@ -843,7 +843,7 @@ abstract class Encoder {
                 int nel = Array.getLength( val );
                 out.writeInt( nel );
                 for ( int i = 0; i < nel; i++ ) {
-                    enc1.encode1( val, i, out );
+                    enc1_.encode1( val, i, out );
                 }
             }
         }
@@ -853,7 +853,7 @@ abstract class Encoder {
      * Encoder subclass which can encode fixed length arrays.
      */
     private static class FixedArrayEncoder extends ArrayEncoder {
-        final int nfixed;
+        final int nfixed_;
         FixedArrayEncoder( ValueInfo info, String datatype, int[] dims,
                            Encoder1 enc1 ) {
             super( info, datatype, dims, enc1 );
@@ -861,7 +861,7 @@ abstract class Encoder {
             for ( int i = 0; i < dims.length; i++ ) {
                 nfixed *= dims[ i ];
             }
-            this.nfixed = nfixed;
+            nfixed_ = nfixed;
         }
 
         public void encodeToStream( Object val, DataOutput out )
@@ -869,13 +869,13 @@ abstract class Encoder {
             int i = 0;
             if ( val != null ) {
                 int nel = Array.getLength( val );
-                int limit = Math.min( nel, nfixed );
+                int limit = Math.min( nel, nfixed_ );
                 for ( ; i < limit; i++ ) {
-                    enc1.encode1( val, i, out );
+                    enc1_.encode1( val, i, out );
                 }
             }
-            for ( ; i < nfixed; i++ ) {
-                enc1.pad1( out );
+            for ( ; i < nfixed_; i++ ) {
+                enc1_.pad1( out );
             }
         }
     }
