@@ -15315,6 +15315,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in Gaia and VO ADQL propagation UDFs.</li>
     <li>Fix broken STC-S BOX parsing for
         <ref id="layer-area"><code>area</code></ref> plots.</li>
+    <li>Fix VOTable output bug that wrote infinite floating point
+        array elements to TABLEDATA as "<code>+/-Infinity</code>"
+        rather than "<code>+/-Inf"</code>.</li>
     </ul>
     </p></dd>
 

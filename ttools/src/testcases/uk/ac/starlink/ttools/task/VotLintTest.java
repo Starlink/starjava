@@ -1,9 +1,18 @@
 package uk.ac.starlink.ttools.task;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import uk.ac.starlink.table.ArrayColumn;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.ttools.TableTestCase;
+import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.VOTableWriter;
 
 public class VotLintTest extends TableTestCase {
 
@@ -74,6 +83,32 @@ public class VotLintTest extends TableTestCase {
         }
         catch ( ParameterValueException e ) {
             // OK
+        }
+    }
+
+    public void testRead() throws Exception {
+        int nrow = 3;
+        ColumnStarTable table = ColumnStarTable.makeTableWithRows( nrow );
+        ColumnInfo intervalInfo =
+            new ColumnInfo( "interval", double[].class, null );
+        intervalInfo.setShape( new int[] { 2 } );
+        table.addColumn( ArrayColumn.makeColumn( intervalInfo, new double[][] {
+            { 1, 10 },
+            {},
+            { Double.NEGATIVE_INFINITY, -4 },
+        } ) );
+        for ( DataFormat format : new DataFormat[] {
+                  DataFormat.TABLEDATA, DataFormat.BINARY, DataFormat.BINARY2,
+                  DataFormat.FITS,
+              } ) {
+            File f = new File( "votlint-test.vot-" + format );
+            try ( OutputStream out = new FileOutputStream( f ) ) {
+                new VOTableWriter( format, true ).writeStarTable( table, out );
+            }
+            Map<String,Object> map = new HashMap<>();
+            map.put( "votable", f.getPath() );
+            assertArrayEquals( new String[ 0 ], getOutputLines( map ) );
+            f.delete();
         }
     }
 }

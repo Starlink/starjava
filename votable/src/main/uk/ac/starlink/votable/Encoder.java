@@ -435,6 +435,9 @@ abstract class Encoder {
 
         if ( clazz == boolean[].class ) {
             Encoder1 enc1 = new Encoder1() {
+                public String encodeAsText1( Object array, int index ) {
+                    return ((boolean[]) array)[ index ] ? "true" : "false";
+                }
                 public void encodeToStream1( Object array, int index,
                                              DataOutput out )
                         throws IOException {
@@ -452,6 +455,9 @@ abstract class Encoder {
 
         else if ( isUbyte && clazz == short[].class ) {
             Encoder1 enc1 = new Encoder1() {
+                public String encodeAsText1( Object array, int index ) {
+                    return Short.toString( ((short[]) array)[ index ] );
+                }
                 public void encodeToStream1( Object array, int index,
                                              DataOutput out )
                         throws IOException {
@@ -469,6 +475,9 @@ abstract class Encoder {
 
         else if ( clazz == byte[].class ) {
             Encoder1 enc1 = new Encoder1() {
+                public String encodeAsText1( Object array, int index ) {
+                    return Integer.toString( ((byte[]) array)[ index ] );
+                }
                 public void encodeToStream1( Object array, int index,
                                              DataOutput out )
                         throws IOException {
@@ -487,6 +496,9 @@ abstract class Encoder {
 
         else if ( clazz == short[].class ) {
             Encoder1 enc1 = new Encoder1() {
+                public String encodeAsText1( Object array, int index ) {
+                    return Short.toString( ((short[]) array)[ index ] );
+                }
                 public void encodeToStream1( Object array, int index,
                                              DataOutput out )
                         throws IOException {
@@ -504,6 +516,9 @@ abstract class Encoder {
 
         else if ( clazz == int[].class ) {
             Encoder1 enc1 = new Encoder1() {
+                public String encodeAsText1( Object array, int index ) {
+                    return Integer.toString( ((int[]) array)[ index ] );
+                }
                 public void encodeToStream1( Object array, int index,
                                              DataOutput out )
                         throws IOException {
@@ -521,6 +536,9 @@ abstract class Encoder {
 
         else if ( clazz == long[].class ) {
             Encoder1 enc1 = new Encoder1() {
+                public String encodeAsText1( Object array, int index ) {
+                    return Long.toString( ((long[]) array)[ index ] );
+                }
                 public void encodeToStream1( Object array, int index,
                                              DataOutput out )
                         throws IOException {
@@ -538,6 +556,12 @@ abstract class Encoder {
 
         else if ( clazz == float[].class ) {
             Encoder1 enc1 = new Encoder1() {
+                public String encodeAsText1( Object array, int index ) {
+                    float f = ((float[]) array)[ index ];
+                    return Float.isInfinite( f )
+                         ? infinityText( f > 0 )
+                         : Float.toString( f );
+                }
                 public void encodeToStream1( Object array, int index,
                                              DataOutput out )
                         throws IOException {
@@ -555,6 +579,12 @@ abstract class Encoder {
 
         else if ( clazz == double[].class ) {
             Encoder1 enc1 = new Encoder1() {
+                public String encodeAsText1( Object array, int index ) {
+                    double d = ((double[]) array)[ index ];
+                    return Double.isInfinite( d )
+                         ? infinityText( d > 0 )
+                         : Double.toString( d );
+                }
                 public void encodeToStream1( Object array, int index,
                                              DataOutput out )
                         throws IOException {
@@ -815,7 +845,7 @@ abstract class Encoder {
                     if ( i > 0 ) {
                         sbuf.append( ' ' );
                     }
-                    sbuf.append( Array.get( val, i ).toString() );
+                    sbuf.append( enc1_.encodeAsText1( val, i ) );
                 }
                 return sbuf.toString();
             }
@@ -882,6 +912,19 @@ abstract class Encoder {
      * write one element of an array to a stream.
      */
     private static interface Encoder1 {
+
+        /**
+         * Returns a text string which represents an element of an array
+         * of the type encoded by this object.
+         * This text is suitable for use as part of the content of a
+         * VOTable CDATA element, except that no escaping of
+         * XML special characters has been done.
+         *
+         * @param  array  an object of the type handled by this encoder
+         * @param  index  the index of <tt>array</tt> to be returned
+         * @return  text representation
+         */
+        String encodeAsText1( Object array, int index );
 
         /**
          * Writes one element of a given array to an output stream.
