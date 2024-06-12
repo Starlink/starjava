@@ -144,10 +144,8 @@ public class Coverage {
      */
     private static MocCoverage createMocCoverage( String mocTxt ) {
         if ( AsciiMocCoverage.looksLikeAsciiMoc( mocTxt ) ) {
-            // Current version of Moc library does not recognise leading "s"
-            String spatialMocTxt = mocTxt.replaceFirst( "\\s*s\\s*", "" );
             try {
-                MocCoverage cov = new AsciiMocCoverage( spatialMocTxt );
+                MocCoverage cov = new AsciiMocCoverage( mocTxt );
                 cov.initCoverage();
                 if ( cov.getAmount() != Amount.NO_DATA ) {
                     return cov;

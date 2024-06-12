@@ -25,8 +25,11 @@ public class AsciiMocCoverage extends MocCoverage {
 
     @Override
     protected HealpixMoc createMoc() throws IOException {
+
+        /* Current version of Moc library does not recognise leading "s". */
+        String spatialMocTxt = asciiMoc_.replaceFirst( "\\s*s\\s*", "" );
         try {
-            return new HealpixMoc( asciiMoc_ );
+            return new HealpixMoc( spatialMocTxt );
         }
         catch ( Exception e ) {
             throw new IOException( "MOC ASCII format error", e );
