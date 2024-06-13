@@ -15330,6 +15330,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Non-standard FITS headers
         <code>TUCDnnn</code> and <code>TUTYPnnn</code>
         are now written with comment parts, space permitting.</li>
+    <li><ref id="votlint"><code>votlint</code></ref> now includes
+        column/param name with reports in more cases.</li>
     </ul>
     </p></dd>
 

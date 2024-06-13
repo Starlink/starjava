@@ -19,6 +19,7 @@ public class ParamHandler extends ElementHandler {
         /* Construct and store a parser which known how to check values
          * associated with this element. */
         parser_ = ValueParser.makeParser( this,
+                                          getAttribute( "name" ),
                                           getAttribute( "datatype" ),
                                           getAttribute( "arraysize" ),
                                           getAttribute( "xtype" ) );

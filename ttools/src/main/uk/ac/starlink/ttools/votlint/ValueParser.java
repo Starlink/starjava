@@ -26,7 +26,9 @@ import uk.ac.starlink.ttools.func.Times;
  */
 public abstract class ValueParser {
 
+    private final ReportElement el_;
     private VotLintContext context_;
+
     private static final Pattern DOUBLE_REGEX =
         Pattern.compile( "([+-])?"
                        + "[0-9]*([0-9]|[0-9]\\.|\\.[0-9])[0-9]*"
@@ -35,6 +37,15 @@ public abstract class ValueParser {
         Pattern.compile( "[0-9]{4}-[01][0-9]-[0-3][0-9]"
                        + "(T[0-2][0-9]:[0-5][0-9]:[0-6][0-9]"
                        + "([.][0-9]+)?)?Z?" );
+
+    /**
+     * Constructor.
+     *
+     * @param  el  reporting context
+     */
+    private ValueParser( ReportElement el ) {
+        el_ = el;
+    }
 
     /**
      * Checks the value of a string which contains the value. 
@@ -101,7 +112,7 @@ public abstract class ValueParser {
      * @param   msg  message text
      */
     public void info( VotLintCode code, String msg ) {
-        getContext().info( code, msg );
+        getContext().info( code, el_.msg( msg ) );
     }
 
     /**
@@ -111,7 +122,7 @@ public abstract class ValueParser {
      * @param   msg  message text
      */
     public void warning( VotLintCode code, String msg ) {
-        getContext().warning( code, msg );
+        getContext().warning( code, el_.msg( msg ) );
     }
 
     /**
@@ -121,28 +132,28 @@ public abstract class ValueParser {
      * @param   msg  message text
      */
     public void error( VotLintCode code, String msg ) {
-        getContext().error( code, msg );
+        getContext().error( code, el_.msg( msg ) );
     }
 
     /**
      * Constructs a ValueParsers for a given element.
      *
      * @param   handler  element handler
+     * @param   name    name attribute value
      * @param   datatype  datatype attribute value
      * @param   arraysize  arraysize attribute value
      * @param   xtype   xtype (extended type) attribute value
      * @return   a suitable ValueParser, or <tt>null</tt> if one can't
      *           be constructed
      */
-    public static ValueParser makeParser( ElementHandler handler, 
+    public static ValueParser makeParser( ElementHandler handler, String name,
                                           String datatype, String arraysize,
                                           String xtype ) {
+        ReportElement el = new ReportElement( handler, name );
 
-        /* If no datatype has been specified, we can't do much. */
+        /* If no datatype has been specified, we can't do much.
+         * Just return, this will trigger an error report elsewhere. */
         if ( datatype == null || datatype.trim().length() == 0 ) {
-            handler.error( new VotLintCode( "DT0" ),
-                           "No datatype specified for " + handler + 
-                           " Can't parse values" );
             return null;
         }
 
@@ -153,8 +164,8 @@ public abstract class ValueParser {
             if ( "char".equals( datatype ) ||
                  "unicodeChar".equals( datatype ) ) {
                 handler.info( new VotLintCode( "AR1" ),
-                              "No arraysize for character, " + handler +
-                              " implies single character" );
+                              el.msg( "No arraysize for datatype='character'"
+                                    + "; implies single character" ) );
             }
         }
         else {
@@ -170,8 +181,8 @@ public abstract class ValueParser {
                         }
                         catch ( NumberFormatException e ) {
                             handler.error( new VotLintCode( "ARB" ),
-                                           "Bad arraysize value '" +
-                                           arraysize + "'" );
+                                           el.msg( "Bad arraysize value '"
+                                                 + arraysize + "'" ) );
                         }
                     }
                     shape[ i ] = -1;
@@ -182,14 +193,14 @@ public abstract class ValueParser {
                     }
                     catch ( NumberFormatException e ) {
                         handler.error( new VotLintCode( "ARB" ),
-                                       "Bad arraysize value '" +
-                                       arraysize + "'" );
+                                       el.msg( "Bad arraysize value '"
+                                             + arraysize + "'" ) );
                         return null;
                     }
                     if ( shape[ i ] < 0 ) {
                         handler.error( new VotLintCode( "DMN" ),
-                                       "Negative dimensions element " +
-                                       shape[ i ] );
+                                       el.msg( "Negative dimensions element "
+                                             + shape[ i ] ) );
                         return null;
                     }
                 }
@@ -202,7 +213,7 @@ public abstract class ValueParser {
         /* If we can make a parser based on the declared xtype of the field,
          * return that. */
         ValueParser xtypeParser =
-            makeXtypeParser( handler.getContext(), xtype, datatype, shape );
+            makeXtypeParser( el, handler.getContext(), xtype, datatype, shape );
         if ( xtypeParser != null ) {
             return xtypeParser;
         }
@@ -214,43 +225,45 @@ public abstract class ValueParser {
                 boolean ascii = "char".equals( datatype );
                 int stringLeng = shape[ 0 ];
                 if ( nel == 1 ) {
-                    return new SingleCharParser( ascii );
+                    return new SingleCharParser( el, ascii );
                 }
                 else if ( shape.length == 1 ) {
                     return stringLeng < 0
-                         ? new VariableCharParser( ascii )
-                         : new FixedCharParser( ascii, stringLeng );
+                         ? new VariableCharParser( el, ascii )
+                         : new FixedCharParser( el, ascii, stringLeng );
                 }
                 else {
                     return nel < 0
-                         ? new VariableCharArrayParser( ascii )
-                         : new FixedCharArrayParser( ascii, nel, stringLeng );
+                         ? new VariableCharArrayParser( el, ascii )
+                         : new FixedCharArrayParser( el, ascii, nel,
+                                                     stringLeng );
                 }
             }
             else if ( "bit".equals( datatype ) ) {
-                return nel < 0 ? new VariableBitParser()
-                               : new FixedBitParser( nel );
+                return nel < 0 ? new VariableBitParser( el )
+                               : new FixedBitParser( el, nel );
             }
             else if ( "floatComplex".equals( datatype ) ) {
+                FloatParser fParser = new FloatParser( new ReportElement() );
                 return nel < 0
-                     ? new VariableArrayParser( new FloatParser(),
-                                                float[].class )
-                     : new FixedArrayParser( new FloatParser(), 
-                                             float[].class, nel * 2 );
+                     ? new VariableArrayParser( el, fParser, float[].class )
+                     : new FixedArrayParser( el, fParser, float[].class,
+                                             nel * 2 );
             }
             else if ( "doubleComplex".equals( datatype ) ) {
+                DoubleParser dParser = new DoubleParser( new ReportElement() );
                 return nel < 0
-                     ? new VariableArrayParser( new DoubleParser(),
-                                                double[].class )
-                     : new FixedArrayParser( new DoubleParser(), 
-                                             double[].class, nel * 2 );
+                     ? new VariableArrayParser( el, dParser, double[].class )
+                     : new FixedArrayParser( el, dParser, double[].class,
+                                             nel * 2 );
             }
             else {
                 if ( nel == 1 ) {
-                    return makeScalarParser( datatype, handler );
+                    return makeScalarParser( el, datatype, handler );
                 }
                 else {
-                    ValueParser base = makeScalarParser( datatype, handler );
+                    ValueParser base = makeScalarParser( new ReportElement(),
+                                                         datatype, handler );
                     if ( base == null ) {
                         return null;
                     }
@@ -258,8 +271,8 @@ public abstract class ValueParser {
                         Class<?> clazz =
                             getArrayClass( base.getContentClass() );
                         return nel < 0 
-                           ? new VariableArrayParser( base, clazz )
-                           : new FixedArrayParser( base, clazz, nel );
+                           ? new VariableArrayParser( el, base, clazz )
+                           : new FixedArrayParser( el, base, clazz, nel );
                     }
                 }
             }
@@ -273,12 +286,14 @@ public abstract class ValueParser {
      * metadata, suitable messages may additionally be written to the
      * context.
      *
+     * @param  el  reporting context
      * @param  context  reporting context
      * @param  xtype    xtype attribute value
      * @param  datatype  datatype attribute value
      * @param  shape    parsed arraysize (final -1 element indicates unbounded)
      */
-    private static ValueParser makeXtypeParser( VotLintContext context,
+    private static ValueParser makeXtypeParser( ReportElement el,
+                                                VotLintContext context,
                                                 String xtype, String datatype,
                                                 int[] shape ) {
         if ( xtype == null || xtype.trim().length() == 0 ) {
@@ -306,27 +321,29 @@ public abstract class ValueParser {
         if ( "timestamp".equals( xtype ) ) {
             if ( ! isChars ) {
                 context.error( new VotLintCode( "XTS" ),
-                               "xtype='timestamp' for non-string-type value" );
+                               el.msg( "xtype='timestamp' "
+                                     + "for non-string-type value" ) );
                 return null;
             }
             else {
-                return makeTimestampParser( arraysize1d );
+                return makeTimestampParser( el, arraysize1d );
             }
         }
 
         else if ( "interval".equals( xtype ) ) {
             if ( arraysize1d != 2 ) {
                 context.error( new VotLintCode( "XI2" ),
-                               "xtype='interval' for arraysize != 2" );
+                               el.msg( "xtype='interval' for arraysize != 2" ));
                 return null;
             }
             else if ( !isNumeric ) {
                 context.error( new VotLintCode( "XI9" ),
-                               "xtype='interval' for non-numeric datatype" );
+                               el.msg( "xtype='interval'"
+                                     + " for non-numeric datatype" ) );
                 return null;
             }
             else if ( isFloating ) {
-                return makeFloatingIntervalParser( datatype );
+                return makeFloatingIntervalParser( el, datatype );
             }
             else {
                 // Integer intervals are permitted, but we don't have
@@ -339,62 +356,68 @@ public abstract class ValueParser {
         else if ( "point".equals( xtype ) ) {
             if ( arraysize1d != 2 ) {
                 context.error( new VotLintCode( "XP2" ),
-                               "xtype='point' for arraysize != 2" );
+                               el.msg( "xtype='point' for arraysize != 2" ) );
                 return null;
             }
             else if ( !isFloating ) {
                 context.error( new VotLintCode( "XP9" ),
-                               "xtype='point' for non-floating datatype" );
+                               el.msg( "xtype='point'"
+                                     + " for non-floating datatype" ) );
                 return null;
             }
             else {
-                return makePointParser( datatype );
+                return makePointParser( el, datatype );
             }
         }
 
         else if ( "circle".equals( xtype ) ) {
             if ( arraysize1d != 3 ) {
                 context.error( new VotLintCode( "XC3" ),
-                               "xtype='circle' for arraysize != 3" );
+                               el.msg( "xtype='circle' for arraysize != 3" ) );
                 return null;
             }
             else if ( !isFloating ) {
                 context.error( new VotLintCode( "XC9" ),
-                               "xtype='circle' for non-floating datatype" );
+                               el.msg( "xtype='circle'"
+                                     + " for non-floating datatype" ) );
                 return null;
             }
             else {
-                return makeCircleParser( datatype );
+                return makeCircleParser( el, datatype );
             }
         }
 
         else if ( "polygon".equals( xtype ) ) {
             if ( !isArray1d ) {
                 context.error( new VotLintCode( "XSV" ),
-                               "xtype='polygon' for non-vector arraysize" );
+                               el.msg( "xtype='polygon'"
+                                     + " for non-vector arraysize" ) );
                 return null;
             }
             else if ( !isFloating ) {
                 context.error( new VotLintCode( "XS9" ),
-                               "xtype='polygon' for non-floating datatype" );
+                               el.msg( "xtype='polygon'"
+                                     + " for non-floating datatype" ) );
                 return null;
             }
             else {
-                return makePolygonParser( datatype, arraysize1d );
+                return makePolygonParser( el, datatype, arraysize1d );
             }
         }
 
         /* DALI sec 3.3: namespaced xtypes are explicitly allowed. */
         else if ( xtype.indexOf( ':' ) > 0 ) {
             context.info( new VotLintCode( "XNI" ),
-                          "Namespaced non-DALI xtype value \"" + xtype + "\"" );
+                          el.msg( "Namespaced non-DALI xtype value \""
+                                + xtype + "\"" ) );
             return null;
         }
 
         /* Warn for non-standard non-namespaced xtypes. */
         else {
             context.warning( new VotLintCode( "XDL" ),
-                             "Non-DALI 1.1 xtype value \"" + xtype + "\"" );
+                             el.msg( "Non-DALI 1.1 xtype value \""
+                                   + xtype + "\"" ) );
             return null;
         }
     }
@@ -402,34 +425,36 @@ public abstract class ValueParser {
     /**
      * Constructs a parser for a single value.
      *
+     * @param  el  reporting context
      * @param   datatype  value of datatype attribute
      * @param   handler   element 
      */
-    private static ValueParser makeScalarParser( String datatype,
+    private static ValueParser makeScalarParser( ReportElement el,
+                                                 String datatype,
                                                  ElementHandler handler ) {
         if ( "boolean".equals( datatype ) ) {
-            return new BooleanParser();
+            return new BooleanParser( el );
         }
         else if ( "unsignedByte".equals( datatype ) ) {
-            return new IntegerParser( 1, 0, 255, Short.class );
+            return new IntegerParser( el, 1, 0, 255, Short.class );
         }
         else if ( "short".equals( datatype ) ) {
-            return new IntegerParser( 2, Short.MIN_VALUE, Short.MAX_VALUE,
+            return new IntegerParser( el, 2, Short.MIN_VALUE, Short.MAX_VALUE,
                                       Short.class );
         }
         else if ( "int".equals( datatype ) ) {
-            return new IntegerParser( 4, Integer.MIN_VALUE, Integer.MAX_VALUE,
-                                      Integer.class );
+            return new IntegerParser( el, 4, Integer.MIN_VALUE,
+                                      Integer.MAX_VALUE, Integer.class );
         }
         else if ( "long".equals( datatype ) ) {
-            return new IntegerParser( 8, Long.MIN_VALUE, Long.MAX_VALUE,
+            return new IntegerParser( el, 8, Long.MIN_VALUE, Long.MAX_VALUE,
                                       Long.class );
         }
         else if ( "float".equals( datatype ) ) {
-            return new FloatParser();
+            return new FloatParser( el );
         }
         else if ( "double".equals( datatype ) ) {
-            return new DoubleParser();
+            return new DoubleParser( el );
         }
         else {
             handler.error( new VotLintCode( "DTX" ),
@@ -442,18 +467,21 @@ public abstract class ValueParser {
     /**
      * Returns a parser for xtype='timestamp' (DALI 1.1 sec 3.3.3).
      *
+     * @param  el   reporting context
      * @param  stringLeng   fixed element count for array values,
      *                      or negative value for variable element count
      * @return  new parser
      */
-    private static ValueParser makeTimestampParser( int stringLeng ) {
-        return makeStringParser( stringLeng, (context, txt) -> {
+    private static ValueParser makeTimestampParser( ReportElement el,
+                                                    int stringLeng ) {
+        return makeStringParser( el, stringLeng, (context, txt) -> {
             if ( txt != null && txt.trim().length() > 0 ) {
                 if ( ! ISO_REGEX.matcher( txt ).matches() ) {
                     context.error( new VotLintCode( "TSR" ),
-                                   "Timestamp value \"" + txt + "\""
-                                 + " does not match "
-                                 + "YYYY-MM-DD['T'hh:mm:ss[.SSS]]['Z']" );
+                                   el.msg( "Timestamp value \"" + txt + "\""
+                                         + " does not match "
+                                         + "YYYY-MM-DD"
+                                         + "['T'hh:mm:ss[.SSS]]['Z']" ) );
                 }
                 else {
                     // This looks like it should be a more rigorous check.
@@ -466,8 +494,8 @@ public abstract class ValueParser {
                     }
                     catch ( RuntimeException e ) {
                         context.error( new VotLintCode( "TSR" ),
-                                       "Bad timestamp \"" + txt + "\" "
-                                     + e.getMessage() );
+                                       el.msg( "Bad timestamp \"" + txt + "\" "
+                                             + e.getMessage() ) );
                     }
                 }
             }
@@ -479,17 +507,19 @@ public abstract class ValueParser {
      * This parser only handles floating point intervals,
      * though integer ones are also permitted.
      *
+     * @param  el  reporting context
      * @param  datatype  datatype value
      * @return  new parser
      */
-    private static ValueParser makeFloatingIntervalParser( String datatype ) {
-        return makeFloatingArrayParser( datatype, 2, (context, values) -> {
+    private static ValueParser makeFloatingIntervalParser( ReportElement el,
+                                                           String datatype ) {
+        return makeFloatingArrayParser( el, datatype, 2, (context, values) -> {
             double d0 = values[ 0 ];
             double d1 = values[ 1 ];
             if ( Double.isNaN( d0 ) != Double.isNaN( d1 ) ) {
                 context.error( new VotLintCode( "XIN" ),
-                               "One but not both interval limit is NaN "
-                             + Arrays.toString( values ) );
+                               el.msg( "One but not both interval limit is NaN "
+                                     + Arrays.toString( values ) ) );
             }
         } );
     }
@@ -497,22 +527,24 @@ public abstract class ValueParser {
     /**
      * Returns a parser for xtype='point' (DALI 1.1 sec 3.3.5).
      *
+     * @param  el  reporting context
      * @param  datatype  datatype value
      * @return  new parser
      */
-    private static ValueParser makePointParser( String datatype ) {
-        return makeFloatingArrayParser( datatype, 2, (context, values) -> {
+    private static ValueParser makePointParser( ReportElement el,
+                                                String datatype ) {
+        return makeFloatingArrayParser( el, datatype, 2, (context, values) -> {
             double d0 = values[ 0 ];
             double d1 = values[ 1 ];
             if ( Double.isNaN( d0 ) != Double.isNaN( d1 ) ) {
                 context.error( new VotLintCode( "XIN" ),
-                               "One but not both point coordinate is NaN "
-                             + Arrays.toString( values ) );
+                               el.msg( "One but not both point coordinate "
+                             + "is NaN " + Arrays.toString( values ) ) );
             }
             else if ( Double.isInfinite( d0 ) || Double.isInfinite( d1 ) ) {
                 context.error( new VotLintCode( "XIZ" ),
-                               "Infinite point coordinate(s) "
-                             + Arrays.toString( values ) );
+                               el.msg( "Infinite point coordinate(s) "
+                                     + Arrays.toString( values ) ) );
             }
         } );
     }
@@ -520,19 +552,21 @@ public abstract class ValueParser {
     /**
      * Returns a parser for xtype='circle' (DALI 1.1 sec 3.3.6).
      *
+     * @param  el  reporting context
      * @param  datatype  datatype value
      * @return  new parser
      */
-    private static ValueParser makeCircleParser( String datatype ) {
-        return makeFloatingArrayParser( datatype, 3, (context, values) -> {
+    private static ValueParser makeCircleParser( ReportElement el,
+                                                 String datatype ) {
+        return makeFloatingArrayParser( el, datatype, 3, (context, values) -> {
             double c1 = values[ 0 ];
             double c2 = values[ 1 ];
             double r = values[ 2 ];
             if ( Double.isNaN( c1 ) != Double.isNaN( c2 ) ||
                  Double.isNaN( c1 ) != Double.isNaN( r ) ) {
                 context.error( new VotLintCode( "XIN" ),
-                               "Some but not all circle parameters are NaN "
-                             + Arrays.toString( values ) );
+                               el.msg( "Some but not all circle parameters are"
+                                     + " NaN " + Arrays.toString( values ) ) );
             }
         } );
     }
@@ -540,26 +574,31 @@ public abstract class ValueParser {
     /**
      * Returns a parser for xtype='polygon' (DALI 1.1 sec 3.3.7).
      *
+     * @param  el  reporting context
      * @param  datatype  datatype value
      * @param  nel     fixed element count of array value,
      *                 or negative for variable element count
      * @return  new parser
      */
-    private static ValueParser makePolygonParser( String datatype, int nel ) {
-        return makeFloatingArrayParser( datatype, nel, (context, values) -> {
+    private static ValueParser makePolygonParser( ReportElement el,
+                                                  String datatype, int nel ) {
+        return makeFloatingArrayParser( el, datatype, nel, (context, values) ->{
             int ncoord = values.length;
             if ( nel >= 0 && ncoord != nel ) {
                 context.error( new VotLintCode( "E09" ),
-                               "Wrong number of elements in array ("
-                             + ncoord + " found, " + nel + " expected)" );
+                               el.msg( "Wrong number of elements in array, "
+                                     + ncoord + " found, " + nel
+                                     + " expected" ) );
             }
             else if ( ncoord % 2 != 0 ) {
                 context.error( new VotLintCode( "XSO" ),
-                       "Odd number of polygon coords (" + ncoord + ")");
+                               el.msg( "Odd number (" + ncoord + ")"
+                                     + " of polygon coords" ) );
             }
             else if ( ncoord > 0 && ncoord < 6 ) {
                 context.error( new VotLintCode( "XSF" ),
-                               "Too few polygon coords (" + ncoord + ")" );
+                               el.msg( "Too few (" + ncoord
+                                     + ") polygon coords" ) );
             }
         } );
     }
@@ -569,15 +608,16 @@ public abstract class ValueParser {
      * 1-d char arrays.  This is not intended to work for unicodeChar
      * arrays (though in practice it might do).
      *
+     * @param  el  reporting context
      * @param  stringLeng   fixed element count for array values,
      *                      or negative value for variable element count
      * @param  stringChecker  callback to perform checking on a String value
      * @return  new parser
      */
     private static ValueParser
-            makeStringParser( int stringLeng,
+            makeStringParser( ReportElement el, int stringLeng,
                               BiConsumer<VotLintContext,String> stringChecker ){
-        return new AbstractParser( String.class, 1 ) {
+        return new AbstractParser( el, String.class, 1 ) {
             public void checkString( String txt ) {
                 stringChecker.accept( getContext(), txt );
             }
@@ -596,6 +636,7 @@ public abstract class ValueParser {
      * Note that this currently only works with <code>datatype</code>
      * values of "<code>float</code>" or "<code>double</code>".
      *
+     * @param  el  reporting context
      * @param  datatype  value of (scalar) datatype attribute;
      * @param  nel   fixed element count for array values,
      *               or negative value for variable element count
@@ -606,7 +647,7 @@ public abstract class ValueParser {
      * @return   new parser
      */
     private static ValueParser
-            makeFloatingArrayParser( String datatype, int nel,
+            makeFloatingArrayParser( ReportElement el, String datatype, int nel,
                                      BiConsumer<VotLintContext,double[]>
                                                 arrayChecker ) {
         final Class<?> aclazz;
@@ -628,16 +669,16 @@ public abstract class ValueParser {
         else {
             throw new AssertionError( "datatype? " + datatype );
         }
-        return new AbstractParser( aclazz, nel >= 0 ? nel : -1 ) {
+        return new AbstractParser( el, aclazz, nel >= 0 ? nel : -1 ) {
             public void checkString( String text ) {
                 double[] values = readString( text );
                 if ( values != null ) {
                     VotLintContext context = getContext();
                     if ( nel >= 0 && values.length != nel ) {
-                        context.error( new VotLintCode( "E08" ),
-                                       "Wrong number of elements in array (" + 
-                                     + values.length + " found, "
-                                     + nel + " expected)" );
+                        error( new VotLintCode( "E08" ),
+                               "Wrong number of elements in array, " + 
+                             + values.length + " found, "
+                             + nel + " expected" );
                     }
                     else {
                         arrayChecker.accept( context, values );
@@ -744,10 +785,12 @@ public abstract class ValueParser {
         /**
          * Constructor.
          *
+         * @param  el  reporting context
          * @param   clazz  element class
          * @param   count  element count
          */
-        public AbstractParser( Class<?> clazz, int count ) {
+        public AbstractParser( ReportElement el, Class<?> clazz, int count ) {
+            super( el );
             clazz_ = clazz;
             count_ = count;
         }
@@ -771,11 +814,13 @@ public abstract class ValueParser {
         /**
          * Constructor.
          *
+         * @param  el   reporting context
          * @param  nbyte  number of bytes read by stream reading method.
          * @param  clazz  class of elements
          * @param  count  number of elements
          */
-        SlurpParser( int nbyte, Class<?> clazz, int count ) {
+        SlurpParser( ReportElement el, int nbyte, Class<?> clazz, int count ) {
+            super( el );
             nbyte_ = nbyte;
             clazz_ = clazz;
             count_ = count;
@@ -801,11 +846,13 @@ public abstract class ValueParser {
         /**
          * Constructor.
          *
+         * @param  el   reporting context
          * @param   base  parser which can read a scalar
          * @param   count  number of scalar elements read by this parser
          */
-        FixedArrayParser( ValueParser base, Class<?> clazz, int count ) {
-            super( clazz, count );
+        FixedArrayParser( ReportElement el, ValueParser base,
+                          Class<?> clazz, int count ) {
+            super( el, clazz, count );
             base_ = base;
             count_ = count;
             base_.toString();
@@ -821,8 +868,8 @@ public abstract class ValueParser {
             int ntok = stok.countTokens();
             if ( ntok != count_ ) {
                 error( new VotLintCode( "E09" ),
-                       "Wrong number of elements in array (" + 
-                       ntok + " found, " + count_ + " expected)" );
+                       "Wrong number of elements in array, " + 
+                       ntok + " found, " + count_ + " expected" );
             }
             while ( stok.hasMoreTokens() ) {
                 base_.checkString( stok.nextToken() );
@@ -844,10 +891,12 @@ public abstract class ValueParser {
         /**
          * Constructor.
          *
+         * @param  el   reporting context
          * @param  base  parser which can read a scalar
          */
-        VariableArrayParser( ValueParser base, Class<?> clazz ) {
-            super( clazz, -1 );
+        VariableArrayParser( ReportElement el, ValueParser base,
+                             Class<?> clazz ) {
+            super( el, clazz, -1 );
             base_ = base;
             base_.toString();
         }
@@ -884,8 +933,13 @@ public abstract class ValueParser {
      */
     private static class BooleanParser extends AbstractParser {
 
-        public BooleanParser() {
-            super( Boolean.class, 1 );
+        /**
+         * Constructor.
+         *
+         * @param  el  reporting context
+         */
+        public BooleanParser( ReportElement el ) {
+            super( el, Boolean.class, 1 );
         }
 
         public void checkString( String text ) {
@@ -942,12 +996,14 @@ public abstract class ValueParser {
         /**
          * Constructor.
          *
+         * @param  el  reporting context
          * @param   nbyte  number of bytes per integer in stream mode
          * @param   minVal  minimum legal value for integer
          * @param   maxVal  maximum legal value for integer
          */
-        IntegerParser( int nbyte, long minVal, long maxVal, Class<?> clazz ) {
-            super( nbyte, clazz, 1 );
+        IntegerParser( ReportElement el, int nbyte, long minVal, long maxVal,
+                       Class<?> clazz ) {
+            super( el, nbyte, clazz, 1 );
             minVal_ = minVal;
             maxVal_ = maxVal;
         }
@@ -1000,8 +1056,14 @@ public abstract class ValueParser {
      * Parser for float values.
      */
     private static class FloatParser extends SlurpParser {
-        FloatParser() {
-            super( 4, Float.class, 1 );
+
+        /**
+         * Constructor.
+         *
+         * @param  el  reporting context
+         */
+        FloatParser( ReportElement el ) {
+            super( el, 4, Float.class, 1 );
         }
         public void checkString( String text ) {
             text = text.trim();
@@ -1025,8 +1087,14 @@ public abstract class ValueParser {
      * Parser for double values.
      */
     private static class DoubleParser extends SlurpParser {
-        DoubleParser() {
-            super( 8, Double.class, 1 );
+
+        /**
+         * Constructor.
+         *
+         * @param  el  reporting context
+         */
+        DoubleParser( ReportElement el ) {
+            super( el, 8, Double.class, 1 );
         }
         public void checkString( String text ) {
             text = text.trim();
@@ -1055,10 +1123,11 @@ public abstract class ValueParser {
         /**
          * Constructor.
          *
+         * @param  el  reporting context
          * @param  count  number of bits
          */
-        FixedBitParser( int count ) {
-            super( ( count + 7 ) / 8, Boolean.class, count );
+        FixedBitParser( ReportElement el, int count ) {
+            super( el, ( count + 7 ) / 8, Boolean.class, count );
             count_ = count;
         }
         public void checkString( String text ) {
@@ -1089,8 +1158,14 @@ public abstract class ValueParser {
      * Parser for variable length bit vectors.
      */
     private static class VariableBitParser extends AbstractParser {
-        public VariableBitParser() {
-            super( boolean[].class, -1 );
+
+        /**
+         * Constructor.
+         *
+         * @param  el  reporting context
+         */
+        public VariableBitParser( ReportElement el ) {
+            super( el, boolean[].class, -1 );
         }
         public void checkString( String text ) {
             int leng = text.length();
@@ -1120,11 +1195,12 @@ public abstract class ValueParser {
         /**
          * Constructor.
          *
+         * @param  el  reporting context
          * @param  ascii  true for 7-bit ASCII characters, false for 
          *                16-bit unicode
          */
-        public SingleCharParser( boolean ascii ) {
-            super( ascii ? 1 : 2, Character.class, 1 );
+        public SingleCharParser( ReportElement el, boolean ascii ) {
+            super( el, ascii ? 1 : 2, Character.class, 1 );
             ascii_ = ascii;
         }
         public void checkString( String text ) {
@@ -1139,7 +1215,7 @@ public abstract class ValueParser {
                 default:
                     warning( new VotLintCode( "CH1" ),
                              "Characters after first in char scalar ignored" +
-                             " (missing arraysize?)" );
+                             " - missing arraysize?" );
             }
             if ( ascii_ && leng > 0 && text.charAt( 0 ) > 0x7f ) {
                 error( new VotLintCode( "CRU" ),
@@ -1156,12 +1232,13 @@ public abstract class ValueParser {
         /**
          * Constructor.
          *
+         * @param  el  reporting context
          * @param  ascii  true for 7-bit ASCII characters, false for 
          *                16-bit unicode
          * @param  count  number of characters in string
          */
-        public FixedCharParser( boolean ascii, int count ) {
-            super( count * ( ascii ? 1 : 2 ), String.class, 1 );
+        public FixedCharParser( ReportElement el, boolean ascii, int count ) {
+            super( el, count * ( ascii ? 1 : 2 ), String.class, 1 );
         }
         public void checkString( String text ) {
         }
@@ -1176,11 +1253,12 @@ public abstract class ValueParser {
         /**
          * Constructor.
          *
+         * @param  el  reporting context
          * @param  ascii  true for 7-bit ASCII characters, false for 
          *                16-bit unicode
          */
-        VariableCharParser( boolean ascii ) {
-            super( String.class, 1 );
+        VariableCharParser( ReportElement el, boolean ascii ) {
+            super( el, String.class, 1 );
             ascii_ = ascii;
         }
         public void checkString( String text ) {
@@ -1197,11 +1275,14 @@ public abstract class ValueParser {
         final boolean ascii_;
  
         /**
+         * Constructor.
+         *
+         * @param  el  reporting context
          * @param  ascii  true for 7-bit ASCII characters, false for 
          *                16-bit unicode
          */
-        VariableCharArrayParser( boolean ascii ) {
-            super( String[].class, -1 );
+        VariableCharArrayParser( ReportElement el, boolean ascii ) {
+            super( el, String[].class, -1 );
             ascii_ = ascii;
         }
 
@@ -1221,13 +1302,17 @@ public abstract class ValueParser {
         final int nchar_;
 
         /**
+         * Constructor.
+         *
+         * @param  el  reporting context
          * @param  ascii  true for 7-bit ASCII characters, false for 
          *                16-bit unicode
          * @param  nchar  number of characters
          * @param  stringLeng  characters per string
          */
-        FixedCharArrayParser( boolean ascii, int nchar, int stringLeng ) {
-            super( String[].class, nchar / stringLeng );
+        FixedCharArrayParser( ReportElement el, boolean ascii, int nchar,
+                              int stringLeng ) {
+            super( el, String[].class, nchar / stringLeng );
             ascii_ = ascii;
             nchar_ = nchar;
         }
@@ -1385,6 +1470,77 @@ public abstract class ValueParser {
         else {
             assert false;
             return Array.newInstance( wclazz, 0 ).getClass();
+        }
+    }
+
+    /**
+     * Records the FIELD or PARAM element for which a ValueParser was created,
+     * and manages creation of user messages that include this context.
+     */
+    private static class ReportElement {
+        final ElementHandler handler_;
+        final String name_;
+
+        /**
+         * Constructor.
+         *
+         * @param  element   handler, usually type Field or Param
+         * @param  name   value of element name attribute
+         */
+        ReportElement( ElementHandler handler, String name ) {
+            handler_ = handler;
+            name_ = name;
+        }
+
+        /**
+         * Constructs a ReportElement that doesn't report any context.
+         */
+        ReportElement() {
+            this( null, null );
+        }
+
+        /**
+         * Returns a user-directed message that includes
+         * context information alongside the supplied text.
+         *
+         * @param   txt  basic message text
+         * @param   irow  0-based row index to which message is associated,
+         *                or negative for unknown/inapplicable
+         * @return   message text with context
+         */
+        String msg( String txt, long irow ) {
+            StringBuffer sbuf = new StringBuffer();
+            sbuf.append( txt );
+            if ( handler_ != null || name_ != null ) {
+                sbuf.append( " (" );
+                if ( irow < 0 ) {
+                    if ( handler_ != null ) {
+                        sbuf.append( handler_.toString() )
+                            .append( ' ' );
+                    }
+                }
+                if ( name_ != null ) {
+                    sbuf.append( name_ );
+                }
+                if ( irow >= 0 ) {
+                    sbuf.append( " row " )
+                        .append( irow );
+                }
+                sbuf.append( ')' );
+            }
+            return sbuf.toString();
+        }
+
+        /**
+         * Returns a user-directed message that includes
+         * context information alongside the supplied text,
+         * without a row index.
+         *
+         * @param   txt  basic message text
+         * @return   message text with context
+         */
+        String msg( String txt ) {
+            return msg( txt, -1 );
         }
     }
 }
