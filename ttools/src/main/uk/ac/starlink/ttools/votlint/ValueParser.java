@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.StringTokenizer;
-import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.ttools.func.Times;
@@ -53,16 +52,21 @@ public abstract class ValueParser {
      * of a PARAM element or the contents of a TD element.
      *
      * @param  text  value string
+     * @param  irow  row index at which error occurred,
+     *               or negative if unknown/inapplicable
      */
-    public abstract void checkString( String text );
+    public abstract void checkString( String text, long irow );
 
     /**
      * Checks the value of a table element which is encoded in a BINARY
      * stream.
      *
      * @param  in  input stream
+     * @param  irow  row index at which error occurred,
+     *               or negative if unknown/inapplicable
      */
-    public abstract void checkStream( InputStream in ) throws IOException;
+    public abstract void checkStream( InputStream in, long irow )
+            throws IOException;
 
     /**
      * Returns the class of values which would be used in Java to represent
@@ -110,9 +114,11 @@ public abstract class ValueParser {
      *
      * @param   code  message identifier
      * @param   msg  message text
+     * @param   irow   row index associated with message,
+     *                 or -1 for unknown/inapplicable
      */
-    public void info( VotLintCode code, String msg ) {
-        getContext().info( code, el_.msg( msg ) );
+    public void info( VotLintCode code, String msg, long irow ) {
+        getContext().info( code, el_.msg( msg, irow ) );
     }
 
     /**
@@ -120,9 +126,11 @@ public abstract class ValueParser {
      *
      * @param   code  message identifier
      * @param   msg  message text
+     * @param   irow   row index associated with message,
+     *                 or -1 for unknown/inapplicable
      */
-    public void warning( VotLintCode code, String msg ) {
-        getContext().warning( code, el_.msg( msg ) );
+    public void warning( VotLintCode code, String msg, long irow ) {
+        getContext().warning( code, el_.msg( msg, irow ) );
     }
 
     /**
@@ -130,9 +138,11 @@ public abstract class ValueParser {
      *
      * @param   code  message identifier
      * @param   msg  message text
+     * @param   irow   row index associated with message,
+     *                 or -1 for unknown/inapplicable
      */
-    public void error( VotLintCode code, String msg ) {
-        getContext().error( code, el_.msg( msg ) );
+    public void error( VotLintCode code, String msg, long irow ) {
+        getContext().error( code, el_.msg( msg, irow ) );
     }
 
     /**
@@ -474,14 +484,14 @@ public abstract class ValueParser {
      */
     private static ValueParser makeTimestampParser( ReportElement el,
                                                     int stringLeng ) {
-        return makeStringParser( el, stringLeng, (context, txt) -> {
+        return makeStringParser( el, stringLeng, (context, txt, irow ) -> {
             if ( txt != null && txt.trim().length() > 0 ) {
                 if ( ! ISO_REGEX.matcher( txt ).matches() ) {
                     context.error( new VotLintCode( "TSR" ),
                                    el.msg( "Timestamp value \"" + txt + "\""
                                          + " does not match "
-                                         + "YYYY-MM-DD"
-                                         + "['T'hh:mm:ss[.SSS]]['Z']" ) );
+                                         + "YYYY-MM-DD['T'hh:mm:ss[.SSS]]['Z']",
+                                           irow ) );
                 }
                 else {
                     // This looks like it should be a more rigorous check.
@@ -495,7 +505,7 @@ public abstract class ValueParser {
                     catch ( RuntimeException e ) {
                         context.error( new VotLintCode( "TSR" ),
                                        el.msg( "Bad timestamp \"" + txt + "\" "
-                                             + e.getMessage() ) );
+                                             + e.getMessage(), irow ) );
                     }
                 }
             }
@@ -513,13 +523,14 @@ public abstract class ValueParser {
      */
     private static ValueParser makeFloatingIntervalParser( ReportElement el,
                                                            String datatype ) {
-        return makeFloatingArrayParser( el, datatype, 2, (context, values) -> {
+        return makeFloatingArrayParser( el, datatype, 2,
+                                        (context, values, irow ) -> {
             double d0 = values[ 0 ];
             double d1 = values[ 1 ];
             if ( Double.isNaN( d0 ) != Double.isNaN( d1 ) ) {
                 context.error( new VotLintCode( "XIN" ),
                                el.msg( "One but not both interval limit is NaN "
-                                     + Arrays.toString( values ) ) );
+                                     + Arrays.toString( values ), irow ) );
             }
         } );
     }
@@ -533,18 +544,19 @@ public abstract class ValueParser {
      */
     private static ValueParser makePointParser( ReportElement el,
                                                 String datatype ) {
-        return makeFloatingArrayParser( el, datatype, 2, (context, values) -> {
+        return makeFloatingArrayParser( el, datatype, 2,
+                                        (context, values, irow) -> {
             double d0 = values[ 0 ];
             double d1 = values[ 1 ];
             if ( Double.isNaN( d0 ) != Double.isNaN( d1 ) ) {
                 context.error( new VotLintCode( "XIN" ),
                                el.msg( "One but not both point coordinate "
-                             + "is NaN " + Arrays.toString( values ) ) );
+                             + "is NaN " + Arrays.toString( values ), irow ) );
             }
             else if ( Double.isInfinite( d0 ) || Double.isInfinite( d1 ) ) {
                 context.error( new VotLintCode( "XIZ" ),
                                el.msg( "Infinite point coordinate(s) "
-                                     + Arrays.toString( values ) ) );
+                                     + Arrays.toString( values ), irow ) );
             }
         } );
     }
@@ -558,7 +570,8 @@ public abstract class ValueParser {
      */
     private static ValueParser makeCircleParser( ReportElement el,
                                                  String datatype ) {
-        return makeFloatingArrayParser( el, datatype, 3, (context, values) -> {
+        return makeFloatingArrayParser( el, datatype, 3,
+                                        (context, values, irow) -> {
             double c1 = values[ 0 ];
             double c2 = values[ 1 ];
             double r = values[ 2 ];
@@ -566,7 +579,8 @@ public abstract class ValueParser {
                  Double.isNaN( c1 ) != Double.isNaN( r ) ) {
                 context.error( new VotLintCode( "XIN" ),
                                el.msg( "Some but not all circle parameters are"
-                                     + " NaN " + Arrays.toString( values ) ) );
+                                     + " NaN " + Arrays.toString( values ),
+                                       irow ) );
             }
         } );
     }
@@ -582,23 +596,24 @@ public abstract class ValueParser {
      */
     private static ValueParser makePolygonParser( ReportElement el,
                                                   String datatype, int nel ) {
-        return makeFloatingArrayParser( el, datatype, nel, (context, values) ->{
+        return makeFloatingArrayParser( el, datatype, nel,
+                                        (context, values, irow) -> {
             int ncoord = values.length;
             if ( nel >= 0 && ncoord != nel ) {
                 context.error( new VotLintCode( "E09" ),
                                el.msg( "Wrong number of elements in array, "
-                                     + ncoord + " found, " + nel
-                                     + " expected" ) );
+                                     + ncoord + " found, " + nel + " expected",
+                                       irow ) );
             }
             else if ( ncoord % 2 != 0 ) {
                 context.error( new VotLintCode( "XSO" ),
                                el.msg( "Odd number (" + ncoord + ")"
-                                     + " of polygon coords" ) );
+                                     + " of polygon coords", irow ) );
             }
             else if ( ncoord > 0 && ncoord < 6 ) {
                 context.error( new VotLintCode( "XSF" ),
                                el.msg( "Too few (" + ncoord
-                                     + ") polygon coords" ) );
+                                     + ") polygon coords", irow ) );
             }
         } );
     }
@@ -616,16 +631,17 @@ public abstract class ValueParser {
      */
     private static ValueParser
             makeStringParser( ReportElement el, int stringLeng,
-                              BiConsumer<VotLintContext,String> stringChecker ){
+                              StringChecker stringChecker ) {
         return new AbstractParser( el, String.class, 1 ) {
-            public void checkString( String txt ) {
-                stringChecker.accept( getContext(), txt );
+            public void checkString( String txt, long irow ) {
+                stringChecker.check( getContext(), txt, irow );
             }
-            public void checkStream( InputStream in ) throws IOException {
+            public void checkStream( InputStream in, long irow )
+                    throws IOException {
                 int nchar = stringLeng >= 0 ? stringLeng : readCount( in );
                 String txt = new String( readStreamBytes( in, nchar ),
                                          StandardCharsets.UTF_8 );
-                stringChecker.accept( getContext(), txt );
+                stringChecker.check( getContext(), txt, irow );
             }
         };
     }
@@ -648,8 +664,7 @@ public abstract class ValueParser {
      */
     private static ValueParser
             makeFloatingArrayParser( ReportElement el, String datatype, int nel,
-                                     BiConsumer<VotLintContext,double[]>
-                                                arrayChecker ) {
+                                     DoubleArrayChecker arrayChecker ) {
         final Class<?> aclazz;
         final int elSize;
 
@@ -670,26 +685,27 @@ public abstract class ValueParser {
             throw new AssertionError( "datatype? " + datatype );
         }
         return new AbstractParser( el, aclazz, nel >= 0 ? nel : -1 ) {
-            public void checkString( String text ) {
-                double[] values = readString( text );
+            public void checkString( String text, long irow ) {
+                double[] values = readString( text, irow );
                 if ( values != null ) {
                     VotLintContext context = getContext();
                     if ( nel >= 0 && values.length != nel ) {
                         error( new VotLintCode( "E08" ),
                                "Wrong number of elements in array, " + 
                              + values.length + " found, "
-                             + nel + " expected" );
+                             + nel + " expected", irow );
                     }
                     else {
-                        arrayChecker.accept( context, values );
+                        arrayChecker.check( context, values, irow );
                     }
                 }
             }
-            public void checkStream( InputStream in ) throws IOException {
+            public void checkStream( InputStream in, long irow )
+                    throws IOException {
                 double[] values = readStream( in );
                 if ( values != null ) {
                     assert nel < 0 || values.length == nel;
-                    arrayChecker.accept( getContext(), values );
+                    arrayChecker.check( getContext(), values, irow );
                 }
             }
 
@@ -697,9 +713,10 @@ public abstract class ValueParser {
              * Reads a floating point array from a string value.
              *
              * @param  text  string value of field
+             * @param  irow  row index, or -1
              * @return   content as double array, or null if not parseable
              */
-            private double[] readString( String text ) {
+            private double[] readString( String text, long irow ) {
                 String[] sitems = text.trim().split( "\\s+" );
                 int n = sitems.length;
                 double[] ditems = new double[ n ];
@@ -725,14 +742,14 @@ public abstract class ValueParser {
                                 // shouldn't happen
                                 error( new VotLintCode( "FPX" ),
                                        "Unexpected bad " + datatype + " string"
-                                     + " '" + sitem + "'" );
+                                     + " '" + sitem + "'", irow );
                                 return null;
                             }
                         }
                         else {
                             error( new VotLintCode( "FP0" ),
                                    "Bad " + datatype + " string"
-                                 + " '" + sitem + "'" );
+                                 + " '" + sitem + "'", irow );
                             return null;
                         }
                     }
@@ -772,6 +789,42 @@ public abstract class ValueParser {
          * @return  double value
          */
         double readDouble( DataInput dataIn ) throws IOException;
+    }
+
+    /**
+     * Interface for checking string values.
+     */
+    @FunctionalInterface
+    private interface StringChecker {
+
+        /**
+         * Examine a supplied string and report any problems
+         * through the supplied context.
+         *
+         * @param   context  global context
+         * @param   txt   string to check
+         * @param   irow   row index associated with text,
+         *                 or -1 if unknown/inapplicable
+         */
+        void check( VotLintContext context, String txt, long irow );
+    }
+
+    /**
+     * Interface for checking double array values.
+     */
+    @FunctionalInterface
+    private interface DoubleArrayChecker {
+
+        /**
+         * Examine a supplied double array and report any problems
+         * through the supplied context.
+         *
+         * @param   context  global context
+         * @param   array   array to check, not null
+         * @param   irow   row index associated with array,
+         *                 or -1 if unknown/inapplicable
+         */
+        void check( VotLintContext context, double[] array, long irow );
     }
 
     /**
@@ -831,7 +884,8 @@ public abstract class ValueParser {
         public int getElementCount() {
             return count_;
         }
-        public void checkStream( InputStream in ) throws IOException {
+        public void checkStream( InputStream in, long irow )
+                throws IOException {
             slurpStream( in, nbyte_ );
         }
     }
@@ -863,21 +917,22 @@ public abstract class ValueParser {
         public void setContext( VotLintContext context ) {
             base_.setContext( context );
         }
-        public void checkString( String text ) {
+        public void checkString( String text, long irow ) {
             StringTokenizer stok = new StringTokenizer( text );
             int ntok = stok.countTokens();
             if ( ntok != count_ ) {
                 error( new VotLintCode( "E09" ),
                        "Wrong number of elements in array, " + 
-                       ntok + " found, " + count_ + " expected" );
+                       ntok + " found, " + count_ + " expected", irow );
             }
             while ( stok.hasMoreTokens() ) {
-                base_.checkString( stok.nextToken() );
+                base_.checkString( stok.nextToken(), irow );
             }
         }
-        public void checkStream( InputStream in ) throws IOException {
+        public void checkStream( InputStream in, long irow )
+                throws IOException {
             for ( int i = 0; i < count_; i++ ) {
-                base_.checkStream( in );
+                base_.checkStream( in, irow );
             }
         }
     }
@@ -906,22 +961,23 @@ public abstract class ValueParser {
         public void setContext( VotLintContext context ) {
             base_.setContext( context );
         }
-        public void checkString( String text ) {
+        public void checkString( String text, long irow ) {
             for ( StringTokenizer stok = new StringTokenizer( text );
                   stok.hasMoreTokens(); ) {
-                base_.checkString( stok.nextToken() );
+                base_.checkString( stok.nextToken(), irow );
             }
         }
-        public void checkStream( InputStream in ) throws IOException {
+        public void checkStream( InputStream in, long irow )
+                throws IOException {
             int count = readCount( in );
             for ( int i = 0; i < count; i++ ) {
                 try {
-                    base_.checkStream( in );
+                    base_.checkStream( in, irow );
                 }
                 catch ( EOFException e ) {
                     error( new VotLintCode( "EOF" ),
                            "End of stream while reading " + count +
-                           " elements (probable stream corruption)" );
+                           " elements (probable stream corruption)", irow );
                     throw e;
                 }
             }
@@ -942,7 +998,7 @@ public abstract class ValueParser {
             super( el, Boolean.class, 1 );
         }
 
-        public void checkString( String text ) {
+        public void checkString( String text, long irow ) {
             int leng = text.length();
             if ( leng == 0 ) {
                 return;
@@ -955,7 +1011,7 @@ public abstract class ValueParser {
                         return;
                     default:
                         error( new VotLintCode( "TFX" ),
-                               "Bad boolean value '" + text + "'" );
+                               "Bad boolean value '" + text + "'", irow );
                 }
             }
             else if ( text.equalsIgnoreCase( "true" ) ||
@@ -964,11 +1020,12 @@ public abstract class ValueParser {
             }
             else {
                 error( new VotLintCode( "TFX" ),
-                       "Bad boolean value '" + text + "'" );
+                       "Bad boolean value '" + text + "'", irow );
             }
         }
 
-        public void checkStream( InputStream in ) throws IOException {
+        public void checkStream( InputStream in, long irow )
+                throws IOException {
             char chr = (char) ( 0xffff & in.read() );
             switch ( chr ) {
                 case 'T': case 't': case '1':
@@ -977,11 +1034,11 @@ public abstract class ValueParser {
                     return;
                 case (char) -1:
                     error( new VotLintCode( "EOF" ),
-                           "End of stream during read" );
+                           "End of stream during read", irow );
                     throw new EOFException();
                 default:
                     error( new VotLintCode( "TFX" ),
-                           "Bad boolean value '" + chr + "'" );
+                           "Bad boolean value '" + chr + "'", irow );
              }
         }
     }
@@ -1008,7 +1065,7 @@ public abstract class ValueParser {
             maxVal_ = maxVal;
         }
 
-        public void checkString( String text ) {
+        public void checkString( String text, long irow ) {
             int pos = 0;
             int leng = text.length();
             while ( pos < leng && text.charAt( pos ) == ' ' ) {
@@ -1023,14 +1080,14 @@ public abstract class ValueParser {
                 }
                 catch ( NumberFormatException e ) {
                     error( new VotLintCode( "HX0" ),
-                           "Bad hexadecimal string '" + text + "'" );
+                           "Bad hexadecimal string '" + text + "'", irow );
                     return;
                 }
             }
             else if ( text.length() == 0 ) {
                 if ( ! getContext().getVersion().allowEmptyTd() ) {
                     error( new VotLintCode( "ETD" ),
-                           "Empty cell illegal for integer value" );
+                           "Empty cell illegal for integer value", irow );
                 }
                 return;
             }
@@ -1040,14 +1097,14 @@ public abstract class ValueParser {
                 }
                 catch ( NumberFormatException e ) {
                     error( new VotLintCode( "IT0" ),
-                           "Bad integer string '" + text + "'" );
+                           "Bad integer string '" + text + "'", irow );
                     return;
                 }
             }
             if ( value < minVal_ || value > maxVal_ ) {
                 error( new VotLintCode( "BND" ),
                        "Value " + text + " outside type range " + 
-                       minVal_ + "..." + maxVal_ );
+                       minVal_ + "..." + maxVal_, irow );
             }
         }
     }
@@ -1065,7 +1122,7 @@ public abstract class ValueParser {
         FloatParser( ReportElement el ) {
             super( el, 4, Float.class, 1 );
         }
-        public void checkString( String text ) {
+        public void checkString( String text, long irow ) {
             text = text.trim();
             if ( "NaN".equals( text ) ||
                  "+Inf".equals( text ) ||
@@ -1077,7 +1134,7 @@ public abstract class ValueParser {
                 Matcher matcher = DOUBLE_REGEX.matcher( text );
                 if ( ! matcher.matches() ) {
                     error( new VotLintCode( "FP0" ),
-                           "Bad float string '" + text + "'" );
+                           "Bad float string '" + text + "'", irow );
                 }
             }
         }
@@ -1096,7 +1153,7 @@ public abstract class ValueParser {
         DoubleParser( ReportElement el ) {
             super( el, 8, Double.class, 1 );
         }
-        public void checkString( String text ) {
+        public void checkString( String text, long irow ) {
             text = text.trim();
             if ( "NaN".equals( text ) ||
                  "+Inf".equals( text ) ||
@@ -1108,7 +1165,7 @@ public abstract class ValueParser {
                 Matcher matcher = DOUBLE_REGEX.matcher( text );
                 if ( ! matcher.matches() ) {
                     error( new VotLintCode( "FP0" ),
-                           "Bad double string '" + text + "'" );
+                           "Bad double string '" + text + "'", irow );
                 }
             }
         }
@@ -1130,7 +1187,7 @@ public abstract class ValueParser {
             super( el, ( count + 7 ) / 8, Boolean.class, count );
             count_ = count;
         }
-        public void checkString( String text ) {
+        public void checkString( String text, long irow ) {
             int leng = text.length();
             int nbit = 0;
             for ( int i = 0; i < leng; i++ ) {
@@ -1142,14 +1199,14 @@ public abstract class ValueParser {
                         break;
                     default:
                         error( new VotLintCode( "BT0" ),
-                               "Bad value for bit vector " + text );
+                               "Bad value for bit vector " + text, irow );
                         return;
                 }
             }
             if ( nbit != count_ ) {
                 error( new VotLintCode( "CT9" ),
                        "Wrong number of elements in array (" +
-                       nbit + " found, " + count_ + " expected)" );
+                       nbit + " found, " + count_ + " expected)", irow );
             }
         }
     }
@@ -1167,7 +1224,7 @@ public abstract class ValueParser {
         public VariableBitParser( ReportElement el ) {
             super( el, boolean[].class, -1 );
         }
-        public void checkString( String text ) {
+        public void checkString( String text, long irow ) {
             int leng = text.length();
             for ( int i = 0; i < leng; i++ ) {
                 switch ( text.charAt( i ) ) {
@@ -1176,12 +1233,13 @@ public abstract class ValueParser {
                         break;
                     default:
                         error( new VotLintCode( "BV0" ),
-                               "Bad value for bit vector " + text );
+                               "Bad value for bit vector " + text, irow );
                         return;
                 }
             }
         }
-        public void checkStream( InputStream in ) throws IOException {
+        public void checkStream( InputStream in, long irow )
+                throws IOException {
             slurpStream( in, ( 1 + readCount( in  ) ) / 8 );
         }
     }
@@ -1203,23 +1261,23 @@ public abstract class ValueParser {
             super( el, ascii ? 1 : 2, Character.class, 1 );
             ascii_ = ascii;
         }
-        public void checkString( String text ) {
+        public void checkString( String text, long irow ) {
             int leng = text.length();
             switch ( leng ) {
                 case 0:
                     warning( new VotLintCode( "CH0" ),
-                             "Empty character value is questionable" );
+                             "Empty character value is questionable", irow );
                     break;
                 case 1:
                     break;
                 default:
                     warning( new VotLintCode( "CH1" ),
                              "Characters after first in char scalar ignored" +
-                             " - missing arraysize?" );
+                             " - missing arraysize?", irow );
             }
             if ( ascii_ && leng > 0 && text.charAt( 0 ) > 0x7f ) {
                 error( new VotLintCode( "CRU" ),
-                       "Non-ascii character in 'char' data" );
+                       "Non-ascii character in 'char' data", irow );
             }
         }
     }
@@ -1240,7 +1298,7 @@ public abstract class ValueParser {
         public FixedCharParser( ReportElement el, boolean ascii, int count ) {
             super( el, count * ( ascii ? 1 : 2 ), String.class, 1 );
         }
-        public void checkString( String text ) {
+        public void checkString( String text, long irow ) {
         }
     }
 
@@ -1261,9 +1319,10 @@ public abstract class ValueParser {
             super( el, String.class, 1 );
             ascii_ = ascii;
         }
-        public void checkString( String text ) {
+        public void checkString( String text, long irow ) {
         }
-        public void checkStream( InputStream in ) throws IOException {
+        public void checkStream( InputStream in, long irow )
+                throws IOException {
             slurpStream( in, readCount( in ) * ( ascii_ ? 1 : 2 ) );
         }
     }
@@ -1286,11 +1345,12 @@ public abstract class ValueParser {
             ascii_ = ascii;
         }
 
-        public void checkStream( InputStream in ) throws IOException {
+        public void checkStream( InputStream in, long irow )
+                throws IOException {
             slurpStream( in, readCount( in ) * ( ascii_ ? 1 : 2 ) );
         }
 
-        public void checkString( String text ) {
+        public void checkString( String text, long irow ) {
         }
     }
 
@@ -1317,16 +1377,17 @@ public abstract class ValueParser {
             nchar_ = nchar;
         }
 
-        public void checkStream( InputStream in ) throws IOException {
+        public void checkStream( InputStream in, long irow )
+                throws IOException {
             slurpStream( in, nchar_ * ( ascii_ ? 1 : 2 ) );
         }
 
-        public void checkString( String text ) {
+        public void checkString( String text, long irow ) {
             int leng = text.length();
             if ( text.length() != nchar_ ) {
                 warning( new VotLintCode( "C09" ),
                          "Wrong number of characters in string (" +
-                         leng + " found, " + nchar_ + " expected)" );
+                         leng + " found, " + nchar_ + " expected)", irow );
             }
         }
     }
@@ -1416,7 +1477,7 @@ public abstract class ValueParser {
         if ( c1 < 0 || c2 < 0 || c3 < 0 || c4 < 0 ) {
             error( new VotLintCode( "EOF" ),
                    "End of stream while reading element count" +
-                   " (probable stream corruption)" );
+                   " (probable stream corruption)", -1 );
             throw new EOFException();
         }
         else {
@@ -1427,7 +1488,7 @@ public abstract class ValueParser {
             if ( count < 0 ) {
                 error( new VotLintCode( "MEL" ),
                        "Apparent negative element count " +
-                       "(probably stream corruption)" );
+                       "(probably stream corruption)", -1 );
                 throw new IOException( "Unrecoverable stream error" );
             }
             else {
@@ -1524,7 +1585,7 @@ public abstract class ValueParser {
                 }
                 if ( irow >= 0 ) {
                     sbuf.append( " row " )
-                        .append( irow );
+                        .append( ( irow + 1 ) );
                 }
                 sbuf.append( ')' );
             }

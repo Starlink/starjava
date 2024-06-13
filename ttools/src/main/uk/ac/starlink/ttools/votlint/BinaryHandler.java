@@ -48,6 +48,7 @@ public class BinaryHandler extends StreamingHandler {
 
         /* Read the stream. */
         PushbackInputStream pushIn = new PushbackInputStream( in );
+        long irow = 0;
         while ( true ) {
 
             /* Check for end of stream. */
@@ -64,11 +65,12 @@ public class BinaryHandler extends StreamingHandler {
                 ValueParser.slurpStream( pushIn, nflag, context );
             }
             for ( int icol = 0; icol < ncol; icol++ ) {
-                parsers[ icol ].checkStream( pushIn );
+                parsers[ icol ].checkStream( pushIn, irow );
             }
 
             /* Notify the table. */
             foundRow();
+            irow++;
         }
     }
 }
