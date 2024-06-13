@@ -38,7 +38,11 @@ public class TdHandler extends ElementHandler {
                         // no action, null is intended
                     }
                     else {
-                        parser.checkString( content_.toString() );
+                        TableHandler table =
+                            family.getAncestor( TableHandler.class );
+                        long irow = table == null ? -1
+                                                  : table.getCurrentRowIndex();
+                        parser.checkString( content_.toString(), irow );
                     }
                 }
             }

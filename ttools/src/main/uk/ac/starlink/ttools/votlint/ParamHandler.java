@@ -54,7 +54,7 @@ public class ParamHandler extends ElementHandler {
             if ( attValue.length() > 0 ) {
                 ValueParser parser = ((ParamHandler) handler).getParser();
                 if ( parser != null ) {
-                    parser.checkString( attValue );
+                    parser.checkString( attValue, -1 );
                 }
             }
         }

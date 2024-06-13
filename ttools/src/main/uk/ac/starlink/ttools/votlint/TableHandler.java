@@ -37,6 +37,15 @@ public class TableHandler extends ElementHandler {
     }
 
     /**
+     * Returns the index of the row currently being read.
+     *
+     * @return  zero-based row index
+     */
+    public long getCurrentRowIndex() {
+        return nrowsSeen_;
+    }
+
+    /**
      * Called by a child FIELD element to indicate that a column has been
      * seen, and to describe how to check the contents of that column.
      * If no working parser can be made, this method should be called
