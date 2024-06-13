@@ -394,7 +394,7 @@ public abstract class ValueParser {
         /* Warn for non-standard non-namespaced xtypes. */
         else {
             context.warning( new VotLintCode( "XDL" ),
-                             "Non-DALI 1.2 xtype value \"" + xtype + "\"" );
+                             "Non-DALI 1.1 xtype value \"" + xtype + "\"" );
             return null;
         }
     }
