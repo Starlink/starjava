@@ -22,9 +22,21 @@ public class FitsHandler extends StreamingHandler
                          implements TableSink {
 
     public void feed( InputStream in ) throws IOException {
-        VotLintCode extnumCode = new VotLintCode( "EXT" );
+
+        /* The actual stream content is not checked by VotLint,
+         * so warn the user that this is the case.
+         * This is partly because the VOTable standard says that parsers
+         * can treat discrepancies between VOTable metadata and FITS data
+         * however they like, and this checking is really a FITS matter
+         * not a VOTable one.  That's a slightly feeble excuse, since
+         * some checking like DALI xtype consistency would make sense here.
+         * But the other reason is that hardly anybody actually uses the
+         * FITS encoding, so it's probably not worth the significant
+         * effort to add parsers for all the FITS stream data types. */
+        info( new VotLintCode( "FTZ" ), "FITS binary data is not checked" );
 
         /* Stream the data from the stream to a TableSink - this object. */
+        VotLintCode extnumCode = new VotLintCode( "EXT" );
         String extnum = getAttribute( "extnum" );
         if ( extnum != null && extnum.trim().length() > 0 ) {
             try {

@@ -105,7 +105,7 @@ public class VotLintTest extends TestCase {
             bout.close();
             byte[] buf = bout.toByteArray();
             Executor ex = new Executor();
-            assertCodes( isFits ? new String[] {}
+            assertCodes( isFits ? new String[] { "I-FTZ" }
                                 : new String[] { "E-TSR" },
                          ex.execute( new ByteArrayInputStream( buf ) ) );
         }
