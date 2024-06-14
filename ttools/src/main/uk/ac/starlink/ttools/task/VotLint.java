@@ -203,7 +203,7 @@ public class VotLint implements Task {
     /**
      * Executable implementation for votlint.
      */
-    private class VotLintExecutable implements Executable {
+    static class VotLintExecutable implements Executable {
 
         final InputStream baseIn_;
         final VOTableVersion forceVersion_;
