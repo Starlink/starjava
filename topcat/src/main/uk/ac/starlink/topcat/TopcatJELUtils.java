@@ -25,7 +25,6 @@ import uk.ac.starlink.topcat.func.Image;
 import uk.ac.starlink.topcat.func.Mgc;
 import uk.ac.starlink.topcat.func.Output;
 import uk.ac.starlink.topcat.func.Sdss;
-import uk.ac.starlink.topcat.func.Sog;
 import uk.ac.starlink.topcat.func.SuperCosmos;
 import uk.ac.starlink.topcat.func.TwoQZ;
 import uk.ac.starlink.topcat.plot2.GuiCoordContent;
@@ -137,9 +136,6 @@ public class TopcatJELUtils extends JELUtils {
             classList.add( uk.ac.starlink.topcat.func.System.class );
             classList.add( Image.class );
             classList.add( BasicImageDisplay.class );
-            if ( TopcatUtils.canSog() ) { 
-                classList.add( Sog.class );
-            }
             classList.add( Browsers.class );
             classList.add( Mgc.class );
             classList.add( Sdss.class );

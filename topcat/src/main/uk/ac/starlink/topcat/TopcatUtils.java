@@ -61,7 +61,6 @@ import uk.ac.starlink.util.URLUtils;
  */
 public class TopcatUtils {
 
-    private static Boolean canSog_;
     private static Boolean canExec_;
     private static Boolean canJel_;
     private static String[] about_;
@@ -307,7 +306,6 @@ public class TopcatUtils {
                 "STIL Version " + getSTILVersion(),
                 "Starjava revision: " + getRevision(),
                 "JVM: " + InvokeUtils.getJavaVM(),
-                "SoG: " + ( canSog() ? "available" : "absent" ),
                 "",
                 "Author: Mark Taylor (Bristol University)",
                 "WWW: http://www.starlink.ac.uk/topcat/",
@@ -467,37 +465,6 @@ public class TopcatUtils {
                 memoryError( e );
             }
         } );
-    }
-
-    /**
-     * Indicates whether there are enough classes to make SoG work at runtime.
-     *
-     * @return  true iff it's safe to use a SoG-based viewer
-     */
-    public static boolean canSog() {
-        if ( canSog_ == null ) {
-            synchronized ( TopcatUtils.class ) {
-                try {
-
-                    /* Check for SOG classes themselves. */
-                    Class.forName( "uk.ac.starlink.sog.SOG" );
-
-                    /* Check for JAI.  Use this class because it's lightweight
-                     * and won't cause a whole cascade of other classes
-                     * to be loaded. */
-                    Class.forName( "javax.media.jai.util.CaselessStringKey" );
-
-                    /* If we've got this far, we're OK. */
-                    canSog_ = Boolean.TRUE;
-                }
-                catch ( Throwable th ) {
-                    logger_.info( "No SoG: " + th );
-                    logger_.log( Level.CONFIG, "SoG load error", th );
-                    canSog_ = Boolean.FALSE;
-                }
-            }
-        }
-        return canSog_.booleanValue();
     }
 
     /**

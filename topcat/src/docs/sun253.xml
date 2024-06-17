@@ -84,7 +84,6 @@
   <!ENTITY FIG.ConcatWindow '&figs;ConcatWindow.png'>
   <!ENTITY FIG.MatchWindow '&figs;MatchWindow.png'>
   <!ENTITY FIG.MatchWindow1 '&figs;MatchWindow1.png'>
-  <!ENTITY FIG.SoG '&figs;SoG.png'>
   <!ENTITY FIG.ImageWindow '&figs;ImageWindow.png'>
   <!ENTITY FIG.Splat '&figs;Splat.png'>
   <!ENTITY FIG.HelpWindow '&figs;HelpWindow.png'>
@@ -24544,10 +24543,6 @@ be more appropriate.
         the <ref id="activationSecurity">security panel</ref>
         will be displayed.
         </li>
-    <li><strong>SoG</strong>:
-        The SoG image viewer provides more faciliites including zoom,
-        colour map manipulation etc.  It may or may not be available
-        depending on how TOPCAT is installed</li>
     </ul>
     </p></dd>
 </dl>
@@ -25714,36 +25709,24 @@ option in one of the DataLink-related actions,
 TOPCAT will try to display an image in an internal image viewer.
 </p>
 
-<p>The default image viewer is 
-<webref plaintextref="yes" url="http://www.starlink.ac.uk/sog/">SoG</webref>,
-an astronomical image viewer based on JSky, which offers 
-colourmap manipulation, image zooming, graphics overlays, and other features.
-For this to work JAI, otherwise known as
-<webref plaintextref="yes" url="http://java.sun.com/products/java-media/jai/"
-        >Java Advanced Imaging</webref> must be installed.
-JAI is a free component available from Sun, but not a part of the Java 2
-Standard Edition by default.  In operation, SoG looks like this:
+<p>This image viewer is very basic, and looks like this:
 </p>
 
 <figure>
-<caption><px>SoG Image Viewer</px></caption>
-<figureimage src="&FIG.SoG;"/>
-</figure>
-
-<p>If JAI or the SoG classes themselves are absent, a fallback viewer
-which just displays the given image in a basic graphics window 
-with no manipulation facilities is used.
-The fallback image viewer looks like this:
-</p>
-
-<figure>
-<caption><px>Fallback Image Viewer</px></caption>
+<caption><px>Basic Image Viewer</px></caption>
 <figureimage src="&FIG.ImageWindow;"/>
 </figure>
 
 <p>Alternative options are available to communicate with external
 image viewers.
 </p>
+
+<p><em>Note: earlier versions of TOPCAT offered a more capable
+image viewer called SoG under some circumstances.
+However, this only worked when the Java Advanced Imaging classes
+were present at runtime, and these are hard to obtain now,
+so this option has been withdrawn.
+</em></p>
 
 </subsubsubsect>
 
@@ -27328,7 +27311,7 @@ functionality:
     (Ptolemy) for some 2D axis plotting</li>
 <li><webref url="http://skyservice.pha.jhu.edu/develop/vo/ivoafits/"
             >IVOA FITS Package</webref>
-    (Sloan Digital Sky Survey) for simple (non-SoG) display of FITS images</li>
+    (Sloan Digital Sky Survey) for simple display of FITS images</li>
 </ul>
 </p>
 
@@ -33577,6 +33560,9 @@ introduced since the last version:
     <li>Non-standard FITS headers
         <code>TUCDnnn</code> and <code>TUTYPnnn</code> 
         are now written with comment parts, space permitting.</li>
+    <li>The SoG internal <ref id="imageViewers">image viewer</ref>
+        has been withdrawn, since the required JAI classes are
+        now unlikely to be available.</li>
     </ul>
     </p></dd>
 
