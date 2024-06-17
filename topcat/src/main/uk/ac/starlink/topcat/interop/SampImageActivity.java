@@ -21,7 +21,6 @@ import org.astrogrid.samp.gui.GuiHubConnector;
 import org.astrogrid.samp.gui.SubscribedClientListModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.topcat.func.BasicImageDisplay;
-import uk.ac.starlink.topcat.func.Sog;
 import uk.ac.starlink.util.URLUtils;
 
 /**
@@ -177,14 +176,6 @@ public class SampImageActivity implements ImageActivity {
                         return true;
                     }
                 } );
-                if ( TopcatUtils.canSog() ) {
-                    viewerList.add( new DefaultImageViewer( "SoG (internal)" ) {
-                        public boolean viewImage( String label, String loc ) {
-                            Sog.sog( label, loc );
-                            return true;
-                        }
-                    } );
-                }
             }
             final MessageFactory mfact = mfactMap_.get( format );
             if ( mfact != null ) {

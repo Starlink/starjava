@@ -14,9 +14,6 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
-import uk.ac.starlink.sog.SOG;
-import uk.ac.starlink.sog.SOGNavigatorImageDisplay;
-import uk.ac.starlink.sog.SOGNavigatorImageDisplayFrame;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.topcat.ColumnDataComboBox;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
@@ -25,7 +22,6 @@ import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -178,9 +174,6 @@ public class GenericViewImageActivationType implements ActivationType {
         List<Viewer> list = new ArrayList<Viewer>();
         list.add( new BasicViewer( false ) );
         list.add( new BasicViewer( true ) );
-        if ( TopcatUtils.canSog() ) {
-            list.add( new SogViewer() );
-        }
         return list.toArray( new Viewer[ 0 ] );
     }
 
@@ -354,97 +347,6 @@ public class GenericViewImageActivationType implements ActivationType {
                 imwin.setVisible( true );
             }
             return imwin;
-        }
-    }
-
-    /**
-     * Viewer implementation for use with SoG.
-     */
-    private static class SogViewer extends Viewer {
-        private SOG sog_;
-        private final Map<String,SOGNavigatorImageDisplay> sogMap_;
-        SogViewer() {
-            super( "SoG" );
-            sogMap_ = new HashMap<String,SOGNavigatorImageDisplay>();
-        }
-        public Activator createActivator( final String label,
-                                          ColumnData locCdata ) {
-            return new UrlColumnConfigurator
-                      .LocationColumnActivator( locCdata, true ) {
-                protected Outcome activateLocation( String loc, long lrow ) {
-                    SOGNavigatorImageDisplay sogger = getSogger( label );
-                    try {
-                        /* The setFilename method takes a fileOrUrl. */
-                        sogger.setFilename( loc, false );
-                    }
-                    catch ( Exception e ) {
-                        return Outcome.failure( "Trouble loading " + loc );
-                    }
-                    return Outcome.success( loc );
-
-                    /* I have attempted to do region highlighting in SoG
-                     * using classes in jsky.graphics, but I can't quite
-                     * make it work. */
-                    // double xoff = readNumber( xoffCdata, lrow );
-                    // double yoff = readNumber( yoffCdata, lrow );
-                    // final Point point =
-                    //    Double.isNaN( xoff ) || Double.isNaN( yoff )
-                    //     ? null
-                    //     : new Point( (int) xoff, (int) yoff );
-                    // Point2D.Double dp =
-                    //      new Point2D.Double( point.x, point.y );
-                    //  ImageCoordinateConverter converter =
-                    //      new ImageCoordinateConverter( sogger );
-                    //  converter.userToScreenCoords( dp, false );
-                    //  Shape shape =
-                    //      new Rectangle2D.Double( dp.x, dp.y, 20, 20 );
-                    //  CanvasGraphics cg = sogger.getCanvasGraphics();
-                    //  if ( fig_ != null ) {
-                    //      cg.remove( fig_ );
-                    //  }
-                    //  fig_ = cg.makeFigure( shape, null,
-                    //                        new Color( 0, 255, 0, 128 ), 1f );
-                    //  cg.add( fig_ );
-                }
-            };
-        }
-
-        public Safety getSafety() {
-            return Safety.SAFE;
-        }
-
-        /**
-         * Returns the SOG display for use with a given label.
-         *
-         * @param  label  re-use label
-         */
-        SOGNavigatorImageDisplay getSogger( String label ) {
-            assert TopcatUtils.canSog();
-            if ( sog_ == null ) {
-                synchronized ( SogViewer.class ) {
-                    sog_ = new SOG();
-                    sog_.setDoExit( false );
-                }
-            }
-            if ( ! sogMap_.containsKey( label ) ) {
-                SOGNavigatorImageDisplay rootDisplay =
-                     (SOGNavigatorImageDisplay) sog_.getImageDisplay();
-                SwingUtilities.windowForComponent( rootDisplay )
-                              .setVisible( false );
-                Object win = rootDisplay.newWindow();
-                SOGNavigatorImageDisplay sogger =
-                    (SOGNavigatorImageDisplay)
-                    ((SOGNavigatorImageDisplayFrame) win)
-                   .getImageDisplayControl().getImageDisplay();
-                sogger.setDoExit( false );
-                sogger.setTitle( label );
-                sogMap_.put( label, sogger );
-            }
-            SOGNavigatorImageDisplay sogger = sogMap_.get( label );
-            if ( ! sogger.isShowing() ) {
-                SwingUtilities.windowForComponent( sogger ).setVisible( true );
-            }
-            return sogger;
         }
     }
 

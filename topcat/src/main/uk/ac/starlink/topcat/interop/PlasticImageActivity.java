@@ -17,7 +17,6 @@ import uk.ac.starlink.plastic.ApplicationItem;
 import uk.ac.starlink.plastic.MessageId;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.topcat.func.BasicImageDisplay;
-import uk.ac.starlink.topcat.func.Sog;
 
 /**
  * ImageActivity implementation using PLASTIC for the external communications.
@@ -101,16 +100,7 @@ public class PlasticImageActivity implements ImageActivity {
                 return "Basic Viewer (internal)";
             }
         };
-        private final ImageViewer sogViewer_ = new ImageViewer() {
-            public boolean viewImage( String label, String location ) {
-                Sog.sog( label, location );
-                return true;
-            }
-            public String toString() {
-                return "SoG (internal)";
-            }
-        };
-            
+
         /**
          * Constructor.
          */
@@ -127,9 +117,6 @@ public class PlasticImageActivity implements ImageActivity {
             isFits_ = isFits;
             List<ImageViewer> vList = new ArrayList<ImageViewer>();
             vList.add( basicViewer_ );
-            if ( TopcatUtils.canSog() ) {
-                vList.add( sogViewer_ );
-            }
             baseViewers_ = vList.toArray( new ImageViewer[ 0 ] );
             int nv = getSize();
             boolean selectionLegal = false;

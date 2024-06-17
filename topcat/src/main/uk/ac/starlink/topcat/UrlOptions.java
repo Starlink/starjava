@@ -18,7 +18,6 @@ import uk.ac.starlink.topcat.activate.SampSender;
 import uk.ac.starlink.topcat.activate.ViewDatalinkActivationType;
 import uk.ac.starlink.topcat.func.BasicImageDisplay;
 import uk.ac.starlink.topcat.func.Browsers;
-import uk.ac.starlink.topcat.func.Sog;
 import uk.ac.starlink.topcat.plot2.PlotWindowType;
 import uk.ac.starlink.topcat.plot2.TablePlotDisplay;
 import uk.ac.starlink.util.DataSource;
@@ -270,9 +269,7 @@ public class UrlOptions {
             public Outcome invokeUrl( URL url ) {
                 String loc = url.toString();
                 String label = "FITS Image";
-                String msg = TopcatUtils.canSog()
-                           ? Sog.sog( label, loc )
-                           : BasicImageDisplay.displayBasicImage( label, loc );
+                String msg = BasicImageDisplay.displayBasicImage( label, loc );
                 return Outcome.success( msg );
             }
         };

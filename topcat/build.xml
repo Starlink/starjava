@@ -568,7 +568,6 @@
       <arg value="-xjar"/><arg value="oldfits.jar"/>
       <arg value="-xjar"/><arg value="ndx.jar"/>
       <arg value="-xjar"/><arg value="parquet-mr-stil.jar"/>
-      <arg value="-xjar"/><arg value="sog.jar"/>
       <arg value="-xjar"/><arg value="soapserver.jar"/>
       <arg value="-xjar"/><arg value="srb.jar"/>
       <arg value="-xent"/><arg value="*"/>
