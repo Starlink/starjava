@@ -24,12 +24,12 @@ public interface Ancestry {
 
     /**
      * Returns the handler's nearest ancestor (excluding itself) of a given
-     * class.  <tt>clazz</tt> must be ElementHandler or a subclass.
-     * If there is no handler in the ancestry of type <tt>clazz</tt>, 
+     * class.  <code>clazz</code> must be ElementHandler or a subclass.
+     * If there is no handler in the ancestry of type <code>clazz</code>, 
      * null is returned.
      *
      * @param  clazz   class required
-     * @return   handler's ancestor of type <tt>clazz</tt>
+     * @return   handler's ancestor of type <code>clazz</code>
      */
     <H extends ElementHandler> H getAncestor( Class<H> clazz );
 

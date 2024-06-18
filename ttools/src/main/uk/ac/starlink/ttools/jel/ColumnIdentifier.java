@@ -76,11 +76,11 @@ public class ColumnIdentifier {
     /**
      * Returns the index of a column given an identifying string.
      * If the string can't be identified as a column of this object's
-     * table, an <tt>IOException</tt> is thrown.
+     * table, an <code>IOException</code> is thrown.
      *
      * @param   colid   identifying string
      * @return  column index
-     * @throws  IOException  if <tt>colid</tt> does not name a column
+     * @throws  IOException  if <code>colid</code> does not name a column
      */
     public int getColumnIndex( String colid ) throws IOException {
         return getScalarColumnIndex( colid, NotFoundMode.FAIL );
@@ -103,7 +103,7 @@ public class ColumnIdentifier {
      * @param   colidList  string containing a representation of a list
      *          of columns
      * @return  array of column indices
-     * @throws  IOException  if <tt>colid</tt> doesn't look like a 
+     * @throws  IOException  if <code>colid</code> doesn't look like a 
      *          colid-list specifier
      */
     public int[] getColumnIndices( String colidList ) throws IOException {
@@ -120,7 +120,7 @@ public class ColumnIdentifier {
      *
      * @param  token  indicating zero or more columns
      * @return   array of column indices; may be empty but not null
-     * @throws  IOException  if <tt>token</tt> doesn't look like a 
+     * @throws  IOException  if <code>token</code> doesn't look like a 
      *          colid-list specifier
      */
     private int[] tokenToColumnIndices( String token ) throws IOException {
@@ -175,7 +175,7 @@ public class ColumnIdentifier {
      * @param   colIdList  string containing a representation of a list
      *          of columns
      * @return  array of column inclusion flags
-     * @throws  IOException  if <tt>colid</tt> doesn't look like a 
+     * @throws  IOException  if <code>colid</code> doesn't look like a 
      *          colid-list specifier
      */
     public boolean[] getColumnFlags( String colIdList ) throws IOException {

@@ -139,7 +139,7 @@ public class VotLintContext {
      * element.
      *
      * @param   id  ID value
-     * @param   handler  element labelled <tt>id</tt>
+     * @param   handler  element labelled <code>id</code>
      */
     public void registerID( String id, ElementHandler handler ) {
 
@@ -281,7 +281,7 @@ public class VotLintContext {
          * Constructor.
          *
          * @param  id  XML ID
-         * @param  from   the element with the IDREF value of <tt>id</tt>
+         * @param  from   the element with the IDREF value of <code>id</code>
          * @param  refChecker  object which knows about constraints on the ID
          *         and the element it points to
          */

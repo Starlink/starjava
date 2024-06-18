@@ -68,7 +68,7 @@ public class MarkStyles {
      *
      * @param  name  set name
      * @param  size  approximate radius of markers
-     * @param  color color of markers, or <tt>null</tt> for various
+     * @param  color color of markers, or <code>null</code> for various
      * @return  style set providing open shapes
      */
     public static StyleSet openShapes( final String name, final int size,
@@ -99,7 +99,7 @@ public class MarkStyles {
      *
      * @param  name  set name
      * @param  size  approximate radius of markers
-     * @param  color color of markers, or <tt>null</tt> for various
+     * @param  color color of markers, or <code>null</code> for various
      * @return  style set providing filled shapes
      */
     public static StyleSet filledShapes( final String name, final int size,

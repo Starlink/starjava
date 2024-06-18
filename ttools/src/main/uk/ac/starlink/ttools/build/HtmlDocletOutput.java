@@ -93,9 +93,9 @@ public class HtmlDocletOutput implements DocletOutput {
              } );
         for ( DocVariable param : params ) {
             out( new StringBuffer()
-                .append( "<dt><strong><font color='blue'><tt>" )
+                .append( "<dt><strong><font color='blue'><code>" )
                 .append( param.getName() )
-                .append( "</tt></font></strong> " )
+                .append( "</code></font></strong> " )
                 .append( "<em>(" )
                 .append( param.getType() )
                 .append( ")</em>" )
@@ -201,8 +201,8 @@ public class HtmlDocletOutput implements DocletOutput {
             "<html>",
             "<head><title>" + memName + "</title></head>",
             "<body bgcolor='white'>",
-            "<h2>" + memType + " <font color='blue'><tt>" + memName
-                             + "</tt></font></h2>",
+            "<h2>" + memType + " <font color='blue'><code>" + memName
+                             + "</code></font></h2>",
         } );
     }
 

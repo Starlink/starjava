@@ -32,11 +32,11 @@ public interface ProcessingFilter {
 
     /**
      * Creates a new ProcessingStep based on a sequence of command-line
-     * arguments.  The <tt>argIt</tt> argument is an iterator over the
+     * arguments.  The <code>argIt</code> argument is an iterator over the
      * command-line arguments positioned just before any arguments
      * intended for this filter.  If legal, any that can be comprehended
      * by this filter should be read (iterated over) and removed,
-     * and a <tt>ProcessingStep</tt> should accordingly be returned.
+     * and a <code>ProcessingStep</code> should accordingly be returned.
      * In the case of a successful return, it is essential
      * that no arguments other than the ones intended for this
      * filter are read from the iterator.

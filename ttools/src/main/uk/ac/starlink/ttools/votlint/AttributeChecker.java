@@ -11,10 +11,10 @@ public interface AttributeChecker {
     /**
      * Performs a syntactic and/or semantic check on an attribute
      * value for a given element.  Anything worthy of comment should
-     * be logged through <tt>handler</tt>'s context.
+     * be logged through <code>handler</code>'s context.
      *
      * @param   attValue   the value of the attribute to check
-     * @param   handler   the element on which <tt>attValue</tt> appears
+     * @param   handler   the element on which <code>attValue</code> appears
      */
     void check( String attValue, ElementHandler handler );
 }

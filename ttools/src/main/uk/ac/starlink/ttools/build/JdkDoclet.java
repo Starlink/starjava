@@ -350,7 +350,8 @@ public abstract class JdkDoclet implements Doclet {
             if ( sees.length > 0 ) {
                 output_.outSees( "See Also", sees );
             }
-            output_.outMemberItem( "Signature", "<tt>" + signature + "</tt>" );
+            output_.outMemberItem( "Signature",
+                                   "<code>" + signature + "</code>" );
             output_.endMember();
             return true;
         }

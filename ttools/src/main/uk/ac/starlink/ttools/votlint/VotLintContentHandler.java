@@ -217,7 +217,7 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
      * satisfactory.
      *
      * @param   e  error
-     * @return  true iff <tt>e</tt> looks like a namespace validation error
+     * @return  true iff <code>e</code> looks like a namespace validation error
      *          (and hence should not be reported to the user)
      */
     private boolean isNamespaceError( SAXParseException e ) {

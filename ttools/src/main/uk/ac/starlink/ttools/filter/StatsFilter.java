@@ -494,7 +494,7 @@ public class StatsFilter extends BasicFilter {
      * Tests whether a value is finite (not infinite or NaN).
      *
      * @param   val  number to test
-     * @return  true iff <tt>val</tt> is finite
+     * @return  true iff <code>val</code> is finite
      */
     private final static boolean isFinite( double val ) {
         return val > - Double.MAX_VALUE

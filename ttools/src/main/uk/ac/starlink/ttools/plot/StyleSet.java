@@ -11,7 +11,7 @@ public interface StyleSet {
     /**
      * Returns a marker style corresponding to a particular index.
      * Successive calls for the same <code>index</code> must give the 
-     * same style (or one equivalent in the sense of <tt>equals</tt>),
+     * same style (or one equivalent in the sense of <code>equals</code>),
      * and ideally different values of <code>index</code> should give
      * unequal ones, but for indices beyond a certain value the markers
      * may wrap around.
@@ -19,7 +19,7 @@ public interface StyleSet {
      * given index at different stages of its lifetime.
      *
      * @param  index  code for the requested style
-     * @return  style for code <tt>index</tt>
+     * @return  style for code <code>index</code>
      */
     Style getStyle( int index );
 

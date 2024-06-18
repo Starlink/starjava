@@ -897,8 +897,8 @@ public class ScatterPlot extends SurfacePlot {
         /**
          * Draws the component to a graphics context which probably 
          * represents the screen, by calling {@link #drawData}.
-         * Since <tt>drawData</tt> might be fairly expensive 
-         * (if there are a lot of points), and <tt>paintComponent</tt> 
+         * Since <code>drawData</code> might be fairly expensive 
+         * (if there are a lot of points), and <code>paintComponent</code> 
          * can be called often without the data changing 
          * (e.g. cascading window uncover events) it is advantageous 
          * to cache the drawn points in an Image and effectively
@@ -957,13 +957,13 @@ public class ScatterPlot extends SurfacePlot {
 
         /**
          * The normal implementation for this method just calls 
-         * <tt>paintComponent</tt>.
+         * <code>paintComponent</code>.
          * However, if we are painting the component 
          * for some reason other than posting it
          * on the screen, we don't want to use the cached-image approach
-         * used in <tt>paintComponent</tt>, since it might be a 
+         * used in <code>paintComponent</code>, since it might be a 
          * non-pixelised graphics context (e.g. postscript).
-         * So for <tt>printComponent</tt>, we invoke <tt>drawData</tt>
+         * So for <code>printComponent</code>, we invoke <code>drawData</code>
          * directly in an appropriate manner.
          */
         protected void printComponent( Graphics g ) {

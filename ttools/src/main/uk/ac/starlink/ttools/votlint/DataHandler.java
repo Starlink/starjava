@@ -33,7 +33,7 @@ public class DataHandler extends ElementHandler {
      * Returns the FieldHandler object for a given column.
      *
      * @param  icol  column index
-     * @return   field handler for column <tt>icol</tt>,
+     * @return   field handler for column <code>icol</code>,
      *           or null if that column doesn't exist
      */
     public FieldHandler getField( int icol ) {

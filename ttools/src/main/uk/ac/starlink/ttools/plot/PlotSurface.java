@@ -42,7 +42,7 @@ public interface PlotSurface {
 
     /**
      * Converts a point in data space to graphics space.
-     * If the <tt>insideOnly</tt> flag is true, then <tt>null</tt>
+     * If the <code>insideOnly</code> flag is true, then <code>null</code>
      * will be returned in place of any result which would
      * give a point lying outside the visible plotting area.
      *
@@ -53,13 +53,14 @@ public interface PlotSurface {
      * @param  y  data space Y coordinate
      * @param  insideOnly  true to restrict non-null results to those
      *         within the plotting surface
-     * @return  point in graphics space corresponding to (x,y), or <tt>null</tt>
+     * @return  point in graphics space corresponding to (x,y),
+     *          or <code>null</code>
      */
     Point dataToGraphics( double x, double y, boolean insideOnly );
 
     /**
      * Converts a point in graphics space to data space.
-     * If the <tt>insideOnly</tt> flag is true,  then <tt>null</tt>
+     * If the <code>insideOnly</code> flag is true,  then <code>null</code>
      * will be returned in place of any result which would give a point
      * lying outside the visible plotting area.
      *
@@ -68,7 +69,7 @@ public interface PlotSurface {
      * @param  insideOnly  true to restrict non-null results to those
      *         within the plotting surface
      * @return a 2-element array giving x and y data space coordinates,
-     *         or <tt>null</tt>
+     *         or <code>null</code>
      */
     double[] graphicsToData( int px, int py, boolean insideOnly );
 
@@ -76,7 +77,7 @@ public interface PlotSurface {
      * Returns the clip region in which points may be plotted.
      * The returned shape should be the sort which can be passed to
      * {@link java.awt.Graphics#setClip(java.awt.Shape)} - i.e. probably
-     * a <tt>Rectangle</tt>.
+     * a <code>Rectangle</code>.
      *
      * @return   clip region representing data zone
      */
@@ -124,7 +125,7 @@ public interface PlotSurface {
      * This component will normally override
      * {@link javax.swing.JComponent#paintComponent}
      * to give a plotting background in accordance with the most recently
-     * set <tt>PlotState</tt>.
+     * set <code>PlotState</code>.
      *
      * @return  plot surface display component
      */
@@ -132,7 +133,8 @@ public interface PlotSurface {
 
     /**
      * Paints the plotting surface.
-     * This should do roughly the same as <tt>getComponent.paintComponent</tt>,
+     * This should do roughly the same as
+     * <code>getComponent.paintComponent</code>,
      * except that it's public.
      *
      * <p>Requiring this here isn't very tidy, but following quite a bit of

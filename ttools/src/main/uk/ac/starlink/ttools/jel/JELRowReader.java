@@ -17,23 +17,23 @@ import java.util.stream.Collectors;
  * This class currently deals with columns of all the primitive types, 
  * objects of type {@link java.lang.String} or {@link java.util.Date},
  * and arrays of any of these.  
- * Anything else is treated as an <tt>Object</tt> or <tt>Object[]</tt>.
+ * Anything else is treated as an <code>Object</code> or <code>Object[]</code>.
  * It could be extended to deal with more if necessary.
  * <p>
  * Expressions of the following types are understood:
  * <dl>
  * <dt>"null":
- * <dd>the <tt>null</tt> value (this is not provided as part of the JEL 
+ * <dd>the <code>null</code> value (this is not provided as part of the JEL 
  *     engine).
  *
  * <dt>"NULL":
  * <dd>if this expression is evaluated at any point in the expression 
  *     evaluation, then the result of the whole evaluation will be 
- *     <tt>null</tt>.  This has the same effect as throwing a 
- *     <tt>NullPointerException</tt> during evaluation.
- *     The NULL token is syntactically of type <tt>byte</tt>, which can
+ *     <code>null</code>.  This has the same effect as throwing a 
+ *     <code>NullPointerException</code> during evaluation.
+ *     The NULL token is syntactically of type <code>byte</code>, which can
  *     be promoted implicitly to any numeric value; this means it can be
- *     used anywhere a primitive (other than <tt>boolean</tt>) can be used.
+ *     used anywhere a primitive (other than <code>boolean</code>) can be used.
  *
  * <dt>Column $ID identifiers:
  * <dd>The letter '$' followed by the 1-based index of the column refers
@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
  * <dt>Null queries:
  * <dd>The string {@value #NULL_QUERY_PREFIX} followed by a value identifier
  *     (column name, column $ID or parameter identifier - see above)
- *     returns a boolean value which is <tt>true</tt> iff the corresponding
+ *     returns a boolean value which is <code>true</code> iff the corresponding
  *     value (at the current row, if applicable) has a blank value.
  *
  * <dt>Object values:
@@ -293,7 +293,7 @@ public abstract class JELRowReader extends DVMap {
      *
      * <p>The current specials are:
      * <ul>
-     * <li>"null" returns the <tt>null</tt> value (this is not built in
+     * <li>"null" returns the <code>null</code> value (this is not built in
      *     to the JEL evaluator)
      * <li>"NULL" flags that an attempt has been made to evaluate a 
      *     primitive with no value, and thus invalidates the rest of the
@@ -403,7 +403,7 @@ public abstract class JELRowReader extends DVMap {
      * Returns the type name of the quantity which is referenced in 
      * expressions with a given name.  The significance of this return
      * value is that it appears in the names of the 
-     * corresponding <tt>getXXXProperty</tt> methods in this class.
+     * corresponding <code>getXXXProperty</code> methods in this class.
      *
      * @param   name  the variable name
      * @return  the corresponding method name fragment
@@ -463,12 +463,12 @@ public abstract class JELRowReader extends DVMap {
      * used at evaluation time to reference a particular quantity to
      * evaluate.  Currently this routine returns 
      * <ul>
-     * <li>a non-negative <tt>Integer</tt> object (the column index) if 
-     *     <tt>name</tt> appears to reference a known column 
-     * <li>a negative <tt>Integer</tt> object (-1-constIndex) if
-     *     <tt>name</tt> appears to reference a known constant
-     * <li>a <tt>Long</tt> object if it is a null query on a known column
-     * <li><tt>null</tt> otherwise
+     * <li>a non-negative <code>Integer</code> object (the column index) if 
+     *     <code>name</code> appears to reference a known column 
+     * <li>a negative <code>Integer</code> object (-1-constIndex) if
+     *     <code>name</code> appears to reference a known constant
+     * <li>a <code>Long</code> object if it is a null query on a known column
+     * <li><code>null</code> otherwise
      * </ul>
      * The different integral types are only used to separate the namespaces,
      * there is no other significance in these types.
@@ -631,20 +631,21 @@ public abstract class JELRowReader extends DVMap {
     /**
      * Returns the column index in the table model which corresponds to
      * the column name with a supplied prefix.
-     * If <tt>name</tt> has the form <code>prefix</code><i>column-name</i>,
-     * where <i>column-name</i> is as 
+     * If <code>name</code> has the form
+     * <code>prefix</code><em>column-name</em>,
+     * where <em>column-name</em> is as 
      * recognised by the {@link #getColumnIndex} method, then the return
      * value will be the index of the column corresponding to 
-     * <i>column-name</i>.
+     * <em>column-name</em>.
      * Otherwise (if it doesn't start with the <code>prefix</code> string or 
-     * the <tt>name</tt> part
+     * the <code>name</code> part
      * doesn't correspond to a known column) the value -1 will be returned.
      *
      * <p>Note this method is only called during expression compilation,
      * so it doesn't need to be particularly efficient.
      *
      * @param   name  value identifier
-     * @return  column index for column <i>prefix-name</i>, or -1
+     * @return  column index for column <em>prefix-name</em>, or -1
      */
     private int getPrefixedColumnIndex( String name, String prefix ) {
         String colname = stripPrefix( name, prefix );
@@ -748,10 +749,10 @@ public abstract class JELRowReader extends DVMap {
     /**
      * Indicates whether the cell at the current row in a given column
      * has a blank value.  This is the case if the value is the
-     * java <tt>null</tt> reference, or if it is a Float or Double
+     * java <code>null</code> reference, or if it is a Float or Double
      * with a NaN value.
      *
-     * @param  inul column index (as a <tt>long</tt>)
+     * @param  inul column index (as a <code>long</code>)
      * @return whether the cell is null
      */
     public boolean getBooleanProperty( long inul ) {
@@ -951,7 +952,7 @@ public abstract class JELRowReader extends DVMap {
     /**
      * Returns the type name corresponding to a given class.
      * The significance of this return value is that it appears in
-     * the names of the corresponding <tt>getXXXProperty</tt>
+     * the names of the corresponding <code>getXXXProperty</code>
      * methods in this class.
      *
      * @param   name  the value class

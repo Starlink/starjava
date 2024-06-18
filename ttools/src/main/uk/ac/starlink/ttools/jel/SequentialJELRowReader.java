@@ -11,7 +11,7 @@ import uk.ac.starlink.table.StarTable;
  * This class also implements {@link uk.ac.starlink.table.RowSequence},
  * and this object should be treated in the same way as a row sequence
  * taken out on its table, that is iteration should proceed using the
- * <tt>next</tt> and <tt>close</tt> methods.
+ * <code>next</code> and <code>close</code> methods.
  *
  * @author   Mark Taylor (Starlink)
  * @since    8 Feb 2005
@@ -26,7 +26,7 @@ public class SequentialJELRowReader extends StarTableJELRowReader
 
     /**
      * Constructs a new row reader for sequential access.
-     * This constructor also takes out a row sequence on <tt>table</tt>.
+     * This constructor also takes out a row sequence on <code>table</code>.
      *
      * @param  table  table to read
      */

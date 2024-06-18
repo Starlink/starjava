@@ -48,7 +48,7 @@ public class Styles {
      * maps to the same colour.
      *
      * @param  index  code
-     * @return   colour correspoding to <tt>index</tt>
+     * @return   colour correspoding to <code>index</code>
      */
     public static Color getColor( int index ) {
         return COLORS[ Math.abs( index ) % COLORS.length ];
@@ -59,7 +59,7 @@ public class Styles {
      * The same index always maps to the same pattern.
      *
      * @param   index  code
-     * @return  stroke corresponding to <tt>index</tt>
+     * @return  stroke corresponding to <code>index</code>
      */
     public static float[] getDash( int index ) {
         return DASHES[ Math.abs( index ) % DASHES.length ];

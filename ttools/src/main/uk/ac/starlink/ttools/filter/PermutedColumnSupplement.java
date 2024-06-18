@@ -9,13 +9,13 @@ import uk.ac.starlink.table.StarTable;
  * ColumnSupplement implementation which contains a selection of the
  * columns in the base table.  Each column is a view of one in the base table.
  *
- * <p>An <tt>int[]</tt> array, <tt>colMap</tt>, is used to keep track of
+ * <p>An <code>int[]</code> array, <code>colMap</code>, is used to keep track of
  * which columns in this table correspond to which columns in the base table;
- * the <tt>i</tt>'th column in this table corresponds to the
- * <tt>colMap[i]</tt>'th column in the base table.
- * The <tt>colMap</tt> array may contain duplicate entries, but all
- * its entries must be in the range <tt>0..baseSup.getColumnCount()-1</tt>.
- * This table will have <tt>colMap.length</tt> columns.
+ * the <code>i</code>'th column in this table corresponds to the
+ * <code>colMap[i]</code>'th column in the base table.
+ * The <code>colMap</code> array may contain duplicate entries, but all
+ * its entries must be in the range <code>0..baseSup.getColumnCount()-1</code>.
+ * This table will have <code>colMap.length</code> columns.
  *
  * @author   Mark Taylor
  * @since    2 Apr 2012

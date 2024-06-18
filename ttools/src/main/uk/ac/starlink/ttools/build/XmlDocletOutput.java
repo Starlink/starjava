@@ -284,7 +284,7 @@ public class XmlDocletOutput implements DocletOutput {
      * (though it's not foolproof).
      *
      * @param  text  basic text
-     * @return  same as <tt>text</tt> but a sequence of HTML P elements
+     * @return  same as <code>text</code> but a sequence of HTML P elements
      */
     private static String pWrap( String text ) {
         String[] params = P_PATTERN.split( text );
