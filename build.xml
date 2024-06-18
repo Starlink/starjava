@@ -115,7 +115,16 @@
    !  have an entry created in the correct dependency order. Note
    !  that all properties defined in this file are passed on.
    !-->
-  <target name="call_package_ant">
+  <target name="call_package_ant"
+          depends="call_package_ant_nojai, call_package_ant_jai, report_jai">
+  </target>
+
+  <!--
+   !  ====================================================
+   !  Execute ANT in subdirectories without JAI dependency
+   !  ====================================================
+   !-->
+  <target name="call_package_ant_nojai">
 
     <echo message="Executing JUnit target: ${what}"/>
     <ant dir="./junit" target="${what}"/>
@@ -201,9 +210,6 @@
     <echo message="Executing OLDFITS target: ${what}"/>
     <ant dir="./oldfits" target="${what}"/>
 
-    <echo message="Executing JSky target: ${what}"/>
-    <ant dir="./jsky" target="${what}"/>
-
     <echo message="Executing VOTable target: ${what}"/>
     <ant dir="./votable" target="${what}"/>
 
@@ -255,9 +261,6 @@
     <echo message="Executing DATANODE target: ${what}"/>
     <ant dir="./datanode" target="${what}"/>
 
-    <echo message="Executing JAIUtil target: ${what}"/>
-    <ant dir="./jaiutil" target="${what}"/>
-
  <!--   <echo message="Executing JPCS target: ${what}"/> -->
  <!--   <ant dir="./jpcs" target="${what}"/> -->
 
@@ -267,17 +270,8 @@
  <!--   <echo message="Executing JNIKAPPA target: ${what}"/> -->
  <!--   <ant dir="./jnikappa" target="${what}"/> -->
 
-    <echo message="Executing SOG target: ${what}"/>
-    <ant dir="./sog" target="${what}"/>
-
-    <echo message="Executing SPLAT target: ${what}"/>
-    <ant dir="./splat" target="${what}"/>
-
     <echo message="Executing TOPCAT target: ${what}"/>
     <ant dir="./topcat" target="${what}"/>
-
-    <echo message="Executing Treeview target: ${what}"/>
-    <ant dir="./treeview" target="${what}"/>
 
     <echo message="Executing Coco target: ${what}"/>
     <ant dir="./coco" target="${what}"/>
@@ -285,9 +279,56 @@
     <echo message="Executing RV target: ${what}"/>
     <ant dir="./rv" target="${what}"/>
 
+  </target>
+
+  <!--
+   !  =================================================
+   !  Execute ANT in subdirectories with JAI dependency
+   !  =================================================
+   !-->
+  <target name="call_package_ant_jai" if="jai.present">
+
+    <echo message="Executing JSky target: ${what}"/>
+    <ant dir="./jsky" target="${what}"/>
+
+    <echo message="Executing JAIUtil target: ${what}"/>
+    <ant dir="./jaiutil" target="${what}"/>
+
+    <echo message="Executing SOG target: ${what}"/>
+    <ant dir="./sog" target="${what}"/>
+
+    <echo message="Executing SPLAT target: ${what}"/>
+    <ant dir="./splat" target="${what}"/>
+
+    <echo message="Executing Treeview target: ${what}"/>
+    <ant dir="./treeview" target="${what}"/>
+
     <echo message="Executing FROG target: ${what}"/>
     <ant dir="./frog" target="${what}"/>
 
+  </target>
+
+  <!--
+   !  ========================================================
+   !  Check whether Java Advanced Imaging extension is present
+   !  ========================================================
+   !
+   !  The build will take place either with or without the JAI extension
+   !  classes, which are required for a few of the packages.
+   !  In the absence of JAI, no attempt will be made to build
+   !  those JAI-dependent packages.
+   !-->
+  <target name="check_jai">
+    <available property="jai.present" classname="javax.media.jai.JAI"/>
+  </target>
+
+  <!--
+   !  =====================================================
+   !  Issue a message if JAI-dependent packages are skipped
+   !  =====================================================
+   !-->
+  <target name="report_jai" unless="jai.present">
+    <echo message="JAI not present; some packages were not built"/>
   </target>
 
   <!--
@@ -299,7 +340,7 @@
    !  proceed. This isn't used at present, but shows the sort of thing
    !  you might want to do.
    !-->
-  <target name="prepare">
+  <target name="prepare" depends="check_jai">
     <tstamp>
       <format property="year" pattern="yyyy" />
     </tstamp>
@@ -570,10 +611,6 @@
          <include name="**"/>
       </packageset>
 
-      <packageset dir="jaiutil/build/java" defaultexcludes="yes">
-         <include name="**"/>
-      </packageset>
-
       <packageset dir="mirage/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
@@ -601,11 +638,6 @@
          <include name="**"/>
       </packageset>
       <group title="nom.tam.fits API" packages="nom.*"/>
-
-      <packageset dir="jsky/build/java" defaultexcludes="yes">
-         <include name="**"/>
-      </packageset>
-      <group title="JSky API" packages="jsky.*"/>
 
       <!-- Link to the full Java API at SUNs website -->
       <link offline="true" href="${javaapi.url}"
