@@ -63,7 +63,7 @@ public abstract class VersionDetail {
      *
      * @param   voTagname  unqualified element name in VOTable namespace
      * @param   context   processing context
-     * @return   handler to process an element of type <tt>name</tt>
+     * @return   handler to process an element of type <code>name</code>
      */
     public ElementHandler createElementHandler( String voTagname,
                                                 VotLintContext context ) {

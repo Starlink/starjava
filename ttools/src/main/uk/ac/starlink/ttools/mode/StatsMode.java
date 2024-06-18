@@ -103,7 +103,7 @@ public class StatsMode implements ProcessingMode {
      *
      * @param   table  table whose stats are to be calculated
      * @param   runner  handles row-based execution
-     * @return   table containing statistics of <tt>table</tt>
+     * @return   table containing statistics of <code>table</code>
      */
     private static StarTable makeStatsTable( StarTable table, RowRunner runner )
             throws IOException {

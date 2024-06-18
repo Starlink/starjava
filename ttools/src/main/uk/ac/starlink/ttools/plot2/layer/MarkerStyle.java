@@ -109,7 +109,7 @@ public class MarkerStyle implements Style {
      * Draws this marker's shape centred at the origin suitable for display
      * as a legend.  The default implementation just invokes
      * {@link #drawShape}, but it may be overridden if there are special
-     * requirements, for instance if <tt>drawShape</tt> draws a miniscule
+     * requirements, for instance if <code>drawShape</code> draws a miniscule
      * graphic.
      *
      * @param   g  graphics context

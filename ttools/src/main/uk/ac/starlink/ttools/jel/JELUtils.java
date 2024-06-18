@@ -224,9 +224,9 @@ public class JELUtils {
      * @param   lib   JEL library
      * @param   table  context table
      * @param   expr  string representation of the expression
-     * @return  class which evaluation of <tt>expr</tt> using <tt>lib</tt>
-     *          will return
-     * @throws  CompilationException  if <tt>expr</tt> cannot be compiled
+     * @return  class which evaluation of <code>expr</code>
+     *                using <code>lib</code> will return
+     * @throws  CompilationException  if <code>expr</code> cannot be compiled
      */
     public static Class<?> getExpressionType( Library lib, StarTable table,
                                               String expr )
@@ -241,9 +241,9 @@ public class JELUtils {
      * @param  lib    JEL library
      * @param  table  context table
      * @param  expr   string representation of the expression
-     * @param  clazz  return type required from <tt>expr</tt>
-     * @throws  CompilationException  if <tt>expr</tt> cannot be compiled
-     *          or will return a type other than <tt>clazz</tt> 
+     * @param  clazz  return type required from <code>expr</code>
+     * @throws  CompilationException  if <code>expr</code> cannot be compiled
+     *          or will return a type other than <code>clazz</code> 
      *          (or one of its subtypes)
      */
     public static void checkExpressionType( Library lib, StarTable table,
@@ -501,13 +501,13 @@ public class JELUtils {
 
     /**
      * Returns a non-primitive version of a given class.
-     * If <tt>clazz</tt> is a non-primitive type, it will be returned,
+     * If <code>clazz</code> is a non-primitive type, it will be returned,
      * otherwise the wrapper class corresponding to the primitive type
-     * of <tt>clazz</tt> will be returned 
-     * (e.g. <tt>Integer</tt> for <tt>int</tt>).
+     * of <code>clazz</code> will be returned 
+     * (e.g. <code>Integer</code> for <code>int</code>).
      *
      * @param   clazz   input class
-     * @return  non-primitive class matching <tt>clazz</tt>
+     * @return  non-primitive class matching <code>clazz</code>
      */
     public static Class<?> getWrapperType( Class<?> clazz ) {
         if ( clazz.equals( boolean.class ) ) {

@@ -48,7 +48,7 @@ public abstract class ValueParser {
 
     /**
      * Checks the value of a string which contains the value. 
-     * This is presumably either the content of the <tt>value</tt> attribute
+     * This is presumably either the content of the <code>value</code> attribute
      * of a PARAM element or the contents of a TD element.
      *
      * @param  text  value string
@@ -153,7 +153,7 @@ public abstract class ValueParser {
      * @param   datatype  datatype attribute value
      * @param   arraysize  arraysize attribute value
      * @param   xtype   xtype (extended type) attribute value
-     * @return   a suitable ValueParser, or <tt>null</tt> if one can't
+     * @return   a suitable ValueParser, or <code>null</code> if one can't
      *           be constructed
      */
     public static ValueParser makeParser( ElementHandler handler, String name,

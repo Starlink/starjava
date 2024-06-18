@@ -135,7 +135,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
      * the current row.
      *
      * @param  icol  column index
-     * @return  contents of column <tt>icol</tt> at the current row
+     * @return  contents of column <code>icol</code> at the current row
      */
     protected abstract Object getCell( int icol ) throws IOException;
 

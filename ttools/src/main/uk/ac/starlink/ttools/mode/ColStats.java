@@ -6,7 +6,7 @@ import uk.ac.starlink.table.Tables;
 /**
  * Accumulates statistics for the values in a given column.
  * This object gets treated as a bean; its properties get turned into
- * table columns.  The property accessors (public <tt>get*</tt> methods)
+ * table columns.  The property accessors (public <code>get*</code> methods)
  * will return formatted strings based on the data which have been 
  * submitted to the {@link #acceptDatum} method.
  *
@@ -166,7 +166,7 @@ public abstract class ColStats {
      * given ColumnInfo.
      *
      * @param  info   column description
-     * @return  ColStats object which can accumulate stats for <tt>info</tt>
+     * @return  ColStats object which can accumulate stats for <code>info</code>
      */
     public static ColStats makeColStats( ColumnInfo info ) {
         Class<?> clazz = info.getContentClass();

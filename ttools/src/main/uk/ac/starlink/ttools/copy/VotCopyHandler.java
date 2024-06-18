@@ -38,8 +38,8 @@ import uk.ac.starlink.votable.VOTableVersion;
  * in one of the VOTable encodings as selected by the user.
  *
  * <p>One exception to the rule is that, for implementation-specific 
- * reasons, FIELD elements with <tt>datatype="bit"</tt> are
- * changed to have <tt>datatype="boolean"</tt> instead.
+ * reasons, FIELD elements with <code>datatype="bit"</code> are
+ * changed to have <code>datatype="boolean"</code> instead.
  *
  * @author   Mark Taylor (Starlink)
  * @since    18 Apr 2005
@@ -68,7 +68,7 @@ public class VotCopyHandler
 
     /**
      * Constructor.  The copy can be done in either cached or streamed
-     * mode, determined by the <tt>cache</tt> parameter.
+     * mode, determined by the <code>cache</code> parameter.
      * In streamed mode, each row encountered in the input SAX stream
      * is copied to the output stream as soon as it is encountered.
      * In cached mode, the whole table is assembled first, and then 

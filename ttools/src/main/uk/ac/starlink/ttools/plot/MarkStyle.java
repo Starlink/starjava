@@ -116,7 +116,7 @@ public abstract class MarkStyle extends DefaultStyle {
      * Draws this marker's shape centred at the origin suitable for display
      * as a legend.  The default implementation just invokes 
      * {@link #drawShape}, but it may be overridden if there are special
-     * requirements, for instance if <tt>drawShape</tt> draws a miniscule
+     * requirements, for instance if <code>drawShape</code> draws a minuscule
      * graphic.
      *
      * @param   g  graphics context
@@ -144,8 +144,9 @@ public abstract class MarkStyle extends DefaultStyle {
      * It is permissible to return a (gross) overestimate if no sensible
      * maximum can be guaranteed.
      *
-     * @return   maximum distance from the specified <tt>x</tt>,<tt>y</tt>
-     *           point that <tt>drawMarker</tt> might draw
+     * @return   maximum distance from the specified
+     *           <code>x</code>,<code>y</code>
+     *           point that <code>drawMarker</code> might draw
      */
     public int getMaximumRadius() {
         return maxr_;

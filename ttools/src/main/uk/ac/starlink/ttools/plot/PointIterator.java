@@ -88,7 +88,7 @@ public abstract class PointIterator {
      * which falls within a given shape on the screen.
      *
      * @param  shape  shape defining inclusion criterion
-     * @return  bit vector locating points inside <tt>shape</tt>
+     * @return  bit vector locating points inside <code>shape</code>
      */
     public BitSet getContainedPoints( Shape shape ) {
         BitSet inside = new BitSet();
@@ -122,7 +122,8 @@ public abstract class PointIterator {
      * @param  p  screen point near which plotted points should be located
      * @param  error  number of pixels in any direction which defines the
      *         error box within which a point may be found
-     * @return index of closest point to <tt>p</tt>, or -1 if none are nearby
+     * @return index of closest point to <code>p</code>,
+     *         or -1 if none are nearby
      */
     public int getClosestPoint( Point p, int error ) {
         int ifound = -1;

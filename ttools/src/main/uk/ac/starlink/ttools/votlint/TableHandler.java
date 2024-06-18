@@ -49,7 +49,7 @@ public class TableHandler extends ElementHandler {
      * Called by a child FIELD element to indicate that a column has been
      * seen, and to describe how to check the contents of that column.
      * If no working parser can be made, this method should be called
-     * with <tt>parser=null</tt>.
+     * with <code>parser=null</code>.
      *
      * @param   field  parser for the newly added field
      */

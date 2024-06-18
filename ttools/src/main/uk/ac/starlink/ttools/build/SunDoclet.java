@@ -252,13 +252,13 @@ public class SunDoclet {
             output_.outSees( "See Also", sees.toArray( new String[ 0 ] ) );
         }
         String signature = new StringBuffer()
-            .append( "<tt>" )
+            .append( "<code>" )
             .append( rtype.toString().replaceAll( "^.*\\.", "" ) )
             .append( " " )
             .append( method.name() )
             .append( method.signature()
                            .replaceAll( "\\w[\\w\\.]*\\.(\\w+)", "$1" ) )
-            .append( "</tt>" )
+            .append( "</code>" )
             .toString();
         output_.outMemberItem( "Signature", signature );
         output_.endMember();

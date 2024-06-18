@@ -54,7 +54,7 @@ public class KeepColumnFilter extends BasicFilter {
      * @param  table  base table
      * @param  colIdList  list of column IDs, one for each column 
      *         in the output table
-     * @return  new table using columns selected from <tt>table</tt>
+     * @return  new table using columns selected from <code>table</code>
      */
     public static StarTable keepColumnTable( StarTable table, String colIdList )
             throws IOException {

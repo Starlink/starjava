@@ -49,7 +49,7 @@ public class DoctypeInterpolator {
      * This method can only be called once for each instance of this class.
      *
      * @param  in  original input stream
-     * @return  input stream like <tt>in</tt> but with a DOCTYPE
+     * @return  input stream like <code>in</code> but with a DOCTYPE
      * @throws  IllegalStateException  if this method has already been called
      *          on this object
      */
@@ -108,7 +108,7 @@ public class DoctypeInterpolator {
     }
 
     /**
-     * Returns the value of the <tt>version</tt> attribute of the top-level
+     * Returns the value of the <code>version</code> attribute of the top-level
      * VOTABLE element, if there was one and it was encountered.
      *
      * @return   declared VOTable version string, or null
@@ -132,7 +132,7 @@ public class DoctypeInterpolator {
      * 
      * @param   buffer containing the head of an XML document
      * @return  TRUE if a DOCTYPE declaration is present; false if it is
-     *          absent; null if <tt>buf</tt> doesn't go as far as
+     *          absent; null if <code>buf</code> doesn't go as far as
      *          the first element
      */
     private Boolean hasDoctype( byte[] buf ) {

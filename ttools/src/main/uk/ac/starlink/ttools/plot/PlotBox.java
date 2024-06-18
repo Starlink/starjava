@@ -110,7 +110,7 @@ This class provides a labeled box within which to place a data plot.
  * <p>The following changes have been made from the original:
  * <ol>
  * <li>This comment block inserted
- * <li>The {@link #_zoom} method promoted to <tt>protected</tt>
+ * <li>The {@link #_zoom} method promoted to <code>protected</code>
  * <li>Commented out members concerned with importing/exporting plot state;
  *     this functionality is not provided in this way from TOPCAT and 
  *     some of these methods referenced other PtPlot classes
