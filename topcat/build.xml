@@ -202,7 +202,14 @@
    !   The com.sun.doclet API is deprecated at Java 9 and withdrawn at Java 17;
    !   from Java 9, JdkDoclet, based on jdk.doclet.javadoc API can be used
    !   instead. -->
-  <property name="jel.doclet" value="uk.ac.starlink.ttools.build.SunDoclet"/>
+  <condition property="jdk.isv8">
+    <contains string="${java.specification.version}" substring="1.8"/>
+  </condition>
+  <condition property="jel.doclet"
+             value="uk.ac.starlink.ttools.build.SunDoclet"
+             else="uk.ac.starlink.ttools.build.JdkDoclet">
+    <isset property="jdk.isv8"/>
+  </condition>
 
   <!-- Add any local ANT tasks that are required (these should be
    !   moved to ANT if useful beyond the needs of this package) -->
