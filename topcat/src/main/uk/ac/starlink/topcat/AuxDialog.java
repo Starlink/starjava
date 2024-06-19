@@ -96,7 +96,7 @@ public class AuxDialog extends JDialog {
      * <p>
      * An ID can be supplied to indicate the page which should be shown
      * in the help viewer when context-sensitive help is requested.
-     * This may be <tt>null</tt> if no change in the help page should
+     * This may be <code>null</code> if no change in the help page should
      * be made (for instance if there is no help specific to this window).
      *
      * @param  helpID  the ID of the help item for this window

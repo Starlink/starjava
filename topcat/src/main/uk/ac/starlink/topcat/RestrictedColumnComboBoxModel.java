@@ -13,7 +13,7 @@ import uk.ac.starlink.table.gui.StarTableColumn;
  * of the available columns should show up in the combobox.
  * Use it in the same way as ColumnComboBoxModel, but implement the
  * {@link #acceptColumn} method appropriately.  In the case that
- * <tt>acceptColumn</tt> accepts everything, this will behave just the
+ * <code>acceptColumn</code> accepts everything, this will behave just the
  * same as a ColumnComboBoxModel (though perhaps less efficiently).
  */
 public abstract class RestrictedColumnComboBoxModel 
@@ -48,7 +48,7 @@ public abstract class RestrictedColumnComboBoxModel
      * model should show up in the combobox.
      *
      * @param   cinfo  column metadata to assess
-     * @return  <tt>true</tt> iff the column is to be used
+     * @return  <code>true</code> iff the column is to be used
      */
     public abstract boolean acceptColumn( ColumnInfo cinfo );
 
@@ -56,7 +56,7 @@ public abstract class RestrictedColumnComboBoxModel
      * Determines whether a given TableColumn should show up in the combobox.
      *
      * @param  tcol  table column to assess
-     * @return  <tt>true</tt> iff the column is to be used
+     * @return  <code>true</code> iff the column is to be used
      */
     private boolean acceptColumn( TableColumn tcol ) {
         return tcol instanceof StarTableColumn 

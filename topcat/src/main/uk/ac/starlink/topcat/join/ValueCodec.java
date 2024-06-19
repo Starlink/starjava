@@ -15,7 +15,7 @@ public abstract class ValueCodec {
      * Decodes a string to give a value in the context of this codec.
      *
      * @param  text  string representation of the value 
-     * @return  value object as read from <tt>text</tt>
+     * @return  value object as read from <code>text</code>
      */
     public abstract Object unformatString( String text );
 
@@ -26,20 +26,20 @@ public abstract class ValueCodec {
      *
      * @param  value  value object
      * @param  maxLength  maximum number of characters in the returned string
-     * @return  string representation of <tt>value</tt>
+     * @return  string representation of <code>value</code>
      */
     public abstract String formatValue( Object value, int maxLength );
 
     /**
      * Returns an array of ValueCodec objects suitable for representing
-     * the values pertaining to a given <tt>ValueInfo</tt> object.
+     * the values pertaining to a given <code>ValueInfo</code> object.
      * The returned array will contain at least one element, which 
      * just gets its implementation from the behaviour of the submitted
      * ValueInfo itself, but it may contain more than this, for instance
      * ones relating to different units.
      *
      * @param  info  description of the value to represent
-     * @return  array of value codecs for <tt>info</tt>, containing
+     * @return  array of value codecs for <code>info</code>, containing
      *          at least one element
      */
     public static ValueCodec[] getCodecs( ValueInfo info ) {
@@ -114,11 +114,11 @@ public abstract class ValueCodec {
         /**
          * Multiplies a Number object by a constant, returning a Number object,
          * probably of the same kind.  No guarantees are made about what
-         * happens if <tt>value</tt> is not a number.
+         * happens if <code>value</code> is not a number.
          *
          * @param  value  value to multiply, hopefully a number
-         * @param  factor constant to multiply <tt>value</tt> by
-         * @return  object which tries to represent <tt>value * factor</tt>
+         * @param  factor constant to multiply <code>value</code> by
+         * @return  object which tries to represent <code>value * factor</code>
          */
         private static Object multiplyObject( Object value, double factor ) {
             if ( value instanceof Number ) {

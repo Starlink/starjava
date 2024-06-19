@@ -1095,7 +1095,7 @@ public class ColumnInfoWindow extends AuxWindow {
      * array value with a fixed length.
      *
      * @param   info  description of a value
-     * @return   fixed number of scalar elements described by <tt>info</tt>,
+     * @return   fixed number of scalar elements described by <code>info</code>,
      *           or a non-positive number if it's not suitable
      */
     public static int getElementCount( ValueInfo info ) {

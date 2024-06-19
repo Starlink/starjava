@@ -31,7 +31,7 @@ import javax.swing.event.ListSelectionListener;
  * This component does pretty much the same job as a JList, but 
  * is easier to use for individually selecting and deselecting individual
  * list items.
- * Like a <tt>JList</tt>, it has an associated {@link javax.swing.ListModel}
+ * Like a <code>JList</code>, it has an associated {@link javax.swing.ListModel}
  * and {@link javax.swing.ListSelectionModel}, 
  * which may be shared with other views in the usual way.
  *

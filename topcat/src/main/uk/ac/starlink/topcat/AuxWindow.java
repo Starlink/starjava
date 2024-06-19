@@ -207,7 +207,7 @@ public class AuxWindow extends JFrame {
      * <p>
      * An ID can be supplied to indicate the page which should be shown
      * in the help viewer when context-sensitive help is requested.
-     * This may be <tt>null</tt> if no change in the help page should
+     * This may be <code>null</code> if no change in the help page should
      * be made (for instance if there is no help specific to this window).
      *
      * @param  helpID  the ID of the help item for this window
@@ -518,7 +518,7 @@ public class AuxWindow extends JFrame {
      * to the right.  The second window is repositioned relative to the
      * first one.
      * 
-     * @param   first   first window, or <tt>null</tt>
+     * @param   first   first window, or <code>null</code>
      * @param   second  second window
      */
     public static void positionAfter( Component first, Window second ) {

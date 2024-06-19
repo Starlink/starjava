@@ -1665,7 +1665,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      * the given TableColumn.
      *
      * @param   tcol   the column whose index is to be found
-     * @return  the index of <tt>tcol</tt> in the table model
+     * @return  the index of <code>tcol</code> in the table model
      */
     public int getColumnIndex( TableColumn tcol ) {
         return tcol.getModelIndex();

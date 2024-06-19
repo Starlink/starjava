@@ -350,7 +350,7 @@ public class ResourceIcon implements Icon {
     }
 
     /**
-     * Returns an Image for this icon if it can, or <tt>null</tt> if it
+     * Returns an Image for this icon if it can, or <code>null</code> if it
      * can't for some reason.
      *
      * @return  an Image

@@ -16,11 +16,12 @@ import javax.swing.JToggleButton;
  * {@link java.awt.event.ActionEvent}s passed to this action may
  * have the action command set to one of the strings 
  * {@link #HIDE} or {@link #SHOW} to define what the command means
- * (in fact anything other than <tt>HIDE</tt> counts as <tt>SHOW</tt>).
+ * (in fact anything other than <code>HIDE</code> counts as <code>SHOW</code>).
  * It has a bound property with key {@link #VISIBLE} which indicates
  * whether the associated window is currently showing or not.
- * Setting the <tt>VISIBLE</tt> property true/false has the same effect as 
- * invoking the action with the <tt>SHOW</tt>/<tt>HIDE</tt> command string.
+ * Setting the <code>VISIBLE</code> property true/false has the same effect as 
+ * invoking the action with the <code>SHOW</code>/<code>HIDE</code>
+ * command string.
  * <p>
  * This class is currently a bit messy and overspecified for what it does.
  *

@@ -66,8 +66,8 @@ public class HelpAction extends AbstractAction {
      * Tests whether a given helpID is available.
      *
      * @param  helpID  the help ID to test
-     * @return  true  iff <tt>helpID</tt> is a known ID in this application's
-     *          HelpSet
+     * @return  true  iff <code>helpID</code> is a known ID
+     *                in this application's HelpSet
      */
     public static boolean helpIdExists( String helpID ) {
         if ( hset_ == null ) {

@@ -61,8 +61,8 @@ public class HelpWindow extends AuxWindow {
 
     /**
      * Constructs a new HelpWindow. 
-     * If supplied, a <tt>parent</tt> window is used only for positioning.
-     * This private sole constructor is invoked by <tt>getInstance</tt>.
+     * If supplied, a <code>parent</code> window is used only for positioning.
+     * This private sole constructor is invoked by <code>getInstance</code>.
      *
      * @param  parent  parent window
      */
@@ -167,7 +167,7 @@ public class HelpWindow extends AuxWindow {
 
     /**
      * Returns the sole instance of this class.  
-     * If supplied, a <tt>parent</tt> window is used only for positioning.
+     * If supplied, a <code>parent</code> window is used only for positioning.
      *
      * @param  parent  parent window
      */
@@ -190,7 +190,7 @@ public class HelpWindow extends AuxWindow {
 
     /**
      * Sets the current help ID to the one represented by the given string.
-     * If <tt>helpID</tt> is <tt>null</tt>, or does not refer to a 
+     * If <code>helpID</code> is <code>null</code>, or does not refer to a 
      * real ID in this HelpSet, no change is made to the current view.
      *
      * @param   helpID  the ID to change to

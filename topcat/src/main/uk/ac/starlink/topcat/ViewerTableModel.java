@@ -12,10 +12,10 @@ import uk.ac.starlink.table.RowPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
 
 /**
- * A <tt>TableModel</tt> which is based on a <tt>StarTable</tt> but 
+ * A <code>TableModel</code> which is based on a <code>StarTable</code> but 
  * also provides methods for ordering rows and selecting which rows will
- * be visible.  This class is used as the <tt>TableModel</tt> for the
- * <tt>TableViewer</tt> widget.
+ * be visible.  This class is used as the <code>TableModel</code> for the
+ * <code>TableViewer</code> widget.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -31,12 +31,12 @@ public class ViewerTableModel extends AbstractTableModel {
     private static boolean columnBugWarned_;
 
     /**
-     * Constructs a <tt>ViewerTableModel</tt> from a <tt>StarTable</tt>.
-     * The supplied <tt>StarTable</tt> must provide random access.
+     * Constructs a <code>ViewerTableModel</code> from a <code>StarTable</code>.
+     * The supplied <code>StarTable</code> must provide random access.
      *
-     * @param   startable  the <tt>StarTable</tt> object
-     * @throws  IllegalArgumentException  if <tt>startable.isRandom</tt>
-     *          returns <tt>false</tt>
+     * @param   startable  the <code>StarTable</code> object
+     * @throws  IllegalArgumentException  if <code>startable.isRandom</code>
+     *          returns <code>false</code>
      */
     public ViewerTableModel( PlasticStarTable startable ) {
         startable_ = startable;
@@ -58,9 +58,10 @@ public class ViewerTableModel extends AbstractTableModel {
      * Configures this view to view the rows of the base model in a
      * given order.  The supplied order array should be a 1:1 mapping
      * of rows in the base table to the order in which they will be viewed.
-     * This method triggers a suitable <tt>TableModelEvent</tt> to listeners.
+     * This method triggers a suitable <code>TableModelEvent</code>
+     * to listeners.
      *
-     * @param  order  mapping of rows in the table view, or <tt>null</tt>
+     * @param  order  mapping of rows in the table view, or <code>null</code>
      *         to indicate natural ordering
      */
     public void setOrder( int[] order ) {
@@ -76,7 +77,8 @@ public class ViewerTableModel extends AbstractTableModel {
     /**
      * Configures this view to view only a subset of the rows of the base
      * model.
-     * This method triggers a suitable <tt>TableModelEvent</tt> to listeners.
+     * This method triggers a suitable <code>TableModelEvent</code>
+     * to listeners.
      *
      * @param   rset  RowSubset object indicating inclusion in subset of
      *          rows to be viewed
@@ -100,7 +102,7 @@ public class ViewerTableModel extends AbstractTableModel {
      * Returns the mapping from row index visible in this model to 
      * row index in the base table.
      *
-     * @return  row mapping; may be <tt>null</tt> to indicate a unit map
+     * @return  row mapping; may be <code>null</code> to indicate a unit map
      */
     public int[] getRowMap() {
         return rowMap_;
@@ -155,7 +157,7 @@ public class ViewerTableModel extends AbstractTableModel {
      * row index in the base table.
      *
      * @param  rowMap  row mapping;
-     *                 may be <tt>null</tt> to indicate a unit map
+     *                 may be <code>null</code> to indicate a unit map
      */
     public void setRowMap( int[] rowMap ) {
         rowMap_ = rowMap;
@@ -316,7 +318,8 @@ public class ViewerTableModel extends AbstractTableModel {
     }
 
     /**
-     * Returns the number of rows in the underlying table as an <tt>int</tt>.
+     * Returns the number of rows in the underlying table
+     * as an <code>int</code>.
      */
     private int getTableRowCount() {
         return AbstractStarTable.checkedLongToInt( startable_.getRowCount() );
@@ -341,7 +344,7 @@ public class ViewerTableModel extends AbstractTableModel {
      * The submitted table may be returned if no permutation is in force.
      *
      * @param  table  table to be permuted
-     * @return   a table which is a possibly permuted view of <tt>table</tt>
+     * @return   a table which is a possibly permuted view of <code>table</code>
      */
     public StarTable getRowPermutedView( StarTable table ) {
         if ( rowMap_ == null ) {
