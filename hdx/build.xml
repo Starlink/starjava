@@ -369,7 +369,7 @@
 
     <mkdir dir="${build.classes}"/>
     <javac deprecation="${deprecation}"
-        source="1.6"
+        source="1.8"
         destdir="${build.classes}"
         debug="${debug}"
         srcdir="${build.java}"
@@ -846,7 +846,7 @@
              locale="en"
              windowtitle="${Name} API"
              doctitle="${Name}"
-      	     source="1.6">
+      	     source="1.8">
       <arg value="-Xdoclint:all,-missing"/>
 
       <!-- Get a list of directories that name all the potential
@@ -959,7 +959,7 @@
     <mkdir dir="${build.tests}"/>
 
     <javac deprecation="${deprecation}" 
-      source="1.6"
+      source="1.8"
       destdir="${build.tests}"
       debug="${debug}"
       srcdir="${tests.dir}">
