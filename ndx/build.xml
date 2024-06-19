@@ -373,7 +373,7 @@
            destdir="${build.classes}"
            debug="${debug}"
            deprecation="${deprecation}"
-	   source="1.6"
+	   source="1.8"
            optimize="${optimize}">
 
       <classpath refid="classpath"/>
@@ -795,7 +795,7 @@
              author="true"
              version="true"
              locale="en"
-             source="1.6"
+             source="1.8"
              windowtitle="${Name} API"
              doctitle="${Name}"
              classpathref="classpath">
