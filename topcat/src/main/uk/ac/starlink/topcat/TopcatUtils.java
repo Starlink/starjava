@@ -193,13 +193,13 @@ public class TopcatUtils {
 
     /**
      * Returns the base name of a column; that is one without any 
-     * suffix based on <tt>baseSuffix</tt>.
+     * suffix based on <code>baseSuffix</code>.
      * This method is used in conjunction with {@link #getDistinctName}.
      *
      * @param  origName  full name, possibly including bits of suffix
      * @param  baseSuffix   the base suffix string
      * @return  name without any suffix-like elements of the sort 
-     *          specified by <tt>baseSuffix</tt>
+     *          specified by <code>baseSuffix</code>
      */
     public static String getBaseName( String origName, String baseSuffix ) {
         return suffixPattern( baseSuffix )
@@ -210,15 +210,15 @@ public class TopcatUtils {
     /**
      * Returns a column name based on a given one which is guaranteed 
      * distinct from any others in the column list.
-     * If the submitted <tt>origName</tt> is already unique, it may be
+     * If the submitted <code>origName</code> is already unique, it may be
      * returned.  Otherwise a new name may be made which involves appending
-     * the given <tt>baseSuffix</tt> to it.
+     * the given <code>baseSuffix</code> to it.
      *
      * @param  colList  column list within which distinct naming is required
      * @param  origName  initial name
      * @param  baseSuffix  suffix used for deduplication
-     * @return  a name resembling <tt>origName</tt> which is not the same
-     *          as any existing column names in <tt>colList</tt>
+     * @return  a name resembling <code>origName</code> which is not the same
+     *          as any existing column names in <code>colList</code>
      * @see  #getBaseName
      */
     public static String getDistinctName( ColumnList colList, String origName, 

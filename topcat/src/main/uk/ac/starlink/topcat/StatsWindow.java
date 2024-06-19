@@ -956,7 +956,7 @@ public class StatsWindow extends AuxWindow {
      * Helper class whose run method performs the calculations
      * and displays the results in the StatsWindow when it's done.
      * A maximum of one active instance of this is maintained by each 
-     * StatsWindow, its <tt>run</tt> method running in a separate thread.
+     * StatsWindow, its <code>run</code> method running in a separate thread.
      */
     private class StatsCalculator implements Runnable {
 

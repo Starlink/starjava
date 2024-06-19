@@ -13,7 +13,7 @@ import uk.ac.starlink.table.ValueInfo;
  * expression.  This expression may include other columns in the table
  * referenced by column name, and can use any of the java language 
  * expression constructs as well as the static methods in the
- * <tt>java.lang.Math</tt> class.  This list could be extended quite 
+ * <code>java.lang.Math</code> class.  This list could be extended quite 
  * easily if new arithmetic tricks were required.
  * <p>
  * The engine used for expression evaluation is the GNU 
@@ -40,7 +40,7 @@ public class SyntheticColumn extends ColumnData {
      * @param  expression  algebraic expression for the value of this
      *         column
      * @param  resultType  a Class for the result, presumably one of the
-     *         primitive wrapper types or String.class.  If <tt>null</tt>
+     *         primitive wrapper types or String.class.  If <code>null</code>
      *         a suitable class is chosen automatically.
      */
     public SyntheticColumn( TopcatModel tcModel, ColumnInfo cinfo,
@@ -60,7 +60,7 @@ public class SyntheticColumn extends ColumnData {
      * @param  expression  the string giving the algebraic exprssion for
      *         this column's value in terms of other columns
      * @param  resultType  a Class for the result, presumably one of the
-     *         primitive wrapper types or String.class.  If <tt>null</tt>
+     *         primitive wrapper types or String.class.  If <code>null</code>
      *         a suitable class is chosen automatically.
      */
     public void setExpression( String expression, Class<?> resultType )

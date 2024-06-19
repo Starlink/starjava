@@ -13,7 +13,7 @@ import javax.swing.table.TableColumnModel;
 /**
  * List reflecting the {@link javax.swing.table.TableColumn} objects 
  * in a {@link javax.swing.table.TableColumnModel}.  
- * Unlike a <tt>TableColumnModel</tt>, this never throws away 
+ * Unlike a <code>TableColumnModel</code>, this never throws away 
  * any columns, it just maintains an array of flags to indicate which
  * columns are currently in the model and which are not.
  * On construction it registers itself as a listener on its ColumnModel
@@ -46,7 +46,7 @@ public class ColumnList implements TableColumnModelListener {
      * Returns one of the columns in this list.
      * 
      * @param  jcol  list index of the column
-     * @return  column at list index <tt>jcol</tt>
+     * @return  column at list index <code>jcol</code>
      */
     public TableColumn getColumn( int jcol ) {
         return columnList.get( jcol );
@@ -57,7 +57,7 @@ public class ColumnList implements TableColumnModelListener {
      * (present in the table column model).
      *
      * @param   jcol  list index of the column
-     * @return  true  iff column at <tt>jcol</tt> is active
+     * @return  true  iff column at <code>jcol</code> is active
      */
     public boolean isActive( int jcol ) {
         return active.get( jcol ).booleanValue();
@@ -68,7 +68,7 @@ public class ColumnList implements TableColumnModelListener {
      * it into the table column model if necessary.
      *
      * @param  jcol  list index of the column
-     * @param  actv  whether the column at <tt>jcol</tt> should be present
+     * @param  actv  whether the column at <code>jcol</code> should be present
      *         in the table column model
      */
     public void setActive( int jcol, boolean actv ) {
@@ -111,7 +111,7 @@ public class ColumnList implements TableColumnModelListener {
      * can be found.
      *
      * @param  tcol  sought column
-     * @return  index of <tt>tcol</tt> in this list, or -1 if it's not there
+     * @return  index of <code>tcol</code> in this list, or -1 if it's not there
      */
     public int indexOf( TableColumn tcol ) {
         return columnList.indexOf( tcol );
@@ -122,7 +122,7 @@ public class ColumnList implements TableColumnModelListener {
      * index in this list.
      *
      * @param  jcol  list index
-     * @return  index into the table column model of column at <tt>jcol</tt>
+     * @return  index into the table column model of column at <code>jcol</code>
      *          int this list, or one bigger than the size of the column model
      *          if it's not in it
      */
@@ -161,7 +161,7 @@ public class ColumnList implements TableColumnModelListener {
      * or -1 if it's off the end of the list.
      *
      * @param   i  TableColumnModel index
-     * @return   index in this list corresponding to <tt>i</tt>
+     * @return   index in this list corresponding to <code>i</code>
      */
     private int getExistingActiveIndex( int i ) {
         int nActive = 0;
@@ -181,7 +181,7 @@ public class ColumnList implements TableColumnModelListener {
      * in the column model which doesn't yet exist in this list.
      *
      * @param  i  TableColumnModel index
-     * @return  new index in this list corresponding to <tt>i</tt>
+     * @return  new index in this list corresponding to <code>i</code>
      */
     private int getNewActiveIndex( int i ) {
         int nActive = 0;

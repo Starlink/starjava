@@ -106,7 +106,7 @@ public class ColumnSelector extends JComponent {
 
     /**
      * Sets the model for this selector.  
-     * <tt>model</tt> must have the same ValueInfo as the one this 
+     * <code>model</code> must have the same ValueInfo as the one this 
      * component was set up with.
      *
      * @param  model  new data model

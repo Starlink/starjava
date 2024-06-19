@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * A <tt>RowSubset</tt> which uses an algebraic expression based on the
+ * A <code>RowSubset</code> which uses an algebraic expression based on the
  * values of other columns in the same row to decide whether a row
  * is included or not.
  * <p>

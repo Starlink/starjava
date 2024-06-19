@@ -22,9 +22,9 @@ import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
 /**
  * Provides storage for a list of options with listeners.
  * This class implements both {@link java.util.List} and  
- * {@link javax.swing.ListModel} (which <tt>ListModel</tt> really
+ * {@link javax.swing.ListModel} (which <code>ListModel</code> really
  * ought to do itself), and also provides methods to create 
- * some useful models like <tt>JComboBoxModel</tt> based on the same data.
+ * some useful models like <code>JComboBoxModel</code> based on the same data.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -173,11 +173,11 @@ public class OptionsListModel<T> extends AbstractList<T>
      * Constructs a new JMenu backed by this list.
      * One entry is added to the menu for each option in this list;
      * the menu item will be labelled by the list item (using its toString
-     * method) and will activate the supplied <tt>menuAction</tt> action
-     * if selected.  In this case the action's <tt>actionPerformed</tt>
-     * method will be called with an <tt>ActionEvent</tt> that has
-     * an <tt>id</tt> corresponding to its position in this list and
-     * a <tt>command</tt> string which is the same as its toString method.
+     * method) and will activate the supplied <code>menuAction</code> action
+     * if selected.  In this case the action's <code>actionPerformed</code>
+     * method will be called with an <code>ActionEvent</code> that has
+     * an <code>id</code> corresponding to its position in this list and
+     * a <code>command</code> string which is the same as its toString method.
      *
      * @param   menuName  the name of the menu
      * @param   menuAction the action to activate

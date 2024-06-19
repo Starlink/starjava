@@ -11,7 +11,7 @@ public abstract class RowSubset {
     private Key key_;
 
     /**
-     * A subset containing all rows (<tt>isIncluded</tt> always true).
+     * A subset containing all rows (<code>isIncluded</code> always true).
      */
     public static RowSubset ALL = new RowSubset( "All" ) {
         public boolean isIncluded( long lrow ) {
@@ -20,7 +20,7 @@ public abstract class RowSubset {
     };
 
     /**
-     * A subset containing no rows (<tt>isIncluded</tt> always false).
+     * A subset containing no rows (<code>isIncluded</code> always false).
      */
     public static RowSubset NONE = new RowSubset( "None" ) {
         public boolean isIncluded( long lrow ) {
@@ -85,7 +85,7 @@ public abstract class RowSubset {
      * Indicates whether a given row is in the subset or not.
      *
      * @param  lrow  the index of the row in question
-     * @return  <tt>true</tt> iff row <tt>lrow</tt> is to be included
+     * @return  <code>true</code> iff row <code>lrow</code> is to be included
      */
     public abstract boolean isIncluded( long lrow );
 

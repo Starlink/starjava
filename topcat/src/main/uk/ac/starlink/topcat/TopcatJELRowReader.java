@@ -130,7 +130,7 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
      * Overrides superclass implementation to recognise subsets as well as
      * the other special objects.  The additional return type is:
      * <ul>
-     * <li>a <tt>Short</tt> (the subset index) if the column specification
+     * <li>a <code>Short</code> (the subset index) if the column specification
      *     appears to reference a known row subset
      * </ul>
      * @param  name  the name of the variable-like object to evaluate
@@ -186,8 +186,8 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
      * column.
      *
      * @param  isub  index of the subset to evaluate at the current row
-     * @return result of the <tt>isIncluded</tt> method of the
-     *         <tt>RowSubset</tt> indicated at the current row
+     * @return result of the <code>isIncluded</code> method of the
+     *         <code>RowSubset</code> indicated at the current row
      */
     public boolean getBooleanProperty( short isub ) {
         return getSubset( isub ).isIncluded( getCurrentRow() );
@@ -221,7 +221,7 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
      * Evaluations may happen much later.
      *
      * @param  name  subset identifier
-     * @return  subset index into <tt>subsets</tt> list, or -1 if the
+     * @return  subset index into <code>subsets</code> list, or -1 if the
      *          subset was not known
      */
     private short getSubsetIndex( String name ) {

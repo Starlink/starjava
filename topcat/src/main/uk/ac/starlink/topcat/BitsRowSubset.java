@@ -15,7 +15,7 @@ public class BitsRowSubset extends RowSubset {
 
      /**
       * Constructs a new row subset with a given BitSet, name and sense.
-      * The <tt>invert</tt> argument indicates whether the sense of the
+      * The <code>invert</code> argument indicates whether the sense of the
       * bit set is to be reversed prior to interpretation.
       *
       * @param   name  subset name
@@ -30,7 +30,7 @@ public class BitsRowSubset extends RowSubset {
 
      /**
       * Constructs a new row subset with a given BitSet and name.
-      * Same as <tt>BitsRowSubset(name,bits,false)</tt>
+      * Same as <code>BitsRowSubset(name,bits,false)</code>
       *
       * @param   name  subset name
       * @param   bits  flag vector
@@ -41,7 +41,7 @@ public class BitsRowSubset extends RowSubset {
 
 
      /**
-      * Returns the <tt>BitSet</tt> object used to store the inclusion
+      * Returns the <code>BitSet</code> object used to store the inclusion
       * status flags.
       *
       * @return  flag vector

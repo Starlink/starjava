@@ -457,7 +457,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
      * MetaColumnTableModel displayed in this window.
      *
      * @param   irow  index into subsets list (unsorted table model)
-     * @return  subset at <tt>irow</tt>
+     * @return  subset at <code>irow</code>
      */
     private RowSubset getSubset( int irow ) {
         if ( irow < subsets.size() ) {

@@ -74,7 +74,7 @@ public abstract class MatchSpec extends JPanel {
      * calculate; if not an exception should be thrown.
      *
      * @throws IllegalStateException (with a message suitable for presentation
-     *         to the user) if <tt>calculate</tt> cannot be called in the
+     *         to the user) if <code>calculate</code> cannot be called in the
      *         current state
      */
     public abstract void checkArguments();
@@ -110,7 +110,7 @@ public abstract class MatchSpec extends JPanel {
      * Returns a standard set of FixActions for a given number of tables.
      *
      * @param  nTable   number of tables
-     * @return  <tt>nTable</tt>-element array of sensible FixActions
+     * @return  <code>nTable</code>-element array of sensible FixActions
      */
     public JoinFixAction[] getDefaultFixActions( int nTable ) {
         JoinFixAction[] fixActs = new JoinFixAction[ nTable ];

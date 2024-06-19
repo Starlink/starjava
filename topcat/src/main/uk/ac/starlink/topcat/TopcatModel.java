@@ -289,7 +289,7 @@ public class TopcatModel {
 
     /**
      * Returns the container for the data held by this viewer.
-     * This model, which is a <tt>StarTable</tt> object, is not
+     * This model, which is a <code>StarTable</code> object, is not
      * affected by changes to the data view such as the order of the results
      * presented in the viewer.  It can have columns added to it but
      * not removed.
@@ -301,9 +301,9 @@ public class TopcatModel {
     }
 
     /**
-     * Returns the table model which should be used by a <tt>JTable</tt>
+     * Returns the table model which should be used by a <code>JTable</code>
      * for table display.
-     * This is based on the <tt>dataModel</tt>,
+     * This is based on the <code>dataModel</code>,
      * but can be reordered and configured
      * to display only a subset of the rows and so on.
      *
@@ -315,7 +315,7 @@ public class TopcatModel {
 
     /**
      * Returns the table column model which should be used by this a
-     * <tt>JTable</tt> for table display.
+     * <code>JTable</code> for table display.
      * This can be manipulated either programmatically or as a consequence
      * of user interaction with the JTable (dragging columns around)
      * to modify the mapping of columns visible in this viewer to
@@ -340,8 +340,8 @@ public class TopcatModel {
     }
 
     /**
-     * Returns the <tt>ListModel</tt> which keeps track of which
-     * <tt>RowSubset</tt> objects are available.
+     * Returns the <code>ListModel</code> which keeps track of which
+     * <code>RowSubset</code> objects are available.
      *
      * @return   the RowSubset list model
      */
@@ -439,13 +439,13 @@ public class TopcatModel {
     /**
      * Returns a ColumnSelectorModel which represents the current choice
      * for a given ValueInfo for this table.  A map is maintained,
-     * so the same <tt>info</tt> will always result in getting the
+     * so the same <code>info</code> will always result in getting the
      * same selector model.  If it hasn't been seen before though, a
      * new one will be created.
      *
      * @param  info  description of the column which is wanted
      * @return  model which can be used for selection of a column in this
-     *          table with the characteristics of <tt>info</tt>
+     *          table with the characteristics of <code>info</code>
      */
     public ColumnSelectorModel getColumnSelectorModel( ValueInfo info ) {
         if ( ! columnSelectorMap_.containsKey( info ) ) {
@@ -912,7 +912,7 @@ public class TopcatModel {
      * Removes a table parameter from the table.
      *
      * @param   param  parameter object to remove
-     * @return  true if <tt>param</tt> was removed, false if it wasn't
+     * @return  true if <code>param</code> was removed, false if it wasn't
      *          one of the table parameters in the first place
      */
     public boolean removeParameter( DescribedValue param ) {

@@ -85,7 +85,7 @@ public class ColumnComboBoxModel extends AbstractListModel<TableColumn>
     }
 
     /**
-     * The selected <tt>item</tt> must be a 
+     * The selected <code>item</code> must be a 
      * {@link javax.swing.table.TableColumn} object.
      *
      * @param  item  a table column to select

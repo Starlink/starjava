@@ -68,7 +68,7 @@ public class Driver {
 
     /**
      * Determines whether TableViewers associated with this class should
-     * act as a standalone application.  If <tt>standalone</tt> is set
+     * act as a standalone application.  If <code>standalone</code> is set
      * true, then it will be possible to exit the JVM using menu items
      * etc in the viewer.  Otherwise, no normal activity within the
      * TableViewer GUI will cause a JVM exit.
@@ -559,7 +559,7 @@ public class Driver {
      * purposes.  They will all have random access.
      * If one of the demo tables can't be created for some
      * reason (e.g. the required resource is missing) the corresponding
-     * element in the returned array will be <tt>null</tt>.
+     * element in the returned array will be <code>null</code>.
      *
      * @return  array of demo tables
      */

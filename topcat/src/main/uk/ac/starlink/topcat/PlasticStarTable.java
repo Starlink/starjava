@@ -22,8 +22,8 @@ public class PlasticStarTable extends ColumnStarTable {
     private final StarTable baseTable;
 
     /**
-     * Constructs a <tt>PlasticStarTable</tt> based on an existing 
-     * <tt>StarTable</tt> object.  The metadata are copied from the base
+     * Constructs a <code>PlasticStarTable</code> based on an existing 
+     * <code>StarTable</code> object.  The metadata are copied from the base
      * table and ColumnData objects constructed to wrap each of its
      * columns.  
      *

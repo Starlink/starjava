@@ -116,7 +116,7 @@ public class MetaColumnModel extends DefaultTableColumnModel {
      *
      * @param  i  the column we want to know about
      * @return  true iff this column model contains the column at index
-     *          <tt>i</tt> in the listModel
+     *          <code>i</code> in the listModel
      */
     private boolean isVisible( int i ) {
 

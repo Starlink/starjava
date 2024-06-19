@@ -128,11 +128,11 @@ public class ParameterQueryWindow extends QueryWindow {
     }
 
     /**
-     * Utility function that gives you the string you put in, or <tt>null</tt>
-     * if it's a blank string.
+     * Utility function that gives you the string you put in,
+     * or <code>null</code> if it's a blank string.
      *
      * @param   base  input string
-     * @return  <tt>base</tt> or <tt>null</tt>
+     * @return  <code>base</code> or <code>null</code>
      */
     private static String normalize( String base ) {
         return ( base == null || base.trim().length() == 0 ) ? null : base;

@@ -828,11 +828,11 @@ public class ControlWindow extends AuxWindow
      *
      * @param  table  the table to add
      * @param  location  location string indicating the provenance of
-     *         <tt>table</tt> - preferably a URL or filename or something
+     *         <code>table</code> - preferably a URL or filename or something
      * @param  select  true iff the newly-added table should become the
      *         currently selected table
      * @return the newly-created TopcatModel object corresponding to 
-     *         <tt>table</tt>
+     *         <code>table</code>
      */
     public TopcatModel addTable( StarTable table, String location,
                                  boolean select ) {
@@ -1262,8 +1262,8 @@ public class ControlWindow extends AuxWindow
      *
      * @param   confirm  whether to seek confirmation from the user
      * @return  whether shutdown took place.  If the user aborted the
-     *          exit, then <tt>false</tt> will be returned.  If the exit
-     *          did happen, then either <tt>true</tt> will be returned
+     *          exit, then <code>false</code> will be returned.  If the exit
+     *          did happen, then either <code>true</code> will be returned
      *          or (standalone case) there will be no return.
      */
     public boolean exit( boolean confirm ) {

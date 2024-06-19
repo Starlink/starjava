@@ -55,12 +55,12 @@ public abstract class MetaColumn {
 
     /**
      * Indicates whether the entry at a given row in this column can
-     * be edited (whether {@link #setValue} may be called on <tt>irow</tt>).
-     * This class's implementation returns <tt>false</tt>, but it may
+     * be edited (whether {@link #setValue} may be called on <code>irow</code>).
+     * This class's implementation returns <code>false</code>, but it may
      * be overridden by subclasses which permit cell modification.
      *
      * @param  irow  the row for which this column is being queried
-     * @return  whether the entry at <tt>irow</tt> may be written to
+     * @return  whether the entry at <code>irow</code> may be written to
      */
     public boolean isEditable( int irow ) {
         return false;
@@ -71,7 +71,7 @@ public abstract class MetaColumn {
      * This should only be called if {@link #isEditable}(irow) returns true.
      *
      * @param   irow  the row whose value in this column is to be set
-     * @param   value  the new value of the entry at <tt>irow</tt>
+     * @param   value  the new value of the entry at <code>irow</code>
      */
     public void setValue( int irow, Object value ) {
         throw new UnsupportedOperationException();

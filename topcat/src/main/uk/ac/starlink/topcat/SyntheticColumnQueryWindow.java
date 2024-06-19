@@ -224,7 +224,7 @@ public abstract class SyntheticColumnQueryWindow extends QueryWindow {
      * state of this window.  If it constitutes an erroneous specification,
      * null is returned (and the user is notified).
      *
-     * @return   new synthetic column as specified, or <tt>null</tt>
+     * @return   new synthetic column as specified, or <code>null</code>
      */
     protected SyntheticColumn makeColumn() {
         String name = getColumnName();
