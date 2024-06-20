@@ -180,7 +180,20 @@ public class Java extends Task {
                     Project.MSG_WARN);
             }
             if (perm == null) {
-                perm = new Permissions(true);
+
+                /* MBT 20 Jun 2024: Comment out the next line.
+                 * SecurityManager is deprecated at Java 17 and removed at
+                 * Java 21, which means that attempting to use it causes
+                 * a build failure.  This is triggered for any ant target
+                 * using the <java> task if fork is not set true.
+                 * By leaving the Permissions member as null here,
+                 * that doesn't happen.  I think the effect is none or minimal,
+                 * but it would anyway only do something significant if
+                 * we cared about managing permissions during a starjava build,
+                 * which we don't; the ant build can't do anything that the
+                 * JVM invoking it can't do. */
+                // perm = new Permissions(true);
+
                 log("running " + this.getCommandLine().getClassname()
                     + " with default permissions (exit forbidden)", Project.MSG_VERBOSE);
             }
