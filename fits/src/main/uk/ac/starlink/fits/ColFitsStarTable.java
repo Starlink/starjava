@@ -551,7 +551,7 @@ public class ColFitsStarTable extends AbstractStarTable {
                 info.setContentClass( Float.class );
                 return new ValueReader( info, 4, SCALAR ) {
                     Object readValue( BasicInput in ) throws IOException {
-                        return new Float( in.readFloat() );
+                        return Float.valueOf( in.readFloat() );
                     }
                 };
             }
@@ -560,7 +560,7 @@ public class ColFitsStarTable extends AbstractStarTable {
                 info.setContentClass( Double.class );
                 return new ValueReader( info, 8, SCALAR ) {
                     Object readValue( BasicInput in ) throws IOException {
-                        return new Double( in.readDouble() );
+                        return Double.valueOf( in.readDouble() );
                     }
                 };
             }

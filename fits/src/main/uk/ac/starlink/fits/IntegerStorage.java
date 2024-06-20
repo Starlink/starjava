@@ -136,7 +136,7 @@ abstract class IntegerStorage {
                 out.writeByte( (byte) value );
             }
             protected Number convertLong( long val ) {
-                return new Byte( (byte) val );
+                return Byte.valueOf( (byte) val );
             }
         };
     }
@@ -153,7 +153,7 @@ abstract class IntegerStorage {
                 out.writeShort( (short) value );
             }
             protected Number convertLong( long val ) {
-                return new Short( (short) val );
+                return Short.valueOf( (short) val );
             }
         };
     }
@@ -171,7 +171,7 @@ abstract class IntegerStorage {
                 out.writeInt( (int) value );
             }
             protected Number convertLong( long val ) {
-                return new Integer( (int) val );
+                return Integer.valueOf( (int) val );
             }
         };
     }
@@ -189,7 +189,7 @@ abstract class IntegerStorage {
                 out.writeLong( value );
             }
             protected Number convertLong( long val ) {
-                return new Long( val );
+                return Long.valueOf( val );
             }
         };
     };

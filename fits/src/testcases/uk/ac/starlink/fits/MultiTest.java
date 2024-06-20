@@ -87,8 +87,8 @@ public class MultiTest extends TestCase {
         RowListStarTable table =
             new RowListStarTable( new ColumnInfo[] { c1, c2 } ) ;
         for ( int i = 0; i < nrow; i++ ) {
-            table.addRow( new Object[] { new Integer( i ),
-                                         new Double( (double) i ), } );
+            table.addRow( new Object[] { Integer.valueOf( i ),
+                                         Double.valueOf( (double) i ), } );
         }
         return table;
     }
