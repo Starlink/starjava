@@ -34,7 +34,7 @@ public class EqualsMatchEngine implements MatchEngine {
             Object obj = tuple[ 0 ];
             return Tables.isBlank( obj )
                  ? NO_BINS
-                 : new Object[] { new Integer( getHash( obj ) ) };
+                 : new Object[] { Integer.valueOf( getHash( obj ) ) };
         }
         public double matchScore( Object[] tuple1, Object[] tuple2 ) {
             return isEqual( tuple1[ 0 ], tuple2[ 0 ] ) ? 0.0 : -1.0;

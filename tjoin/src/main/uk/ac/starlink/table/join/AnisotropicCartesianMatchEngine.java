@@ -179,7 +179,7 @@ public class AnisotropicCartesianMatchEngine
         }
 
         public Object getValue() {
-            return new Double( getError( idim_ ) );
+            return Double.valueOf( getError( idim_ ) );
         }
 
         public void setValue( Object value ) {

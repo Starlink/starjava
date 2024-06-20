@@ -195,7 +195,7 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
      */
     static Double multiply( Object value, double factor ) {
         return value instanceof Number
-             ? new Double( ((Number) value).doubleValue() * factor )
+             ? Double.valueOf( ((Number) value).doubleValue() * factor )
              : null;
     }
 
@@ -276,7 +276,7 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
         }
 
         public Object getValue() {
-            return new Double( getScale() );
+            return Double.valueOf( getScale() );
         }
 
         public void setValue( Object value ) {

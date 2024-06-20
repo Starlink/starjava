@@ -330,7 +330,7 @@ public class MatchStarTables {
                     if ( lrow < Integer.MAX_VALUE ) {
                         int irow = (int) lrow;
                         if ( grpSizeData[ irow ] > 1 ) {
-                            return new Integer( grpIdData[ irow ] );
+                            return Integer.valueOf( grpIdData[ irow ] );
                         }
                     }
                     return null;
@@ -455,7 +455,7 @@ public class MatchStarTables {
                             if ( link_ instanceof RowLink2 ) {
                                 double score = ((RowLink2) link_).getScore();
                                 if ( ! Double.isNaN( score ) ) {
-                                    return new Double( score );
+                                    return Double.valueOf( score );
                                 }
                             }
                             return null;
@@ -534,7 +534,7 @@ public class MatchStarTables {
                 }
                 else {
                     int grpId = grpIds[ (int) lrow ];
-                    return grpId > 0 ? new Integer( grpId ) : null;
+                    return grpId > 0 ? Integer.valueOf( grpId ) : null;
                 }
             }
         };
@@ -617,7 +617,7 @@ public class MatchStarTables {
             /* If we've constructed an equivalent LinkGroup object before,
              * use that. */ 
             int id = token.getGroupId();
-            Integer groupKey = new Integer( id );
+            Integer groupKey = Integer.valueOf( id );
             if ( ! knownGroups.containsKey( groupKey ) ) { 
                 knownGroups.put( groupKey, new LinkGroup( id, grpSize ) );
             }

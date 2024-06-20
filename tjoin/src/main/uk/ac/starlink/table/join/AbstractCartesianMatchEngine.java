@@ -264,7 +264,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
                     int ix = (int) x;
                     int iy = (int) y;
                     return ix == x && iy == y
-                         ? new Long( ( x << 32 ) | ( y & 0xffffffffL ) )
+                         ? Long.valueOf( ( x << 32 ) | ( y & 0xffffffffL ) )
                          : new Cell( array.clone() );
                 };
             default:
@@ -437,7 +437,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
             super( BINFACT_INFO );
         }
         public Object getValue() {
-            return new Double( getBinFactor() );
+            return Double.valueOf( getBinFactor() );
         }
         public void setValue( Object value ) {
             setBinFactor( ((Number) value).doubleValue() );
@@ -452,7 +452,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
             super( info );
         }
         public Object getValue() {
-            return new Double( getIsotropicScale() );
+            return Double.valueOf( getIsotropicScale() );
         }
         public void setValue( Object value ) {
             setIsotropicScale( ((Number) value).doubleValue() );

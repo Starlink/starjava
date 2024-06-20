@@ -423,7 +423,7 @@ class ParallelMatchComputer implements MatchComputer {
                             long[] rrows = binnerR_.getLongs( key );
                             if ( rrows != null ) {
                                 for ( long lrow : rrows ) {
-                                    rrowSet.add( new Long( lrow ) );
+                                    rrowSet.add( Long.valueOf( lrow ) );
                                 }
                             }
                         }

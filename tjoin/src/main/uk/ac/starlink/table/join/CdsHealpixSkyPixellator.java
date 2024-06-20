@@ -97,7 +97,7 @@ public class CdsHealpixSkyPixellator extends HealpixSkyPixellator {
             FlatHashIterator flit = bmoc.flatHashIterator();
             for ( int ipix = 0; ipix < npix; ipix++ ) {
                 assert flit.hasNext();
-                pixels[ ipix ] = new Long( flit.next() );
+                pixels[ ipix ] = Long.valueOf( flit.next() );
             }
             assert ! flit.hasNext();
             return pixels;
@@ -132,7 +132,7 @@ public class CdsHealpixSkyPixellator extends HealpixSkyPixellator {
             FlatHashIterator flit = bmoc.flatHashIterator();
             for ( int ipix = 0; ipix < npix; ipix++ ) {
                 assert flit.hasNext();
-                pixels[ ipix ] = new Long( flit.next() );
+                pixels[ ipix ] = Long.valueOf( flit.next() );
             }
             assert ! flit.hasNext();
             return pixels;

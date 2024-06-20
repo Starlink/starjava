@@ -353,7 +353,7 @@ class Binners {
             int item = Tables.checkedLongToInt( ltem );
             if ( listable == null ) {
                 if ( lastInt_.intValue() != item ) {
-                    lastInt_ = new Integer( item );
+                    lastInt_ = Integer.valueOf( item );
                 }
                 return lastInt_;
             }
