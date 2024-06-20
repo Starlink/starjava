@@ -555,7 +555,7 @@ public class TypeMappers {
                                  biv.compareTo( maxLong ) <= 0 ) {
                                 long lv = biv.longValue();
                                 assert biv.equals( BigInteger.valueOf( lv ) );
-                                return new Long( lv );
+                                return Long.valueOf( lv );
                             }
                             else {
                                 return null;  // out of range
@@ -574,7 +574,8 @@ public class TypeMappers {
                                                        Double.class ) {
                     public Double getValue( Object baseValue ) {
                         return baseValue instanceof Number
-                             ? new Double( ((Number) baseValue).doubleValue() )
+                             ? Double.valueOf( ((Number) baseValue)
+                                              .doubleValue() )
                              : null;
                     }
                 };

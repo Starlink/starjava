@@ -258,24 +258,25 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
             return widthFor( "                " );
         }
         else if ( clazz.equals( Byte.class ) ) {
-            return widthFor( new Byte( (byte) 0x7f ) );
+            return widthFor( Byte.valueOf( (byte) 0x7f ) );
         }
         else if ( clazz.equals( Short.class ) ) {
-            return widthFor( new Short( (short) 0x7fff ) );
+            return widthFor( Short.valueOf( (short) 0x7fff ) );
         }
         else if ( clazz.equals( Integer.class ) ) {
-            return widthFor( new Integer( 0x7fffffff ) );
+            return widthFor( Integer.valueOf( 0x7fffffff ) );
         }
         else if ( clazz.equals( Long.class ) ) {
-            return widthFor( new Long( 0x7fffffffffffffffL ) );
+            return widthFor( Long.valueOf( 0x7fffffffffffffffL ) );
         }
         else if ( clazz.equals( Float.class ) ) {
-            return Math.max( widthFor( new Float( - Float.MAX_VALUE ) ),
-                             widthFor( new Float( - ( 1e5 - Math.PI ) ) ) );
+            return Math.max( widthFor( Float.valueOf( -Float.MAX_VALUE ) ),
+                             widthFor( Float.valueOf( -(float)
+                                                       ( 1e5 - Math.PI ) ) ) );
         }
         else if ( clazz.equals( Double.class ) ) {
-            return Math.max( widthFor( new Double( - Double.MAX_VALUE ) ),
-                             widthFor( new Double( - ( 1e5 - Math.PI ) ) ) );
+            return Math.max( widthFor( Double.valueOf( -Double.MAX_VALUE ) ),
+                             widthFor( Double.valueOf( -( 1e5 - Math.PI ) ) ) );
         }
         else {
             return widthFor( "                " );

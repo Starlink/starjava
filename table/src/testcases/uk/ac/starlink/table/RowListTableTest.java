@@ -51,11 +51,11 @@ public class RowListTableTest extends TestCase {
         assertArrayEquals( fixed.getRow( 12 ), rl.getRow( 12 ) );
 
         int val30 = ((Integer) rl.getCell( 3, 0 )).intValue();
-        assertEquals( new Integer( val30 ), rl.getCell( 3, 0 ) );
-        rl.setCell( 3, 0, new Integer( val30 + 1 ) );
-        assertTrue( ! new Integer( val30 ).equals( rl.getCell( 3, 0 ) ) );
-        rl.setCell( 3, 0, new Integer( val30 ) );
-        assertTrue( new Integer( val30 ).equals( rl.getCell( 3, 0 ) ) );
+        assertEquals( Integer.valueOf( val30 ), rl.getCell( 3, 0 ) );
+        rl.setCell( 3, 0, Integer.valueOf( val30 + 1 ) );
+        assertTrue( ! Integer.valueOf( val30 ).equals( rl.getCell( 3, 0 ) ) );
+        rl.setCell( 3, 0, Integer.valueOf( val30 ) );
+        assertTrue( Integer.valueOf( val30 ).equals( rl.getCell( 3, 0 ) ) );
 
     }
 }

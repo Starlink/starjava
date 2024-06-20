@@ -105,7 +105,7 @@ public class StarTableModel extends AbstractTableModel {
 
     public Object getValueAt( int irow, int icol ) {
         if ( rowHeader && icol == 0 ) {
-            return new Integer( irow + 1 );
+            return Integer.valueOf( irow + 1 );
         }
         else {
             try {

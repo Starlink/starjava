@@ -21,7 +21,7 @@ public class BeanTest extends TestCase {
         assertEquals( 2, st.getColumnCount() );
         assertEquals( 3L, st.getRowCount() );
         assertTrue( st.isRandom() );
-        assertEquals( new Integer( 3 ), st.getCell( 2L, 0 ) );
+        assertEquals( Integer.valueOf( 3 ), st.getCell( 2L, 0 ) );
         assertEquals( "One", st.getCell( 0L, 1 ) );
 
         try {

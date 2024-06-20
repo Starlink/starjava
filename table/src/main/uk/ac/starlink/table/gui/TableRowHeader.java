@@ -66,7 +66,7 @@ public class TableRowHeader extends JTable {
                 return 1;
             }
             public Object getValueAt( int irow, int icol ) {
-                return new Long( rowNumber( irow ) ) + "  ";
+                return Long.toString( rowNumber( irow ) ) + "  ";
             }
         };
         setModel( rowModel );
@@ -110,7 +110,7 @@ public class TableRowHeader extends JTable {
         TableColumn col = new TableColumn( 0, 64, rend, null ) {
             Integer prefWidth_;
             public void setPreferredWidth( int width ) {
-                prefWidth_ = new Integer( width );
+                prefWidth_ = Integer.valueOf( width );
             }
             public int getPreferredWidth() {
                 if ( prefWidth_ != null ) {
@@ -123,7 +123,7 @@ public class TableRowHeader extends JTable {
                     int last = StarJTable.getCellWidth( tab, nrow - 1, 0);
                     int guess = tab.getCellRenderer( 0, 0 )
                                    .getTableCellRendererComponent( tab, 
-                                        new Long( nrow + 1 ) + "  ",
+                                        Long.toString( nrow + 1 ) + "  ",
                                         false, false, 0, 0 )
                                    .getPreferredSize().width;
                     return 8 + Math.max( Math.max( first, last ), guess );
@@ -152,7 +152,8 @@ public class TableRowHeader extends JTable {
      */
     public void setLongestNumber( long num ) {
         int width = getCellRenderer( 0, 0 )
-                   .getTableCellRendererComponent( this, new Long( num ) + " ",
+                   .getTableCellRendererComponent( this,
+                                                   Long.toString( num ) + " ",
                                                    false, false, 0, 0 )
                    .getPreferredSize().width
                   + 8;

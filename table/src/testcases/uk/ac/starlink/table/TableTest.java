@@ -54,10 +54,10 @@ public class TableTest extends TestCase {
     public void testFormatting() {
         DefaultValueInfo info = new DefaultValueInfo( "test", Double.class );
         assertEquals( "1.2345678",
-                      info.formatValue( new Double( 1.2345678 ), 100 ) );
+                      info.formatValue( Double.valueOf( 1.2345678 ), 100 ) );
         assertEquals( "1.234",
-                      info.formatValue( new Double( 1.2345678 ), 5 ) );
+                      info.formatValue( Double.valueOf( 1.2345678 ), 5 ) );
         assertEquals( "1.234...", 
-                      info.formatValue( new Double( 1.2345678e10 ), 8 ) );
+                      info.formatValue( Double.valueOf( 1.2345678e10 ), 8 ) );
     }
 }

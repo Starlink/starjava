@@ -274,8 +274,8 @@ public class ViewHugeTableModel implements TableModel {
         /* Inform interested listeners that the viewbase has changed as well. */
         PropertyChangeEvent propEvt = 
             new PropertyChangeEvent( this, VIEWBASE_PROPERTY,
-                                     new Integer( oldViewBase ),
-                                     new Integer( viewBase ) );
+                                     Integer.valueOf( oldViewBase ),
+                                     Integer.valueOf( viewBase ) );
         firePropertyChanged( propEvt );
     }
 

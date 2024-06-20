@@ -221,7 +221,7 @@ public abstract class PrimitiveArrayColumn extends ArrayColumn {
             data[ irow ] = ((Character) val).charValue();
         }
         Object readElement( int irow ) {
-            return new Character( data[ irow ] );
+            return Character.valueOf( data[ irow ] );
         }
     }
 
@@ -236,7 +236,7 @@ public abstract class PrimitiveArrayColumn extends ArrayColumn {
             data[ irow ] = ((Byte) val).byteValue();
         }
         Object readElement( int irow ) {
-            return new Byte( data[ irow ] );
+            return Byte.valueOf( data[ irow ] );
         }
     }
     private static class ShortArrayColumn extends PrimitiveArrayColumn {
@@ -250,7 +250,7 @@ public abstract class PrimitiveArrayColumn extends ArrayColumn {
             data[ irow ] = ((Short) val).shortValue();
         }
         Object readElement( int irow ) {
-            return new Short( data[ irow ] );
+            return Short.valueOf( data[ irow ] );
         }
     }
 
@@ -265,7 +265,7 @@ public abstract class PrimitiveArrayColumn extends ArrayColumn {
             data[ irow ] = ((Integer) val).intValue();
         }
         Object readElement( int irow ) {
-            return new Integer( data[ irow ] );
+            return Integer.valueOf( data[ irow ] );
         }
     }
 
@@ -280,7 +280,7 @@ public abstract class PrimitiveArrayColumn extends ArrayColumn {
             data[ irow ] = ((Long) val).longValue();
         }
         Object readElement( int irow ) {
-            return new Long( data[ irow ] );
+            return Long.valueOf( data[ irow ] );
         }
     }
 
@@ -295,7 +295,7 @@ public abstract class PrimitiveArrayColumn extends ArrayColumn {
             data[ irow ] = ((Float) val).floatValue();
         }
         Object readElement( int irow ) {
-            return new Float( data[ irow ] );
+            return Float.valueOf( data[ irow ] );
         }
     }
 
@@ -310,7 +310,7 @@ public abstract class PrimitiveArrayColumn extends ArrayColumn {
             data[ irow ] = ((Double) val).doubleValue();
         }
         Object readElement( int irow ) {
-            return new Double( data[ irow ] );
+            return Double.valueOf( data[ irow ] );
         }
     }
 }

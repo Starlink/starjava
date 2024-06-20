@@ -17,11 +17,11 @@ public class ConcatTableTest extends TableCase {
         ColumnInfo c1n = new ColumnInfo( "B", Number.class, null );
         ColumnInfo c1f = new ColumnInfo( "B", Float.class, null );
         ColumnInfo c2 = new ColumnInfo( "C", String.class, null );
-        Object[] row0 = new Object[] { new Integer( 23 ), new Double( Math.E ),
-                                      "Knickers" };
-        Object[] row1 = new Object[] { new Integer( 24 ), "Bums" };
-        Object[] row2 = new Object[] { new Integer( 25 ), new Float( Math.PI ),
-                                       "Boobs" };
+        Object[] row0 = { Integer.valueOf( 23 ), Double.valueOf( Math.E ),
+                          "Knickers" };
+        Object[] row1 = { Integer.valueOf( 24 ), "Bums" };
+        Object[] row2 = { Integer.valueOf( 25 ),
+                          Float.valueOf( (float) Math.PI ), "Boobs" };
         StarTable t0 = new ConstantStarTable( new ColumnInfo[] { c0, c1n, c2 },
                                               row0, 100 );
         StarTable t1 = new ConstantStarTable( new ColumnInfo[] { c0, c2 },
@@ -60,7 +60,7 @@ public class ConcatTableTest extends TableCase {
             new ColumnInfo( "A", Double.class, null ),
             new ColumnInfo( "B", Double.class, null ),
         };
-        Object[] row = new Object[] { new Double( 5 ), new Double( 10 ) };
+        Object[] row = { Double.valueOf( 5 ), Double.valueOf( 10 ) };
         StarTable t1 = new ConstantStarTable( infos, row, 10 );
         StarTable[] items = new StarTable[ 10 ];
         Arrays.fill( items, t1 );

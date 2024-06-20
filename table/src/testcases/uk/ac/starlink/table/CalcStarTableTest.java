@@ -16,7 +16,7 @@ public class CalcStarTableTest extends TableCase {
         checkStarTable( tpow );
         assertEquals( npow, tpow.getColumnCount() );
         assertEquals( nrow, tpow.getRowCount() );
-        assertEquals( new Double( 32 ), tpow.getCell( 2, 5 ) );
+        assertEquals( Double.valueOf( 32 ), tpow.getCell( 2, 5 ) );
     }
 
     private static class PowerStructure {
@@ -80,7 +80,7 @@ public class CalcStarTableTest extends TableCase {
         ValueInfo xInfo = new DefaultValueInfo( "X", Double.class, null );
         t.addColumn( new ColumnData( xInfo ) {
             public Object readValue( long irow ) {
-                return new Double( irow );
+                return Double.valueOf( irow );
             }
         } );
         return t;

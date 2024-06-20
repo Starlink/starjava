@@ -7,7 +7,7 @@ public class MetaCopyStarTableTest extends TableCase {
     public void testMeta() throws IOException {
         ColumnInfo infoA = new ColumnInfo( "A", Integer.class, null );
         ColumnInfo infoB = new ColumnInfo( "B", String.class, "Description" );
-        Object[] row = new Object[] { new Integer( 23 ), "Twenty-three" };
+        Object[] row = new Object[] { Integer.valueOf( 23 ), "Twenty-three" };
         ValueInfo xInfo = new DefaultValueInfo( "X", String.class, null );
         StarTable t1 =
             new ConstantStarTable( new ColumnInfo[] { infoA, infoB }, row, 5 );

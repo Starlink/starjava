@@ -15,8 +15,8 @@ public class ConstantTableTest extends TestCase {
                                         null );
         ColumnInfo c3 = new ColumnInfo( "char_string", String.class, null );
         ColumnInfo[] infos = new ColumnInfo[] { c1, c2, c3 };
-        Object[] row = new Object[] { new Integer( 23 ), new Double( Math.E ),
-                                      "Knickers" };
+        Object[] row = { Integer.valueOf( 23 ), Double.valueOf( Math.E ),
+                         "Knickers" };
         StarTable table = new ConstantStarTable( infos, row, 101 );
         Tables.checkTable( table );
         assertEquals( 101L, table.getRowCount() );

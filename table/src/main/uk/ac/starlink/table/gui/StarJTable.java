@@ -378,7 +378,7 @@ public class StarJTable extends JTable {
                     return irow < nrow;
                 }
                 public Integer next() {
-                    return new Integer( irow++ );
+                    return Integer.valueOf( irow++ );
                 }
                 public void remove() {
                     throw new UnsupportedOperationException();
@@ -399,7 +399,7 @@ public class StarJTable extends JTable {
                 }
                 public Integer next() {
                     if ( next_ >= 0 ) {
-                        Integer nobj = new Integer( next_ );
+                        Integer nobj = Integer.valueOf( next_ );
                         next_ = nextInt();
                         return nobj;
                     }

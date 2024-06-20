@@ -341,7 +341,7 @@ class TstStarTable extends StreamStarTable {
         Integer index;
         try {
             int ix = Integer.parseInt( txt.trim() );
-            index = ( ix >= -1 && ix < ncol ) ? new Integer( ix ) : null;
+            index = ( ix >= -1 && ix < ncol ) ? Integer.valueOf( ix ) : null;
         }
         catch ( NumberFormatException e ) {
             index = null;

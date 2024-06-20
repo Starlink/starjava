@@ -93,7 +93,7 @@ public class RowEvaluator {
     /** Decoder for shorts. */
     private static Decoder SHORT_DECODER = new Decoder( Short.class ) {
         public Object decode( String value ) {
-            return new Short( Short.parseShort( value.trim() ) );
+            return Short.valueOf( value.trim() );
         }
         public boolean isValid( String value ) {
             try {
@@ -109,7 +109,8 @@ public class RowEvaluator {
     /** Decoder for integers. */
     private static Decoder INTEGER_DECODER = new Decoder( Integer.class ) {
         public Object decode( String value ) {
-            return new Integer( Integer.parseInt( value.trim() ) );
+            return Integer.valueOf( value.trim() );
+
         }
         public boolean isValid( String value ) {
             try {
@@ -125,7 +126,7 @@ public class RowEvaluator {
     /** Decoder for longs. */
     private static Decoder LONG_DECODER = new Decoder( Long.class ) {
         public Object decode( String value ) {
-            return new Long( Long.parseLong( value.trim() ) );
+            return Long.valueOf( value.trim() );
         }
         public boolean isValid( String value ) {
             try {
@@ -141,7 +142,7 @@ public class RowEvaluator {
     /** Decoder for floats. */
     private static Decoder FLOAT_DECODER = new Decoder( Float.class ) {
         public Object decode( String value ) {
-            return new Float( (float) parseFloating( value.trim() ).dValue );
+            return Float.valueOf( (float) parseFloating( value.trim() ).dValue);
         }
         public boolean isValid( String value ) {
             try {
@@ -165,7 +166,7 @@ public class RowEvaluator {
     /** Decoder for doubles. */
     private static Decoder DOUBLE_DECODER = new Decoder( Double.class ) {
         public Object decode( String value ) {
-            return new Double( parseFloating( value.trim() ).dValue );
+            return Double.valueOf( parseFloating( value.trim() ).dValue );
         }
         public boolean isValid( String value ) {
             try {

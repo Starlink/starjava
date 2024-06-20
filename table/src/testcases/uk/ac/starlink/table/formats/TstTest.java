@@ -44,8 +44,8 @@ public class TstTest extends TestCase {
         assertArrayEquals(
             Tables.randomTable( simple ).getRow( 1 ),
             new Object[] { "Obj. 2", " 5:07:50.9", " -5:05:11",
-                           new Float( 2.79f ), new Float( 0.13f ),
-                           new Float( 0.10f ) } );
+                           Float.valueOf( 2.79f ), Float.valueOf( 0.13f ),
+                           Float.valueOf( 0.10f ) } );
         assertTrue( ((String)
                      simple.getParameterByName( TstStarTable.DESCRIPTION_INFO
                                                             .getName() )
