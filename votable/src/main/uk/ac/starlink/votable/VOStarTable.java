@@ -542,7 +542,7 @@ public class VOStarTable extends AbstractStarTable {
             try {
                 int wv = Integer.parseInt( width );
                 auxdata.add( new DescribedValue( WIDTH_INFO,
-                                                 new Integer( wv ) ) );
+                                                 Integer.valueOf( wv ) ) );
             }
             catch ( NumberFormatException e ) {
             }

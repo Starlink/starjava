@@ -71,7 +71,7 @@ public class TableTestCase extends TestCase {
                     cell1 = c1x;
                 }
                 else if ( cell1 instanceof Byte && cell2 instanceof Short ) {
-                    cell1 = new Short( ((Number) cell1).shortValue() );
+                    cell1 = Short.valueOf( ((Number) cell1).shortValue() );
                 }
                 try {
                     assertScalarOrArrayEquals( cell1, cell2 );

@@ -106,28 +106,28 @@ public class AutoStarTable extends ColumnStarTable {
                     if ( val == -128 || val == 127 ) {
                         val = 0;
                     }
-                    return new Byte( val );
+                    return Byte.valueOf( val );
                 }
                 else if ( clazz == Short.class ) {
-                    return new Short( (short) irow );
+                    return Short.valueOf( (short) irow );
                 }
                 else if ( clazz == Integer.class ) {
-                    return new Integer( icol + 100 * irow );
+                    return Integer.valueOf( icol + 100 * irow );
                 }
                 else if ( clazz == Long.class ) {
-                    return new Long( icol + 1000 * irow );
+                    return Long.valueOf( icol + 1000 * irow );
                 }
                 else if ( clazz == Float.class ) {
                     if ( irow % 10 == 4 ) {
-                        return new Float( Float.NaN );
+                        return Float.valueOf( Float.NaN );
                     }
-                    return new Float( icol + 1000 * irow );
+                    return Float.valueOf( icol + 1000 * irow );
                 }
                 else if ( clazz == Double.class ) {
                     if ( irow % 10 == 6 ) {
-                        return new Double( Double.NaN );
+                        return Double.valueOf( Double.NaN );
                     }
-                    return new Double( icol + 1000 * irow );
+                    return Double.valueOf( icol + 1000 * irow );
                 }
                 else if ( clazz == String.class ) {
                     return strings[ Math.abs( nstr + ival ) % nstr ] 

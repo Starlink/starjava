@@ -325,7 +325,7 @@ abstract class NumericDecoder extends Decoder {
         }
         Object packageArray( Object array ) {
             short[] arr = (short[]) array;
-            return isNull( arr, 0 ) ? null : new Short( arr[ 0 ] );
+            return isNull( arr, 0 ) ? null : Short.valueOf( arr[ 0 ] );
         }
         public Object decodeString( String txt ) {
             return scalarDecodeString( txt );
@@ -413,7 +413,7 @@ abstract class NumericDecoder extends Decoder {
         }
         Object packageArray( Object array ) {
             long[] arr = (long[]) array;
-            return isNull( arr, 0 ) ? null : new Long( arr[ 0 ] );
+            return isNull( arr, 0 ) ? null : Long.valueOf( arr[ 0 ] );
         }
         public Object decodeString( String txt ) {
             return scalarDecodeString( txt );
@@ -454,7 +454,7 @@ abstract class NumericDecoder extends Decoder {
         }
         Object packageArray( Object array ) {
             float[] arr = (float[]) array;
-            return isNull( arr, 0 ) ? null : new Float( arr[ 0 ] );
+            return isNull( arr, 0 ) ? null : Float.valueOf( arr[ 0 ] );
         }
         public Object decodeString( String txt ) {
             return scalarDecodeString( txt );
@@ -495,7 +495,7 @@ abstract class NumericDecoder extends Decoder {
         }
         Object packageArray( Object array ) {
             double[] arr = (double[]) array;
-            return isNull( arr, 0 ) ? null : new Double( arr[ 0 ] );
+            return isNull( arr, 0 ) ? null : Double.valueOf( arr[ 0 ] );
         }
         public Object decodeString( String txt ) {
             return scalarDecodeString( txt );

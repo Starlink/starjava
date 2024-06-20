@@ -81,9 +81,9 @@ public class DOMTest extends TestCase {
             Object[] row = st.getRow( (long) irow );
             int iv = intVals[ irow ];
             float fv = floatVals[ irow ];
-            assertEquals( iv == BAD ? null : new Integer( iv ), 
+            assertEquals( iv == BAD ? null : Integer.valueOf( iv ), 
                           row[ 0 ] );
-            assertEquals( Float.isNaN( fv ) ? null : new Float( fv ), 
+            assertEquals( Float.isNaN( fv ) ? null : Float.valueOf( fv ), 
                           row[ 1 ] );
         }
 

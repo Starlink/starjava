@@ -1016,16 +1016,16 @@ public abstract class VOSerializer {
                  cinfo.getAuxDatum( badKey ) == null ) {
                 Number badValue;
                 if ( isUbyte ) {
-                    badValue = new Short( (short) 0xff );
+                    badValue = Short.valueOf( (short) 0xff );
                 }
                 else if ( clazz == Byte.class || clazz == Short.class ) {
-                    badValue = new Short( Short.MIN_VALUE );
+                    badValue = Short.valueOf( Short.MIN_VALUE );
                 }
                 else if ( clazz == Integer.class ) {
-                    badValue = new Integer( Integer.MIN_VALUE );
+                    badValue = Integer.valueOf( Integer.MIN_VALUE );
                 }
                 else if ( clazz == Long.class ) {
-                    badValue = new Long( Long.MIN_VALUE );
+                    badValue = Long.valueOf( Long.MIN_VALUE );
                 }
                 else {
                     badValue = null;

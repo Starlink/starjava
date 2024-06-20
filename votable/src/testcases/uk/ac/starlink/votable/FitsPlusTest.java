@@ -42,8 +42,8 @@ public class FitsPlusTest extends TestCase {
         table_ = ColumnStarTable.makeTableWithRows( 2 );
         ArrayColumn acol = ArrayColumn.makeColumn( COL1_INFO, 2 );
         table_.addColumn( acol );
-        acol.storeValue( 0, new Integer( 23 ) );
-        acol.storeValue( 1, new Integer( 32 ) );
+        acol.storeValue( 0, Integer.valueOf( 23 ) );
+        acol.storeValue( 1, Integer.valueOf( 32 ) );
         table_.getParameters().add( authorParam );
     }
 

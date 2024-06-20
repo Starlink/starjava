@@ -140,12 +140,13 @@ abstract class CharDecoders {
         }
 
         public Object decodeString( String txt ) {
-            return new Character( txt.length() > 0 ? txt.charAt( 0 ) : '\0' );
+            return Character.valueOf( txt.length() > 0 ? txt.charAt( 0 )
+                                                       : '\0' );
         }
 
         public Object decodeStream( DataInput strm ) throws IOException {
             assert getNumItems( strm ) == 1;
-            return new Character( cread.readCharFromStream( strm ) );
+            return Character.valueOf( cread.readCharFromStream( strm ) );
         }
 
         public void skipStream( DataInput strm ) throws IOException {

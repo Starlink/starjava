@@ -158,13 +158,13 @@ public class CoosysTest extends TestCase {
         meta.assertMeta( "ref_epoch", "TimesysRefposition", "TOPOCENTER" );
 
         meta.assertMeta( "time1", "TimesysTimeorigin",
-                         new Double( 2455197.5 ).toString() );
+                         Double.toString( 2455197.5 ) );
         meta.assertMeta( "time1", "TimesysTimescale", "TDB" );
         meta.assertMeta( "time1", "TimesysRefposition", "BARYCENTER" );
 
         meta.assertMeta( "LAUNCH_DATE", "TimesysTimescale", "TDB" );
         meta.assertMeta( "LAUNCH_DATE", "TimesysTimeorigin",
-                         new Double( 2455197.5 ).toString() );
+                         Double.toString( 2455197.5 ) );
         meta.assertMeta( "LAUNCH_DATE", "TimesysRefposition", "BARYCENTER" );
     }
 
