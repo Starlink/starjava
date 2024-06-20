@@ -40,7 +40,7 @@ public class IntegerParameter extends Parameter<Integer> {
             throw new ParameterValueException( this, intval
                                              + " > maximum value " + max );
         }
-        return new Integer( intval );
+        return Integer.valueOf( intval );
     }
 
     /**

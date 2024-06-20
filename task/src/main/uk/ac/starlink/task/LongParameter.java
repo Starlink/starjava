@@ -37,7 +37,7 @@ public class LongParameter extends Parameter<Long> {
             throw new ParameterValueException( this, longval
                                              + " < maximum value " + max_ );
         }
-        return new Long( longval );
+        return Long.valueOf( longval );
     }
 
     /**
