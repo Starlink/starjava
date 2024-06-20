@@ -56,7 +56,8 @@ public class DatalinkTest extends TestCase {
         assertEquals( "FITS, scaled by 1/4", colmap.getDescription( row0 ) );
         assertEquals( "#science", colmap.getSemantics( row0 ) );
         assertEquals( "image/fits", colmap.getContentType( row0 ) );
-        assertEquals( new Long( 79792740L ), colmap.getContentLength( row0 ) );
+        assertEquals( Long.valueOf( 79792740L ),
+                      colmap.getContentLength( row0 ) );
 
         assertEquals( "ndiwmgwbuupa", colmap.getServiceDef( row1 ) );
         assertEquals( "NotFoundFault", colmap.getErrorMessage( row4 ) );
