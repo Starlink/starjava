@@ -440,9 +440,10 @@ abstract class ColumnReader {
                                 throws IOException {
                             byte val = stream.readByte();
                             return ( hasBlank && val == (byte) blank )
-                                        ? null
-                                        : new Float( ( val & mask )
-                                                     * scale + dZero );
+                                 ? null
+                                 : Float.valueOf( (float)
+                                                  ( ( val & mask )
+                                                  * scale + dZero ) );
                         }
                     };
                 }
@@ -484,9 +485,9 @@ abstract class ColumnReader {
                                 throws IOException {
                             short val = stream.readShort();
                             return ( hasBlank && val == (short) blank )
-                                        ? null
-                                        : new Float( (float)
-                                                   ( val * scale + dZero ) );
+                                 ? null
+                                 : Float.valueOf( (float)
+                                                  ( val * scale + dZero ) );
                         }
                     };
                 }
@@ -527,7 +528,7 @@ abstract class ColumnReader {
                             int val = stream.readInt();
                             return ( hasBlank && val == (int) blank )
                                         ? null
-                                        : new Double( val * scale + dZero );
+                                        : Double.valueOf( val * scale + dZero );
                         }
                     };
                 }
@@ -586,7 +587,8 @@ abstract class ColumnReader {
                                 }
                                 else {
                                     return ranger.inRange( val )
-                                         ? new Long( val + Long.MAX_VALUE + 1L )
+                                         ? Long.valueOf( val + Long.MAX_VALUE
+                                                             + 1L )
                                          : null;
                                 }
                             }
@@ -609,7 +611,7 @@ abstract class ColumnReader {
                                 }
                                 else {
                                     return ranger.inRange( val )
-                                         ? new Long( val + lZero )
+                                         ? Long.valueOf( val + lZero )
                                          : null;
                                 }
                             }
@@ -624,7 +626,7 @@ abstract class ColumnReader {
                             long val = stream.readLong();
                             return ( hasBlank && val == (long) blank )
                                         ? null
-                                        : new Double( val * scale + dZero );
+                                        : Double.valueOf( val * scale + dZero );
                         }
                     };
                 }
@@ -661,7 +663,8 @@ abstract class ColumnReader {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             float val = stream.readFloat();
-                            return new Float( val * scale + dZero );
+                            return Float.valueOf( (float)
+                                                  ( val * scale + dZero ) );
                         }
                     };
                 }
@@ -670,7 +673,7 @@ abstract class ColumnReader {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             float val = stream.readFloat();
-                            return new Float( val );
+                            return Float.valueOf( val );
                         }
                     };
                 }
@@ -684,7 +687,7 @@ abstract class ColumnReader {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             double val = stream.readDouble();
-                            return new Double( val * scale + dZero );
+                            return Double.valueOf( val * scale + dZero );
                         }
                     };
                 }
@@ -694,7 +697,7 @@ abstract class ColumnReader {
                         Object readValue( BasicInput stream )
                                 throws IOException {
                             double val = stream.readDouble();
-                            return new Double( val );
+                            return Double.valueOf( val );
                         }
                     };
                 }

@@ -99,7 +99,7 @@ public class BasicInputTest extends TestCase {
             byte[] barr = new byte[ arrsiz ];
             in.readBytes( barr );
             assertArrayEquals( byteArrayFor( i ), barr );
-            ixList.add( new Integer( i ) );
+            ixList.add( Integer.valueOf( i ) );
         }
         try {
             in.readByte();

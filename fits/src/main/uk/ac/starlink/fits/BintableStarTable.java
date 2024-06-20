@@ -258,11 +258,11 @@ public abstract class BintableStarTable extends AbstractStarTable {
                     zval = tZero;
                 }
                 else if ( zIsInt && zInLongRange ) {
-                    zero = new Long( zbig.longValue() );
+                    zero = Long.valueOf( zbig.longValue() );
                     zval = zero;
                 }
                 else {
-                    zero = new Double( zbig.doubleValue() );
+                    zero = Double.valueOf( zbig.doubleValue() );
                     zval = zero;
                 }
                 DefaultValueInfo zInfo = new DefaultValueInfo( TZERO_INFO );
@@ -278,7 +278,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
             if ( tbcol != null ) {
                 int bcolval = Integer.parseInt( tbcol );
                 auxdata.add( new DescribedValue( TBCOL_INFO,
-                                                 new Integer( bcolval ) ) );
+                                                 Integer.valueOf( bcolval ) ) );
             }
 
             /* Data type. */

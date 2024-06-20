@@ -104,7 +104,7 @@ abstract class ScalarColumnWriter implements ColumnWriter {
             final short badVal = blankNum == null ? (short) 0xff
                                                   : blankNum.shortValue();
             return new ScalarColumnWriter( 'B', 1,
-                                           nullableInt ? new Short( badVal )
+                                           nullableInt ? Short.valueOf( badVal )
                                                        : null ) {
                 public void writeValue( DataOutput stream, Object value )
                         throws IOException {
@@ -120,7 +120,7 @@ abstract class ScalarColumnWriter implements ColumnWriter {
                                                  : blankNum.longValue();
             final BigDecimal zeroNum = new BigDecimal( longOffset );
             return new ScalarColumnWriter( 'K', 8,
-                                           nullableInt ? new Long( badVal )
+                                           nullableInt ? Long.valueOf( badVal )
                                                        : null ) {
                 @Override
                 public BigDecimal getZero() {
@@ -164,8 +164,9 @@ abstract class ScalarColumnWriter implements ColumnWriter {
                                                      : blankNum.byteValue();
                 final BigDecimal zeroByte = new BigDecimal( -128 );
                 return new ScalarColumnWriter( 'B', 1,
-                                               nullableInt ? new Byte( badVal )
-                                                           : null ) {
+                                               nullableInt
+                                                   ? Byte.valueOf( badVal )
+                                                   : null ) {
                     public void writeValue( DataOutput stream, Object value )
                             throws IOException {
                         byte b = (value != null) ? ((Number) value).byteValue()
@@ -183,8 +184,9 @@ abstract class ScalarColumnWriter implements ColumnWriter {
                                    ? (short) ( Byte.MIN_VALUE - (short) 1 )
                                    : blankNum.shortValue();
                 return new ScalarColumnWriter( 'I', 2,
-                                               nullableInt ? new Short( badVal )
-                                                           : null ) {
+                                               nullableInt
+                                                   ? Short.valueOf( badVal )
+                                                   : null ) {
                     public void writeValue( DataOutput stream, Object value )
                             throws IOException {
                         short sval = ( value != null )
@@ -199,7 +201,7 @@ abstract class ScalarColumnWriter implements ColumnWriter {
             final short badVal = blankNum == null ? Short.MIN_VALUE
                                                   : blankNum.shortValue();
             return new ScalarColumnWriter( 'I', 2,
-                                           nullableInt ? new Short( badVal )
+                                           nullableInt ? Short.valueOf( badVal )
                                                        : null ) {
                 public void writeValue( DataOutput stream, Object value )
                         throws IOException {
@@ -214,7 +216,7 @@ abstract class ScalarColumnWriter implements ColumnWriter {
             final int badVal = blankNum == null ? Integer.MIN_VALUE
                                                 : blankNum.intValue();
             return new ScalarColumnWriter( 'J', 4,
-                                           nullableInt ? new Integer( badVal )
+                                           nullableInt ? Integer.valueOf(badVal)
                                                        : null ) {
                 public void writeValue( DataOutput stream, Object value )
                         throws IOException {
@@ -229,7 +231,7 @@ abstract class ScalarColumnWriter implements ColumnWriter {
             final long badVal = blankNum == null ? Long.MIN_VALUE
                                                  : blankNum.longValue();
             return new ScalarColumnWriter( 'K', 8,
-                                           nullableInt ? new Long( badVal )
+                                           nullableInt ? Long.valueOf( badVal )
                                                        : null ) {
                  public void writeValue( DataOutput stream, Object value )
                         throws IOException {
