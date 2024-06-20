@@ -50,7 +50,7 @@ public class DoubleParameter extends Parameter<Double> {
      * @param   inclusive  true iff <code>min</code> itself is permitted
      */
     public void setMinimum( double min, boolean inclusive ) {
-        min_ = Double.isNaN( min ) ? null : new Double( min );
+        min_ = Double.isNaN( min ) ? null : Double.valueOf( min );
         minInclusive_ = inclusive;
     }
 
@@ -61,7 +61,7 @@ public class DoubleParameter extends Parameter<Double> {
      * @param   inclusive   true iff <code>max</code> itself is permitted
      */
     public void setMaximum( double max, boolean inclusive ) {
-        max_ = Double.isNaN( max ) ? null : new Double( max );
+        max_ = Double.isNaN( max ) ? null : Double.valueOf( max );
     }
 
     public Double stringToObject( Environment env, String stringval )
