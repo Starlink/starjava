@@ -54,7 +54,7 @@ public class HeaderCards {
      * @return   integer value, or null
      */
     public Integer getIntValue( String key ) {
-        return containsKey( key ) ? new Integer( hdr_.getIntValue( key ) )
+        return containsKey( key ) ? Integer.valueOf( hdr_.getIntValue( key ) )
                                   : null;
     }
 
@@ -65,7 +65,7 @@ public class HeaderCards {
      * @return  long value, or null
      */
     public Long getLongValue( String key ) {
-        return containsKey( key ) ? new Long( hdr_.getLongValue( key ) )
+        return containsKey( key ) ? Long.valueOf( hdr_.getLongValue( key ) )
                                   : null;
     }
 
@@ -76,7 +76,7 @@ public class HeaderCards {
      * @return  double value, or null
      */
     public Double getDoubleValue( String key ) {
-        return containsKey( key ) ? new Double( hdr_.getDoubleValue( key ) )
+        return containsKey( key ) ? Double.valueOf( hdr_.getDoubleValue( key ) )
                                   : null;
     }
 

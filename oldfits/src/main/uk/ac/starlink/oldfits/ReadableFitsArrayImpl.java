@@ -61,7 +61,7 @@ class ReadableFitsArrayImpl implements ArrayImpl {
             case BasicHDU.BITPIX_BYTE:
                 type = Type.BYTE;
                 badValue = hasBlank
-                         ? new Byte( (byte) hdr.getIntValue( "BLANK" ) )
+                         ? Byte.valueOf( (byte) hdr.getIntValue( "BLANK" ) )
                          : null;
                 rdr = new TypedReader() {
                     public void read( Object buffer, int start, int size ) 
@@ -78,7 +78,7 @@ class ReadableFitsArrayImpl implements ArrayImpl {
             case BasicHDU.BITPIX_SHORT:
                 type = Type.SHORT;
                 badValue = hasBlank
-                         ? new Short( (short) hdr.getIntValue( "BLANK" ) )
+                         ? Short.valueOf( (short) hdr.getIntValue( "BLANK" ) )
                          : null;
                 rdr = new TypedReader() {
                     public void read( Object buffer, int start, int size ) 
@@ -95,7 +95,7 @@ class ReadableFitsArrayImpl implements ArrayImpl {
             case BasicHDU.BITPIX_INT:
                 type = Type.INT;
                 badValue = hasBlank
-                         ? new Integer( hdr.getIntValue( "BLANK" ) )
+                         ? Integer.valueOf( hdr.getIntValue( "BLANK" ) )
                          : null;
                 rdr = new TypedReader() {
                     public void read( Object buffer, int start, int size ) 
@@ -111,7 +111,7 @@ class ReadableFitsArrayImpl implements ArrayImpl {
                 break;
             case BasicHDU.BITPIX_FLOAT:
                 type = Type.FLOAT;
-                badValue = new Float( Float.NaN );
+                badValue = Float.valueOf( Float.NaN );
                 rdr = new TypedReader() {
                     public void read( Object buffer, int start, int size ) 
                             throws IOException {
@@ -126,7 +126,7 @@ class ReadableFitsArrayImpl implements ArrayImpl {
                 break;
             case BasicHDU.BITPIX_DOUBLE:
                 type = Type.DOUBLE;
-                badValue = new Double( Double.NaN );
+                badValue = Double.valueOf( Double.NaN );
                 rdr = new TypedReader() {
                     public void read( Object buffer, int start, int size ) 
                             throws IOException {

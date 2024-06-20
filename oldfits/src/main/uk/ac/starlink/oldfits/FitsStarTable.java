@@ -120,7 +120,7 @@ public class FitsStarTable extends RandomStarTable {
                 blanks[ icol ] = nullval;
                 hasBlank[ icol ] = true;
                 auxdata.add( new DescribedValue( tnullInfo, 
-                                                 new Long( nullval ) ) );
+                                                 Long.valueOf( nullval ) ) );
             }
             else {
                 cinfo.setNullable( false );
@@ -156,13 +156,13 @@ public class FitsStarTable extends RandomStarTable {
                 double scalval = Double.parseDouble( tscal );
                 scales[ icol ] = scalval;
                 auxdata.add( new DescribedValue( tscalInfo,
-                                                 new Double( scalval ) ) );
+                                                 Double.valueOf( scalval ) ) );
             }
             if ( tzero != null ) {
                 double zeroval = Double.parseDouble( tzero );
                 zeros[ icol ] = zeroval;
                 auxdata.add( new DescribedValue( tzeroInfo,
-                                                 new Double( zeroval ) ) );
+                                                 Double.valueOf( zeroval ) ) );
             }
             if ( scales[ icol ] != 1.0 || zeros[ icol ] != 0.0 ) {
                 isScaled[ icol ] = true;
@@ -191,7 +191,7 @@ public class FitsStarTable extends RandomStarTable {
             if ( tbcol != null ) {
                 int bcolval = Integer.parseInt( tbcol );
                 auxdata.add( new DescribedValue( tbcolInfo, 
-                                                 new Integer( bcolval ) ) );
+                                                 Integer.valueOf( bcolval ) ) );
             }
             String tform = cards.getStringValue( "TFORM" + jcol );
             if ( tform != null ) {
@@ -303,46 +303,46 @@ public class FitsStarTable extends RandomStarTable {
                 byte val = ((byte[]) base)[ 0 ];
                 return ( hasblank && val == (byte) blank ) 
                        ? null
-                       : ( scaled ? (Number) new Double( val * scale + zero )
-                                  : (Number) new Byte( val ) );
+                       : ( scaled ? Double.valueOf( val * scale + zero )
+                                  : Byte.valueOf( val ) );
             }
             else if ( cls == short.class ) {
                 short val = ((short[]) base )[ 0 ];
                 return ( hasblank && val == (short) blank )
                        ? null
-                       : ( scaled ? (Number) new Double( val * scale + zero )
-                                  : (Number) new Short( val ) );
+                       : ( scaled ? Double.valueOf( val * scale + zero )
+                                  : Short.valueOf( val ) );
             }
             else if ( cls == int.class ) {
                 int val = ((int[]) base )[ 0 ];
                 return ( hasblank && val == (int) blank )
                        ? null
-                       : ( scaled ? (Number) new Double( val * scale + zero )
-                                  : (Number) new Integer( val ) );
+                       : ( scaled ? Double.valueOf( val * scale + zero )
+                                  : Integer.valueOf( val ) );
             }
             else if ( cls == long.class ) {
                 long val = ((long[]) base )[ 0 ];
                 return ( hasblank && val == (long) blank )
                        ? null
-                       : ( scaled ? (Number) new Double( val * scale + zero )
-                                  : (Number) new Long( val ) );
+                       : ( scaled ? Double.valueOf( val * scale + zero )
+                                  : Long.valueOf( val ) );
             }
 
             /* Need to scale for floating point types. */
             else if ( cls == float.class ) {
                 float val = ((float[]) base )[ 0 ];
-                return scaled ? (Number) new Double( val * scale + zero )
-                              : (Number) new Float( val );
+                return scaled ? Double.valueOf( val * scale + zero )
+                              : Float.valueOf( val );
             }
             else if ( cls == double.class ) {
                 double val = ((double[]) base )[ 0 ];
-                return scaled ? (Number) new Double( val * scale + zero )
-                              : (Number) new Double( val );
+                return scaled ? Double.valueOf( val * scale + zero )
+                              : Double.valueOf( val );
             }
 
             /* Just dereference and wrap for boolean. */
             else if ( cls == boolean.class ) {
-                return new Boolean( ((boolean[]) base)[ 0 ] );
+                return Boolean.valueOf( ((boolean[]) base)[ 0 ] );
             }
 
             /* Since there is no way of representing a blank value in a
