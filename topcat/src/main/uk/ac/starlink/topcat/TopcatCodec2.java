@@ -256,7 +256,8 @@ public class TopcatCodec2 implements TopcatCodec {
             if ( icolSort >= 0 ) {
                 boolean sense = tcModel.getSortSenseModel().isSelected();
                 paramList.add( new DescribedValue( SORT_COLUMN_INFO,
-                                                   new Integer( icolSort ) ) );
+                                                   Integer
+                                                  .valueOf( icolSort ) ) );
                 paramList.add( new DescribedValue( SORT_SENSE_INFO,
                                                    Boolean.valueOf( sense ) ) );
             }
@@ -267,7 +268,7 @@ public class TopcatCodec2 implements TopcatCodec {
                   .indexOf( tcModel.getSelectedSubset() );
         if ( iset >= 0 ) {
             paramList.add( new DescribedValue( CURRENT_SUBSET_INFO,
-                                               new Integer( iset ) ) );
+                                               Integer.valueOf( iset ) ) );
         }
 
         /* Record activation actions. */
@@ -677,7 +678,7 @@ public class TopcatCodec2 implements TopcatCodec {
                             flag = flag | 1;
                         }
                     }
-                    return new Short( (short) flag );
+                    return Short.valueOf( (short) flag );
                 }
             };
         }
@@ -692,7 +693,7 @@ public class TopcatCodec2 implements TopcatCodec {
                             flag = flag | 1;
                         }
                     }
-                    return new Integer( flag );
+                    return Integer.valueOf( flag );
                 }
             };
         }

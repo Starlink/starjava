@@ -34,7 +34,7 @@ public class IntSelector extends JPanel implements ItemListener {
             int nopt = options.length;
             Integer[] items = new Integer[ nopt ];
             for ( int i = 0; i < nopt; i++ ) {
-                items[ i ] = new Integer( options[ i ] );
+                items[ i ] = Integer.valueOf( options[ i ] );
             }
             cbox_ = new JComboBox<Integer>( items );
         }
@@ -63,7 +63,7 @@ public class IntSelector extends JPanel implements ItemListener {
      * @param  value  selected integer
      */
     public void setValue( int value ) {
-        cbox_.setSelectedItem( new Integer( value ) );
+        cbox_.setSelectedItem( Integer.valueOf( value ) );
     }
 
     public void setEnabled( boolean enabled ) {
@@ -96,12 +96,12 @@ public class IntSelector extends JPanel implements ItemListener {
                 }
                 catch ( NumberFormatException e ) {
                     Toolkit.getDefaultToolkit().beep();
-                    cbox_.setSelectedItem( new Integer( selected_ ) );
+                    cbox_.setSelectedItem( Integer.valueOf( selected_ ) );
                 }
             }
             else {  // can't happen?
                 Toolkit.getDefaultToolkit().beep();
-                cbox_.setSelectedItem( new Integer( selected_ ) );
+                cbox_.setSelectedItem( Integer.valueOf( selected_ ) );
             }
         }
     }

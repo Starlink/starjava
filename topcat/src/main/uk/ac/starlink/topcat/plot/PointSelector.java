@@ -706,7 +706,7 @@ public class PointSelector extends JPanel {
     private Integer indexToKey( int isub ) {
         return tcModel_ == null
              ? null
-             : new Integer( tcModel_.getSubsets().indexToId( isub ) );
+             : Integer.valueOf( tcModel_.getSubsets().indexToId( isub ) );
     }
 
     /**

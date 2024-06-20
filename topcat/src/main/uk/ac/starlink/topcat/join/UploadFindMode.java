@@ -235,7 +235,7 @@ public abstract class UploadFindMode {
                     new ColumnData( new DefaultValueInfo( "INDEX", Long.class,
                                                           null ) ) {
                 public Object readValue( long irow ) {
-                    return new Long( irow );
+                    return Long.valueOf( irow );
                 }
             };
             rowTable.addColumn( rowColumn );

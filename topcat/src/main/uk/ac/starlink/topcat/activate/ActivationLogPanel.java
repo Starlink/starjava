@@ -213,12 +213,12 @@ public class ActivationLogPanel extends JPanel {
             cols_ = new ItemColumn<?>[] {
                 new ItemColumn<Long>( "Seq", Long.class ) {
                     public Long getValue( Item item ) {
-                        return new Long( item.iseq_ + 1 );
+                        return Long.valueOf( item.iseq_ + 1 );
                     }
                 },
                 new ItemColumn<Long>( "Row", Long.class ) { 
                     public Long getValue( Item item ) {
-                        return new Long( item.irow_ + 1 );
+                        return Long.valueOf( item.irow_ + 1 );
                     }
                 },
                 new ItemColumn<String>( "Status", String.class ) {

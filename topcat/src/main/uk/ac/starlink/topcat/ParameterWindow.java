@@ -249,7 +249,7 @@ public class ParameterWindow extends AuxWindow
         metas.add( new MetaColumn( ELSIZE_NAME, Integer.class ) {
             public Object getValue( int irow ) {
                 int size = getParamInfo( irow ).getElementSize();
-                return size > 0 ? new Integer( size ) : null;
+                return size > 0 ? Integer.valueOf( size ) : null;
             }
             public boolean isEditable( int irow ) {
                 return getParamInfo( irow ) instanceof DefaultValueInfo;
@@ -493,13 +493,13 @@ public class ParameterWindow extends AuxWindow
     }
 
     private void configureColumnCount() {
-        ncolParam.setValue( new Integer( columnModel.getColumnCount() ) );
+        ncolParam.setValue( Integer.valueOf( columnModel.getColumnCount() ) );
         int ixRow = getJTableRowIndex( ncolParam );
         metaTableModel.fireTableRowsUpdated( ixRow, ixRow );
     }
 
     private void configureRowCount() {
-        nrowParam.setValue( new Long( (long) viewModel.getRowCount() ) );
+        nrowParam.setValue( Long.valueOf( (long) viewModel.getRowCount() ) );
         int ixRow = getJTableRowIndex( nrowParam );
         metaTableModel.fireTableRowsUpdated( ixRow, ixRow );
     }

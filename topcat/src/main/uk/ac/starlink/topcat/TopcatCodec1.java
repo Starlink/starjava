@@ -103,7 +103,8 @@ public class TopcatCodec1 implements TopcatCodec {
             if ( icolSort >= 0 ) {
                 boolean sense = tcModel.getSortSenseModel().isSelected();
                 paramList.add( new DescribedValue( SORT_COLUMN_INFO,
-                                                   new Integer( icolSort ) ) );
+                                                   Integer
+                                                  .valueOf( icolSort ) ) );
                 paramList.add( new DescribedValue( SORT_SENSE_INFO,
                                                    Boolean.valueOf( sense ) ) );
             }
@@ -139,7 +140,7 @@ public class TopcatCodec1 implements TopcatCodec {
         int iset = subsetList.indexOf( tcModel.getSelectedSubset() );
         if ( iset >= 0 ) {
             paramList.add( new DescribedValue( CURRENT_SUBSET_INFO,
-                                               new Integer( iset ) ) );
+                                               Integer.valueOf( iset ) ) );
         }
 
         /* Copy parameters from the input table.

@@ -49,9 +49,11 @@ public class CutChooser extends JPanel {
         double[] points = new double[] { .5, .1, .01, .001, };
         for ( int i = 0; i < points.length; i++ ) {
             double point = points[ i ];
-            loLabels.put( new Integer( (int) ( Math.log( point ) * SCALE ) ),
+            loLabels.put( Integer
+                         .valueOf( (int) ( Math.log( point ) * SCALE ) ),
                           new JLabel( formatLabel( point ) ) );
-            hiLabels.put( new Integer( (int) ( -Math.log( point ) * SCALE ) ),
+            hiLabels.put( Integer
+                         .valueOf( (int) ( -Math.log( point ) * SCALE ) ),
                           new JLabel( formatLabel( 1. - point ) ) );
         }
         loSlider_.setLabelTable( loLabels );

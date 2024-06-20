@@ -40,7 +40,7 @@ public class RoundingSpinner extends JSpinner {
      * @param  value  value
      */
     public void setNumericValue( double value ) {
-        setValue( new Double( value ) );
+        setValue( Double.valueOf( value ) );
     }
 
     /**
@@ -102,15 +102,15 @@ public class RoundingSpinner extends JSpinner {
         }
 
         public Object getNextValue() {
-            return new Double( spinner_.getRounder().nextUp( value_ ) );
+            return Double.valueOf( spinner_.getRounder().nextUp( value_ ) );
         }
 
         public Object getPreviousValue() {
-            return new Double( spinner_.getRounder().nextDown( value_ ) );
+            return Double.valueOf( spinner_.getRounder().nextDown( value_ ) );
         }
 
         public Object getValue() {
-            return new Double( value_ );
+            return Double.valueOf( value_ );
         }
 
         public void setValue( Object val ) {

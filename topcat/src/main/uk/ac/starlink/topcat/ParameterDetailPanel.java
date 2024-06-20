@@ -283,7 +283,7 @@ public class ParameterDetailPanel extends JPanel {
                         public Object getValueAt( int irow, int icol ) {
                             switch ( icol ) {
                                 case 0:
-                                    return new Integer( irow + 1 );
+                                    return Integer.valueOf( irow + 1 );
                                 case 1:
                                     return Array.get( array, irow );
                                 default:

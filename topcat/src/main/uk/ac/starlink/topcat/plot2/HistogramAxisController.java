@@ -260,7 +260,7 @@ public class HistogramAxisController
         /* If so, pass it to the relevant specifier for display. */
         if ( specifier != null ) {
             ReportMap report = new ReportMap();
-            report.put( key, new Double( dval ) );
+            report.put( key, Double.valueOf( dval ) );
             specifier.submitReport( report );
         }
     }

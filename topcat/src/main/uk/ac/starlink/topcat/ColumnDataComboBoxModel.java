@@ -640,7 +640,7 @@ public class ColumnDataComboBoxModel
         }
 
         public Object readValue( long irow ) {
-            return new Long( irow + 1 );
+            return Long.valueOf( irow + 1 );
         }
 
         public String toString() {

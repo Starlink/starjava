@@ -151,7 +151,7 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
         /* Otherwise, see if it corresponds to a defined subset. */
         short isub = getSubsetIndex( name );
         if ( isub >= 0 ) {
-            return new Short( isub );
+            return Short.valueOf( isub );
         }
 
         /* Otherwise, it is unrecognised. */
@@ -239,7 +239,7 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
                 int subsetId = Integer.parseInt( name.substring( 1 ) ) - 1;
                 for ( int isub = 0; isub < nsub; isub++ ) {
                     if ( subsetId == subsets.indexToId( isub ) ) {
-                        translatedSubsetIds_.add( new Integer( subsetId ) );
+                        translatedSubsetIds_.add( Integer.valueOf( subsetId ) );
                         return getSubsetIndex( subsets.get( isub ) );
                     }
                 }
@@ -253,8 +253,8 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
         for ( int isub = 0; isub < nsub; isub++ ) {
             RowSubset rset = subsets.get( isub );
             if ( rset.getName().equalsIgnoreCase( name ) ) {
-                translatedSubsetIds_.add( new Integer( subsets
-                                                      .indexToId( isub ) ) );
+                translatedSubsetIds_.add( Integer.valueOf( subsets
+                                                          .indexToId( isub ) ));
                 return getSubsetIndex( rset );
             }
         }
@@ -321,7 +321,7 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
                 }
                 public Integer getValue() {
                     int jrow = viewModel.getViewRow( getCurrentRow() );
-                    return jrow >= 0 ? new Integer( 1 + jrow ) : null;
+                    return jrow >= 0 ? Integer.valueOf( 1 + jrow ) : null;
                 }
                 public boolean requiresRowIndex() {
                     return true;
@@ -335,7 +335,7 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
                     return Integer.class;
                 }
                 public Integer getValue() {
-                    return new Integer( viewModel.getRowCount() );
+                    return Integer.valueOf( viewModel.getRowCount() );
                 }
                 public boolean requiresRowIndex() {
                     return false;

@@ -490,7 +490,7 @@ public class TopcatSampControl {
                 }
             } );
         }
-        highlightMap_.put( tcModel, new Long( lrow ) );
+        highlightMap_.put( tcModel, Long.valueOf( lrow ) );
     }
 
     /**

@@ -374,7 +374,7 @@ public class PointSelection implements PlotData {
         long offset = 0;
         for ( int itab = 0; itab < nTable_; itab++ ) {
             if ( tcModels_[ itab ] == tcModel ) {
-                ipList.add( new Long( offset + lrow ) );
+                ipList.add( Long.valueOf( offset + lrow ) );
             }
             offset += nrows_[ itab ];
         }
@@ -423,7 +423,7 @@ public class PointSelection implements PlotData {
                     tableList.add( tcModel );
                     indexList.add( new ArrayList<Integer>() );
                 }
-                indexList.get( igrp ).add( new Integer( itab ) );
+                indexList.get( igrp ).add( Integer.valueOf( itab ) );
             }
         }
         int ngrp = tableList.size();

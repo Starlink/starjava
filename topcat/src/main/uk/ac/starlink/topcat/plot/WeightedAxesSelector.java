@@ -35,7 +35,7 @@ public class WeightedAxesSelector implements AxesSelector {
     private static final ColumnData UNIT_WEIGHT =
          new ConstantColumn( new ColumnInfo( "Unity", Integer.class,
                                              "Unit weight" ),
-                             new Integer( 1 ) );
+                             Integer.valueOf( 1 ) );
 
     /**
      * Constructor.

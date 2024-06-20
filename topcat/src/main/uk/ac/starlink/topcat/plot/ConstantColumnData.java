@@ -36,7 +36,7 @@ public class ConstantColumnData extends ColumnData {
     public ConstantColumnData( String name, double value ) {
         super( new ColumnInfo( name, Double.class,
                                "Constant value of " + value ) );
-        value_ = new Double( value );
+        value_ = Double.valueOf( value );
     }
 
     public Object readValue( long irow ) {

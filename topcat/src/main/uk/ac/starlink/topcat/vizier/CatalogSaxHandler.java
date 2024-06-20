@@ -75,7 +75,7 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
             String nr = atts.getValue( "nrows" );
             if ( nr != null ) {
                 try {
-                    subTable_.nrows_ = new Long( Long.parseLong( nr ) );
+                    subTable_.nrows_ = Long.valueOf( nr );
                 }
                 catch ( NumberFormatException e ) {
                 }
@@ -214,7 +214,7 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
             for ( String[] info : infoList_ ) {
                 if ( name.equals( info[ 0 ] ) ) {
                     try {
-                        return new Integer( Integer.parseInt( info[ 1 ] ) );
+                        return Integer.valueOf( info[ 1 ] );
                     }
                     catch ( NumberFormatException e ) {
                         return null;
@@ -235,7 +235,7 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
             for ( String[] info : infoList_ ) {
                 if ( name.equals( info[ 0 ] ) ) {
                     try {
-                        return new Float( Float.parseFloat( info[ 1 ] ) );
+                        return Float.valueOf( info[ 1 ] );
                     }
                     catch ( NumberFormatException e ) {
                         return null;

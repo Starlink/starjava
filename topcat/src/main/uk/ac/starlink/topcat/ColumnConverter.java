@@ -127,7 +127,7 @@ public abstract class ColumnConverter {
         }
         public Object convertValue( Object value ) {
             return value instanceof Number 
-                 ? new Double( ((Number) value).doubleValue() * factor_ )
+                 ? Double.valueOf( ((Number) value).doubleValue() * factor_ )
                  : null;
         }
         public String toString() {

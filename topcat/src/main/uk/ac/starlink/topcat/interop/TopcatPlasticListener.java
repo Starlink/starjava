@@ -337,7 +337,7 @@ public class TopcatPlasticListener extends HubManager {
                                         tcModel.getDataModel().getRowCount() );
                     for ( int i = 0; i < nrow; i++ ) {
                         if ( rset.isIncluded( i ) ) {
-                            rowList.add( new Integer( i ) );
+                            rowList.add( Integer.valueOf( i ) );
                         }
                     }
                 }
@@ -345,7 +345,7 @@ public class TopcatPlasticListener extends HubManager {
                     int nrow = rowMap.length;
                     for ( int i = 0; i < nrow; i++ ) {
                         if ( rset.isIncluded( rowMap[ i ] ) ) {
-                            rowList.add( new Integer( i ) );
+                            rowList.add( Integer.valueOf( i ) );
                         }
                     }
                 }
@@ -379,7 +379,7 @@ public class TopcatPlasticListener extends HubManager {
                                     tcModel.getDataModel().getRowCount() );
                 for ( int i = 0; i < nrow; i++ ) {
                     if ( rset.isIncluded( i ) ) {
-                        rowList.add( new Integer( i ) );
+                        rowList.add( Integer.valueOf( i ) );
                     }
                 }
                 List<Object> argList =
@@ -463,7 +463,7 @@ public class TopcatPlasticListener extends HubManager {
         if ( done && sendRow >= 0 ) {
             List<Object> args = Arrays.asList( new Object[] {
                 tableId,
-                new Integer( sendRow ),
+                Integer.valueOf( sendRow ),
             } );
             if ( recipients == null ) {
                 hub.requestAsynch( plasticId, MessageId.VOT_HIGHLIGHTOBJECT,
@@ -498,8 +498,8 @@ public class TopcatPlasticListener extends HubManager {
         PlasticHubListener hub = getHub();
         URI plasticId = getRegisteredId();
         List<Object> args =
-            Arrays.asList( new Object[] { new Double( ra2000 ),
-                                          new Double( dec2000 ) } );
+            Arrays.asList( new Object[] { Double.valueOf( ra2000 ),
+                                          Double.valueOf( dec2000 ) } );
         if ( recipients == null ) {
             hub.requestAsynch( plasticId, MessageId.SKY_POINT, args );
         }
@@ -614,7 +614,7 @@ public class TopcatPlasticListener extends HubManager {
                     }
                 } );
             }
-            highlightMap_.put( tcModel, new Long( lrow ) );
+            highlightMap_.put( tcModel, Long.valueOf( lrow ) );
             return true;
         }
         return false;

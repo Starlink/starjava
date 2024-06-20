@@ -395,7 +395,7 @@ public abstract class FigurePanel extends JComponent {
         }
 
         /* Create the dialogue window itself. */
-        final Integer okOption = new Integer( JOptionPane.OK_OPTION );
+        final Integer okOption = Integer.valueOf( JOptionPane.OK_OPTION );
         final JOptionPane optionPane =
              new JOptionPane( enquiryPanel_, JOptionPane.QUESTION_MESSAGE,
                               JOptionPane.OK_CANCEL_OPTION );

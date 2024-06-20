@@ -104,7 +104,7 @@ public class ZoneFactories {
                         if ( autoIncrement ) {
                             index_++;
                         }
-                        model_.setValue( new Integer( index_ ) );
+                        model_.setValue( Integer.valueOf( index_ ) );
                         JComponent box = Box.createHorizontalBox();
                         box.add( new ShrinkWrapper( new JSpinner( model_ ) ) );
                         model_.addChangeListener( getChangeForwarder() );
@@ -114,8 +114,8 @@ public class ZoneFactories {
                         return new IntZoneId( model_.getNumber().intValue() );
                     }
                     public void setSpecifiedValue( ZoneId zid ) {
-                        model_.setValue( new Integer( ((IntZoneId) zid)
-                                                     .ival_ ) );
+                        model_.setValue( Integer.valueOf( ((IntZoneId) zid)
+                                                         .ival_ ) );
                     }
                     public void submitReport( ReportMap report ) {
                     }

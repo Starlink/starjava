@@ -110,7 +110,7 @@ public class VizierCatalog implements Queryable {
      * @param   nTable  number of subordinate tables
      */
     public void setTableCount( int nTable ) {
-        nTable_ = new Integer( nTable );
+        nTable_ = Integer.valueOf( nTable );
     }
 
     /**

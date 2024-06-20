@@ -530,7 +530,7 @@ public class HistogramWindow extends GraphicsWindow {
                 Math.exp( Math.log( multBounds[ 1 ] / multBounds[ 0 ] )
                           / DEFAULT_BINS );
             double bwLog = Rounder.LOG.round( factor );
-            logBinModel_.setValue( new Double( bwLog ) );
+            logBinModel_.setValue( Double.valueOf( bwLog ) );
 
             double gap = ( xBounds[ 1 ] - xBounds[ 0 ] ) / DEFAULT_BINS;
             assert gap > 0.0;
@@ -544,7 +544,7 @@ public class HistogramWindow extends GraphicsWindow {
                  clazz == Long.class ) {
                 gap = Math.ceil( gap );
             }
-            linearBinModel_.setValue( new Double( bwLinear ) );
+            linearBinModel_.setValue( Double.valueOf( bwLinear ) );
         }
         double bwLog = ((Number) logBinModel_.getValue()).doubleValue();
         double bwLinear = ((Number) linearBinModel_.getValue()).doubleValue();
@@ -764,8 +764,8 @@ public class HistogramWindow extends GraphicsWindow {
                     private Object[] getRow( BinnedData.Bin bin ) {
                         Object[] row = new Object[ ipre + nset ];
                         int icol = 0;
-                        row[ icol++ ] = new Double( bin.getLowBound() );
-                        row[ icol++ ] = new Double( bin.getHighBound() );
+                        row[ icol++ ] = Double.valueOf( bin.getLowBound() );
+                        row[ icol++ ] = Double.valueOf( bin.getHighBound() );
                         for ( int iset = 0; iset < nset; iset++ ) {
                             double sum = bin.getWeightedCount( iset );
                             if ( isCumulative ) {
@@ -774,8 +774,8 @@ public class HistogramWindow extends GraphicsWindow {
                             }
                             assert ( ! isInt ) || ( sum == (int) sum ) : sum;
                             row[ icol++ ] =
-                                isInt ? (Number) new Integer( (int) sum )
-                                      : (Number) new Double( sum );
+                                isInt ? Integer.valueOf( (int) sum )
+                                      : Double.valueOf( sum );
                         }
                         return row;
                     }
