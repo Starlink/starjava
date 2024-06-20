@@ -154,7 +154,7 @@ public class BasicFontChooser
 
         //  Set the initial font.
         fontBox.setSelectedItem( currentFont );
-        sizeBox.setSelectedItem( new Integer( currentSize ) );
+        sizeBox.setSelectedItem( Integer.valueOf( currentSize ) );
         styleBox.setSelectedItem( "PLAIN" );
     }
 
@@ -239,7 +239,7 @@ public class BasicFontChooser
 
         //  And a quick set of sizes.
         for ( int i = 8; i <= 32; i++ ) {
-            sizeBox.addItem( new Integer( i ) );
+            sizeBox.addItem( Integer.valueOf( i ) );
         }
 
         //  Finally set all action responses (after setting possible values).
@@ -324,7 +324,7 @@ public class BasicFontChooser
             currentSize = ((Integer) sizeObj).intValue();
         } else {
             //  Not an Integer so get string and convert.
-            currentSize = (new Integer( sizeObj.toString() )).intValue();
+            currentSize = Integer.parseInt( sizeObj.toString() );
         }
         updateDisplay();
     }

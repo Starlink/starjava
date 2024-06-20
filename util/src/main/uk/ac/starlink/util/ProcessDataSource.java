@@ -68,7 +68,7 @@ public class ProcessDataSource extends DataSource {
         Integer status;
         if ( count < NREAD ) {
             try {
-                status = new Integer( process.waitFor() );
+                status = Integer.valueOf( process.waitFor() );
             }
             catch ( InterruptedException e ) {
                 status = null;

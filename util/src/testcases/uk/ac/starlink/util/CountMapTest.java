@@ -9,10 +9,10 @@ public class CountMapTest extends TestCase {
         CountMap<Number> cm = new CountMap<Number>();
         Number[] nums = new Number[] {
             BigDecimal.ONE,
-            new Long( 2L ),
-            new Short( (short) 3 ),
-            new Integer( 4 ),
-            new Float( 5f ),
+            Long.valueOf( 2L ),
+            Short.valueOf( (short) 3 ),
+            Integer.valueOf( 4 ),
+            Float.valueOf( 5f ),
         };
         assertTrue( cm.keySet().isEmpty() );
         for ( int in = 0; in < nums.length; in++ ) {

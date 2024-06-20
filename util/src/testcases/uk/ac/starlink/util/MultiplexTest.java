@@ -27,8 +27,8 @@ public class MultiplexTest extends TestCase {
     private void checkLists( Collection<? super Number> multiList,
                              Collection<? super Number> l1,
                              Collection<? super Number> l2  ) {
-        Double d1 = new Double( 10 );
-        Double d2 = new Double( 20 );
+        Double d1 = Double.valueOf( 10 );
+        Double d2 = Double.valueOf( 20 );
         multiList.add( d1 );
         multiList.add( d2 );
         assertEquals( Arrays.asList( new Number[] { d1, d2 } ), multiList );
@@ -38,7 +38,7 @@ public class MultiplexTest extends TestCase {
         assertTrue( multiList.isEmpty() );
         assertTrue( l1.isEmpty() );
         assertTrue( l2.isEmpty() );
-        l1.add( new Integer( 23 ) );
+        l1.add( Integer.valueOf( 23 ) );
         assertTrue( ! l1.isEmpty() );
         assertTrue( l2.isEmpty() );
     }
