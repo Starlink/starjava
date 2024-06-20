@@ -176,7 +176,7 @@ public class DistanceTest extends TestCase {
             int ncol = inTable.getColumnCount();
             for ( int i = 0; i < ncol; i++ ) {
                 colMap_.put( inTable.getColumnInfo( i ).getName(),
-                             new Integer( i ) );
+                             Integer.valueOf( i ) );
             }
             addColumn( createDiffColumn( "rMo" + label, "best_dist" ) );
             addColumn( createDiffColumn( "r5" + label, "dist_lo" ) );
@@ -198,7 +198,7 @@ public class DistanceTest extends TestCase {
                                .doubleValue();
                     double d1 = ((Number) inTable_.getCell( irow, icol1 ))
                                .doubleValue();
-                    return new Double( ( d1 - d0 ) / d0 );
+                    return Double.valueOf( ( d1 - d0 ) / d0 );
                 }
             };
         }
