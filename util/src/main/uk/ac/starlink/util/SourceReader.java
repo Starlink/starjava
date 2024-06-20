@@ -62,7 +62,7 @@ public class SourceReader {
      * used by this object.  Its characteristics may be changed if required.
      * Note that in the case a transformation is
      * not required (e.g. in the case of getting a DOM node from a
-     * source which is already a <tt>DOMSource</tt>) this transformer
+     * source which is already a <code>DOMSource</code>) this transformer
      * will not be used.
      *
      * @return  the transformer object used when transformation is necessary
@@ -111,11 +111,11 @@ public class SourceReader {
      * Sets the transformer object used for transformations.
      * Note that in the case a transformation is
      * not required (e.g. in the case of getting a DOM node from a
-     * source which is already a <tt>DOMSource</tt>) this transformer
+     * source which is already a <code>DOMSource</code>) this transformer
      * will not be used.
      *
      * @param trans  the transformer object to be used when transformation is
-     *          necessary.  If <tt>null</tt> is supplied, a default
+     *          necessary.  If <code>null</code> is supplied, a default
      *          transformer will be used.
      */
     public void setTransformer( Transformer trans ) {
@@ -128,12 +128,12 @@ public class SourceReader {
      * {@link javax.xml.transform.Transformer},
      * whose behaviour is in turn determined by its 
      * {@link javax.xml.transform.ErrorListener}.
-     * By default, this <tt>SourceReader</tt> is installed as the 
-     * <tt>ErrorListener</tt>.
+     * By default, this <code>SourceReader</code> is installed as the 
+     * <code>ErrorListener</code>.
      *
      * @param   src  the Source for which the DOM is required
-     * @return  a DOM node (typically an <tt>Element</tt>) representing the
-     *          XML data in <tt>src</tt>
+     * @return  a DOM node (typically an <code>Element</code>) representing the
+     *          XML data in <code>src</code>
      * @throws  TransformerException  if some error occurs in transformation
      *                                or I/O
      */
@@ -156,7 +156,7 @@ public class SourceReader {
      * element is returned.  Anything else throws an IllegalArgumentException.
      *
      * @param   src  the Source for which the DOM is required
-     * @return  an Element representing the XML data in <tt>src</tt>
+     * @return  an Element representing the XML data in <code>src</code>
      * @throws  TransformerException  if some error occurs in transformation
      *                                or I/O
      * @throws  IllegalArgumentException if src does not represent a 
@@ -185,7 +185,7 @@ public class SourceReader {
      * SAXSources...</i>
      *
      * @param   src  the Source to be written
-     * @param   wr   the destination for the content of <tt>src</tt>
+     * @param   wr   the destination for the content of <code>src</code>
      * @throws  TransformerException  if some error occurs in transformation
      *                                or I/O
      */
@@ -235,7 +235,7 @@ public class SourceReader {
      * The stream will be flushed, but not closed.
      *
      * @param   src   the Source to be written
-     * @param   ostrm the destination for the content of <tt>src</tt>
+     * @param   ostrm the destination for the content of <code>src</code>
      * @throws  TransformerException  if some error occurs in transformation
      *                                or I/O
      */
@@ -285,7 +285,7 @@ public class SourceReader {
      *
      * @param  src  the Source to be read
      * @return  an InputStream which will supply the XML serialisation of
-     *          <tt>src</tt>
+     *          <code>src</code>
      */
     public InputStream getXMLStream( final Source src ) {
         final PipedOutputStream ostrm = new PipedOutputStream();
@@ -318,26 +318,27 @@ public class SourceReader {
     }
 
     /**
-     * Tries to set the indent level used by the <tt>writeSource</tt> methods.
+     * Tries to set the indent level used by the <code>writeSource</code>
+     * methods.
      * This method modifies the output properties of the the 
      * current transformer to affect the way it does the transformation
-     * (so will be undone by a subsequent <tt>setTransformer</tt>).
-     * If the supplied <tt>indent</tt> value is &gt;=0 then the transformer 
+     * (so will be undone by a subsequent <code>setTransformer</code>).
+     * If the supplied <code>indent</code> value is &gt;=0 then the transformer 
      * may add whitespace when producing the XML output; it will be encouraged
-     * to prettyprint the XML using <tt>indent</tt> spaces to indicate
+     * to prettyprint the XML using <code>indent</code> spaces to indicate
      * element nesting, though whether this is actually done depends on
      * which parser is actually being used by JAXP.
-     * If <tt>indent&lt;0</tt> then no whitespace will be added when
+     * If <code>indent&lt;0</code> then no whitespace will be added when
      * outputting XML.
      * <p>
      * By default, no whitespace is added.
      * <p>
-     * For convenience the method returns this <tt>SourceReader</tt> 
+     * For convenience the method returns this <code>SourceReader</code> 
      * is returned.
      *
      * @param  indent  indicates if and how whitespace should be added by
-     *                 <tt>writeSource</tt> methods
-     * @return  this <tt>SourceReader</tt>
+     *                 <code>writeSource</code> methods
+     * @return  this <code>SourceReader</code>
      */
     public SourceReader setIndent( int indent ) {
         Transformer trans = getTransformer();
@@ -358,21 +359,21 @@ public class SourceReader {
     }
 
     /**
-     * Sets whether the <tt>writeSource</tt> methods will output an XML
+     * Sets whether the <code>writeSource</code> methods will output an XML
      * declaration at the start of the XML output.
      * This method modifies the output properties of the the 
      * current transformer to affect the way it does the transformation
-     * (so will be undone by a subsequent <tt>setTransformer</tt>).
+     * (so will be undone by a subsequent <code>setTransformer</code>).
      * <p>
      * By default, the declaration is included
      * <p>
-     * For convenience the method returns this <tt>SourceReader</tt> 
+     * For convenience the method returns this <code>SourceReader</code> 
      * is returned.
      *
-     * @param  flag  <tt>true</tt> if the <tt>writeSource</tt> methods 
+     * @param  flag  <code>true</code> if the <code>writeSource</code> methods 
      *               are to output an XML declaration,
-     *               <tt>false</tt> if they are not to
-     * @return  this <tt>SourceReader</tt>
+     *               <code>false</code> if they are not to
+     * @return  this <code>SourceReader</code>
      */
     public SourceReader setIncludeDeclaration( boolean flag ) {
         Transformer trans = getTransformer();

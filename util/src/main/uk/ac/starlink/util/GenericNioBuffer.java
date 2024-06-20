@@ -321,8 +321,8 @@ public class GenericNioBuffer {
 
     /**
      * Returns the class object of the primitive type that the buffer 
-     * holds.  Thus <tt>double.class</tt> is returned if the base buffer
-     * is a <tt>DoubleBuffer</tt> etc.
+     * holds.  Thus <code>double.class</code> is returned if the base buffer
+     * is a <code>DoubleBuffer</code> etc.
      * 
      * @return  the class of the primitive elements that this buffer holds
      */

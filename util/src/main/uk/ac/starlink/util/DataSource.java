@@ -20,12 +20,12 @@ import uk.ac.starlink.auth.AuthManager;
  * from a stream.  The idea is that the stream should return the same
  * sequence of bytes each time.
  * <p>
- * As well as the ability to return a stream, a <tt>DataSource</tt> may
- * also have a <tt>position</tt>, which corresponds to the 'ref' or 'frag'
+ * As well as the ability to return a stream, a <code>DataSource</code> may
+ * also have a <code>position</code>, which corresponds to the 'ref' or 'frag'
  * part of a URL (the bit after the #).  This is an indication
  * of a location in the stream; it is a string, and its interpretation
  * is entirely up to the application (though may be specified by
- * the documentation of specific <tt>DataSource</tt> subclasses).
+ * the documentation of specific <code>DataSource</code> subclasses).
  * <p>
  * As well as providing the facility for several different objects to
  * get their own copy of the underlying input stream, this class also
@@ -93,14 +93,14 @@ public abstract class DataSource {
      * An {@link java.net.URL#openConnection} method call on the URL
      * returned by this method should provide a stream with the
      * same content as the {@link #getRawInputStream} method of this
-     * data source.  If no such URL exists or is known, then <tt>null</tt>
+     * data source.  If no such URL exists or is known, then <code>null</code>
      * should be returned.
      * <p>
      * If this source has a non-null position value, it will be appended
      * to the main part of the URL after a '#' character (as the URL's
      * ref part).
      *
-     * @return  a URL corresponding to this source, or <tt>null</tt>
+     * @return  a URL corresponding to this source, or <code>null</code>
      */
     public URL getURL() {
         return null;
@@ -133,9 +133,9 @@ public abstract class DataSource {
 
     /**
      * Returns the length in bytes of the stream returned by
-     * <tt>getRawInputStream</tt>, if known.  If the length is not known
+     * <code>getRawInputStream</code>, if known.  If the length is not known
      * then -1 should be returned.
-     * The implementation of this method in <tt>DataSource</tt> returns -1;
+     * The implementation of this method in <code>DataSource</code> returns -1;
      * subclasses should override it if they can determine their length.
      *
      * @return  the length of the raw input stream, or -1
@@ -145,7 +145,7 @@ public abstract class DataSource {
     }
 
     /**
-     * Returns the length of the stream returned by <tt>getInputStream</tt>
+     * Returns the length of the stream returned by <code>getInputStream</code>
      * in bytes, if known.
      * A return value of -1 indicates that the length is unknown.
      * The return value of this method may change from -1 to a positive
@@ -208,7 +208,7 @@ public abstract class DataSource {
      * It is a string giving an indication of the part of the stream
      * which is of interest.  Its interpretation is up to the application.
      *
-     * @return  the position string, or <tt>null</tt>
+     * @return  the position string, or <code>null</code>
      */
     public String getPosition() {
         return position;
@@ -219,7 +219,7 @@ public abstract class DataSource {
      * It is a string giving an indication of the part of the stream
      * which is of interest.  Its interpretation is up to the application.
      *
-     * @param  position  the new posisition (may be <tt>null</tt>)
+     * @param  position  the new posisition (may be <code>null</code>)
      */
     public void setPosition( String position ) {
         this.position = position;
@@ -229,10 +229,10 @@ public abstract class DataSource {
      * Returns a System ID for this DataSource; this is a string
      * representation of a file name or URL, as used by
      * {@link javax.xml.transform.Source} and friends.
-     * The return value may be <tt>null</tt> if none is known.
+     * The return value may be <code>null</code> if none is known.
      * This does not contain any reference to the position.
      *
-     * @return  the System ID string for this source, or <tt>null</tt>
+     * @return  the System ID string for this source, or <code>null</code>
      */
     public String getSystemId() {
         URL url = getURL();
@@ -250,7 +250,7 @@ public abstract class DataSource {
     /**
      * Does the first read of the raw input stream to determine the
      * compression and fill up the intro buffer.  Following a call to this
-     * method, the <tt>intro</tt> and <tt>compression</tt> members
+     * method, the <code>intro</code> and <code>compression</code> members
      * will be set correctly (and are guaranteed not null).
      */
     private synchronized void initialise() throws IOException {
@@ -344,7 +344,7 @@ public abstract class DataSource {
      * (first few bytes) matched against known patterns to determine
      * if any known compression method is in use.
      * If no known compression is being used, the value
-     * <tt>Compression.NONE</tt> is returned.
+     * <code>Compression.NONE</code> is returned.
      *
      * @return  a Compression object encoding this stream
      */
@@ -360,14 +360,14 @@ public abstract class DataSource {
      * done before.  The intro buffer will contain the first few bytes
      * of the decompressed stream.  The number of bytes it contains
      * (the size of the returned byte[] array) will be the smaller of
-     * <tt>introLimit</tt> and the length of the underlying uncompressed
+     * <code>introLimit</code> and the length of the underlying uncompressed
      * stream.
      * <p>
      * The returned buffer is the original not a copy - don't change its
      * contents!
      *
      * @return  the first few bytes of the uncompressed stream, up to a 
-     *          limit of <tt>introLimit</tt>
+     *          limit of <code>introLimit</code>
      */
     public synchronized byte[] getIntro() throws IOException {
         if ( intro == null ) {
@@ -382,7 +382,7 @@ public abstract class DataSource {
      * since this object will figure it out using magic numbers of
      * the underlying stream.  It can be used if the compression
      * method is known, or to force use of a particular compression;
-     * in particular <tt>setCompression(Compression.NONE)</tt> can
+     * in particular <code>setCompression(Compression.NONE)</code> can
      * be used to force direct examination of the underlying stream
      * without decompression, even if the underlying stream is in fact
      * compressed.
@@ -404,19 +404,19 @@ public abstract class DataSource {
 
     /**
      * Returns a DataSource representing the same underlying stream,
-     * but with a forced compression mode <tt>compress</tt>.
-     * The returned <tt>DataSource</tt> object may be the same object
+     * but with a forced compression mode <code>compress</code>.
+     * The returned <code>DataSource</code> object may be the same object
      * as this one, but 
-     * if it has a different compression mode from <tt>compress</tt>
+     * if it has a different compression mode from <code>compress</code>
      * a new one will be created.  As with {@link #setCompression},
-     * the consequences of using a different value of <tt>compress</tt>
+     * the consequences of using a different value of <code>compress</code>
      * than the correct one (other than {@link Compression#NONE}
      * are unpredictable.
      *
      * @param  compress  the compression mode to be used for the returned
      *                   data source
      * @return  a data source with the same underlying stream as this,
-     *         but a compression mode given by <tt>compress</tt>
+     *         but a compression mode given by <code>compress</code>
      */
     public synchronized DataSource forceCompression( Compression compress ) {
 
@@ -518,7 +518,7 @@ public abstract class DataSource {
      * or if it may not be required for some while.  Calling this method
      * does not prevent any other method being called on this object
      * in the future.
-     * This method throws no checked exceptions; any <tt>IOException</tt>
+     * This method throws no checked exceptions; any <code>IOException</code>
      * thrown during closing any owned streams are simply discarded.
      */
     public synchronized void close() {
@@ -575,7 +575,7 @@ public abstract class DataSource {
      *
      * <p>If a '#' character exists in the string, text after it will be
      * interpreted as a position value.  Otherwise, the position is
-     * considered to be <tt>null</tt>.
+     * considered to be <code>null</code>.
      *
      * <p><strong>Note:</strong> this method presents a security risk if the
      * <code>loc</code> string is vulnerable to injection.
@@ -585,8 +585,8 @@ public abstract class DataSource {
      * This method just calls <code>makeDataSource(loc,true)</code>.
      *
      * @param  loc  the location of the data, with optional position
-     * @return  a DataSource based on the data at <tt>loc</tt>
-     * @throws  IOException  if <tt>loc</tt> does not name
+     * @return  a DataSource based on the data at <code>loc</code>
+     * @throws  IOException  if <code>loc</code> does not name
      *          an existing readable file or valid URL
      */
     public static DataSource makeDataSource( String loc )
@@ -609,7 +609,7 @@ public abstract class DataSource {
      *
      * <p>If a '#' character exists in the string, text after it will be
      * interpreted as a position value.  Otherwise, the position is
-     * considered to be <tt>null</tt>.
+     * considered to be <code>null</code>.
      *
      * <p><strong>Note:</strong> setting <code>allowSystem=true</code> may
      * introduce a security risk if the <code>loc</code> string is
@@ -618,8 +618,8 @@ public abstract class DataSource {
      * @param  loc  the location of the data, with optional position
      * @param  allowSystem  whether to allow system commands
      *                      using the format above
-     * @return  a DataSource based on the data at <tt>loc</tt>
-     * @throws  IOException  if <tt>loc</tt> does not name
+     * @return  a DataSource based on the data at <code>loc</code>
+     * @throws  IOException  if <code>loc</code> does not name
      *          an existing readable file or valid URL
      */
     public static DataSource makeDataSource( String loc, boolean allowSystem )
@@ -675,15 +675,15 @@ public abstract class DataSource {
     }
 
     /**
-     * Makes a source from a URL.  If <tt>url</tt> is a file-protocol URL
+     * Makes a source from a URL.  If <code>url</code> is a file-protocol URL
      * referencing an existing file then 
-     * a <tt>FileDataSource</tt> will be returned, otherwise it will be
-     * a <tt>URLDataSource</tt>.  Under certain circumstances, it may
+     * a <code>FileDataSource</code> will be returned, otherwise it will be
+     * a <code>URLDataSource</code>.  Under certain circumstances, it may
      * be more efficient to use a FileDataSource than a URLDataSource,
      * which is why this method may be worth using.
      *
      * @param  url  location of the data stream
-     * @return   data source which returns the data at <tt>url</tt>
+     * @return   data source which returns the data at <code>url</code>
      */
     public static DataSource makeDataSource( URL url ) {
         if ( url.getProtocol().equals( "file" ) ) {
@@ -718,8 +718,8 @@ public abstract class DataSource {
      * @param  location  URL, filename, "cmdline|"/"&lt;cmdline", or "-"
      * @param  allowSystem  whether to allow system commands
      *                      using the format above
-     * @return  uncompressed stream containing the data at <tt>location</tt>
-     * @throws  FileNotFoundException  if <tt>location</tt> cannot be
+     * @return  uncompressed stream containing the data at <code>location</code>
+     * @throws  FileNotFoundException  if <code>location</code> cannot be
      *          interpreted as a source of bytes
      * @throws  IOException  if there is an error obtaining the stream
      */
@@ -737,8 +737,8 @@ public abstract class DataSource {
      * @param  location  URL, filename, "cmdline|"/"&lt;cmdline", or "-"
      * @param  allowSystem  whether to allow system commands
      *                      using the format above
-     * @return  stream containing the raw content at <tt>location</tt>
-     * @throws  FileNotFoundException  if <tt>location</tt> cannot be
+     * @return  stream containing the raw content at <code>location</code>
+     * @throws  FileNotFoundException  if <code>location</code> cannot be
      *          interpreted as a source of bytes
      * @throws  IOException  if there is an error obtaining the stream
      */

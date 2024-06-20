@@ -84,9 +84,9 @@ public class DOMUtils {
      *
      * @param  parent  the node whose children are to be searched
      * @param  name    the name of the element being searched for
-     * @return the first child of <tt>parent</tt> which is an <tt>Element</tt>
-     *         and has the tagname <tt>name</tt>, or <tt>null</tt> if none
-     *         match
+     * @return the first child of <code>parent</code> which is
+     *         an <code>Element</code> and has the tagname <code>name</code>,
+     *         or <code>null</code> if none match
      */
     public static Element getChildElementByName( Node parent, String name ) {
         for ( Node child = parent.getFirstChild(); child != null;
@@ -107,9 +107,9 @@ public class DOMUtils {
      *
      * @param  parent  the node whose children are to be searched
      * @param  name    the name of the element being searched for
-     * @return  array of child elements of <tt>parent</tt> with tagname
-     *          <tt>name</tt>; if <tt>name</tt> is null, all child elements
-     *          are returned
+     * @return  array of child elements of <code>parent</code> with tagname
+     *          <code>name</code>;
+     *          if <code>name</code> is null, all child elements are returned
      */
     public static Element[] getChildElementsByName( Node parent, String name ) {
         List<Element> els = new ArrayList<Element>();
@@ -153,12 +153,12 @@ public class DOMUtils {
      * the presence of text or attribute children is a distraction.
      *
      * @param  node  the node whose siblings (including itself) you are
-     *         interested in.  May be <tt>null</tt>
-     * @return the first sibling of <tt>node</tt> which is an Element.
-     *         If <tt>node</tt> itself is an element, that is returned.
-     *         If <tt>node</tt> has no subsequent siblings which are 
-     *         elements, or if it is <tt>null</tt>,
-     *         then <tt>null</tt> is returned.
+     *         interested in.  May be <code>null</code>
+     * @return the first sibling of <code>node</code> which is an Element.
+     *         If <code>node</code> itself is an element, that is returned.
+     *         If <code>node</code> has no subsequent siblings which are 
+     *         elements, or if it is <code>null</code>,
+     *         then <code>null</code> is returned.
      */
     public static Element getFirstElementSibling( Node node ) {
         return ( node == null || node instanceof Element ) 
@@ -233,7 +233,7 @@ public class DOMUtils {
     }
 
     /**
-     * Returns a new <tt>Document</tt> instance.
+     * Returns a new <code>Document</code> instance.
      * This method just does all the tedious business of mucking about
      * with factories for you.
      *

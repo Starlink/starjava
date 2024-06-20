@@ -190,7 +190,7 @@ public class XmlWriter {
      * will be written as XML CDATA.
      *
      * @param   text  the input text
-     * @return  <tt>text</tt> but with XML special characters escaped
+     * @return  <code>text</code> but with XML special characters escaped
      */
     public static String formatText( String text ) {
         int leng = text.length();

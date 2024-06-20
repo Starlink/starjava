@@ -48,7 +48,7 @@ public class Loader {
      * <p>If for some reason the directory cannot be located, null
      * is returned.
      *
-     * @return   the top level starlink java directory, or <tt>null</tt>
+     * @return   the top level starlink java directory, or <code>null</code>
      *           if it can't be found
      */
     public static File starjavaDirectory() {
@@ -100,7 +100,7 @@ public class Loader {
      * @param  libname the name of the library (not including system-specifics 
      *         such as 'lib' or '.so')
      * @throws SecurityException if a security manager exists and its
-     *         <tt>checkLink</tt> method doesn't allow loading of the 
+     *         <code>checkLink</code> method doesn't allow loading of the 
      *         specified dynamic library
      * @throws UnsatisfiedLinkError  if the library does not exist
      * @see    java.lang.System#loadLibrary
@@ -165,7 +165,7 @@ public class Loader {
      * by this class.
      *
      * @return  a file called {@link #PROPERTIES_FILE} in the directory
-     *          given by the System property "<tt>user.home</tt>".
+     *          given by the System property "<code>user.home</code>".
      */
     public static File getPropertiesFile() throws SecurityException {
         return new File( System.getProperty( "user.home" ),
@@ -236,12 +236,12 @@ public class Loader {
 
     /**
      * Attempts to obtain an instance of a class with a given name which
-     * is an instance of a given type.  If <tt>className</tt> is null or
+     * is an instance of a given type.  If <code>className</code> is null or
      * empty, null is returned directly.  Otherwise, if the class 
-     * <tt>className</tt>
+     * <code>className</code>
      * can be found using the default class loader, and if it is assignable
-     * from <tt>type</tt>, and if it has a no-arg constructor, an instance
-     * of it is constructed and returned.  Otherwise, <tt>null</tt> is
+     * from <code>type</code>, and if it has a no-arg constructor, an instance
+     * of it is constructed and returned.  Otherwise, <code>null</code> is
      * returned, and a message may be written through the logging system.
      *
      * <p>A bean configuration parenthesis may be optionally appended,
@@ -250,7 +250,7 @@ public class Loader {
      * @param   classSpec  name of the class to instantiate
      * @param   type   class which the instantiated class must be assignable
      *                 from
-     * @return  new <tt>className</tt> instance, or <tt>null</tt>
+     * @return  new <code>className</code> instance, or <code>null</code>
      */
     public static <T> T getClassInstance( String classSpec, Class<T> type ) {
         if ( classSpec == null || classSpec.trim().length() == 0 ) {
@@ -313,7 +313,8 @@ public class Loader {
      * @param   propertyName  name of a system property containing 
      *          colon-separated classnames
      * @param   type   class which instantiated classes must be assignable from
-     * @return  list of new <tt>type</tt> instances (may be empty, but not null)
+     * @return  list of new <code>type</code> instances
+     *          (may be empty, but not null)
      */
     public static <T> List<T> getClassInstances( String propertyName,
                                                  Class<T> type ) {
@@ -350,7 +351,7 @@ public class Loader {
      * default list of classnames and the name of a property which 
      * may contain a colon-separated list of other classnames.
      * The strings in each case must name classes which implement 
-     * <tt>type</tt> and which have no-arg constructors.
+     * <code>type</code> and which have no-arg constructors.
      *
      * @param  defaultNames  array of string
      */
@@ -427,7 +428,7 @@ public class Loader {
 
     /** 
      * Unless it's been set already, sets the value of the 
-     * <tt>apple.laf.useScreenMenuBar</tt> system property to true.
+     * <code>apple.laf.useScreenMenuBar</code> system property to true.
      * This has the effect on Macintosh displays of causing menus to 
      * appear at the top of the screen rather than the top of the
      * windows they belong in.  This doesn't work on Dialog windows.
@@ -452,7 +453,7 @@ public class Loader {
      *
      * <p>According to RFC2616 sections 14.43 and 3.8, this string should
      * be a whitespace-separated sequence of product tokens.
-     * A product token is of the form <tt>product-name/product-version</tt>.
+     * A product token is of the form <code>product-name/product-version</code>.
      *
      * <p>This method must be called before the current JVM has opened 
      * any HTTP connections to have an effect.

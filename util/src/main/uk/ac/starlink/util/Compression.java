@@ -33,7 +33,7 @@ public abstract class Compression {
      * according to this objects compression type.
      *
      * @param  raw  the raw input stream
-     * @return  a stream giving the decompressed version of <tt>raw</tt>
+     * @return  a stream giving the decompressed version of <code>raw</code>
      */
     public abstract InputStream decompress( InputStream raw ) 
             throws IOException;
@@ -44,9 +44,10 @@ public abstract class Compression {
      *
      * @param  magic  a buffer containing the first {@link #MAGIC_SIZE}
      *         bytes of input of the stream to be characterised
-     * @return  a <tt>Compression</tt> object of the type represented by
-     *          <tt>magic</tt>
-     * @throws IllegalArgumentException  if <tt>magic.length&lt;MAGIC_SIZE</tt>
+     * @return  a <code>Compression</code> object of the type represented by
+     *          <code>magic</code>
+     * @throws IllegalArgumentException
+     *              if <code>magic.length&lt;MAGIC_SIZE</code>
      */
     public static Compression getCompression( byte[] magic ) {
         if ( magic.length < MAGIC_SIZE ) {
@@ -76,7 +77,7 @@ public abstract class Compression {
      * Returns a decompressed version of the given input stream.
      *
      * @param  raw  the raw input stream
-     * @return  the decompressed version of <tt>raw</tt>
+     * @return  the decompressed version of <code>raw</code>
      */
     public static InputStream decompressStatic( InputStream raw ) 
              throws IOException {
@@ -102,7 +103,7 @@ public abstract class Compression {
 
     /**
      * A Compression object representing no compression (or perhaps an
-     * unknown one).  The <tt>decompress</tt> method will return the
+     * unknown one).  The <code>decompress</code> method will return the
      * raw input stream unchanged.
      */
     public static final Compression NONE = new Compression( "none" ) {

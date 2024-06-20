@@ -7,7 +7,7 @@ import java.net.URLClassLoader;
 /**
  * This class provides a ClassLoader which looks on a given class path.
  * In cases where an application is invoked using the extension mechanism
- * (normally using <tt>java -jar</tt>) and hence gets its classpath
+ * (normally using <code>java -jar</code>) and hence gets its classpath
  * from somewhere other than the environment (e.g. $CLASSPATH), this 
  * can pick up a different set of classes than the default/system
  * ClassLoader.  This will typically be of use where code wants to
@@ -28,7 +28,7 @@ public class AuxClassLoader extends URLClassLoader {
      * Constructs a ClassLoader which will look on a given path.
      *
      * @param  classpath  a class path specified in the same format 
-     *         as the <tt>java.class.path</tt> system property
+     *         as the <code>java.class.path</code> system property
      */
     public AuxClassLoader( String classpath ) {
         super( getURLs( classpath ) );

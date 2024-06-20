@@ -28,10 +28,10 @@ import java.io.OutputStream;
  *     dataOut.close();
  *     reader.finishReading();
  * </pre>
- * Other uses will look pretty similar, but just override <tt>doReading</tt>
- * in different ways.  Note that any exceptions thrown by <tt>doReading</tt>
+ * Other uses will look pretty similar, but just override <code>doReading</code>
+ * in different ways.  Note that any exceptions thrown by <code>doReading</code>
  * are caught and eventually thrown in the reader thread by
- * <tt>finishReading</tt>.  The same exception may also be thrown by 
+ * <code>finishReading</code>.  The same exception may also be thrown by 
  * the <code>write</code> method of the writer thread.
  * <p>
  * This class serves two purposes.  Firstly it copes with IOExceptions 
@@ -119,7 +119,7 @@ public abstract class PipeReaderThread extends Thread {
     }
 
     /**
-     * Implements the thread's <tt>run</tt> method to invoke doReading,
+     * Implements the thread's <code>run</code> method to invoke doReading,
      * catching and saving IOExceptions.
      */
     public void run() {
@@ -138,19 +138,20 @@ public abstract class PipeReaderThread extends Thread {
      * the given input stream.  It is probably a good idea for implementations
      * to buffer the supplied input stream for efficiency.
      * Note that any implementation of this method which does not read
-     * <tt>dataIn</tt> to the end of the stream (either closing it early or
+     * <code>dataIn</code> to the end of the stream (either closing it early or
      * just stopping reading) may cause an IOException to be thrown in
      * the thread which is writing to the PipedOutputStream.
      * Implementations should not close the supplied input stream.
      *
      * @param  dataIn  stream which will supply bytes
      * @throws  IOException if any I/O error occurs; this exception will
-     *          be saved and thrown later by the <tt>finishReading</tt> method
+     *          be saved and thrown later by the <code>finishReading</code>
+     *          method
      */
     protected abstract void doReading( InputStream dataIn ) throws IOException;
 
     /**
-     * Waits until the <tt>doReading</tt> method has finished reading
+     * Waits until the <code>doReading</code> method has finished reading
      * the bytes written down the output stream, closes the input stream,
      * and returns.
      * Any IOException which has occurred during the read will be thrown

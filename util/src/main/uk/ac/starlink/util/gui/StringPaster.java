@@ -47,7 +47,7 @@ public abstract class StringPaster extends MouseAdapter {
      * middle mouse button.
      *
      * @param  evt  mouse event
-     * @return  true iff <tt>evt</tt> counts as a paste gesture
+     * @return  true iff <code>evt</code> counts as a paste gesture
      */
     protected boolean isPasteEvent( MouseEvent evt ) {
         return SwingUtilities.isMiddleMouseButton( evt )
