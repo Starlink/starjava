@@ -486,34 +486,34 @@ public abstract class JELRowReader extends DVMap {
         /* See if it corresponds to a special value. */
         int ispecial = getSpecialIndex( name );
         if ( ispecial >= 0 ) {
-            return new Integer( -1 - ispecial );
+            return Integer.valueOf( -1 - ispecial );
         }
 
         /* See if it corresponds to a null column indicator. */
         int inul = getNullColumnIndex( name );
         if ( inul >= 0 ) {
-            translatedIcols_.add( new Integer( inul ) );
-            return new Long( inul );
+            translatedIcols_.add( Integer.valueOf( inul ) );
+            return Long.valueOf( inul );
         }
 
         /* See if it corresponds to a column. */
         int icol = getColumnIndex( name );
         if ( icol >= 0 ) {
-            translatedIcols_.add( new Integer( icol ) );
-            return new Integer( icol );
+            translatedIcols_.add( Integer.valueOf( icol ) );
+            return Integer.valueOf( icol );
         }
 
         /* See if it corresponds to an object-valued column. */
         int iobj = getObjectColumnIndex( name );
         if ( iobj >= 0 ) {
-            translatedIcols_.add( new Integer( iobj ) );
-            return new Integer( iobj );
+            translatedIcols_.add( Integer.valueOf( iobj ) );
+            return Integer.valueOf( iobj );
         }
 
         /* See if it corresponds to a constant value. */
         int iconst = getConstantIndex( name );
         if ( iconst >= 0 ) {
-            return new Integer( -1 - iconst );
+            return Integer.valueOf( -1 - iconst );
         }
 
         /* It is an error if the column name doesn't exist, since the

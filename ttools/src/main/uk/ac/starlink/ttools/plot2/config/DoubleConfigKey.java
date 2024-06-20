@@ -24,7 +24,7 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
      * @param   dflt  default value
      */
     protected DoubleConfigKey( ConfigMeta meta, double dflt ) {
-        super( meta, Double.class, new Double( dflt ) );
+        super( meta, Double.class, Double.valueOf( dflt ) );
         if ( meta.getStringUsage() == null ) {
             meta.setStringUsage( "<number>" );
         }
@@ -60,7 +60,8 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
         return new DoubleConfigKey( meta, dflt ) {
             public Specifier<Double> createSpecifier() {
                 return new TextFieldSpecifier<Double>
-                                             ( this, new Double( Double.NaN ) );
+                                             ( this,
+                                               Double.valueOf( Double.NaN ) );
             }
         };
     }
@@ -161,7 +162,7 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
     public static double stringToDouble( String txt, ConfigKey<?> key )
             throws ConfigException {
         if ( txt == null || txt.trim().length() == 0 ) {
-            return new Double( Double.NaN );
+            return Double.valueOf( Double.NaN );
         }
         else {
             try {
@@ -191,8 +192,8 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
          */
         ToggleSpecifier( double fval, double tval ) {
             super( false );
-            fVal_ = new Double( fval );
-            tVal_ = new Double( tval );
+            fVal_ = Double.valueOf( fval );
+            tVal_ = Double.valueOf( tval );
             checkBox_ = new JCheckBox();
         }
 
@@ -207,7 +208,7 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
 
         public void setSpecifiedValue( Double value ) {
             if ( value == null ) {
-                value = new Double( Double.NaN );
+                value = Double.valueOf( Double.NaN );
             }
             if ( value.equals( fVal_ ) ) {
                 checkBox_.setSelected( false );

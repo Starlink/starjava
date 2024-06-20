@@ -555,7 +555,7 @@ public class BlockUploader {
             return id.longValue();
         }
         public Integer rowIndexToId( long index ) {
-            return new Integer( toInt( index ) );
+            return Integer.valueOf( toInt( index ) );
         }
 
         /**
@@ -585,7 +585,7 @@ public class BlockUploader {
             return id.longValue();
         }
         public Long rowIndexToId( long index ) {
-            return new Long( index );
+            return Long.valueOf( index );
         }
     }
 

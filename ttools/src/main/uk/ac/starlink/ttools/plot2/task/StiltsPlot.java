@@ -180,8 +180,8 @@ public class StiltsPlot {
         /* Global settings for the task. */
         List<Setting> taskSettings = new ArrayList<Setting>();
         if ( extSize != null ) {
-            Integer xp = new Integer( extSize.width );
-            Integer yp = new Integer( extSize.height );
+            Integer xp = Integer.valueOf( extSize.width );
+            Integer yp = Integer.valueOf( extSize.height );
             taskSettings.add( createParamSetting( task.getXpixParameter(),
                                                   xp ) );
             taskSettings.add( createParamSetting( task.getYpixParameter(),

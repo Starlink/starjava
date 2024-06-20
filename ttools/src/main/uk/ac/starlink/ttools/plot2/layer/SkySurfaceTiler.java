@@ -84,7 +84,7 @@ public class SkySurfaceTiler {
      * @return   true iff tile may be visible
      */
     public boolean isVisible( long hpxIndex ) {
-        return visiblePixels_.contains( new Long( hpxIndex ) );
+        return visiblePixels_.contains( Long.valueOf( hpxIndex ) );
     }
 
     /**
@@ -271,7 +271,7 @@ public class SkySurfaceTiler {
                     }
                     public Long next() {
                         if ( hasNext() ) {
-                            return new Long( lx_++ );
+                            return Long.valueOf( lx_++ );
                         }
                         else {
                             throw new NoSuchElementException();

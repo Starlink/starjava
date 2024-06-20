@@ -805,8 +805,8 @@ public class TapSchemaStage extends TableMetadataStage {
            extends TapSchemaInterrogator {
         private final Reporter reporter_;
         private final TapRunner tapRunner_;
-        private static Integer BOOL_TRUE = new Integer( 1 );
-        private static Integer BOOL_FALSE = new Integer( 0 );
+        private static Integer BOOL_TRUE = Integer.valueOf( 1 );
+        private static Integer BOOL_FALSE = Integer.valueOf( 0 );
 
         /**
          * Constructor.

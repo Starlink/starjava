@@ -28,7 +28,7 @@ public class ThicknessComboBox extends RenderingComboBox<Integer> {
     public ThicknessComboBox( int maxThick ) {
         Integer[] numbers = new Integer[ maxThick ];
         for ( int i = 0; i < maxThick; i++ ) {
-            numbers[ i ] = new Integer( i + 1 );
+            numbers[ i ] = Integer.valueOf( i + 1 );
         }
         setModel( new DefaultComboBoxModel<Integer>( numbers ) );
     }

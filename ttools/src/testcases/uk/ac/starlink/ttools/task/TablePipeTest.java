@@ -69,9 +69,9 @@ public class TablePipeTest extends TableTestCase {
     }
 
     public void testBox() {
-        Object[] a1 = new Double[] { new Double( Math.E ), };
+        Object[] a1 = new Double[] { Double.valueOf( Math.E ), };
         Object[] a2 = box( new double[] { Math.E, } );
-        assertArrayEquals( new Object[] { new Double( Math.E ) },
+        assertArrayEquals( new Object[] { Double.valueOf( Math.E ) },
                            box( new double[] { Math.E } ) );
     }
 
@@ -127,20 +127,20 @@ public class TablePipeTest extends TableTestCase {
         assertEquals( "parsec", sizeInfo.getUnitString() );
         assertEquals( Float.class, sizeInfo.getContentClass() );
 
-        assertEquals( new Float( 99f ),
+        assertEquals( Float.valueOf( 99f ),
                       process( withSize, "keepcols ucd$PHYS_SIZE" )
                      .getCell( 1L, 0 ) );
-        assertEquals( new Float( 99f ),
+        assertEquals( Float.valueOf( 99f ),
                       process( withSize, "keepcols ucd$PHYS_" )
                      .getCell( 1L, 0 ) );
 
         assertEquals(
-            new Double( 100 ),
+            Double.valueOf( 100 ),
             process( withSize,
                      "addcol sizzle ucd$PHYS_SIZE+1.; keepcols sizzle" )
                      .getCell( 2L, 0 ) );
         assertEquals(
-            new Double( 100 ),
+            Double.valueOf( 100 ),
             process( withSize,
                      "addcol sizzle ucd$PHYS_+1.; keepcols sizzle" )
                      .getCell( 2L, 0 ) );
@@ -240,18 +240,18 @@ public class TablePipeTest extends TableTestCase {
     }
 
     public void testBadval() throws Exception {
-        assertArrayEquals( new Object[] { new Integer( 1 ),
-                                          new Integer( 2 ),
+        assertArrayEquals( new Object[] { Integer.valueOf( 1 ),
+                                          Integer.valueOf( 2 ),
                                           null,
-                                          new Integer( 4 ) },
+                                          Integer.valueOf( 4 ) },
                            getColData( apply( "badval 3 *" ), 0 ) );
 
         assertArrayEquals( new Object[] { "Mark", null, "Taylor", null },
                            getColData( apply( "badval Beauchamp d" ), 3 ) );
 
         assertArrayEquals(
-            new Object[] { new Float( 1f ), new Float( 2f ),
-                           null, new Float( Float.NaN ), },
+            new Object[] { Float.valueOf( 1f ), Float.valueOf( 2f ),
+                           null, Float.valueOf( Float.NaN ), },
             getColData( apply( "addcol e (float)b/10; badval 3 *" ), 4 ) );
     }
 
@@ -453,9 +453,11 @@ public class TablePipeTest extends TableTestCase {
             assertEquals( "NESTED", hdr1.getStringValue( "ORDERING" ) );
             assertEquals( "G", hdr1.getStringValue( "COORDSYS" ) );
             assertEquals( "IMPLICIT", hdr1.getStringValue( "INDXSCHM" ) );
-            assertEquals( new Integer( 1 ), hdr1.getIntValue( "NSIDE" ) );
-            assertEquals( new Integer( 0 ), hdr1.getIntValue( "FIRSTPIX" ) );
-            assertEquals( new Integer( 11 ), hdr1.getIntValue( "LASTPIX" ) );
+            assertEquals( Integer.valueOf( 1 ), hdr1.getIntValue( "NSIDE" ) );
+            assertEquals( Integer.valueOf( 0 ),
+                          hdr1.getIntValue( "FIRSTPIX" ) );
+            assertEquals( Integer.valueOf( 11 ),
+                          hdr1.getIntValue( "LASTPIX" ) );
             assertEquals( null, hdr1.getIntValue( "OBS_NPIX" ) );
         }
         StarTable p2 = process( p1, "healpixmeta -csys c -column hpx0" );
@@ -467,8 +469,9 @@ public class TablePipeTest extends TableTestCase {
             assertEquals( "NESTED", hdr2.getStringValue( "ORDERING" ) );
             assertEquals( "C", hdr2.getStringValue( "COORDSYS" ) );
             assertEquals( "EXPLICIT", hdr2.getStringValue( "INDXSCHM" ) );
-            assertEquals( new Integer( 1 ), hdr2.getIntValue( "NSIDE" ) );
-            assertEquals( new Integer( 12 ), hdr2.getIntValue( "OBS_NPIX" ) );
+            assertEquals( Integer.valueOf( 1 ), hdr2.getIntValue( "NSIDE" ) );
+            assertEquals( Integer.valueOf( 12 ),
+                          hdr2.getIntValue( "OBS_NPIX" ) );
             assertEquals( null, hdr2.getIntValue( "FIRSTPIX" ) );
         }
         StarTable p3 = process( pixTable,
@@ -477,15 +480,16 @@ public class TablePipeTest extends TableTestCase {
         {
             FitsHeader hdr3 =
                 getFitsHeaders( p3, new HealpixFitsTableWriter() );
-            assertEquals( new Integer( 2 ), hdr3.getIntValue( "TFIELDS" ) );
+            assertEquals( Integer.valueOf( 2 ), hdr3.getIntValue( "TFIELDS" ) );
             assertEquals( "PIXEL", hdr3.getStringValue( "TTYPE1" ) );
             assertEquals( "VALUE", hdr3.getStringValue( "TTYPE2" ) );
             assertEquals( "HEALPIX", hdr3.getStringValue( "PIXTYPE" ) );
             assertEquals( "RING", hdr3.getStringValue( "ORDERING" ) );
             assertEquals( null, hdr3.getStringValue( "COORDSYS" ) );
             assertEquals( "EXPLICIT", hdr3.getStringValue( "INDXSCHM" ) );
-            assertEquals( new Integer( 1 ), hdr3.getIntValue( "NSIDE" ) );
-            assertEquals( new Integer( 12 ), hdr3.getIntValue( "OBS_NPIX" ) );
+            assertEquals( Integer.valueOf( 1 ), hdr3.getIntValue( "NSIDE" ) );
+            assertEquals( Integer.valueOf( 12 ),
+                          hdr3.getIntValue( "OBS_NPIX" ) );
             assertEquals( null, hdr3.getIntValue( "FIRSTPIX" ) );
         }
     }
@@ -538,13 +542,13 @@ public class TablePipeTest extends TableTestCase {
                             + "addcol xx 21" );
         t1.setParameter( new DescribedValue(
                              new DefaultValueInfo( "d e f", Integer.class ),
-                             new Integer( 2112 ) ) );
+                             Integer.valueOf( 2112 ) ) );
         StarTable t2 = process( t1, "fixcolnames" );
         int ncol0 = inTable_.getColumnCount();
         assertEquals( "a_b_c", getColNames( t2 )[ ncol0 ] );
         assertEquals( "XX", getColNames( t2 )[ ncol0 + 1 ] );
         assertEquals( "xx_1", getColNames( t2 )[ ncol0 + 2 ] );
-        assertEquals( new Integer( 2112 ),
+        assertEquals( Integer.valueOf( 2112 ),
                       t2.getParameterByName( "d_e_f" ).getValue() );
     }
 
@@ -638,42 +642,42 @@ public class TablePipeTest extends TableTestCase {
         assertEquals( "salt+vinegar", dval.getValue() );
 
         assertEquals(
-            new Long( 23 ),
+            Long.valueOf( 23 ),
             apply( "setparam -type long x 20; setparam y 3+param$x" )
            .getParameterByName( "y" ).getValue() );
 
         assertEquals(
-            new Double( 3.1 ),
+            Double.valueOf( 3.1 ),
             apply( "setparam x 3.1" ).getParameterByName( "x" ).getValue() );
         assertEquals(
-            new Integer( 19 ),
+            Integer.valueOf( 19 ),
             apply( "setparam x 19" ).getParameterByName( "x" ).getValue() );
         assertEquals(
             Boolean.FALSE,
             apply( "setparam x false" ).getParameterByName( "x" ).getValue() );
 
         assertEquals(
-            new Double( 1.0 ),
+            Double.valueOf( 1.0 ),
             apply( "setparam -type double x cos(0)" ).getParameterByName( "x" )
                                                      .getValue() );
         assertEquals(
-            new Float( 3.0f ),
+            Float.valueOf( 3.0f ),
             apply( "setparam -type float x 3" ).getParameterByName( "x" )
                                                .getValue() );
         assertEquals(
-            new Long( 3L ),
+            Long.valueOf( 3L ),
             apply( "setparam -type long x 3" ).getParameterByName( "x" )
                                               .getValue() );
         assertEquals(
-            new Integer( 3 ),
+            Integer.valueOf( 3 ),
             apply( "setparam -type int x 1+1+1" ).getParameterByName( "x" )
                                              .getValue() );
         assertEquals(
-            new Short( (short) 3 ),
+            Short.valueOf( (short) 3 ),
             apply( "setparam -type short x 3" ).getParameterByName( "x" )
                                                .getValue() );
         assertEquals(
-            new Byte( (byte) 3 ),
+            Byte.valueOf( (byte) 3 ),
             apply( "setparam -type byte x 3" ).getParameterByName( "x" )
                                               .getValue() );
         assertEquals(
@@ -947,21 +951,23 @@ public class TablePipeTest extends TableTestCase {
             new long[] { 0L, 1L, 0L, 1L },
             unbox( getColData( apply( "stats nbad" ), 0 ) ) );
         assertArrayEquals(
-            new Object[] { new Integer( 1 ), new Double( 10. ),
+            new Object[] { Integer.valueOf( 1 ), Double.valueOf( 10. ),
                            null, "Beauchamp", },
             getColData( apply( "stats minimum" ), 0 ) );
         assertArrayEquals(
-            new Object[] { new Integer( 4 ), new Double( 30. ),
+            new Object[] { Integer.valueOf( 4 ), Double.valueOf( 30. ),
                            null, "Taylor", },
             getColData( apply( "stats maximum" ), 0 ) );
         assertArrayEquals(
             new double[] { 10., 60., 2., Double.NaN, },
             unbox( getColData( apply( "stats sum" ), 0 ) ) );
         assertArrayEquals(
-            new Object[] { new Long( 1 ), new Long( 1 ), null, new Long( 2 ), },
+            new Object[] { Long.valueOf( 1 ), Long.valueOf( 1 ), null,
+                           Long.valueOf( 2 ), },
             getColData( apply( "stats minpos" ), 0 ) );
         assertArrayEquals(
-            new Object[] { new Long( 4 ), new Long( 3 ), null, new Long( 3 ), },
+            new Object[] { Long.valueOf( 4 ), Long.valueOf( 3 ), null,
+                           Long.valueOf( 3 ), },
             getColData( apply( "stats maxpos" ), 0 ) );
         assertArrayEquals(
             new int[] { 4, 3, 2, 3 },
@@ -993,13 +999,13 @@ public class TablePipeTest extends TableTestCase {
                                      100.0, 70.0, 50, 50,
                                      Double.NaN, Double.NaN } ),
         } );
-        assertEquals( new Float( 5 ),
+        assertEquals( Float.valueOf( 5 ),
                       process( t1, "stats median" ).getCell( 0, 0 ) );
-        assertEquals( new Float( 2 ),
+        assertEquals( Float.valueOf( 2 ),
                       process( t1, "stats q.2" ).getCell( 0, 0 ) );
-        assertEquals( new Float( 1 ),
+        assertEquals( Float.valueOf( 1 ),
                       process( t1, "stats q.1" ).getCell( 0, 0 ) );
-        assertEquals( new Float( 50 ),
+        assertEquals( Float.valueOf( 50 ),
                       process( t1, "stats median" ).getCell( 1, 0 ) );
         assertEquals( 70., ((Number) process( t1, "stats q.8333333" )
                                     .getCell( 1, 0 ) ).doubleValue(),

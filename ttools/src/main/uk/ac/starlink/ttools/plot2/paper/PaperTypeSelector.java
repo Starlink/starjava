@@ -129,7 +129,7 @@ public abstract class PaperTypeSelector {
             if ( color == null ) {
                 return null;
             }
-            rgbSet.add( new Integer( color.getRGB() & 0x00ffffff ) );
+            rgbSet.add( Integer.valueOf( color.getRGB() & 0x00ffffff ) );
         }
         return rgbSet.size() == 1
              ? new Color( rgbSet.iterator().next().intValue() )

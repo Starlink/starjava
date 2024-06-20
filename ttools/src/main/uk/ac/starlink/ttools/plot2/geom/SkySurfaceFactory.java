@@ -311,9 +311,10 @@ public class SkySurfaceFactory
             SkySurface ssurf = (SkySurface) surf;
             SkyFov fov = ssurf.getProjection().getFov( ssurf );
             if ( fov != null ) {
-                config.put( LON_KEY, new Double( fov.getLonDeg() ) );
-                config.put( LAT_KEY, new Double( fov.getLatDeg() ) );
-                config.put( FOV_RADIUS_KEY, new Double( fov.getRadiusDeg() ) );
+                config.put( LON_KEY, Double.valueOf( fov.getLonDeg() ) );
+                config.put( LAT_KEY, Double.valueOf( fov.getLatDeg() ) );
+                config.put( FOV_RADIUS_KEY,
+                            Double.valueOf( fov.getRadiusDeg() ) );
             }
         }
         return config;

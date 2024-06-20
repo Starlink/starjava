@@ -162,7 +162,7 @@ public class CdsHealpixUtil {
                         return fhit.hasNext();
                     }
                     public Long next() {
-                        return new Long( fhit.next() );
+                        return Long.valueOf( fhit.next() );
                     }
                     public void remove() {
                         throw new UnsupportedOperationException();

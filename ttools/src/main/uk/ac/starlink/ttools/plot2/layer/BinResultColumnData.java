@@ -61,32 +61,32 @@ public class BinResultColumnData<T> extends ColumnData {
         if ( Byte.class.equals( clazz ) ) {
             return new BinResultColumnData<Byte>(
                            info, binResult, binFactor,
-                           dval -> new Byte( (byte) dval ) );
+                           dval -> Byte.valueOf( (byte) dval ) );
         }
         else if ( Short.class.equals( clazz ) ) {
             return new BinResultColumnData<Short>(
                            info, binResult, binFactor,
-                           dval -> new Short( (short) dval ) );
+                           dval -> Short.valueOf( (short) dval ) );
         }
         else if ( Integer.class.equals( clazz ) ) {
             return new BinResultColumnData<Integer>(
                            info, binResult, binFactor,
-                           dval -> new Integer( (int) dval ) );
+                           dval -> Integer.valueOf( (int) dval ) );
         }
         else if ( Long.class.equals( clazz ) ) {
             return new BinResultColumnData<Long>(
                            info, binResult, binFactor,
-                           dval -> new Long( (long) dval ) );
+                           dval -> Long.valueOf( (long) dval ) );
         }
         else if ( Float.class.equals( clazz ) ) {
             return new BinResultColumnData<Float>(
                            info, binResult, binFactor,
-                           dval -> new Float( (float) dval ) );
+                           dval -> Float.valueOf( (float) dval ) );
         }
         else if ( Double.class.equals( clazz ) ) {
             return new BinResultColumnData<Double>(
                            info, binResult, binFactor,
-                           dval -> new Double( dval ) );
+                           dval -> Double.valueOf( dval ) );
         }
         else {
             logger_.warning( "Surprising data type: " + clazz + "; "

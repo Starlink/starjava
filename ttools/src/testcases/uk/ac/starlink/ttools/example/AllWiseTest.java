@@ -43,6 +43,6 @@ public class AllWiseTest extends TestCase {
         assertEquals( "J2000 right ascension", raInfo.getDescription() );
         assertEquals( "htm20", htmInfo.getName() );
         assertEquals( "J131609.66-741424.8", table.getCell( 0, 0 ) );
-        assertEquals( new Long( 9111974345772L ), table.getCell( 9, 297 ) );
+        assertEquals( Long.valueOf( 9111974345772L ), table.getCell( 9, 297 ) );
     }
 }

@@ -318,11 +318,11 @@ public class EllipseMatchTest extends TableTestCase {
         }
         Object[] toRow( Ellipse ellipse ) {
             return new Object[] {
-                new Double( ellipse.x_ + xoff_ ),
-                new Double( ellipse.y_ + yoff_ ),
-                new Double( ellipse.a_ ),
-                new Double( ellipse.b_ ),
-                new Double( ellipse.psi_ )
+                Double.valueOf( ellipse.x_ + xoff_ ),
+                Double.valueOf( ellipse.y_ + yoff_ ),
+                Double.valueOf( ellipse.a_ ),
+                Double.valueOf( ellipse.b_ ),
+                Double.valueOf( ellipse.psi_ )
             };
         }
     }
@@ -348,9 +348,10 @@ public class EllipseMatchTest extends TableTestCase {
             double delta1 = centreRot[ 1 ];
             double zeta1 = posAng( centreRot, paRot );
             return new Object[] {
-                new Double( alpha1 / DEGREE ), new Double( delta1 / DEGREE ),
-                new Double( mu / ARCSEC ), new Double( nu / ARCSEC ),
-                new Double( zeta1 / DEGREE )
+                Double.valueOf( alpha1 / DEGREE ),
+                Double.valueOf( delta1 / DEGREE ),
+                Double.valueOf( mu / ARCSEC ), Double.valueOf( nu / ARCSEC ),
+                Double.valueOf( zeta1 / DEGREE )
             };
         }
         private double[] rotate( double alpha, double delta ) {

@@ -272,7 +272,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
                 logger_.warning( "Bad value \"" + maxStr
                                + "\" for " + MAXPAR_PROP );
             }
-            maxpar_ = new Integer( max );
+            maxpar_ = Integer.valueOf( max );
             if ( max != DEFAULT_MAXPAR ) {
                 String msg = "Resetting " + MAXPAR_PROP + " "
                            + DEFAULT_MAXPAR + " -> " + max;

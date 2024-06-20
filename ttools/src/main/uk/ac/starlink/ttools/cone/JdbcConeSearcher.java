@@ -221,8 +221,8 @@ public class JdbcConeSearcher implements ConeSearcher {
                     /* If necessary, prepare additional column values
                      * containing position in degrees. */
                     if ( addDegCols ) {
-                        calcValues[ icol++ ] = new Double( raDeg );
-                        calcValues[ icol++ ] = new Double( decDeg );
+                        calcValues[ icol++ ] = Double.valueOf( raDeg );
+                        calcValues[ icol++ ] = Double.valueOf( decDeg );
                     }
 
                     /* If using tiles, do an assertion test on the value of

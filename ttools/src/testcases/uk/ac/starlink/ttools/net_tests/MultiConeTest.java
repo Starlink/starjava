@@ -174,7 +174,7 @@ public class MultiConeTest extends TableTestCase {
         Map ucdMap = new HashMap();
         for ( int icol = 0; icol < result.getColumnCount(); icol++ ) {
             ucdMap.put( result.getColumnInfo( icol ).getUCD(),
-                        new Integer( icol ) );
+                        Integer.valueOf( icol ) );
         }
         assertTrue( ucdMap.containsKey( "POS_EQ_RA_MAIN" ) );
         assertTrue( ucdMap.containsKey( "VOX:Image_AccessReference" ) );
@@ -205,8 +205,8 @@ public class MultiConeTest extends TableTestCase {
             ResolverInfo rinfo = ResolverInfo.resolve( target );
             double ra = rinfo.getRaDegrees();
             double dec = rinfo.getDecDegrees();
-            table.addRow( new Object[] { target, new Double( ra ),
-                                                 new Double( dec ), } );
+            table.addRow( new Object[] { target, Double.valueOf( ra ),
+                                                 Double.valueOf( dec ), } );
         }
   
         MapEnvironment env = new MapEnvironment()
@@ -225,8 +225,8 @@ public class MultiConeTest extends TableTestCase {
         Map utypeMap = new HashMap();
         for ( int icol = 0; icol < result.getColumnCount(); icol++ ) {
             ColumnInfo colInfo = result.getColumnInfo( icol );
-            ucdMap.put( colInfo.getUCD(), new Integer( icol ) );
-            utypeMap.put( colInfo.getUtype(), new Integer( icol ) );
+            ucdMap.put( colInfo.getUCD(), Integer.valueOf( icol ) );
+            utypeMap.put( colInfo.getUtype(), Integer.valueOf( icol ) );
         }
         assertTrue( ucdMap.containsKey( "pos.angDistance" ) );
         int isepCol = ((Integer) ucdMap.get( "pos.angDistance" )).intValue();

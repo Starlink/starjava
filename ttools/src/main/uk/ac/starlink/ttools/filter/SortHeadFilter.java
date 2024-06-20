@@ -230,7 +230,7 @@ public class SortHeadFilter extends BasicFilter {
                                            .initCause( e );
                     }
                 }
-                keyVals_[ nkey1_ - 1 ] = new Long( jelly.getCurrentRow() );
+                keyVals_[ nkey1_ - 1 ] = Long.valueOf( jelly.getCurrentRow() );
             }
 
             public int compareTo( SortKey other ) {

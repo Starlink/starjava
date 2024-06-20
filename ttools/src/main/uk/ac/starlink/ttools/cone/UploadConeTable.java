@@ -70,8 +70,8 @@ public class UploadConeTable extends AbstractStarTable {
                 row_ = hasNext
                      ? new Object[] {
                            rowMapper_.rowIndexToId( coneSeq.getIndex() ),
-                           new Double( coneSeq.getRa() ),
-                           new Double( coneSeq.getDec() ),
+                           Double.valueOf( coneSeq.getRa() ),
+                           Double.valueOf( coneSeq.getDec() ),
                        }
                      : null;
                 assert ! hasNext || isRowCompatible( row_, colInfos_ );

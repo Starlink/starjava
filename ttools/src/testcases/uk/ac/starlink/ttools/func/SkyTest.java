@@ -212,7 +212,7 @@ public class SkyTest extends TableTestCase {
         RowListStarTable table = new RowListStarTable( infos );
         for ( TestShape shape : shapes ) {
             table.addRow( new Object[] {
-                new Integer( shape.hpxLevel_ ),
+                Integer.valueOf( shape.hpxLevel_ ),
                 shape.lonLats_,
                 shape.queryIndices(),
             } );
@@ -262,7 +262,7 @@ public class SkyTest extends TableTestCase {
             MapEnvironment env = new MapEnvironment()
                .setValue( "tapurl", "http://dc.g-vo.org/tap" )
                .setValue( "sync", Boolean.TRUE )
-               .setValue( "nupload", new Integer( 1 ) )
+               .setValue( "nupload", Integer.valueOf( 1 ) )
                .setValue( "upload1", pixTable )
                .setValue( "ucmd1",
                           "addcol ra healpixNestLon(" + hpxLevel_ + ","

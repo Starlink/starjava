@@ -73,7 +73,7 @@ public class PictureImageIcon implements Icon {
      */
     public PictureImageIcon( Picture picture, boolean caching,
                              int transparency ) {
-        this( picture, caching, new Integer( transparency ) );
+        this( picture, caching, Integer.valueOf( transparency ) );
     }
 
     /**

@@ -498,9 +498,9 @@ public class CubeSurface implements Surface {
                                          CubeSurfaceFactory.ZMAX_KEY,
                                          zlo, zhi, npix ) );
         }
-        config.put( CubeSurfaceFactory.ZOOM_KEY, new Double( zoom_ ) );
-        config.put( CubeSurfaceFactory.XOFF_KEY, new Double( xoff_ ) );
-        config.put( CubeSurfaceFactory.YOFF_KEY, new Double( yoff_ ) );
+        config.put( CubeSurfaceFactory.ZOOM_KEY, Double.valueOf( zoom_ ) );
+        config.put( CubeSurfaceFactory.XOFF_KEY, Double.valueOf( xoff_ ) );
+        config.put( CubeSurfaceFactory.YOFF_KEY, Double.valueOf( yoff_ ) );
         double[] eulers = CubeSurfaceFactory.rotationToEulerDegrees( rotmat_ );
         double degEpsilon = 0.01;
         config.put( CubeSurfaceFactory.PHI_KEY,

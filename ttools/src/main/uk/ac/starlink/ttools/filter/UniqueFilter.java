@@ -146,7 +146,7 @@ public class UniqueFilter extends BasicFilter {
                     System.arraycopy( nextRow_, 0,
                                       lastRow_, ( doCount_ ? 1 : 0 ), ncol );
                     if ( doCount_ ) {
-                        lastRow_[ 0 ] = new Integer( dupCount );
+                        lastRow_[ 0 ] = Integer.valueOf( dupCount );
                     }
                     nextRow_ = same ? null : row.clone();
                     return true;

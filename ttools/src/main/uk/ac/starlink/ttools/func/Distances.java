@@ -350,7 +350,7 @@ public class Distances {
      * @param   omegaLambda  second value
      */
     private static List<Double> createKey( double omegaM, double omegaLambda ) {
-        return Arrays.asList( new Double[] { new Double( omegaM ),
-                                             new Double( omegaLambda ), } );
+        return Arrays.asList( new Double[] { Double.valueOf( omegaM ),
+                                             Double.valueOf( omegaLambda ), } );
     }
 }

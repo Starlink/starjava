@@ -202,7 +202,7 @@ public class GeojsonTableBuilder implements TableBuilder {
                         return value;
                     }
                     else if ( value instanceof Number ) {
-                        return new Double( ((Number) value).doubleValue() );
+                        return Double.valueOf( ((Number) value).doubleValue() );
                     }
                     else {
                         return null;

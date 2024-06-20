@@ -331,7 +331,7 @@ public class MarkStyleSelectors {
     public static ComboBoxModel<Integer> createNumberedModel( int count ) {
         Integer[] items = new Integer[ count ];
         for ( int i = 0; i < count; i++ ) {
-            items[ i ] = new Integer( i );
+            items[ i ] = Integer.valueOf( i );
         }
         return new DefaultComboBoxModel<Integer>( items );
     }

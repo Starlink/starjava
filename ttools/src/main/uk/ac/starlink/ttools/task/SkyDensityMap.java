@@ -468,7 +468,7 @@ public class SkyDensityMap extends SingleMapperTask {
             info.setContentClass( Integer.class );
             return new ColumnData( info ) {
                 public Object readValue( long irow ) {
-                    return new Integer( (int) irow );
+                    return Integer.valueOf( (int) irow );
                 }
             };
         }
@@ -476,7 +476,7 @@ public class SkyDensityMap extends SingleMapperTask {
             info.setContentClass( Long.class );
             return new ColumnData( info ) {
                 public Object readValue( long irow ) {
-                    return new Long( irow );
+                    return Long.valueOf( irow );
                 }
             };
         }

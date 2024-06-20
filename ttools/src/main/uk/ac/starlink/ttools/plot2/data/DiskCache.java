@@ -84,7 +84,7 @@ public class DiskCache {
      * @param  f  file added
      */
     public void fileAdded( File f ) {
-        createdFiles_.put( f, new Long( f.length() ) );
+        createdFiles_.put( f, Long.valueOf( f.length() ) );
     }
 
     /**
@@ -310,7 +310,7 @@ public class DiskCache {
         int dotIx = name.lastIndexOf( '.' );
         String workId =
             "W-" +
-            String.format( "%08x", new Integer( (int) System.nanoTime() ) );
+            String.format( "%08x", Integer.valueOf( (int) System.nanoTime() ) );
         String rename = dotIx >= 0 ? name.substring( 0, dotIx ) + "-" +
                                      workId + name.substring( dotIx )
                                    : workId + "-" + name;

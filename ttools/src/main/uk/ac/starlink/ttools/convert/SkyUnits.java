@@ -152,8 +152,8 @@ public abstract class SkyUnits {
         }
         public Object[] encode( double c1, double c2 ) {
             return new Object[] {
-                new Double( c1 ),
-                new Double( c2 ),
+                Double.valueOf( c1 ),
+                Double.valueOf( c2 ),
             };
         }
     }
@@ -183,8 +183,8 @@ public abstract class SkyUnits {
         }
         public Object[] encode( double c1, double c2 ) {
             return new Object[] {
-                new Double( Math.toDegrees( c1 ) ),
-                new Double( Math.toDegrees( c2 ) ),
+                Double.valueOf( Math.toDegrees( c1 ) ),
+                Double.valueOf( Math.toDegrees( c2 ) ),
             };
         }
     }

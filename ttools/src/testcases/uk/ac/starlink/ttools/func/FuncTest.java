@@ -213,7 +213,7 @@ public class FuncTest extends TestCase {
                       Arrays.countTrue( new boolean[] { true, false, true } ) );
         assertEquals( 2, Lists.countTrue( true, false, true ) );
         assertEquals( 2, Arrays.count( new Object[] {
-                             Float.NaN, Double.NaN, new Integer( 23 ),
+                             Float.NaN, Double.NaN, Integer.valueOf( 23 ),
                              "abc", null, null
                          } ) );
 
@@ -697,9 +697,9 @@ public class FuncTest extends TestCase {
                       Strings.join( ", ", "one", "2", 3.0, 4L ) );
 
         assertEquals( "One2Three4.0Five999",
-                      Strings.concat( "One", new Integer( 2 ), "Three",
-                                      new Double( 4.0 ), "Five", null,
-                                      new Long( 999L ) ) );
+                      Strings.concat( "One", Integer.valueOf( 2 ), "Three",
+                                      Double.valueOf( 4.0 ), "Five", null,
+                                      Long.valueOf( 999L ) ) );
         assertEquals( "One2Three4.0Five999",
                       Strings.concat( "One", 2, "Three", 4.0, "Five",
                                       null, 999L ) );

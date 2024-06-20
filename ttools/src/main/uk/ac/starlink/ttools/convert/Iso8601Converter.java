@@ -86,7 +86,7 @@ public abstract class Iso8601Converter implements ValueConverter {
         if ( in instanceof String ) {
             String isoDate = ((String) in).trim();
             if ( isoDate.length() > 0 ) {
-                return new Double( fromMjd( isoToMjd( isoDate ) ) );
+                return Double.valueOf( fromMjd( isoToMjd( isoDate ) ) );
             }
             else {
                 return null;

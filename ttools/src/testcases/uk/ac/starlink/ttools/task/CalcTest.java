@@ -56,7 +56,8 @@ public class CalcTest extends TestCase {
         DefaultValueInfo wibInfo =
             new DefaultValueInfo( "WIBBLENESS", Integer.class, "Who knows?" );
         wibInfo.setUCD( "meta.cryptic;arith.factor" );
-        table.setParameter( new DescribedValue( wibInfo, new Integer( 23 ) ) );
+        table.setParameter( new DescribedValue( wibInfo,
+                                                Integer.valueOf( 23 ) ) );
         assertEquals( "5", eval( "2+3", table ) );
         assertEquals( "46", eval( "param$wibbleness + param$wibbleness",
                                   table ) );

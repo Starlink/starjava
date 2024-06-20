@@ -1143,7 +1143,7 @@ public class MemoryColumnFactory implements CachedColumnFactory {
             data_ = data;
         }
         public Object getObjectValue( long ix ) {
-            return new Double( data_[ (int) ix ] );
+            return Double.valueOf( data_[ (int) ix ] );
         }
         public double getDoubleValue( long ix ) {
             return data_[ (int) ix ];
@@ -1174,7 +1174,7 @@ public class MemoryColumnFactory implements CachedColumnFactory {
             data_ = data;
         }
         public Object getObjectValue( long ix ) {
-            return new Float( data_[ (int) ix ] );
+            return Float.valueOf( data_[ (int) ix ] );
         }
         public double getDoubleValue( long ix ) {
             return (double) data_[ (int) ix ];

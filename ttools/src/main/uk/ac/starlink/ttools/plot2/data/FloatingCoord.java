@@ -54,7 +54,8 @@ public class FloatingCoord extends SingleCoord {
                            Domain<?> domain, boolean isDouble ) {
         super( meta, isRequired, domain,
                isDouble ? StorageType.DOUBLE : StorageType.FLOAT );
-        nan_ = isDouble ? new Double( Double.NaN ) : new Float( Float.NaN );
+        nan_ = isDouble ? Double.valueOf( Double.NaN )
+                        : Float.valueOf( Float.NaN );
     }
 
     public Function<Object[],Number> inputStorage( ValueInfo[] infos,
@@ -103,7 +104,7 @@ public class FloatingCoord extends SingleCoord {
      */
     public static FloatingCoord createTimeCoord( InputMeta meta,
                                                  boolean isRequired ) {
-        final Double nan = new Double( Double.NaN );
+        final Double nan = Double.valueOf( Double.NaN );
         return new FloatingCoord( meta, isRequired, TimeDomain.INSTANCE, true ){
             @Override
             public Function<Object[],Number>

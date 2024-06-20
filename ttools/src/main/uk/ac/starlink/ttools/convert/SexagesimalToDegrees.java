@@ -49,7 +49,7 @@ public class SexagesimalToDegrees implements ValueConverter {
             if ( sex.length() > 0 ) {
                 double deg = hours_ ? CoordsDegrees.hmsToDegrees( sex )
                                     : CoordsDegrees.dmsToDegrees( sex );
-                return new Double( deg );
+                return Double.valueOf( deg );
             }
             else {
                 return null;

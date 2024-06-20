@@ -393,39 +393,40 @@ public class StatsFilter extends BasicFilter {
             /* Add statistical quantities to the column's
              * info->values map. */
             Map<ValueInfo,Object> map = group.getMaps().get( icol );
-            map.put( NGOOD_INFO, new Long( count ) );
-            map.put( NBAD_INFO, new Long( tstats.getRowCount() - count ) );
-            map.put( SUM_INFO, new Double( sum1 ) );
+            map.put( NGOOD_INFO, Long.valueOf( count ) );
+            map.put( NBAD_INFO, Long.valueOf( tstats.getRowCount() - count ) );
+            map.put( SUM_INFO, Double.valueOf( sum1 ) );
             if ( isFinite( mean ) ) {
-                map.put( MEAN_INFO, new Float( (float) mean ) );
+                map.put( MEAN_INFO, Float.valueOf( (float) mean ) );
             }
             if ( isFinite( popvar ) ) {
-                map.put( POPSD_INFO, new Float( (float) Math.sqrt( popvar ) ) );
-                map.put( POPVAR_INFO, new Float( (float) popvar ) );
+                map.put( POPSD_INFO,
+                         Float.valueOf( (float) Math.sqrt( popvar ) ) );
+                map.put( POPVAR_INFO, Float.valueOf( (float) popvar ) );
             }
             if ( isFinite( sampvar ) ) {
                 map.put( SAMPSD_INFO,
-                         new Float( (float) Math.sqrt( sampvar ) ) );
-                map.put( SAMPVAR_INFO, new Float( (float) sampvar ) );
+                         Float.valueOf( (float) Math.sqrt( sampvar ) ) );
+                map.put( SAMPVAR_INFO, Float.valueOf( (float) sampvar ) );
             }
             if ( isFinite( skew ) ) {
-                map.put( SKEW_INFO, new Float( (float) skew ) );
+                map.put( SKEW_INFO, Float.valueOf( (float) skew ) );
             }
             if ( isFinite( kurtosis ) ) {
-                map.put( KURT_INFO, new Float( (float) kurtosis ) );
+                map.put( KURT_INFO, Float.valueOf( (float) kurtosis ) );
             }
             if ( min != null ) {
                 map.put( MIN_INFO, min );
-                map.put( MINPOS_INFO, new Long( stats.getMinPos() + 1 ) );
+                map.put( MINPOS_INFO, Long.valueOf( stats.getMinPos() + 1 ) );
             }
             if ( max != null ) {
                 map.put( MAX_INFO, max );
-                map.put( MAXPOS_INFO, new Long( stats.getMaxPos() + 1 ) );
+                map.put( MAXPOS_INFO, Long.valueOf( stats.getMaxPos() + 1 ) );
             }
             if ( doCard ) {
                 int ncard = stats.getCardinality();
                 if ( ncard > 0 ) {
-                    map.put( CARDINALITY_INFO, new Integer( ncard ) );
+                    map.put( CARDINALITY_INFO, Integer.valueOf( ncard ) );
                 }
             }
             Quantiler quantiler = stats.getQuantiler();

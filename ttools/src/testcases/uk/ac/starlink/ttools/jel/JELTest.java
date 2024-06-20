@@ -34,7 +34,7 @@ public class JELTest extends TableTestCase {
             col( "Name", new String[] { "Lupin", "Novena", "Delios", } ),
             col( "Level", new int[] { 6, 7, 8 } ),
             col( "Gold", new double[] { 17, 9.5, 15.25, } ),
-            new ConstantColumn( multInfo, new Integer( 1 ) ),
+            new ConstantColumn( multInfo, Integer.valueOf( 1 ) ),
         } );
         Tables.checkTable( t1 );
 
@@ -194,10 +194,10 @@ public class JELTest extends TableTestCase {
         CompiledExpression oExpr =
             JELUtils.compile( lib, t2, "tripleObj(Object$a)" );
  
-        assertEquals( new Integer( 3 ), rdr.evaluateAtRow( pExpr, 0 ) );
-        assertEquals( new Integer( 3 ), rdr.evaluateAtRow( oExpr, 0 ) );
+        assertEquals( Integer.valueOf( 3 ), rdr.evaluateAtRow( pExpr, 0 ) );
+        assertEquals( Integer.valueOf( 3 ), rdr.evaluateAtRow( oExpr, 0 ) );
         assertEquals( null, rdr.evaluateAtRow( pExpr, 1 ) );
-        assertEquals( new Integer( Integer.MIN_VALUE ),
+        assertEquals( Integer.valueOf( Integer.MIN_VALUE ),
                       rdr.evaluateAtRow( oExpr, 1 ) );
 
         CompiledExpression soExpr =

@@ -180,13 +180,13 @@ public class SkyDensityMapTest extends TestCase {
         t.addColumn( new ColumnData( new ColumnInfo( "ra", Double.class,
                                                      null ) ) {
             public Object readValue( long irow ) {
-                return new Double( Tilings.healpixNestLon( tLevel, irow ) );
+                return Double.valueOf( Tilings.healpixNestLon( tLevel, irow ) );
             }
         } );
         t.addColumn( new ColumnData( new ColumnInfo( "dec", Double.class,
                                                      null ) ) {
             public Object readValue( long irow ) {
-                return new Double( Tilings.healpixNestLat( tLevel, irow ) );
+                return Double.valueOf( Tilings.healpixNestLat( tLevel, irow ) );
             }
         } );
         t.addColumn( new ConstantColumn( new ColumnInfo( "c", Double.class,

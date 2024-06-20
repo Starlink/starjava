@@ -55,15 +55,15 @@ public class LinearConeSearcher implements ConeSearcher {
     public StarTable performSearch( double ra, double dec, double sr ) {
         List rowList = new ArrayList();
         for ( int i = 0; i < nIn_; i++ ) {
-            rowList.add( new Object[] { new Integer( i + 1 ),
-                                        new Double( ra ),
-                                        new Double( dec + sr * i / nIn_ ) } );
+            rowList.add( new Object[] { Integer.valueOf( i + 1 ),
+                                        Double.valueOf( ra ),
+                                        Double.valueOf( dec + sr * i / nIn_ )});
         }
         for ( int i = 0; i < nOut_; i++ ) {
-            rowList.add( new Object[] { new Integer( - i - 1 ),
-                                        new Double( ra ),
-                                        new Double( dec + sr * 1.01
-                                                        + sr * i / nOut_ ) } );
+            rowList.add( new Object[] { Integer.valueOf( - i - 1 ),
+                                        Double.valueOf( ra ),
+                                        Double.valueOf( dec + sr * 1.01
+                                                      + sr * i / nOut_ ) } );
         }
         Collections.shuffle( rowList, new Random( 11223344556677L ) );
 

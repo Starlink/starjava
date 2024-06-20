@@ -722,9 +722,9 @@ public class SkyDensityPlotter
                     int absLevel = splan.level_;
                     int relLevel = absLevel - splan.pixelLevel_;
                     double tileSize = Tilings.healpixSqdeg( absLevel );
-                    map.put( ABSLEVEL_REPKEY, new Integer( absLevel ) );
-                    map.put( RELLEVEL_REPKEY, new Integer( relLevel ) );
-                    map.put( TILESIZE_REPKEY, new Double( tileSize ) );
+                    map.put( ABSLEVEL_REPKEY, Integer.valueOf( absLevel ) );
+                    map.put( RELLEVEL_REPKEY, Integer.valueOf( relLevel ) );
+                    map.put( TILESIZE_REPKEY, Double.valueOf( tileSize ) );
                     map.put( HPXTABLE_REPKEY, createExportTable( splan ) );
                     map.put( CTYPE_REPKEY, splan.combiner_.getType() );
                 }
@@ -846,13 +846,13 @@ public class SkyDensityPlotter
             final Object ixObj;
 
             /* Careful: silent unboxing can do horrible things here.
-             * Evaluating "ixObj = isLong_ ? index : new Integer( (int) ix )"
+             * Evaluating "ixObj = isLong_ ? index : Integer.valueOf((int) ix)"
              * gives you a Long even when isLong_ false!! */
             if ( isLong_ ) {
                 ixObj = index;
             }
             else {
-                ixObj = new Integer( (int) ix );
+                ixObj = Integer.valueOf( (int) ix );
             }
 
             final Object dataObj;

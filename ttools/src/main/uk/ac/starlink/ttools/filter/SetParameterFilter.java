@@ -230,7 +230,7 @@ public class SetParameterFilter extends BasicFilter {
          * is likely to be less surprising. */
         if ( clazz == null &&
              ( value instanceof Short || value instanceof Byte ) ) {
-            return new Integer( ((Number) value).intValue() );
+            return Integer.valueOf( ((Number) value).intValue() );
         }
         else {
             return value;
