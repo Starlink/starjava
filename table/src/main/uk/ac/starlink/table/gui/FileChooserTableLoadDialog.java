@@ -25,7 +25,6 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 public class FileChooserTableLoadDialog extends AbstractTableLoadDialog {
 
     private JFileChooser chooser_;
-    private Boolean isAvailable_;
 
     /**
      * Constructor.
@@ -95,19 +94,6 @@ public class FileChooserTableLoadDialog extends AbstractTableLoadDialog {
     }
 
     public boolean isAvailable() {
-        if ( isAvailable_ == null ) {
-            try {
-                SecurityManager manager = System.getSecurityManager();
-                if ( manager != null ) {
-                    manager.checkRead( new JFileChooser()
-                                      .getCurrentDirectory().toString() );
-                }
-                isAvailable_ = Boolean.TRUE;
-            }
-            catch ( SecurityException e ) {
-                isAvailable_ = Boolean.FALSE;
-            }
-        }
-        return isAvailable_.booleanValue();
+        return true;
     }
 }
