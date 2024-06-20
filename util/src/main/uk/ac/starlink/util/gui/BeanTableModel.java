@@ -130,8 +130,8 @@ public class BeanTableModel extends AbstractTableModel {
                                 logger_.log( Level.WARNING, e2.getMessage(),
                                              e2 );
                             }
-                            v1 = new Integer( o1.hashCode() );
-                            v2 = new Integer( o2.hashCode() );
+                            v1 = Integer.valueOf( o1.hashCode() );
+                            v2 = Integer.valueOf( o2.hashCode() );
                         }
                         if ( v1 != null && v2 != null ) {
                             @SuppressWarnings("unchecked")

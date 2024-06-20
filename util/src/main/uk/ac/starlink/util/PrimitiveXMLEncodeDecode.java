@@ -231,7 +231,7 @@ public abstract class PrimitiveXMLEncodeDecode
      */
     public static String doubleToString( double value )
     {
-        return new Double( value ).toString();
+        return Double.toString( value );
     }
 
     /**
@@ -247,7 +247,7 @@ public abstract class PrimitiveXMLEncodeDecode
      */
     public static String booleanToString( boolean value )
     {
-        return new Boolean( value ).toString();
+        return Boolean.toString( value );
     }
 
     /**
@@ -255,7 +255,7 @@ public abstract class PrimitiveXMLEncodeDecode
      */
     public static boolean booleanFromString( String value )
     {
-        return new Boolean( value ).booleanValue();
+        return Boolean.parseBoolean( value );
     }
 
     /**
@@ -263,7 +263,7 @@ public abstract class PrimitiveXMLEncodeDecode
      */
     public static String intToString( int value )
     {
-        return new Integer( value ).toString();
+        return Integer.toString( value );
     }
 
     /**
@@ -279,7 +279,7 @@ public abstract class PrimitiveXMLEncodeDecode
      */
     public static String longToString( long value )
     {
-        return new Long( value ).toString();
+        return Long.toString( value );
     }
 
     /**

@@ -56,6 +56,6 @@ public class ValueWatcher {
      */
     public Long getUnused() {
         long value = loBound_ + used_.nextClearBit( 0 );
-        return value <= hiBound_ ? new Long( value ) : null;
+        return value <= hiBound_ ? Long.valueOf( value ) : null;
     }
 }
