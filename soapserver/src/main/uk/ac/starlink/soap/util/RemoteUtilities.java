@@ -125,7 +125,7 @@ public class RemoteUtilities
         //  contents.
         AsciiFileParser reader = new AsciiFileParser( contactFile );
         String host = reader.getStringField( 0, 0 );
-        Integer port = new Integer( reader.getIntegerField( 0, 1 ) );
+        Integer port = Integer.valueOf( reader.getIntegerField( 0, 1 ) );
         String cookie = reader.getStringField( 0, 2 );
 
         //  Construct the result.

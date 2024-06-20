@@ -740,7 +740,7 @@ class HdxNode
         /** Obtains the value of the composite hashcode */
         public int value() {
             // As good a way as any of getting an int from a long
-            return new Long(crc.getValue()).hashCode();
+            return Long.hashCode(crc.getValue());
         }
         /** Indicates whether some other object is "equal to" this one. */
         public boolean equals(Object o) {

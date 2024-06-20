@@ -17,7 +17,7 @@ public class GaiaTest extends TestCase {
              new File( System.getProperty( "user.home" ), ".gaia-cookie" )
                 .exists() ) {
             List resultList = new GaiaMd5( "expr 100 + 23" ).execute();
-            Object result = new Integer( 123 );
+            Object result = Integer.valueOf( 123 );
             System.out.println( resultList );
             for ( Iterator it = resultList.iterator(); it.hasNext(); ) {
                 assertEquals( result, it.next() );

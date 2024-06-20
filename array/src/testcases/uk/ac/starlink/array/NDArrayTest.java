@@ -255,7 +255,7 @@ public class NDArrayTest extends TestCase {
             Type type = (Type) Type.FLOAT;
             Requirements req = new Requirements( AccessMode.READ );
             BadHandler bh = 
-                BadHandler.getHandler( type, new Float( 23e23f ) );
+                BadHandler.getHandler( type, Float.valueOf( 23e23f ) );
 
             for ( Iterator wit = oshapeIterator( shape1 ); wit.hasNext(); ) {
                 OrderedNDShape oshape = (OrderedNDShape) wit.next();
@@ -321,7 +321,8 @@ public class NDArrayTest extends TestCase {
             BadHandler bh1 = nda1.getBadHandler();
             BadHandler bh2;
             if ( type == Type.FLOAT ) {
-                bh2 = BadHandler.getHandler( Type.FLOAT, new Float( 19e19 ) );
+                bh2 = BadHandler.getHandler( Type.FLOAT,
+                                             Float.valueOf( 19e19f ) );
             }
             else {
                 bh2 = bh1;

@@ -196,24 +196,24 @@ public class StatsValues {
             maxValue = null;
         }
         else if ( type == Type.BYTE ) {
-            minValue = new Byte( (byte) dmin );
-            maxValue = new Byte( (byte) dmax );
+            minValue = Byte.valueOf( (byte) dmin );
+            maxValue = Byte.valueOf( (byte) dmax );
         }
         else if ( type == Type.SHORT ) {
-            minValue = new Short( (short) dmin );
-            maxValue = new Short( (short) dmax );
+            minValue = Short.valueOf( (short) dmin );
+            maxValue = Short.valueOf( (short) dmax );
         }
         else if ( type == Type.INT ) {
-            minValue = new Integer( (int) dmin );
-            maxValue = new Integer( (int) dmax );
+            minValue = Integer.valueOf( (int) dmin );
+            maxValue = Integer.valueOf( (int) dmax );
         }
         else if ( type == Type.FLOAT ) {
-            minValue = new Float( (float) dmin );
-            maxValue = new Float( (float) dmax );
+            minValue = Float.valueOf( (float) dmin );
+            maxValue = Float.valueOf( (float) dmax );
         }
         else if ( type == Type.DOUBLE ) {
-            minValue = new Double( (double) dmin );
-            maxValue = new Double( (double) dmax );
+            minValue = Double.valueOf( (double) dmin );
+            maxValue = Double.valueOf( (double) dmax );
         }
         else {
             throw new AssertionError();

@@ -34,8 +34,8 @@ public class EcsvTest extends TestCase {
         checkRoundTripSerialize( table );
         assertEquals( 2, table.getRowCount() );
         assertEquals( 2, table.getColumnCount() );
-        assertEquals( new Double( 4.0 ), table.getCell( 1, 0 ) );
-        assertEquals( new Long( 3L ), table.getCell( 1, 1 ) );
+        assertEquals( Double.valueOf( 4.0 ), table.getCell( 1, 0 ) );
+        assertEquals( Long.valueOf( 3L ), table.getCell( 1, 1 ) );
     }
 
     private StarTable readTable( String name ) throws IOException {
@@ -58,7 +58,7 @@ public class EcsvTest extends TestCase {
         Tables.checkTable( table );
         checkRoundTripSerialize( table );
         assertEquals( 12, table.getColumnCount() );
-        assertEquals( new Double( 1.5 ), table.getCell( 1, 11 ) );
+        assertEquals( Double.valueOf( 1.5 ), table.getCell( 1, 11 ) );
         assertEquals( "mbt",
                       table.getParameterByName( "author" ).getValue() );
         StarTable t2 = roundTrip( table, EcsvTableWriter.SPACE_WRITER );

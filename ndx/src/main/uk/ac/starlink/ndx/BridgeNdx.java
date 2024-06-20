@@ -365,7 +365,7 @@ public class BridgeNdx implements Ndx {
 
     public int getBadBits() {
         if ( badbits == null ) {
-            badbits = new Integer( impl.getBadBits() );
+            badbits = Integer.valueOf( impl.getBadBits() );
         }
         return badbits.intValue();
     }

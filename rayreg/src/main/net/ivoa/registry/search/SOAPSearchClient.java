@@ -500,22 +500,22 @@ public class SOAPSearchClient {
             try {
                 URL wsdl = new URL(endpoint.toString() + "?wsdl");
                 int var = AssessWSDL.keywordSearchVariant(wsdl);
-                kwsVariant = new Integer(var);
+                kwsVariant = Integer.valueOf(var);
             }
             catch (MalformedURLException ex) {
                 // the endpoint URL is probably screwy, in which case any
                 // query call will probably fail.  We'll call this unrecognized.
-                kwsVariant = new Integer(0);
+                kwsVariant = Integer.valueOf(0);
             }
             catch (RegistryFormatException ex) {
                 // something appears to be fatal syntax error in the WSDL
-                kwsVariant = new Integer(0);
+                kwsVariant = Integer.valueOf(0);
             }
             catch (RegistryAccessException ex) {
                 // an I/O or network error occurred.  This could be temporary.
                 // We'll allow three attempts and then assume unrecognized. 
                 if (++wsdlAttempt < 3) return 0;
-                kwsVariant = new Integer(0);
+                kwsVariant = Integer.valueOf(0);
             }
         }
                 

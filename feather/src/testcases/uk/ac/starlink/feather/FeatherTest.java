@@ -18,7 +18,7 @@ public class FeatherTest extends TestCase {
         StarTable dataTable = readTable( "data.fea" );
         assertEquals( Boolean.TRUE, dataTable.getCell( 0, 0 ) );
         assertNull( dataTable.getCell( 1, 0 ) );
-        assertEquals( new Double( 10.0 ), dataTable.getCell( 0, 1 ) );
+        assertEquals( Double.valueOf( 10.0 ), dataTable.getCell( 0, 1 ) );
         assertNull( dataTable.getCell( 1, 1 ) );
         assertEquals( "red", dataTable.getCell( 0, 4 ) );
         assertNull( dataTable.getCell( 1, 4 ) );

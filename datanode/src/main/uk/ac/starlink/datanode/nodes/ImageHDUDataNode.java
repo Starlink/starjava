@@ -90,7 +90,7 @@ public class ImageHDUDataNode extends HDUDataNode {
                 if ( hasBlank ) {
                     int val = hdr.getIntValue( "BLANK" );
                     blank = "" + val;
-                    badval = new Byte( (byte) val );
+                    badval = Byte.valueOf( (byte) val );
                 }
                 break;
             case BasicHDU.BITPIX_SHORT:
@@ -98,7 +98,7 @@ public class ImageHDUDataNode extends HDUDataNode {
                 if ( hasBlank ) {
                     int val = hdr.getIntValue( "BLANK" );
                     blank = "" + val;
-                    badval = new Short( (short) val );
+                    badval = Short.valueOf( (short) val );
                 }
                 break;
             case BasicHDU.BITPIX_INT:
@@ -106,7 +106,7 @@ public class ImageHDUDataNode extends HDUDataNode {
                 if ( hasBlank ) {
                     int val = hdr.getIntValue( "BLANK" );
                     blank = "" + val;
-                    badval = new Integer( val );
+                    badval = Integer.valueOf( val );
                 }
                 break;
             case BasicHDU.BITPIX_FLOAT:

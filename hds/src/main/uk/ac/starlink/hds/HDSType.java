@@ -23,43 +23,43 @@ public class HDSType {
     public static HDSType _BYTE = new HDSType(
         "_BYTE",
         Type.BYTE,
-        new Byte( (byte) 0x80 ) );
+        Byte.valueOf( (byte) 0x80 ) );
 
     /** Unsigned byte type. */
     public static HDSType _UBYTE = new HDSType(
         "_UBYTE",
         Type.BYTE,
-        new Byte( (byte) 0xff ) );
+        Byte.valueOf( (byte) 0xff ) );
 
     /** Signed word (2-byte) type. */
     public static HDSType _WORD = new HDSType(
         "_WORD",
         Type.SHORT,
-        new Short( (short) 0x8000 ) );
+        Short.valueOf( (short) 0x8000 ) );
 
     /** Unsigned word (2-byte) type. */
     public static HDSType _UWORD = new HDSType(
         "_UWORD",
         Type.INT,
-        new Short( (short) 0xffff ) );
+        Short.valueOf( (short) 0xffff ) );
 
     /** Signed integer (4-byte) type. */
     public static HDSType _INTEGER = new HDSType(
         "_INTEGER",
         Type.INT,
-        new Integer( 0x80000000 ) );
+        Integer.valueOf( 0x80000000 ) );
 
     /** Real (4-byte floating point) type. */
     public static HDSType _REAL = new HDSType(
         "_REAL",
         Type.FLOAT,
-        new Float( Float.intBitsToFloat( 0xff7fffff ) ) );
+        Float.valueOf( Float.intBitsToFloat( 0xff7fffff ) ) );
 
     /** Double precision (8-byte floating point) type. */
     public static HDSType _DOUBLE = new HDSType(
         "_DOUBLE",
         Type.DOUBLE,
-        new Double( Double.longBitsToDouble( 0xffefffffffffffffL ) ) );
+        Double.valueOf( Double.longBitsToDouble( 0xffefffffffffffffL ) ) );
 
     /**
      * Returns the name of this type.

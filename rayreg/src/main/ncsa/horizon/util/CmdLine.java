@@ -194,7 +194,7 @@ public class CmdLine {
 
         Character chr = null;
         Object state = null;
-        Integer zero = new Integer(0);
+        Integer zero = Integer.valueOf(0);
 
         for(int i=0; i < conchr.length; i++) {
             if (! chr.isLetterOrDigit(conchr[i]) && (flags&WARN) > 0) {
@@ -205,7 +205,7 @@ public class CmdLine {
                 continue;
             }
 
-            chr = new Character(conchr[i]);
+            chr = Character.valueOf(conchr[i]);
             state = null;
 
             if (options.containsKey(chr) && (flags&WARN) > 0) 
@@ -252,7 +252,7 @@ public class CmdLine {
                 // we have a list of options
                 argary = args[i].toCharArray();
                 for(int j=1; j < argary.length; j++) {
-                    opt = new Character(argary[j]);
+                    opt = Character.valueOf(argary[j]);
 
                     // do we recognize it?
                     if (! options.containsKey(opt)) {
@@ -275,7 +275,8 @@ public class CmdLine {
 
                         // it is a boolean switch; keep a count of number 
                         // of times it has been set in this command line
-                        state = new Integer( ((Integer)state).intValue() + 1 );
+                        state = Integer
+                               .valueOf( ((Integer)state).intValue() + 1 );
                         options.put(opt, state);
                     }
                     else if (state instanceof Stack) {
@@ -346,7 +347,7 @@ public class CmdLine {
      * return true if the input is a switched option
      */
     public synchronized boolean isSwitched(char c) {  
-        Character ch = new Character(c);
+        Character ch = Character.valueOf(c);
         Object state = options.get(ch);
 
         if (state == null) return false;
@@ -360,7 +361,7 @@ public class CmdLine {
      * configured option, this method returns -1.
      */
     public synchronized int getNumSet(char c) {
-        Character ch = new Character(c);
+        Character ch = Character.valueOf(c);
         Object state = options.get(ch);
 
         if (state == null) return -1;
@@ -381,13 +382,13 @@ public class CmdLine {
      * (i.e. "true" or "false").  
      */
     public synchronized String getValue(char c) {
-        Character ch = new Character(c);
+        Character ch = Character.valueOf(c);
         Object state = options.get(ch);
 
         if (state == null) return null;
 
         if (state instanceof Integer) {
-            Boolean yes = new Boolean( ((Integer)state).intValue() > 0 );
+            Boolean yes = Boolean.valueOf( ((Integer)state).intValue() > 0 );
             return yes.toString();
         }
         else if (state instanceof Stack) {
@@ -407,7 +408,7 @@ public class CmdLine {
      * (admittedly not useful, but nevertheless symetric).
      */
     public synchronized Stack getAllValues(char c) {
-        Character ch = new Character(c);
+        Character ch = Character.valueOf(c);
         Object state = options.get(ch);
 
         if (state == null) return new Stack();
@@ -416,7 +417,7 @@ public class CmdLine {
         if (state instanceof Integer) {
             int n = ((Integer)state).intValue();
             out.ensureCapacity(n);
-            Boolean yes = new Boolean( n > 0 );
+            Boolean yes = Boolean.valueOf( n > 0 );
             for(int i=0; i < n; i++) out.push(yes.toString());
         }
         else if (state instanceof Stack) {
@@ -568,7 +569,7 @@ public class CmdLine {
          */
         public UnrecognizedOptionException(char c) { 
             super(); 
-            this.c = new Character(c);
+            this.c = Character.valueOf(c);
         }
 
         /**

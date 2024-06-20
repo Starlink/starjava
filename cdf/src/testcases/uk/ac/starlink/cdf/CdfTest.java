@@ -41,7 +41,7 @@ public class CdfTest extends TestCase {
         assertEquals( "Temperature", ex2.getColumnInfo( 1 ).getName() );
         assertEquals( 24, ex2.getRowCount() );
         for ( int i = 0; i < 24; i++ ) {
-            assertEquals( new Integer( i * 100 ), ex2.getCell( i, 0 ) );
+            assertEquals( Integer.valueOf( i * 100 ), ex2.getCell( i, 0 ) );
             float[] temp = (float[]) ex2.getCell( i, 1 );
             assertEquals( 4, temp.length );
             for ( int j = 0; j < 4; j++ ) {

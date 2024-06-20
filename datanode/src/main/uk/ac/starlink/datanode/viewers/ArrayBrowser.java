@@ -147,7 +147,7 @@ public class ArrayBrowser extends JPanel {
                     return 1;
                 }
                 public Object getValueAt( int irow, int icol ) {
-                    return new Long( o1 + (long) nrow - 1 - irow ) + "  ";
+                    return Long.toString( o1 + (long) nrow - 1 - irow ) + "  ";
                 }
             };
             TableModel colModel = new AbstractTableModel() {
@@ -158,7 +158,7 @@ public class ArrayBrowser extends JPanel {
                     return ncol; 
                 }
                 public Object getValueAt( int irow, int icol ) {
-                    return new Long( o0 + (long) icol  ) + "  ";
+                    return Long.toString( o0 + (long) icol  ) + "  ";
                 }
             };
 
