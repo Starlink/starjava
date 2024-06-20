@@ -68,7 +68,7 @@ public abstract class OrderedSelectionRecorder
         lastState_ = newState;
         for ( int i = 0; i < Math.max( oldState.length, newState.length );
               i++ ) {
-            Integer item = new Integer( i );
+            Integer item = Integer.valueOf( i );
             boolean oldFlag = i < oldState.length ? oldState[ i ] : false;
             boolean newFlag = i < newState.length ? newState[ i ] : false;
             if ( ! oldFlag && newFlag ) {

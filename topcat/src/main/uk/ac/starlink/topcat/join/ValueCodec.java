@@ -124,10 +124,10 @@ public abstract class ValueCodec {
             if ( value instanceof Number ) {
                 double dval = ((Number) value).doubleValue() * factor;
                 if ( value instanceof Float ) {
-                    return new Float( (float) dval );
+                    return Float.valueOf( (float) dval );
                 }
                 else {
-                    return new Double( dval );
+                    return Double.valueOf( dval );
                 }
             }
             else {

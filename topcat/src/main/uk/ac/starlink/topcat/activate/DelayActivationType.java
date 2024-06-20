@@ -84,7 +84,7 @@ public class DelayActivationType implements ActivationType {
             line.add( new ShrinkWrapper( secField_ ) );
             line.add( new JLabel( " seconds" ) );
             getPanel().add( line, BorderLayout.NORTH );
-            secField_.setText( new Integer( 1 ).toString() );
+            secField_.setText( Integer.valueOf( 1 ).toString() );
             secField_.addActionListener( getActionForwarder() );
         }
 

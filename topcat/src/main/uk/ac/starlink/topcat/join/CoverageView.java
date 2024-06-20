@@ -180,7 +180,8 @@ public class CoverageView extends JComponent {
      */
     private synchronized Icon getCoverageIcon( Coverage coverage, int height ) {
         Object iconKey =
-            Arrays.asList( new Object[] { coverage, new Integer( height ) } );
+            Arrays.asList( new Object[] { coverage,
+                                          Integer.valueOf( height ) } );
         if ( ! iconKey.equals( iconKey_ ) ) {
             iconKey_ = iconKey;
             covIcon_ = new MollweideIcon( coverage, height );

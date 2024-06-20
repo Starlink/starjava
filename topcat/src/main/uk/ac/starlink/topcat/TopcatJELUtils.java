@@ -245,7 +245,7 @@ public class TopcatJELUtils extends JELUtils {
     public static boolean isColumnReferenced( TopcatModel tcModel, int icol,
                                               String expr ) {
         return getReferencedColumns( tcModel, expr )
-              .contains( new Integer( icol ) );
+              .contains( Integer.valueOf( icol ) );
     }
 
     /**

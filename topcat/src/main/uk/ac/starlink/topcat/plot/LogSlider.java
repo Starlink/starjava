@@ -33,7 +33,7 @@ public class LogSlider extends JSlider {
         super.setMaximum( (int) ( Math.log( max ) * SCALE ) );
         Hashtable<Integer,JLabel> labels = new Hashtable<Integer,JLabel>();
         for ( int val = 1; val <= max; val *= 10 ) {
-            labels.put( new Integer( (int) ( Math.log( val ) * SCALE ) ),
+            labels.put( Integer.valueOf( (int) ( Math.log( val ) * SCALE ) ),
                         new JLabel( Integer.toString( val ) ) );
         }
         setLabelTable( labels );

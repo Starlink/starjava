@@ -211,7 +211,7 @@ public class HistogramPlotWindow
               barIt.hasNext(); ) {
             double[] bar = barIt.next();
             barList.add( bar );
-            rowMap.put( new Double( bar[ 0 ] ), new Integer( nrow++ ) );
+            rowMap.put( Double.valueOf( bar[ 0 ] ), Integer.valueOf( nrow++ ) );
         }
 
         /* We will construct a table with one row for each histogram bin. */
@@ -334,17 +334,17 @@ public class HistogramPlotWindow
                       binBag.binIterator( cumul, norm, unit );
                   binIt.hasNext(); ) {
                 BinBag.Bin bin = binIt.next();
-                Double xmin = new Double( bin.getXMin() );
+                Double xmin = Double.valueOf( bin.getXMin() );
                 if ( rowMap.containsKey( xmin ) ) {
                     int irow = rowMap.get( xmin ).intValue();
                     double y = bin.getY();
                     data[ irow ] = isInt
-                                 ? (Number) new Integer( (int) Math.round( y ) )
-                                 : (Number) new Double( y );
+                                 ? Integer.valueOf( (int) Math.round( y ) )
+                                 : Double.valueOf( y );
                 }
             }
-            Number zero = isInt ? (Number) new Integer( 0 )
-                                : (Number) new Double( 0 );
+            Number zero = isInt ? Integer.valueOf( 0 )
+                                : Double.valueOf( 0 );
             Number lastVal = zero;
             for ( int irow = 0; irow < nrow; irow++ ) {
                 int jrow = cumul.isReverse() ? nrow - irow - 1 : irow;

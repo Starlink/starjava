@@ -782,7 +782,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                         /* Update the subset counts. */
                         for ( int i = 0; i < nrset; i++ ) {
                             subsetCounts.put( rsets[ i ],
-                                              new Long( counts[ i ] ) );
+                                              Long.valueOf( counts[ i ] ) );
                         }
 
                         /* Notify listeners that the counts have changed. */

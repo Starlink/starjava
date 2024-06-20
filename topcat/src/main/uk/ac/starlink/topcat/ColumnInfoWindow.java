@@ -123,7 +123,7 @@ public class ColumnInfoWindow extends AuxWindow {
                     int ncol = columnModel_.getColumnCount();
                     for ( int ic = 0; ic < ncol; ic++ ) {
                         if ( columnModel_.getColumn( ic ).equals( tcol ) ) {
-                            return new Integer( ic + 1 );
+                            return Integer.valueOf( ic + 1 );
                         }
                     }
                     return null;
@@ -216,7 +216,7 @@ public class ColumnInfoWindow extends AuxWindow {
         metas.add( new MetaColumn( "Element Size", Integer.class ) {
             public Object getValue( int irow ) {
                 int size = getColumnInfo( irow ).getElementSize();
-                return size > 0 ? new Integer( size ) : null;
+                return size > 0 ? Integer.valueOf( size ) : null;
             }
             public boolean isEditable( int irow ) {
                 return irow > 0;

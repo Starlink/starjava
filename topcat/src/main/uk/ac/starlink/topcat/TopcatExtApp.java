@@ -172,7 +172,7 @@ public class TopcatExtApp implements ExtApp {
         for ( int icol = 0; icol < colList.size(); icol++ ) {
             TableColumn col = colList.getColumn( icol );
             if ( OID_COLNAME.equals( col.getHeaderValue() ) ) {
-                oidColList.add( new Integer( icol ) );
+                oidColList.add( Integer.valueOf( icol ) );
             }
         }
         int[] oidCols = new int[ oidColList.size() ];

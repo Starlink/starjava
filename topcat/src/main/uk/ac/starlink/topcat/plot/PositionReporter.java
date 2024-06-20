@@ -228,14 +228,14 @@ public abstract class PositionReporter implements MouseMotionListener {
          * the string in the readout - this should cause the string length
          * to settle down to a fixed value. */
         if ( ! convMap_.containsKey( conv ) ) {
-            convMap_.put( conv, new Integer( 0 ) );
+            convMap_.put( conv, Integer.valueOf( 0 ) );
         }
         int itrunc = convMap_.get( conv ).intValue();
 
         /* Format the given values and ones (precision) either side. */
-        Object om = conv.unconvert( new Double( value - precision ) );
-        Object o0 = conv.unconvert( new Double( value ) );
-        Object op = conv.unconvert( new Double( value + precision ) );
+        Object om = conv.unconvert( Double.valueOf( value - precision ) );
+        Object o0 = conv.unconvert( Double.valueOf( value ) );
+        Object op = conv.unconvert( Double.valueOf( value + precision ) );
         String fm = om == null ? "" : om.toString();
         String f0 = o0 == null ? "" : o0.toString();
         String fp = op == null ? "" : op.toString();
@@ -258,7 +258,7 @@ public abstract class PositionReporter implements MouseMotionListener {
                 /* Found it - try to truncate to near this length. */
                 if ( i + 1 > itrunc ) {
                     itrunc = i + 1;
-                    convMap_.put( conv, new Integer( i + 1 ) );
+                    convMap_.put( conv, Integer.valueOf( i + 1 ) );
                 }
                 return truncate( f0, itrunc );
             }
@@ -266,7 +266,7 @@ public abstract class PositionReporter implements MouseMotionListener {
 
         /* Keep truncation map updated. */
         if ( f0.length() > itrunc ) {
-            convMap_.put( conv, new Integer( f0.length() ) );
+            convMap_.put( conv, Integer.valueOf( f0.length() ) );
         }
 
         /* No truncation - return the whole string. */

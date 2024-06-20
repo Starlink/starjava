@@ -539,7 +539,7 @@ public class SphericalAxesSelector implements AxesSelector {
             Object val = base_.readValue( irow );
             if ( val instanceof Number ) {
                 double dval = ((Number) val).doubleValue();
-                return dval > 0 ? new Double( Math.log( dval ) )
+                return dval > 0 ? Double.valueOf( Math.log( dval ) )
                                 : null;
             }
             else {
@@ -637,9 +637,9 @@ public class SphericalAxesSelector implements AxesSelector {
                                 double y = r * cosTheta * sinPhi;
                                 double z = r * sinTheta;
 
-                                row_[ 0 ] = new Double( x );
-                                row_[ 1 ] = new Double( y );
-                                row_[ 2 ] = new Double( z );
+                                row_[ 0 ] = Double.valueOf( x );
+                                row_[ 1 ] = Double.valueOf( y );
+                                row_[ 2 ] = Double.valueOf( z );
                             }
                         }
                         lrow_++;

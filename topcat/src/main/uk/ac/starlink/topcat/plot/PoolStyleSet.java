@@ -51,7 +51,7 @@ public class PoolStyleSet implements MutableStyleSet {
     }
 
     public Style getStyle( int index ) {
-        Object value = map_.get( new Integer( index ) );
+        Object value = map_.get( Integer.valueOf( index ) );
         if ( value instanceof Integer ) {
             return base_.getStyle( ((Integer) value).intValue() );
         }
@@ -61,7 +61,7 @@ public class PoolStyleSet implements MutableStyleSet {
         else if ( value == null ) {
             int ibase = used_.nextClearBit( 0 );
             used_.set( ibase );
-            map_.put( new Integer( index ), new Integer( ibase ) );
+            map_.put( Integer.valueOf( index ), Integer.valueOf( ibase ) );
             return base_.getStyle( ibase );
         }
         else {
@@ -79,12 +79,12 @@ public class PoolStyleSet implements MutableStyleSet {
 
         /* If the style previously at the reset index was previously 
          * using one from the base set, it is returned to the unused pool. */
-        // Object value = map_.get( new Integer( index ) );
+        // Object value = map_.get( Integer.valueOf( index ) );
         // if ( value instanceof Integer ) {
         //     used_.clear( ((Integer) value).intValue() );
         // }
 
-        map_.put( new Integer( index ), style );
+        map_.put( Integer.valueOf( index ), style );
     }
 
     /**

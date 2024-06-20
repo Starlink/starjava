@@ -658,7 +658,7 @@ public class ActivationWindow extends AuxWindow {
      * @param  lrow  new active row
      */
     private void updateActiveRow( long lrow ) {
-        tcModel_.fireModelChanged( TopcatEvent.ROW, new Long( lrow ) );
+        tcModel_.fireModelChanged( TopcatEvent.ROW, Long.valueOf( lrow ) );
     }
 
     /**

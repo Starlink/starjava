@@ -215,7 +215,7 @@ public class GuiDataSpec extends AbstractDataSpec {
             }
 
             /* Having got the result, save it for later. */
-            tcModel_.getSubsetCounts().put( subset_, new Long( count ) );
+            tcModel_.getSubsetCounts().put( subset_, Long.valueOf( count ) );
             return count;
         }
     }

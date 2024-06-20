@@ -176,8 +176,8 @@ public class Match1TypeSelector extends JPanel {
         WideTypeOption( String description ) {
             super( description );
             SpinnerNumberModel widthModel = new SpinnerNumberModel();
-            widthModel.setValue( new Integer( 2 ) );
-            widthModel.setMinimum( new Integer( 2 ) );
+            widthModel.setValue( Integer.valueOf( 2 ) );
+            widthModel.setMinimum( Integer.valueOf( 2 ) );
             widthSelector_ = new JSpinner( widthModel );
         }
 

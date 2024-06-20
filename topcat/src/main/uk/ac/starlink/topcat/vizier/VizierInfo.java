@@ -248,9 +248,10 @@ public class VizierInfo {
             if ( title != null ) {
                 title = title.trim();
             }
-            Integer krows = icKrows >= 0 && row[ icKrows ] != null 
-                          ? new Integer( ((Number) row[ icKrows ]).intValue() )
-                          : null;
+            Integer krows =
+                  icKrows >= 0 && row[ icKrows ] != null 
+                ? Integer.valueOf( ((Number) row[ icKrows ]).intValue() )
+                : null;
             itemList.add( new InfoItem( name, title, krows ) );
         }
         return itemList.toArray( new InfoItem[ 0 ] );

@@ -167,8 +167,8 @@ public class FigureModeTest extends TestCase {
         StarTable table = new EmptyStarTable();
         ValueInfo xInfo = new DefaultValueInfo( "x", Double.class, null );
         ValueInfo yInfo = new DefaultValueInfo( "y", Double.class, null );
-        table.setParameter( new DescribedValue( xInfo, new Double( dx ) ) );
-        table.setParameter( new DescribedValue( yInfo, new Double( dy ) ) );
+        table.setParameter( new DescribedValue( xInfo, Double.valueOf( dx ) ) );
+        table.setParameter( new DescribedValue( yInfo, Double.valueOf( dy ) ) );
         String expr = fig.createPlaneExpression( "param$x", "param$y" );
         JELRowReader rdr = JELUtils.createDatalessRowReader( table );
         Library lib = JELUtils.getLibrary( rdr );

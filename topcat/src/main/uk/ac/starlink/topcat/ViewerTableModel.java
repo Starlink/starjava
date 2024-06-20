@@ -128,7 +128,7 @@ public class ViewerTableModel extends AbstractTableModel {
                     return lx_ < n - 1;
                 }
                 public Long next() {
-                    return new Long( ++lx_ );
+                    return Long.valueOf( ++lx_ );
                 }
                 public void remove() {
                     throw new UnsupportedOperationException();
@@ -143,7 +143,7 @@ public class ViewerTableModel extends AbstractTableModel {
                     return kx_ < n - 1;
                 }
                 public Long next() {
-                    return new Long( rowMap[ ++kx_ ] );
+                    return Long.valueOf( rowMap[ ++kx_ ] );
                 }
                 public void remove() {
                     throw new UnsupportedOperationException();

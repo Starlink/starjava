@@ -779,7 +779,7 @@ public class DalMultiPanel extends JPanel {
         };
         indexTable.addColumn( new ColumnData( INDEX_INFO ) {
             public Object readValue( long irow ) {
-                return new Integer( (int) irow );
+                return Integer.valueOf( (int) irow );
             }
         } );
         return new JoinStarTable( new StarTable[] { indexTable, inTable } );

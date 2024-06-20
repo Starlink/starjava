@@ -442,42 +442,42 @@ public class ConcatWindow extends AuxWindow {
             if ( Byte.class.equals( clazz ) ) {
                 return new TranslateNumericTypeColumnData( cdata, info ) {
                     protected Object translate( Number value ) {
-                        return new Byte( value.byteValue() );
+                        return Byte.valueOf( value.byteValue() );
                     }
                 };
             }
             else if ( Short.class.equals( clazz ) ) {
                 return new TranslateNumericTypeColumnData( cdata, info ) {
                     protected Object translate( Number value ) {
-                        return new Short( value.shortValue() );
+                        return Short.valueOf( value.shortValue() );
                     }
                 };
             }
             else if ( Integer.class.equals( clazz ) ) {
                 return new TranslateNumericTypeColumnData( cdata, info ) {
                     protected Object translate( Number value ) {
-                        return new Integer( value.intValue() );
+                        return Integer.valueOf( value.intValue() );
                     }
                 };
             }
             else if ( Long.class.equals( clazz ) ) {
                 return new TranslateNumericTypeColumnData( cdata, info ) {
                     protected Object translate( Number value ) {
-                        return new Long( value.longValue() );
+                        return Long.valueOf( value.longValue() );
                     }
                 };
             }
             else if ( Float.class.equals( clazz ) ) {
                 return new TranslateNumericTypeColumnData( cdata, info ) {
                     protected Object translate( Number value ) {
-                        return new Float( value.floatValue() );
+                        return Float.valueOf( value.floatValue() );
                     }
                 };
             }
             else if ( Double.class.equals( clazz ) ) {
                 return new TranslateNumericTypeColumnData( cdata, info ) {
                     protected Object translate( Number value ) {
-                        return new Double( value.doubleValue() );
+                        return Double.valueOf( value.doubleValue() );
                     }
                 };
             }

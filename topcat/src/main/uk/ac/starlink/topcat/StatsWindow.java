@@ -704,8 +704,8 @@ public class StatsWindow extends AuxWindow {
             table.setParameter( new DescribedValue( LOC_INFO, loc ) );
         }
         table.setParameter( new DescribedValue( NROW_INFO,
-                                                new Long( lastCalc_
-                                                         .ngoodrow_ ) ) );
+                                                Long.valueOf( lastCalc_
+                                                             .ngoodrow_ ) ) );
         if ( rset != null && rset != RowSubset.ALL ) {
             table.setParameter( new DescribedValue( RSET_INFO,
                                                     rset.getName() ) );
@@ -738,15 +738,15 @@ public class StatsWindow extends AuxWindow {
      */
     private static Map<Double,String> createNamedQuantiles() {
         Map<Double,String> map = new LinkedHashMap<Double,String>();
-        map.put( new Double( 0.001 ), "Q001" );
-        map.put( new Double( 0.01 ), "Q01" );
-        map.put( new Double( 0.1 ), "Q10" );
-        map.put( new Double( 0.25 ), "Quartile1" );
-        map.put( new Double( 0.5 ), "Median" );
-        map.put( new Double( 0.75 ), "Quartile3" );
-        map.put( new Double( 0.9 ), "Q90" );
-        map.put( new Double( 0.99 ), "Q99" );
-        map.put( new Double( 0.999 ), "Q999" );
+        map.put( Double.valueOf( 0.001 ), "Q001" );
+        map.put( Double.valueOf( 0.01 ), "Q01" );
+        map.put( Double.valueOf( 0.1 ), "Q10" );
+        map.put( Double.valueOf( 0.25 ), "Quartile1" );
+        map.put( Double.valueOf( 0.5 ), "Median" );
+        map.put( Double.valueOf( 0.75 ), "Quartile3" );
+        map.put( Double.valueOf( 0.9 ), "Q90" );
+        map.put( Double.valueOf( 0.99 ), "Q99" );
+        map.put( Double.valueOf( 0.999 ), "Q999" );
         return Collections.unmodifiableMap( map );
     }
 
@@ -770,7 +770,7 @@ public class StatsWindow extends AuxWindow {
         }
 
         public Number getValue( ColStat cstat ) {
-            return new Float( (float) ( cstat.mad_ * scale_ ) );
+            return Float.valueOf( (float) ( cstat.mad_ * scale_ ) );
         }
     }
 
@@ -791,7 +791,7 @@ public class StatsWindow extends AuxWindow {
             super( name, Double.class,
                    "Value below which " + quant + " of column contents fall" );
             quant_ = quant;
-            key_ = new Double( quant );
+            key_ = Double.valueOf( quant );
         }
 
         public Double getValue( ColStat cstat ) {
