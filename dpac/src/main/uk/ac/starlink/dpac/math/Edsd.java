@@ -156,27 +156,29 @@ public class Edsd {
         List<Double> plist = new ArrayList<Double>();
 
         /* Origin. */
-        plist.add( new Double( 0.0 ) );
+        plist.add( Double.valueOf( 0.0 ) );
 
         /* There may be a sharp Gaussian-like peak at rmode.
          * Make sure the maximum is a sample point, and also a few
          * S.D.s each side of it. */
-        plist.add( new Double( rMode_ ) );
+        plist.add( Double.valueOf( rMode_ ) );
         for ( double sigmult : new double[] { 1, 2, 3, 6 } ) {
-            plist.add( new Double( 1.0 / ( 1.0 / rMode_ - sigmult * eplx_ ) ) );
-            plist.add( new Double( 1.0 / ( 1.0 / rMode_ + sigmult * eplx_ ) ) );
+            plist.add( Double
+                      .valueOf( 1.0 / ( 1.0 / rMode_ - sigmult * eplx_ ) ) );
+            plist.add( Double
+                      .valueOf( 1.0 / ( 1.0 / rMode_ + sigmult * eplx_ ) ) );
         }
 
         /* There may be another peak near 2*l, though not very sharp. */
-        plist.add( new Double( 1.0 * l_ ) );
-        plist.add( new Double( 2.0 * l_ ) );
-        plist.add( new Double( 3.0 * l_ ) );
+        plist.add( Double.valueOf( 1.0 * l_ ) );
+        plist.add( Double.valueOf( 2.0 * l_ ) );
+        plist.add( Double.valueOf( 3.0 * l_ ) );
 
         /* Add a grid of evenly spaced points for good measure. */
         int nstep = 10;
         for ( int i = 0; i < nstep; i++ ) {
             double frac = i / (double) nstep;
-            plist.add( new Double( frac * rmax ) );
+            plist.add( Double.valueOf( frac * rmax ) );
         }
         double[] points = preparePoints( plist );
 

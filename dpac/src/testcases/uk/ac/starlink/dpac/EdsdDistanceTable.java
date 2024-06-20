@@ -82,7 +82,7 @@ public class EdsdDistanceTable
             return info_;
         }
         public Double getValue( EdsdResult result ) {
-            return new Double( getDoubleValue( result ) * 1000 );
+            return Double.valueOf( getDoubleValue( result ) * 1000 );
         }
         abstract double getDoubleValue( EdsdResult result );
     }

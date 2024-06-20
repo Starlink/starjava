@@ -18,11 +18,11 @@ public class StarReader {
     public StarReader( StarTable table ) {
         Map<String,Integer> colMap = new HashMap<String,Integer>();
         int ncol = table.getColumnCount();
-        colMap.put( "l", new Integer( -1 ) );  // optional
-        colMap.put( "b", new Integer( -1 ) );  // optional
+        colMap.put( "l", Integer.valueOf( -1 ) );  // optional
+        colMap.put( "b", Integer.valueOf( -1 ) );  // optional
         for ( int icol = 0; icol < ncol; icol++ ) {
             colMap.put( table.getColumnInfo( icol ).getName(),
-                        new Integer( icol ) );
+                        Integer.valueOf( icol ) );
         }
         icSourceid_ = colMap.get( "source_id" ).intValue();
         icRa_ = colMap.get( "ra" ).intValue();

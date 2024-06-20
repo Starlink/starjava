@@ -93,7 +93,7 @@ public class Cu9DistanceTable extends CalcStarTable<DistanceEstimation> {
             return info_;
         }
         public Double getValue( DistanceEstimation est ) {
-            return new Double( getDoubleValue( est ) * 1000 );
+            return Double.valueOf( getDoubleValue( est ) * 1000 );
         }
         abstract double getDoubleValue( DistanceEstimation est );
     }
