@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
  * or an XML document providing an href, this is nearly always 
  * what is wanted.  The strategy can lead to surprising situations
  * in the case that wacky URL protocols are used; for instance if 
- * <tt>makeURL</tt> is called on the string "gftp://host/file" and
+ * <code>makeURL</code> is called on the string "gftp://host/file" and
  * no gftp handler is installed, it will be interpreted as a file-protocol
  * URL referring to the (presumably non-existent) file "gftp://host/file".
  * In this case the eventual upshot will presumably be a file-not-found
@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
  * presented to the user.  Users of this class should be of the opinion
  * that this is not a particularly bad thing.
  * <p>
- * The <tt>systemId</tt> strings used by {@link javax.xml.transform.Source}s
+ * The <code>systemId</code> strings used by {@link javax.xml.transform.Source}s
  * have similar semantics to the strings which this class converts
  * to URLs or contexts.
  * <p>
@@ -117,18 +117,18 @@ public class URLUtils {
 
     /**
      * Obtains a URL from a string in a given context.
-     * The string <tt>context</tt> is turned into a URL as per 
+     * The string <code>context</code> is turned into a URL as per 
      * the {@link #makeURL(String)} method, unless it is null or
      * the empty string, in which case it is treated as a reference
      * to the current directory.
-     * The string <tt>location</tt> is then turned into a URL in
+     * The string <code>location</code> is then turned into a URL in
      * the same way as using {@link #makeURL(String)}, except that
      * if it represents a relative path it is resolved in the context
-     * of <tt>context</tt>, taking its protocol and/or relative position
+     * of <code>context</code>, taking its protocol and/or relative position
      * from it.
      *
      * @param   context   a string representing the context within which
-     *                    <tt>location</tt> is to be resolved
+     *                    <code>location</code> is to be resolved
      * @param   location   a string representing the location of a resource
      * @return  a URL representing the location of the resource
      */

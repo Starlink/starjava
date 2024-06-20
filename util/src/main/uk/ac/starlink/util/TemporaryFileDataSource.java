@@ -64,7 +64,7 @@ public class TemporaryFileDataSource extends FileDataSource {
     }
 
     /**
-     * Returns <tt>null</tt>, since the data is not represented by a
+     * Returns <code>null</code>, since the data is not represented by a
      * persistent object.
      */
     public URL getURL() {

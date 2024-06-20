@@ -34,7 +34,7 @@ import java.util.zip.ZipOutputStream;
  * so on recursively.  This can be used to produce a standalone jar
  * file for applications which do not require JNI components.
  * <p>
- * This class has a <tt>main</tt> method, and is designed to be invoked
+ * This class has a <code>main</code> method, and is designed to be invoked
  * from the command line.
  *
  * @author   Mark Taylor (Starlink)
@@ -420,23 +420,24 @@ public class SuperJar {
      *             jarfile [jarfile ...]
      * </pre>
      *
-     * <p>If the <tt>-oj</tt> flag is given, it supplies the name of
+     * <p>If the <code>-oj</code> flag is given, it supplies the name of
      * a monolithic jar file to output.
-     * <tt>-o</tt> is a deprecated synonym for <tt>-oj</tt>.
+     * <code>-o</code> is a deprecated synonym for <code>-oj</code>.
      *
-     * <p>If the <tt>-oz</tt> flag is given, it supplies the name of a zip
+     * <p>If the <code>-oz</code> flag is given, it supplies the name of a zip
      * file to output.  This zip file will contain all the named and 
      * referenced jar files in a single flat directory.
      *
-     * <p>The <tt>-xjar</tt> * flag may be supplied one or more times to define
+     * <p>The <code>-xjar</code>
+     * flag may be supplied one or more times to define
      * jarfiles which should not be included, even if they are referenced
      * in the manifest's Class-Path entry of a jar file which is included.
-     * The <tt>exclude</tt> argument thus defined is the name, optionally
+     * The <code>exclude</code> argument thus defined is the name, optionally
      * with one or more prepended path elements of the jar file to be
      * excluded (e.g. axis.jar or axis/axis.jar would both work).
-     * <tt>-x</tt> is a deprecated synonym for <tt>-xjar</tt>.
+     * <code>-x</code> is a deprecated synonym for <code>-xjar</code>.
      *
-     * <p>The <tt>-xent</tt> flag may be supplied one or more times to give
+     * <p>The <code>-xent</code> flag may be supplied one or more times to give
      * full paths for jar entries which should not be included in the output.
      * These are interpreted as follows:
      * <ul>
@@ -446,7 +447,7 @@ public class SuperJar {
      * <li>otherwise: exclude the flat file with that exact name
      * </ul>
      *
-     * <p>The <tt>jarfile</tt> argument(s) will be combined to form
+     * <p>The <code>jarfile</code> argument(s) will be combined to form
      * the output file, all their contents and those of the jar files
      * referenced in their Class-Path manifest entries will be used.
      * The manifest of the first one will be used as the manifest of
@@ -454,7 +455,7 @@ public class SuperJar {
      * Zip files can be used as well, they work the same but have no
      * manifest.
      *
-     * <p>Any <tt>flat-file</tt> arguments will be included as files
+     * <p>Any <code>flat-file</code> arguments will be included as files
      * at the top level of the output jar or zip file.
      *
      * @param  args  an array of command-line arguments as described above

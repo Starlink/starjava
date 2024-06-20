@@ -47,11 +47,11 @@ import uk.ac.starlink.util.ProxySetup;
  * This is basically an interface to changes the values of the system
  * properties:
  * <ul>
- *   <li><tt>http.proxySet</tt> A boolean (true or false) indicating
+ *   <li><code>http.proxySet</code> A boolean (true or false) indicating
  *       whether to use the proxy.</li>
- *   <li><tt>http.proxyHost</tt> The proxy server name.</li>
- *   <li><tt>http.proxyPort</tt> The proxy server port.</li>
- *   <li><tt>http.nonProxyHosts</tt> A list of names that do not
+ *   <li><code>http.proxyHost</code> The proxy server name.</li>
+ *   <li><code>http.proxyPort</code> The proxy server port.</li>
+ *   <li><code>http.nonProxyHosts</code> A list of names that do not
  *       require the proxy server (e.g. *.dur.ac.uk|localhost)</li>
  * </ul>
  * A typical invocation would follow the sequence:

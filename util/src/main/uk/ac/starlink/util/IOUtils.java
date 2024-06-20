@@ -32,7 +32,7 @@ public class IOUtils {
     }
 
     /**
-     * Skips over a number of bytes in a <tt>DataInput</tt>.
+     * Skips over a number of bytes in a <code>DataInput</code>.
      * This is implemented using {@link java.io.DataInput#skipBytes} 
      * but differs from it in that it guarantees to skip the bytes 
      * as specified, or to throw an exception.
@@ -41,7 +41,7 @@ public class IOUtils {
      * @param  nskip  the number of bytes to skip
      * @throws  EOFException  if the end of file is reached
      * @throws  IOException  if an I/O error occurs
-     * @throws  IllegalArgumentException  if <tt>nskip&lt;0</tt>
+     * @throws  IllegalArgumentException  if <code>nskip&lt;0</code>
      */
     public static void skipBytes( DataInput strm, long nskip ) 
             throws IOException {
@@ -98,7 +98,7 @@ public class IOUtils {
     }
 
     /**
-     * Skips over a number of bytes in an <tt>InputStream</tt>
+     * Skips over a number of bytes in an <code>InputStream</code>
      * This is implemented using {@link java.io.InputStream#skip}
      * but differs from it in that it guarantees to skip the bytes
      * as specified, or to throw an exception.
@@ -107,7 +107,7 @@ public class IOUtils {
      * @param  nskip  the number of bytes to skip
      * @throws  EOFException  if the end of file is reached
      * @throws  IOException  if an I/O error occurs
-     * @throws  IllegalArgumentException  if <tt>nskip&lt;0</tt>
+     * @throws  IllegalArgumentException  if <code>nskip&lt;0</code>
      */
     public static void skip( InputStream strm, long nskip )
            throws IOException {
@@ -266,8 +266,8 @@ public class IOUtils {
      *  
      * @param   in  input stream
      * @param   maxLeng  maximum number of bytes to read
-     * @return   buffer of bytes containing <tt>maxLeng</tt> bytes
-     *           read from <tt>in</tt>, or fewer if the stream ended early
+     * @return   buffer of bytes containing <code>maxLeng</code> bytes
+     *           read from <code>in</code>, or fewer if the stream ended early
      */     
     public static byte[] readBytes( InputStream in, int maxLeng )
             throws IOException {

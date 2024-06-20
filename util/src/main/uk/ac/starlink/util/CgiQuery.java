@@ -35,7 +35,7 @@ public class CgiQuery {
      * and zero or more '&amp;name=value' pairs.
      * 
      * @param  base  base part of the CGI URL
-     * @throws  IllegalArgumentException  if <tt>base</tt> is not a legal
+     * @throws  IllegalArgumentException  if <code>base</code> is not a legal
      *          base URL
      */
     public CgiQuery( String base ) {

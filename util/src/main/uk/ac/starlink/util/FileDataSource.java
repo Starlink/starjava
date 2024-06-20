@@ -25,8 +25,8 @@ public class FileDataSource extends DataSource {
      * @param  file  the file
      * @param  position  the source's position attribute 
      *         (indicates the relevant part of the file)
-     * @throws  IOException  if <tt>file</tt> does not exist, cannot be read,
-     *          or is a directory
+     * @throws  IOException  if <code>file</code> does not exist,
+     *                       cannot be read, or is a directory
      */
     public FileDataSource( File file, String position ) throws IOException {
         if ( ! file.exists() ) {
@@ -48,8 +48,8 @@ public class FileDataSource extends DataSource {
      * Creates a new FileDataSource from a File object.
      *
      * @param  file  the file
-     * @throws  IOException  if <tt>file</tt> does not exist, cannot be read,
-     *          or is a directory
+     * @throws  IOException  if <code>file</code> does not exist,
+     *                       cannot be read, or is a directory
      */
     public FileDataSource( File file ) throws IOException {
         this( file, null );
@@ -59,7 +59,8 @@ public class FileDataSource extends DataSource {
      * Creates a new FileDataSource from a filename.
      *
      * @param  filename  filename
-     * @throws  IOException  if <tt>filename</tt> does not name a readable file
+     * @throws  IOException  if <code>filename</code> does not name
+     *                       a readable file
      */
     public FileDataSource( String filename ) throws IOException {
         this( new File( filename ) );
@@ -79,7 +80,8 @@ public class FileDataSource extends DataSource {
     }
 
     /**
-     * Returns the File object on which this <tt>FileDataSource</tt> is based.
+     * Returns the File object on which this <code>FileDataSource</code>
+     * is based.
      *
      * @return  the file
      */

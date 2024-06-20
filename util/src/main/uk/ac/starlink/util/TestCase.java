@@ -28,7 +28,7 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * This class extends {@link junit.framework.TestCase}, providing some 
  * additional assertions and methods for providing test data for convenience.
- * All the existing methods of <tt>TestCase</tt> are simply delegated 
+ * All the existing methods of <code>TestCase</code> are simply delegated 
  * to the superclass.
  * <p>
  * Some of the methods are concerned with providing random values;
@@ -69,17 +69,18 @@ public class TestCase extends junit.framework.TestCase {
 
     /**
      * Asserts that two arrays have exactly the same contents.
-     * For the assertion to be true, <tt>expected</tt> and <tt>actual</tt>
+     * For the assertion to be true, <code>expected</code> and
+     * <code>actual</code>
      * must both be array objects whose component types are of the same
      * class; they must have the same number of elements; and the
-     * <i>i</i>th element of <tt>expected</tt> must be `equal' to the 
-     * <i>i</i>th element of <tt>actual</tt>.  `Equality' in this sense
+     * <i>i</i>th element of <code>expected</code> must be `equal' to the 
+     * <i>i</i>th element of <code>actual</code>.  `Equality' in this sense
      * depends on the types of the arrays: if they are arrays of a primitive
      * type, the primitive values must be equal, and if they are 
      * object arrays equality is assessed using the 
      * {@link java.lang.Object#equals} method.
-     * In the case of <tt>float[]</tt> and <tt>double[]</tt> arrays,
-     * elements which both have the value <tt>NaN</tt> are taken to match.
+     * In the case of <code>float[]</code> and <code>double[]</code> arrays,
+     * elements which both have the value <code>NaN</code> are taken to match.
      *
      * @param  message   the message to output if the assertion fails
      * @param  expected  the expected array object
@@ -224,7 +225,7 @@ public class TestCase extends junit.framework.TestCase {
      * @param  message   the message to output if the assertion fails
      * @param  expected  the expected array object
      * @param  actual    the actual array object,
-     *                   asserted <i>not</i> to match <tt>expected</tt>
+     *                   asserted <i>not</i> to match <code>expected</code>
      * @throws AssertionFailedError  if the assertion is untrue
      */
     public void assertArrayNotEquals( String message, Object expected,
@@ -242,17 +243,18 @@ public class TestCase extends junit.framework.TestCase {
 
     /**
      * Asserts that two arrays have exactly the same contents.
-     * For the assertion to be true, <tt>expected</tt> and <tt>actual</tt>
+     * For the assertion to be true,
+     * <code>expected</code> and <code>actual</code>
      * must both be array objects whose component types are of the same
      * class; they must have the same number of elements; and the
-     * <i>i</i>th element of <tt>expected</tt> must be `equal' to the 
-     * <i>i</i>th element of <tt>actual</tt>.  `Equality' in this sense
+     * <i>i</i>th element of <code>expected</code> must be `equal' to the 
+     * <i>i</i>th element of <code>actual</code>.  `Equality' in this sense
      * depends on the types of the arrays: if they are arrays of a primitive
      * type, the primitive values must be equal, and if they are 
      * object arrays equality is assessed using the 
      * {@link java.lang.Object#equals} method.
-     * In the case of <tt>float[]</tt> and <tt>double[]</tt> arrays,
-     * elements which both have the value <tt>NaN</tt> are taken to match.
+     * In the case of <code>float[]</code> and <code>double[]</code> arrays,
+     * elements which both have the value <code>NaN</code> are taken to match.
      *
      * @param  expected  the expected array object
      * @param  actual    the actual array object
@@ -269,7 +271,7 @@ public class TestCase extends junit.framework.TestCase {
      *
      * @param  expected  the expected array object
      * @param  actual    the actual array object,
-     *                   asserted <i>not</i> to match <tt>expected</tt>
+     *                   asserted <i>not</i> to match <code>expected</code>
      * @throws AssertionFailedError  if the assertion is untrue
      */
     public void assertArrayNotEquals( Object expected, Object actual ) {
@@ -280,20 +282,21 @@ public class TestCase extends junit.framework.TestCase {
     /**
      * Asserts that two numeric arrays have the same contents 
      * within a given tolerance.
-     * For the assertion to be true, <tt>expected</tt> and <tt>actual</tt>
+     * For the assertion to be true,
+     * <code>expected</code> and <code>actual</code>
      * must both be primitive numeric array objects whose 
      * component types are of the same
      * class; they must have the same number of elements; and the
-     * <i>i</i>th element of <tt>expected</tt> must be `equal' to the 
-     * <i>i</i>th element of <tt>actual</tt>.
+     * <i>i</i>th element of <code>expected</code> must be `equal' to the 
+     * <i>i</i>th element of <code>actual</code>.
      * Equality in this sense normally means 
-     * <tt>(abs(expected[i]-actual[i]&lt;delta)</tt>, 
-     * but in the case of <tt>float[]</tt> and <tt>double[]</tt> arrays,
-     * elements which both have the value <tt>NaN</tt> are taken to match,
-     * and if the expected element is infinite, then <tt>delta</tt>
+     * <code>(abs(expected[i]-actual[i]&lt;delta)</code>, 
+     * but in the case of <code>float[]</code> and <code>double[]</code> arrays,
+     * elements which both have the value <code>NaN</code> are taken to match,
+     * and if the expected element is infinite, then <code>delta</code>
      * is ignored.
      * <p>
-     * If <tt>delta&lt;1</tt> and the arrays are of integer type, 
+     * If <code>delta&lt;1</code> and the arrays are of integer type, 
      * this method does the same as
      * {@link #assertArrayEquals(String,Object,Object)}.
      *
@@ -426,7 +429,7 @@ public class TestCase extends junit.framework.TestCase {
      * @param  message   the message to output if the assertion fails
      * @param  expected  the array object containing the expected values
      * @param  actual    the array object containing the actual values,
-     *                   asserted <i>not</i> to match <tt>expected</tt>
+     *                   asserted <i>not</i> to match <code>expected</code>
      * @param  delta     the tolerance acceptable between values
      * @throws AssertionFailedError  if the assertion is untrue
      */
@@ -446,20 +449,21 @@ public class TestCase extends junit.framework.TestCase {
     /**
      * Asserts that two numeric arrays have the same contents 
      * within a given tolerance.
-     * For the assertion to be true, <tt>expected</tt> and <tt>actual</tt>
+     * For the assertion to be true,
+     * <code>expected</code> and <code>actual</code>
      * must both be primitive numeric array objects whose component 
      * types are of the same
      * class; they must have the same number of elements; and the
-     * <i>i</i>th element of <tt>expected</tt> must be `equal' to the 
-     * <i>i</i>th element of <tt>actual</tt>.
+     * <i>i</i>th element of <code>expected</code> must be `equal' to the 
+     * <i>i</i>th element of <code>actual</code>.
      * Equality in this sense normally means 
-     * <tt>(abs(expected[i]-actual[i]&lt;delta)</tt>, 
-     * but in the case of <tt>float[]</tt> and <tt>double[]</tt> arrays,
-     * elements which both have the value <tt>NaN</tt> are taken to match,
-     * and if the expected element is infinite, then <tt>delta</tt>
+     * <code>(abs(expected[i]-actual[i]&lt;delta)</code>, 
+     * but in the case of <code>float[]</code> and <code>double[]</code> arrays,
+     * elements which both have the value <code>NaN</code> are taken to match,
+     * and if the expected element is infinite, then <code>delta</code>
      * is ignored.
      * <p>
-     * If <tt>delta&lt;1</tt> and the arrays are of integer type, 
+     * If <code>delta&lt;1</code> and the arrays are of integer type, 
      * this method does the same as
      * {@link #assertArrayEquals(Object,Object)}.
      *
@@ -481,7 +485,7 @@ public class TestCase extends junit.framework.TestCase {
      *
      * @param  expected  the array object containing the expected values
      * @param  actual    the array object containing the actual values,
-     *                   asserted <i>not</i> to match <tt>expected</tt>
+     *                   asserted <i>not</i> to match <code>expected</code>
      * @param  delta     the tolerance acceptable between values
      * @throws AssertionFailedError  if the assertion is untrue
      */
@@ -491,7 +495,7 @@ public class TestCase extends junit.framework.TestCase {
     }
    
     /**
-     * Asserts that two <tt>float</tt>s are exactly equal.
+     * Asserts that two <code>float</code>s are exactly equal.
      *
      * @param  message   the message to output if the assertion fails
      * @param  expected  the expected value
@@ -503,7 +507,7 @@ public class TestCase extends junit.framework.TestCase {
     }
 
     /**
-     * Asserts that two <tt>float</tt>s are exactly equal.
+     * Asserts that two <code>float</code>s are exactly equal.
      *
      * @param  expected  the expected value
      * @param  actual    the actual value
@@ -514,7 +518,7 @@ public class TestCase extends junit.framework.TestCase {
     }
 
     /**
-     * Asserts that two <tt>double</tt>s are exactly equal.
+     * Asserts that two <code>double</code>s are exactly equal.
      *
      * @param  message   the message to output if the assertion fails
      * @param  expected  the expected value
@@ -526,7 +530,7 @@ public class TestCase extends junit.framework.TestCase {
     }
 
     /**
-     * Asserts that two <tt>double</tt>s are exactly equal.
+     * Asserts that two <code>double</code>s are exactly equal.
      *
      * @param  expected  the expected value
      * @param  actual    the actual value
@@ -691,7 +695,7 @@ public class TestCase extends junit.framework.TestCase {
      *
      * @param   expected  the Source object containing the expected infoset
      * @param   actual    the Source object containing the actual infoset,
-     *                    asserted to match <tt>expected</tt>
+     *                    asserted to match <code>expected</code>
      * @param context a string indicating the context of this; may be
      *                    <code>null</code>
      * @param flags a set of flags indicating which node tests to
@@ -923,9 +927,9 @@ public class TestCase extends junit.framework.TestCase {
      *
      * @param  message  message associated with assertion failure
      * @param  isrc  input source containing an XML document
-     * @throws  IOException  if there is an error reading <tt>strm</tt>
-     * @throws  SAXException  if the document in <tt>strm</tt> is badly-formed
-     *                        or invalid
+     * @throws  IOException  if there is an error reading <code>strm</code>
+     * @throws  SAXException  if the document in <code>strm</code>
+     *                        is badly-formed or invalid
      */
     public void assertValidXML( String message, InputSource isrc )
             throws IOException, SAXException {
@@ -997,9 +1001,9 @@ public class TestCase extends junit.framework.TestCase {
      * document's declaration will result in a SAXParseException.
      *
      * @param  isrc  input stream containing an XML document
-     * @throws  IOException  if there is an error reading <tt>strm</tt>
-     * @throws  SAXException  if the document in <tt>strm</tt> is badly-formed
-     *                        or invalid
+     * @throws  IOException  if there is an error reading <code>strm</code>
+     * @throws  SAXException  if the document in <code>strm</code>
+     *                        is badly-formed or invalid
      */
     public void assertValidXML( InputSource isrc ) 
             throws IOException, SAXException {
@@ -1019,7 +1023,7 @@ public class TestCase extends junit.framework.TestCase {
      *                (will be converted to the appropriate primitive type)
      * @param  max    the largest value which will be used
      *                (will be converted to the appropriate primitive type)
-     * @throws IllegalArgumentException  if <tt>array</tt> is not an array
+     * @throws IllegalArgumentException  if <code>array</code> is not an array
      *         of a suitable primitive type
      */
     public void fillRandom( Object array, double min, double max ) {
@@ -1097,7 +1101,7 @@ public class TestCase extends junit.framework.TestCase {
      *                (will be converted to the appropriate primitive type)
      * @param  max    the largest value which will be used
      *                (will be converted to the appropriate primitive type)
-     * @throws IllegalArgumentException  if <tt>array</tt> is not an array
+     * @throws IllegalArgumentException  if <code>array</code> is not an array
      *         of a suitable primitive type
      */
     public void fillRandom( Object array, int min, int max ) {
@@ -1107,18 +1111,19 @@ public class TestCase extends junit.framework.TestCase {
     /**
      * Fills a given array with a regular pattern of integer values.
      * The elements of the array will take the values 
-     * <tt>min, min+1, min+2 .. max-1, min, min+1, min+2..</tt> and so on.
-     * If the <tt>max&lt;min</tt> then the values will start at <tt>min</tt>
-     * and keep increasing.
+     * <code>min, min+1, min+2 .. max-1, min, min+1, min+2..</code> and so on.
+     * If the <code>max&lt;min</code> then the values will start at
+     * <code>min</code> and keep increasing.
      * <p>
-     * The results might not be as expected if you use a <tt>min</tt> and
-     * <tt>max</tt> values outside the range of the numeric type in question.
+     * The results might not be as expected if you use a <code>min</code> and
+     * <code>max</code> values outside the range
+     * of the numeric type in question.
      *
      * @param  array   an array of primitives to be filled with cycling values
      * @param  min     the first value
-     * @param  max     the highest value, or if less than <tt>min</tt> an
+     * @param  max     the highest value, or if less than <code>min</code> an
      *                 indication that there is no maximum
-     * @throws IllegalArgumentException  if <tt>array</tt> is not an array
+     * @throws IllegalArgumentException  if <code>array</code> is not an array
      *         of a suitable primitive type
      */
     public void fillCycle( Object array, int min, int max ) {
@@ -1181,8 +1186,9 @@ public class TestCase extends junit.framework.TestCase {
 
     /**
      * Fills a given array with a pattern of values taken from another one.
-     * <tt>destArray</tt> is filled up with copies of <tt>sourceArray</tt>.
-     * <tt>destArray</tt> and <tt>sourceArray</tt> must be arrays of the
+     * <code>destArray</code> is filled up with copies of
+     * <code>sourceArray</code>.
+     * <code>destArray</code> and <code>sourceArray</code> must be arrays of the
      * same class (but can be different lengths of course).
      *
      * @param  destArray    array to be filled with items
@@ -1207,10 +1213,11 @@ public class TestCase extends junit.framework.TestCase {
      * {@link java.awt.GraphicsEnvironment#isHeadless} method in that
      * this one tries to do some graphics and if it catches a throwable
      * as a consequence it will return true.  The only time that
-     * the <tt>GraphicsEnvironment</tt> call returns true in practice
-     * is if you start java with the property <tt>java.awt.headless=true</tt>.
+     * the <code>GraphicsEnvironment</code> call returns true in practice
+     * is if you start java with the property
+     * <code>java.awt.headless=true</code>.
      *
-     * @return  <tt>true</tt> if graphics type stuff will fail
+     * @return  <code>true</code> if graphics type stuff will fail
      */
     public static boolean isHeadless() {
 
@@ -1234,10 +1241,10 @@ public class TestCase extends junit.framework.TestCase {
 
     /**
      * Returns the classname of an object.  Returns something sensible 
-     * if <tt>o</tt> is null.
+     * if <code>o</code> is null.
      *
      * @param  o  object
-     * @return  name of <tt>o</tt>'s class, or "(null)"
+     * @return  name of <code>o</code>'s class, or "(null)"
      */
     private static String getClassName( Object o ) {
         return o == null ? "(null)" : o.getClass().getName();

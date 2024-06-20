@@ -22,7 +22,7 @@ import javax.swing.table.AbstractTableModel;
  * and each of its row displays one instance of this class.
  * It has one column for each readable property.
  * As usual, a bean is anything which has likely-looking getter methods,
- * though by using the <tt>java.beans</tt> package any cleverer stuff
+ * though by using the <code>java.beans</code> package any cleverer stuff
  * held in BeanInfos will get used as well/instead.
  * What a neat idea!
  *
@@ -99,8 +99,8 @@ public class BeanTableModel extends AbstractTableModel {
      * (data array elements).
      *
      * @param  propertyName  name of readable bean property to sort on
-     * @return   a comparator that sorts on <tt>propertyName</tt>, or
-     *           null if <tt>propertyName</tt> does not name a suitable 
+     * @return   a comparator that sorts on <code>propertyName</code>, or
+     *           null if <code>propertyName</code> does not name a suitable 
      *           property
      */
     public Comparator<?> propertySorter( String propertyName ) {
@@ -163,7 +163,7 @@ public class BeanTableModel extends AbstractTableModel {
      * in the constructor, it can't sensible be overridden by subclasses.
      *
      * @param  prop  property to evaluate
-     * @return  whether to use <tt>prop<tt> as a column in this model
+     * @return  whether to use <code>prop<code> as a column in this model
      */
     private boolean useProperty( PropertyDescriptor prop ) {
         Class<?> pclazz = prop.getPropertyType();

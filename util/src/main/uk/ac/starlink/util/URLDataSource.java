@@ -97,7 +97,7 @@ public class URLDataSource extends DataSource {
     }
 
     /**
-     * Returns the URL on which this <tt>URLDataSource</tt> is based.
+     * Returns the URL on which this <code>URLDataSource</code> is based.
      *
      * @return  the URL
      */

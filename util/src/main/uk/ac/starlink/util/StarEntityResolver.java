@@ -35,7 +35,7 @@ public class StarEntityResolver implements EntityResolver {
      * about, and for those it doesn't it will defer resolution to a supplied
      * parent resolver.
      *
-     * @param   parent   fallback resolver (may be <tt>null</tt>)
+     * @param   parent   fallback resolver (may be <code>null</code>)
      */
     public StarEntityResolver( EntityResolver parent ) {
         this.parent = parent;
@@ -74,12 +74,12 @@ public class StarEntityResolver implements EntityResolver {
     /**
      * Returns a resource name locating the entity referenced by a given
      * public/system ID pair.  If there is a local copy of this entity,
-     * its path relative to this class is returned, otherwise <tt>null</tt>
+     * its path relative to this class is returned, otherwise <code>null</code>
      * is returned.
      *
      * @param  systemId  the entity's system ID
      * @param  publicId  the entity's public ID
-     * @return  path to the resource, or <tt>null</tt> if it is unknown
+     * @return  path to the resource, or <code>null</code> if it is unknown
      */
     protected String getLocalResource( String publicId, String systemId ) {
 

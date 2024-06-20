@@ -32,7 +32,7 @@ public class MapGroup<K,V> {
     private List<K> knownKeys;
 
     /**
-     * Constructs a new <tt>MapGroup</tt>.
+     * Constructs a new <code>MapGroup</code>.
      */
     public MapGroup() {
         setKeyOrder( new ArrayList<K>() );
@@ -50,7 +50,7 @@ public class MapGroup<K,V> {
     /**
      * Returns an unmodifiable list of all the maps in this group.
      * It is unmodifiable so that you can't put anything in it which
-     * is not a <tt>Map</tt>.
+     * is not a <code>Map</code>.
      *
      * @return  a list of the maps
      */
@@ -72,9 +72,10 @@ public class MapGroup<K,V> {
      * The effect of this call is to influence the order of the list
      * returned by subsequent calls of {@link #getKnownKeys}.
      * <p>
-     * The supplied argument <tt>ordering</tt> is a list of objects;
+     * The supplied argument <code>ordering</code> is a list of objects;
      * an object which appears earlier in this list is considered to be
-     * earlier in the list of <tt>MapGroup</tt> keys.  Any which do not appear
+     * earlier in the list of <code>MapGroup</code> keys.
+     * Any which do not appear
      * in this list will be ranked in an unspecified order at the end
      * (their natural comparison order will be used if both objects
      * implement {@link java.lang.Comparable}).
