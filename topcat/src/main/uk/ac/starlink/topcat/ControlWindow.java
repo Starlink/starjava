@@ -180,8 +180,8 @@ public class ControlWindow extends AuxWindow
     private final TableColumnModelListener columnWatcher_ = this;
     private final WindowListener windowWatcher_ = new ControlWindowListener();
     private final StarTableOutput taboutput_ = new StarTableOutput();
-    private final boolean canWrite_ = Driver.canWrite();
-    private final boolean canRead_ = Driver.canRead();
+    private final boolean canWrite_ = true;
+    private final boolean canRead_ = true;
     private final TransferHandler importTransferHandler_ = 
         new ControlTransferHandler( true, false );
     private final TransferHandler exportTransferHandler_ =
