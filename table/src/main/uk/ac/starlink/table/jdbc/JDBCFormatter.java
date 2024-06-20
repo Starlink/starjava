@@ -325,7 +325,7 @@ public class JDBCFormatter {
      * @return  connection-specific type name
      */
     public String typeName( int sqlType ) throws SQLException {
-        return typeNameMap_.get( new Integer( sqlType ) );
+        return typeNameMap_.get( Integer.valueOf( sqlType ) );
     }
 
     /**
@@ -344,20 +344,20 @@ public class JDBCFormatter {
         while ( typeInfos.next() ) {
             String name = typeInfos.getString( "TYPE_NAME" );
             int id = (int) typeInfos.getShort( "DATA_TYPE" );
-            Integer key = new Integer( id );
+            Integer key = Integer.valueOf( id );
             if ( ! types.containsKey( key ) ) {
                 types.put( key, name );
             }
         }
         typeInfos.close();
-        if ( ! types.containsKey( new Integer( Types.NULL ) ) ) {
-            types.put( new Integer( Types.NULL ), "NULL" );
+        if ( ! types.containsKey( Integer.valueOf( Types.NULL ) ) ) {
+            types.put( Integer.valueOf( Types.NULL ), "NULL" );
         }
 
         /* Hack for PostgreSQL for which the above procedure results in
          * "text" instead of "varchar" for the Types.VARCHAR type
          * (driver is at fault I'd say, should report varchar before text). */
-        types.put( new Integer( Types.VARCHAR ), "VARCHAR" );
+        types.put( Integer.valueOf( Types.VARCHAR ), "VARCHAR" );
 
         /* Hack for DBMSs which don't return the right types in other ways. */
         setTypeFallback( types, Types.FLOAT, Types.REAL );
@@ -381,8 +381,8 @@ public class JDBCFormatter {
      */
     private static <V> void setTypeFallback( Map<Integer,V> types,
                                              int req, int fallback ) {
-        Integer reqKey = new Integer( req );
-        Integer fallbackKey = new Integer( fallback );
+        Integer reqKey = Integer.valueOf( req );
+        Integer fallbackKey = Integer.valueOf( fallback );
         if ( ! types.containsKey( reqKey ) &&
              types.containsKey( fallbackKey ) ) {
             types.put( reqKey, types.get( fallbackKey ) );

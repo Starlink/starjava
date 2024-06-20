@@ -36,7 +36,7 @@ class TableSorter {
         int nrow = Tables.checkedLongToInt( table.getRowCount() );
         Number[] rowMap = new Number[ nrow ];
         for ( int i = 0; i < nrow; i++ ) {
-            rowMap[ i ] = new Integer( i );
+            rowMap[ i ] = Integer.valueOf( i );
         }
         Comparator<Number> comp =
             new RowComparator( table, colIndices, up, nullsLast );

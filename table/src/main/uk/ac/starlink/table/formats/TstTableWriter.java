@@ -368,7 +368,7 @@ public class TstTableWriter extends DocumentedStreamStarTableWriter {
                                 "Row index within table" );
             ColumnData indexCol = new ColumnData( indexInfo ) {
                 public Object readValue( long irow ) {
-                    return new Long( irow + 1 );
+                    return Long.valueOf( irow + 1 );
                 }
             };
 
@@ -502,8 +502,8 @@ public class TstTableWriter extends DocumentedStreamStarTableWriter {
             Object val = super.getCell( lrow, icol );
             return ( factors_[ icol ] == 1.0 || val == null )
                  ? val
-                 : new Double( ((Number) val).doubleValue()
-                               * factors_[ icol ] );
+                 : Double.valueOf( ((Number) val).doubleValue()
+                                 * factors_[ icol ] );
         }
 
         public Object[] getRow( long lrow ) throws IOException {
@@ -513,8 +513,8 @@ public class TstTableWriter extends DocumentedStreamStarTableWriter {
                 Object val = row[ icol ];
                 double factor = factors_[ icol ];
                 if ( factor != 1.0 && val != null ) {
-                    row[ icol ] = new Double( ((Number) val).doubleValue()
-                                              * factor );
+                    row[ icol ] = Double.valueOf( ((Number) val).doubleValue()
+                                                * factor );
                 }
             }
             return row;
@@ -558,7 +558,8 @@ public class TstTableWriter extends DocumentedStreamStarTableWriter {
             Object val = baseRow_.getCell( icol );
             return ( factors_[ icol ] == 1.0 || val == null )
                 ? val
-                : new Double( ((Number) val).doubleValue() * factors_[ icol ] );
+                : Double.valueOf( ((Number) val).doubleValue()
+                                * factors_[ icol ] );
         }
         public Object[] getRow() throws IOException {
             Object[] row = baseRow_.getRow();
@@ -568,7 +569,7 @@ public class TstTableWriter extends DocumentedStreamStarTableWriter {
                 double factor = factors_[ icol ];
                 if ( factor != 1.0 && val != null ) {
                     row[ icol ] =
-                        new Double( ((Number) val).doubleValue() * factor );
+                        Double.valueOf( ((Number) val).doubleValue() * factor );
                 }
             }
             return row;

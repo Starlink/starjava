@@ -497,7 +497,7 @@ public abstract class TableSaveChooser extends JPanel {
                 new uk.ac.starlink.table.ColumnInfo( "index", Integer.class,
                                                      null ) ) {
                     public Object readValue( long irow ) {
-                        return new Integer( (int) ( irow + 1 ) );
+                        return Integer.valueOf( (int) ( irow + 1 ) );
                     }
                 } );
         new TableSaveChooser() {

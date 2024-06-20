@@ -60,7 +60,7 @@ public class TableCase extends TestCase {
                     cell1 = c1x;
                 }
                 else if ( cell1 instanceof Byte && cell2 instanceof Short ) {
-                    cell1 = new Short( ((Number) cell1).shortValue() );
+                    cell1 = Short.valueOf( ((Number) cell1).shortValue() );
                 }
                 else if ( cell1 == null &&
                           cell2 != null &&

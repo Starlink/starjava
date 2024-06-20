@@ -44,17 +44,17 @@ public class LoopStarTable extends ColumnStarTable {
                 start == (int) start && end == (int) end && step == (int) step;
             if ( is32bit ) {
                 clazz = Integer.class;
-                typedValue = dval -> new Integer( (int) dval );
+                typedValue = dval -> Integer.valueOf( (int) dval );
             }
             else {
                 clazz = Long.class;
-                typedValue = dval -> new Long( (long) dval );
+                typedValue = dval -> Long.valueOf( (long) dval );
             }
         }
         else {
             nrow = (long) Math.floor( ( end - start ) / step );
             clazz = Double.class;
-            typedValue = dval -> new Double( dval );
+            typedValue = dval -> Double.valueOf( dval );
         }
         nrow_ = Math.max( 0, nrow );
         addColumn( new ColumnData( new ColumnInfo( colName, clazz, descrip ) ) {

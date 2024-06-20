@@ -42,7 +42,7 @@ public class EditableColumn extends WrapperColumn {
     }
 
     public Object readValue( long irow ) throws IOException {
-        Long key = new Long( irow );
+        Long key = Long.valueOf( irow );
         return changedEntries_.containsKey( key ) ? changedEntries_.get( key )
                                                   : base_.readValue( irow );
     }
@@ -58,7 +58,7 @@ public class EditableColumn extends WrapperColumn {
                 "Value " + value + " is a " + value.getClass() + " not a " + 
                 getColumnInfo().getContentClass() );
         }
-        Long key = new Long( irow );
+        Long key = Long.valueOf( irow );
         changedEntries_.put( key, value );
     }
 }
