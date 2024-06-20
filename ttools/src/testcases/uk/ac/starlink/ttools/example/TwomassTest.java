@@ -22,7 +22,7 @@ public class TwomassTest extends TestCase {
         assertEquals( 60, table.getColumnCount() );
         assertEquals( "ra", table.getColumnInfo( 0 ).getName() );
         assertEquals( "coadd", table.getColumnInfo( 59 ).getName() );
-        assertEquals( new Short( (short) 127 ), table.getCell( 0, 59 ) );
-        assertEquals( new Short( (short) 115 ), table.getCell( 9, 59 ) );
+        assertEquals( Short.valueOf( (short) 127 ), table.getCell( 0, 59 ) );
+        assertEquals( Short.valueOf( (short) 115 ), table.getCell( 9, 59 ) );
     }
 }

@@ -247,9 +247,9 @@ public class TimeSurface implements Surface, PlanarSurface {
                                         ? TimeFormat.DECIMAL_YEAR
                                         : TimeFormat.ISO8601;
         config.put( TimeSurfaceFactory.TMIN_KEY,
-                    new Double( roundTime( dtlo_, tfmt, timeEpsilon ) ) );
+                    Double.valueOf( roundTime( dtlo_, tfmt, timeEpsilon ) ) );
         config.put( TimeSurfaceFactory.TMAX_KEY,
-                    new Double( roundTime( dthi_, tfmt, timeEpsilon ) ) );
+                    Double.valueOf( roundTime( dthi_, tfmt, timeEpsilon ) ) );
         config.putAll( PlotUtil.configLimits( TimeSurfaceFactory.YMIN_KEY,
                                               TimeSurfaceFactory.YMAX_KEY,
                                               dylo_, dyhi_, gyhi_ - gylo_ ) );

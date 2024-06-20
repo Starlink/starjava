@@ -351,9 +351,9 @@ public class HealpixPlotter
             "</p>",
         } );
         final Collection<Integer> levelOptions = new ArrayList<Integer>();
-        levelOptions.add( new Integer( -1 ) );
+        levelOptions.add( Integer.valueOf( -1 ) );
         for ( int i = 0; i <= MAX_LEVEL; i++ ) {
-            levelOptions.add( new Integer( i ) );
+            levelOptions.add( Integer.valueOf( i ) );
         }
         ConfigKey<Integer> key = new IntegerConfigKey( meta, -1 ) {
             public Specifier<Integer> createSpecifier() {

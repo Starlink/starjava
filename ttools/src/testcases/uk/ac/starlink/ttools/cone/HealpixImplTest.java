@@ -155,7 +155,7 @@ public class HealpixImplTest extends TestCase {
     private static Set<Long> toSet( long[] pixels ) {
         Set<Long> set = new TreeSet<Long>();
         for ( int i = 0; i < pixels.length; i++ ) {
-            set.add( new Long( pixels[ i ] ) );
+            set.add( Long.valueOf( pixels[ i ] ) );
         }
         return set;
     }

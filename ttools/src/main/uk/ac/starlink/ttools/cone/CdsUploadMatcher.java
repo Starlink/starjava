@@ -291,7 +291,7 @@ public class CdsUploadMatcher implements UploadMatcher {
             prettyName_ = jobj.optString( "prettyName", null );
             desc_ = jobj.optString( "desc", null );
             long nbrows = jobj.optLong( "nbrows", -1L );
-            rowCount_ = nbrows >=0 ? new Long( nbrows ) : null;
+            rowCount_ = nbrows >=0 ? Long.valueOf( nbrows ) : null;
         }
 
         /**

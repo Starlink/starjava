@@ -790,10 +790,10 @@ public class HistogramPlotter
                     double xmax = bin.getXMax();
                     double xmid = PlotUtil.scaleValue( xmin, xmax, 0.5, xlog_ );
                     return new Object[] {
-                        new Double( xmid ),
-                        new Double( bin.getY() ),
-                        new Double( xmin ),
-                        new Double( xmax ),
+                        Double.valueOf( xmid ),
+                        Double.valueOf( bin.getY() ),
+                        Double.valueOf( xmin ),
+                        Double.valueOf( xmax ),
                     };
                 }
                 public void remove() {

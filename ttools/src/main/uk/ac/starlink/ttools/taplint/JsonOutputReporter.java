@@ -73,7 +73,7 @@ public class JsonOutputReporter implements OutputReporter {
         int i = 0;
         for ( ReportType rtype : typeList_ ) {
             tmap.put( rtype.toString(),
-                      new Integer( rtypeMap_.getCount( rtype ) ) );
+                      Integer.valueOf( rtypeMap_.getCount( rtype ) ) );
         }
         out_.print( jsoner_.jsonPair( "totals", tmap, 1, false ) );
         out_.println( "\n}" );
@@ -124,7 +124,7 @@ public class JsonOutputReporter implements OutputReporter {
             rmap.put( "level", rtype.toString() );
             rmap.put( "code", code.getLabel() );
             rmap.put( "text", message );
-            rmap.put( "iseq", new Integer( count ) );
+            rmap.put( "iseq", Integer.valueOf( count ) );
             if ( err != null ) {
                 Map<String,String> emap = new LinkedHashMap<String,String>();
                 emap.put( "class", err.getClass().getName() );
@@ -161,7 +161,7 @@ public class JsonOutputReporter implements OutputReporter {
                         new LinkedHashMap<String,Object>();
                     rmap.put( "level", rtype.toString() );
                     rmap.put( "code", code.getLabel() );
-                    rmap.put( "more", new Integer( count - maxRepeat_ ) );
+                    rmap.put( "more", Integer.valueOf( count - maxRepeat_ ) );
                     StringBuffer sbuf = new StringBuffer();
                     if ( irep_++ > 0 ) {
                         sbuf.append( "," );

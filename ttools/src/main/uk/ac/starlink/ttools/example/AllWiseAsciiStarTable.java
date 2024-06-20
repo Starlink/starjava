@@ -206,16 +206,16 @@ public class AllWiseAsciiStarTable extends StreamStarTable {
             }
             else if ( "smallint".equals( type ) ) {
                 decoder = SHORT_DECODER;
-                badnum = new Short( Short.MIN_VALUE );
+                badnum = Short.valueOf( Short.MIN_VALUE );
             }
             else if ( "integer".equals( type ) ) {
                 decoder = INT_DECODER;
-                badnum = new Integer( Integer.MIN_VALUE );
+                badnum = Integer.valueOf( Integer.MIN_VALUE );
             }
             else if ( "int8".equals( type )
                    || "serial8".equals( type ) ) {
                 decoder = LONG_DECODER;
-                badnum = new Long( Long.MIN_VALUE );
+                badnum = Long.valueOf( Long.MIN_VALUE );
             }
             else if ( "char".equals( type ) ) {
                 decoder = CHAR_DECODER;

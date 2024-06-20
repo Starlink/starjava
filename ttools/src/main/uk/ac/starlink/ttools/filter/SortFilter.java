@@ -139,7 +139,7 @@ public class SortFilter extends BasicFilter {
                                : isParallel_.booleanValue();
             Number[] rowMap = new Number[ nrow ];
             for ( int i = 0; i < nrow; i++ ) {
-                rowMap[ i ] = new Integer( i );
+                rowMap[ i ] = Integer.valueOf( i );
             }
             RowComparator keyComparator;
             try {

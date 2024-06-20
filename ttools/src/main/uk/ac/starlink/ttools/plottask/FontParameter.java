@@ -79,10 +79,10 @@ public class FontParameter extends StyleParameter<String> {
         /* Set up associated font style parameter. */
         styleParam_ =
             new ChoiceParameter<Integer>( name + "style", Integer.class );
-        styleParam_.addOption( new Integer( Font.PLAIN ), "plain" );
-        styleParam_.addOption( new Integer( Font.BOLD ), "bold" );
-        styleParam_.addOption( new Integer( Font.ITALIC ), "italic" );
-        styleParam_.addOption( new Integer( Font.BOLD | Font.ITALIC ),
+        styleParam_.addOption( Integer.valueOf( Font.PLAIN ), "plain" );
+        styleParam_.addOption( Integer.valueOf( Font.BOLD ), "bold" );
+        styleParam_.addOption( Integer.valueOf( Font.ITALIC ), "italic" );
+        styleParam_.addOption( Integer.valueOf( Font.BOLD | Font.ITALIC ),
                                "bold-italic" );
         styleParam_.setPrompt( "Font modifier" );
         styleParam_.setDescription( new String[] {

@@ -220,7 +220,7 @@ public class HealpixMetadataFilter extends BasicFilter {
             table.setParameters( params );
             if ( level_ >= 0 ) {
                 replaceMeta( params, HealpixTableInfo.HPX_LEVEL_INFO,
-                             new Integer( level_ ) );
+                             Integer.valueOf( level_ ) );
             }
             if ( colid_ != null ) {
                 final String colname;

@@ -183,7 +183,7 @@ public class MetadataFilter extends BasicFilter {
             Map<ValueInfo,Object> map = new HashMap<ValueInfo,Object>();
 
             /* Add standard metadata items. */
-            map.put( INDEX_INFO, new Integer( icol + 1 ) );
+            map.put( INDEX_INFO, Integer.valueOf( icol + 1 ) );
             map.put( NAME_INFO, info.getName() );
             map.put( CLASS_INFO,
                      DefaultValueInfo.formatClass( info.getContentClass() ) );

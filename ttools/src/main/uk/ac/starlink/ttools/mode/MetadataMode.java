@@ -62,7 +62,7 @@ public class MetadataMode implements ProcessingMode {
         if ( name != null && name.trim().length() > 0 ) {
             out.println( "Name:    " + name.trim() );
         }
-        out.println( "Columns: " + new Integer( ncol ) );
+        out.println( "Columns: " + Integer.valueOf( ncol ) );
         out.println( "Rows:    " +
                      ( nrow >= 0 ? Long.toString( nrow ) : "?" ) );
 

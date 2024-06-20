@@ -91,7 +91,7 @@ public abstract class MarkShape {
         public MarkStyle getStyle( Color color, final int size ) {
             final int off = -size;
             final int diam = size * 2;
-            return new MarkStyle( color, new Integer( size ),
+            return new MarkStyle( color, Integer.valueOf( size ),
                                   this, size, size + 1 ) {
                 public void drawShape( Graphics g ) {
                     g.drawOval( off, off, diam, diam );
@@ -111,7 +111,7 @@ public abstract class MarkShape {
         public MarkStyle getStyle( Color color, final int size ) {
             final int off = -size;
             final int diam = size * 2;
-            return new MarkStyle( color, new Integer( size ), 
+            return new MarkStyle( color, Integer.valueOf( size ), 
                                   this, size, size + 1 ) {
                 public void drawShape( Graphics g ) {
                     g.fillOval( off, off, diam, diam );
@@ -138,7 +138,7 @@ public abstract class MarkShape {
         public MarkStyle getStyle( Color color, int size ) {
             final int off = -size;
             final int height = size * 2;
-            return new MarkStyle( color, new Integer( size ),
+            return new MarkStyle( color, Integer.valueOf( size ),
                                   this, size, size + 1 ) {
                 public void drawShape( Graphics g ) {
                     g.drawRect( off, off, height, height );
@@ -153,7 +153,7 @@ public abstract class MarkShape {
         public MarkStyle getStyle( Color color, int size ) {
             final int off = -size;
             final int height = size * 2 + 1;
-            return new MarkStyle( color, new Integer( size ),
+            return new MarkStyle( color, Integer.valueOf( size ),
                                   this, size, size + 1 ) {
                 public void drawShape( Graphics g ) {
                      g.fillRect( off, off, height, height );
@@ -166,7 +166,7 @@ public abstract class MarkShape {
     public static final MarkShape CROSS = new MarkShape( "cross" ) {
         public MarkStyle getStyle( Color color, int size ) {
             final int off = size;
-            return new MarkStyle( color, new Integer( size ),
+            return new MarkStyle( color, Integer.valueOf( size ),
                                   this, size, size + 1 ) {
                 public void drawShape( Graphics g ) {
                     g.drawLine( -off, 0, off, 0 );
@@ -180,7 +180,7 @@ public abstract class MarkShape {
     public static final MarkShape CROXX = new MarkShape( "x" ) {
         public MarkStyle getStyle( Color color, int size ) {
             final int off = size;
-            return new MarkStyle( color, new Integer( size ),
+            return new MarkStyle( color, Integer.valueOf( size ),
                                   this, size, size + 1 ) {
                 public void drawShape( Graphics g ) {
                     g.drawLine( -off, -off, off, off );

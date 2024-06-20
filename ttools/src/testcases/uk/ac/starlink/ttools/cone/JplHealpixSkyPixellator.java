@@ -111,7 +111,7 @@ public class JplHealpixSkyPixellator extends HealpixSkyPixellator {
             int ip = 0;
             for ( RangeSet.ValueIterator vit = rset.valueIterator();
                   vit.hasNext(); ) {
-                pixels[ ip++ ] = new Long( vit.next() );
+                pixels[ ip++ ] = Long.valueOf( vit.next() );
             }
             assert ip == npix;
             return pixels;

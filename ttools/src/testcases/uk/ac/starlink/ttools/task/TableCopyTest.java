@@ -15,7 +15,7 @@ public class TableCopyTest extends TableTestCase {
         StarTable in = new QuickTable( 4, new ColumnData[] {
             col( "x", new int[] { 1, 2, 3, 4 } ),
             col( "y", new int[] { 9, 8, 7, 6 } ),
-            col( "z", new Integer[] { new Integer( 3 ), null, null, null } ),
+            col( "z", new Integer[] { Integer.valueOf( 3 ), null, null, null }),
         } );
         MapEnvironment env = new MapEnvironment()
                             .setValue( "in", in );

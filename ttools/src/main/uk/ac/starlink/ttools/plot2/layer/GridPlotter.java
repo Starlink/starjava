@@ -968,9 +968,9 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                 ReportMap report = new ReportMap();
                 GridPixer pixer = createGridPixer( surface_, 0.0 );
                 report.put( XBINWIDTH_KEY,
-                            new Double( pixer.xgrid_.binWidth_ ) );
+                            Double.valueOf( pixer.xgrid_.binWidth_ ) );
                 report.put( YBINWIDTH_KEY,
-                            new Double( pixer.ygrid_.binWidth_ ) );
+                            Double.valueOf( pixer.ygrid_.binWidth_ ) );
                 if ( plan instanceof GridPlan ) {
                     report.put( GRIDTABLE_KEY,
                                 createExportTable( surface_,

@@ -209,7 +209,8 @@ public class MapBinnedData<K extends Comparable<K>> implements BinnedData {
             base_ = binBase;
         }
         public Long getKey( double value ) {
-            return new Long( (long) Math.floor( ( value - base_ ) / width_ ) );
+            return Long.valueOf( (long)
+                                 Math.floor( ( value - base_ ) / width_ ) );
         }
         public double[] getBounds( Long key ) {
             final long keyval = key.longValue();
@@ -240,7 +241,7 @@ public class MapBinnedData<K extends Comparable<K>> implements BinnedData {
                     return val_ <= hiVal_;
                 }
                 public Long next() {
-                    return new Long( val_++ );
+                    return Long.valueOf( val_++ );
                 }
                 public void remove() {
                     throw new UnsupportedOperationException();
@@ -266,8 +267,8 @@ public class MapBinnedData<K extends Comparable<K>> implements BinnedData {
         }
         public Long getKey( double value ) {
             return value > 0.0
-                 ? new Long( (long) Math.floor( ( Math.log( value / base_ )
-                                                  / logFactor_ ) ) )
+                 ? Long.valueOf( (long) Math.floor( ( Math.log( value / base_ )
+                                                    / logFactor_ ) ) )
                  : null;
         }
         public double[] getBounds( Long key ) {
@@ -283,7 +284,7 @@ public class MapBinnedData<K extends Comparable<K>> implements BinnedData {
                     return val_ <= hiVal_;
                 }
                 public Long next() {
-                    return new Long( val_++ );
+                    return Long.valueOf( val_++ );
                 }
                 public void remove() {
                     throw new UnsupportedOperationException();

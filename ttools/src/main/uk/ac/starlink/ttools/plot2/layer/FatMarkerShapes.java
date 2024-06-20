@@ -168,7 +168,7 @@ public class FatMarkerShapes {
         }
 
         public MarkerStyle getStyle( Color color, int size ) {
-            Object otherAtts = new Integer( ifat_ << 16 | size );
+            Object otherAtts = Integer.valueOf( ifat_ << 16 | size );
             final int s1 = 2 * size + 1;
             final int s2 = 2 * ifat_ + 1;
             Consumer<Graphics> drawShape = g -> {

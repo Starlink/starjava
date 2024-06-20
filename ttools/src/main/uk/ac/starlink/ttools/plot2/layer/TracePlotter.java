@@ -290,7 +290,7 @@ public abstract class TracePlotter
         double w = style.smoothSizer_.getWidth( xLog, dlims[ 0 ], dlims[ 1 ],
                                                 (Rounding) null );
         ReportMap report = new ReportMap();
-        report.put( SMOOTHWIDTH_KEY, new Double( w ) );
+        report.put( SMOOTHWIDTH_KEY, Double.valueOf( w ) );
         return report;
     }
 

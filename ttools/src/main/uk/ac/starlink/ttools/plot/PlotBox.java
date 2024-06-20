@@ -316,7 +316,7 @@ class PlotBox extends JPanel implements Printable {
     public synchronized void addLegend(int dataset, String legend) {
         if (legend == null || legend.equals("")) return;
         _legendStrings.addElement(legend);
-        _legendDatasets.addElement(new Integer(dataset));
+        _legendDatasets.addElement(Integer.valueOf(dataset));
     }
 
     /** Specify a tick mark for the X axis.  The label given is placed
@@ -332,7 +332,7 @@ class PlotBox extends JPanel implements Printable {
             _xticks = new Vector();
             _xticklabels = new Vector();
         }
-        _xticks.addElement(new Double(position));
+        _xticks.addElement(Double.valueOf(position));
         _xticklabels.addElement(label);
     }
 
@@ -349,7 +349,7 @@ class PlotBox extends JPanel implements Printable {
             _yticks = new Vector();
             _yticklabels = new Vector();
         }
-        _yticks.addElement(new Double(position));
+        _yticks.addElement(Double.valueOf(position));
         _yticklabels.addElement(label);
     }
 
@@ -662,7 +662,7 @@ class PlotBox extends JPanel implements Printable {
      *  @return The legend label, or null if there is none.
      */
     public synchronized String getLegend(int dataset) {
-        int idx = _legendDatasets.indexOf(new Integer(dataset), 0);
+        int idx = _legendDatasets.indexOf(Integer.valueOf(dataset), 0);
         if (idx != -1) {
             return (String)_legendStrings.elementAt(idx);
         } else {
@@ -2812,7 +2812,7 @@ class PlotBox extends JPanel implements Printable {
         // grid marks.
 
         Vector grid = new Vector(10);
-        //grid.addElement(new Double(0.0));
+        //grid.addElement(Double.valueOf(0.0));
         double ratio = Math.pow(10.0, step);
         int ngrid = 1;
         if (labeled) {
@@ -2872,13 +2872,13 @@ class PlotBox extends JPanel implements Printable {
                             ((Double)oldgrid.elementAt(oldgridi)).doubleValue()
                             - logval)
                             > 0.00001) {
-                        grid.addElement(new Double(logval));
+                        grid.addElement(Double.valueOf(logval));
                     }
                 } else {
-                    grid.addElement(new Double(logval));
+                    grid.addElement(Double.valueOf(logval));
                 }
             } else {
-                grid.addElement(new Double(logval));
+                grid.addElement(Double.valueOf(logval));
             }
         }
 

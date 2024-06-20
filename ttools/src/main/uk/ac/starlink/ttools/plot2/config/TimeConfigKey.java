@@ -55,7 +55,7 @@ public class TimeConfigKey extends ConfigKey<Double> {
      * @param   dfltUnixSeconds  default value as seconds since Unix epoch
      */
     public TimeConfigKey( ConfigMeta meta, double dfltUnixSeconds ) {
-        super( meta, Double.class, new Double( dfltUnixSeconds ) );
+        super( meta, Double.class, Double.valueOf( dfltUnixSeconds ) );
     }
 
     public String valueToString( Double value ) {
@@ -66,7 +66,7 @@ public class TimeConfigKey extends ConfigKey<Double> {
 
     public Double stringToValue( String txt ) throws ConfigException {
         if ( txt == null || txt.trim().length() == 0 ) {
-            return new Double( Double.NaN );
+            return Double.valueOf( Double.NaN );
         }
         txt = txt.trim();
         double dval;
@@ -97,7 +97,8 @@ public class TimeConfigKey extends ConfigKey<Double> {
     }
 
     public Specifier<Double> createSpecifier() {
-        return new TextFieldSpecifier<Double>( this, new Double( Double.NaN ) );
+        return new TextFieldSpecifier<Double>( this,
+                                               Double.valueOf( Double.NaN ) );
     }
 
     /**

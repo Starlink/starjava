@@ -53,13 +53,13 @@ public class IntegerCoord extends SingleCoord {
     public enum IntType {
 
         /** 8-bit signed integer. */
-        BYTE( StorageType.BYTE, new Byte( Byte.MIN_VALUE ) ),
+        BYTE( StorageType.BYTE, Byte.valueOf( Byte.MIN_VALUE ) ),
 
         /** 16-bit signed integer. */
-        SHORT( StorageType.SHORT, new Short( Short.MIN_VALUE ) ),
+        SHORT( StorageType.SHORT, Short.valueOf( Short.MIN_VALUE ) ),
 
         /** 32-bit signed integer. */
-        INT( StorageType.INT, new Integer( Integer.MIN_VALUE ) );
+        INT( StorageType.INT, Integer.valueOf( Integer.MIN_VALUE ) );
 
         private final StorageType stype_;
         private final Number badval_;

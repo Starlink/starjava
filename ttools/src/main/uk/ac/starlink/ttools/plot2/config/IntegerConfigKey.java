@@ -33,7 +33,7 @@ public abstract class IntegerConfigKey extends ConfigKey<Integer> {
      * @param  dflt  default value
      */
     protected IntegerConfigKey( ConfigMeta meta, int dflt ) {
-        super( meta, Integer.class, new Integer( dflt ) );
+        super( meta, Integer.class, Integer.valueOf( dflt ) );
         if ( meta.getStringUsage() == null ) {
             meta.setStringUsage( "<int-value>" );
         }
@@ -131,7 +131,7 @@ public abstract class IntegerConfigKey extends ConfigKey<Integer> {
                         double dval = dVal.doubleValue();
                         return Double.isNaN( dval )
                              ? null
-                             : new Integer( (int) Math.round( dval ) );
+                             : Integer.valueOf( (int) Math.round( dval ) );
                     }
                     protected Double outToIn( Integer iVal ) {
                         return iVal == null ? null : iVal.doubleValue();
@@ -175,7 +175,7 @@ public abstract class IntegerConfigKey extends ConfigKey<Integer> {
         }
 
         public Integer getSpecifiedValue() {
-            return new Integer( ((Number) spinner_.getValue()).intValue() );
+            return Integer.valueOf( ((Number) spinner_.getValue()).intValue() );
         }
 
         public void setSpecifiedValue( Integer value ) {
@@ -267,17 +267,17 @@ public abstract class IntegerConfigKey extends ConfigKey<Integer> {
             int value = posButt_.isSelected()
                       ? ((Number) posSpinner_.getValue()).intValue()
                       : ((Number) negSpinner_.getValue()).intValue();
-            return new Integer( value );
+            return Integer.valueOf( value );
         }
 
         public void setSpecifiedValue( Integer value ) {
             if ( value >= 0 ) {
                 posButt_.setSelected( true );
-                posSpinner_.setValue( new Integer( value ) );
+                posSpinner_.setValue( Integer.valueOf( value ) );
             }
             else {
                 negButt_.setSelected( true );
-                negSpinner_.setValue( new Integer( value ) );
+                negSpinner_.setValue( Integer.valueOf( value ) );
             }
             fireAction();
         }
@@ -324,7 +324,7 @@ public abstract class IntegerConfigKey extends ConfigKey<Integer> {
                     int imin = ((Number) min).intValue();
                     int imax = ((Number) max).intValue();
                     if ( value >= imin && value <= imax ) {
-                        spinner.setValue( new Integer( value ) );
+                        spinner.setValue( Integer.valueOf( value ) );
                     }
                 }
             }

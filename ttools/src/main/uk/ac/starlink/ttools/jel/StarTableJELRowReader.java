@@ -417,7 +417,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
                     return Long.class;
                 }
                 public Long getValue() {
-                    return new Long( table_.getRowCount() );
+                    return Long.valueOf( table_.getRowCount() );
                 }
                 public boolean requiresRowIndex() {
                     return false;
@@ -462,7 +462,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
                     return Long.class;
                 }
                 public Long getValue() {
-                    return new Long( getCurrentRow() + 1 );
+                    return Long.valueOf( getCurrentRow() + 1 );
                 }
                 public boolean requiresRowIndex() {
                     return true;
@@ -493,7 +493,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
                 }
                 public Double getValue() {
                     long seed = seed0 + ( getCurrentRow() * 2000000011L );
-                    return new Double( new Random( seed ).nextDouble() );
+                    return Double.valueOf( new Random( seed ).nextDouble() );
                 }
                 public boolean requiresRowIndex() {
                     return true;

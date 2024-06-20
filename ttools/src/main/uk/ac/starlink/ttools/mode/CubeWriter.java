@@ -559,7 +559,7 @@ public class CubeWriter implements TableConsumer {
      * ColumnData implementation that returns 1.
      */
     private static class UnitColumnData extends ColumnData {
-        private final Integer unit_ = new Integer( 1 );
+        private final Integer unit_ = Integer.valueOf( 1 );
         UnitColumnData() {
             super( new DefaultValueInfo( "Counts", Integer.class ) );
         }

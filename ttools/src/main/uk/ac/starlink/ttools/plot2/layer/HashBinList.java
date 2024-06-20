@@ -39,7 +39,7 @@ public class HashBinList implements BinList {
     }
 
     public void submitToBin( long index, double value ) {
-        Long key = new Long( index );
+        Long key = Long.valueOf( index );
         Combiner.Container container = map_.get( key );
         if ( container == null ) {
             container = getCombiner().createContainer();
@@ -49,7 +49,7 @@ public class HashBinList implements BinList {
     }
 
     public Combiner.Container getBinContainer( long index ) {
-        return map_.get( new Long( index ) );
+        return map_.get( Long.valueOf( index ) );
     }
 
     /**
@@ -83,7 +83,8 @@ public class HashBinList implements BinList {
     public Result getResult() {
         return new Result() {
             public double getBinValue( long index ) {
-                Combiner.Container container = map_.get( new Long( index ) );
+                Combiner.Container container =
+                    map_.get( Long.valueOf( index ) );
                 return container == null ? Double.NaN
                                          : container.getCombinedValue();
             }
@@ -114,7 +115,7 @@ public class HashBinList implements BinList {
                         double val = container == null
                                    ? Double.NaN
                                    : container.getCombinedValue();
-                        cmap.put( key, new Double( val ) );
+                        cmap.put( key, Double.valueOf( val ) );
                     }
                     return createHashResult( cmap );
                 }
@@ -143,7 +144,7 @@ public class HashBinList implements BinList {
     public static Result createHashResult( final Map<Long,Double> map ) { 
         return new Result() {
             public double getBinValue( long index ) {
-                Double value = map.get( new Long( index ) );
+                Double value = map.get( Long.valueOf( index ) );
                 return value == null ? Double.NaN : value.doubleValue();
             }
             public long getBinCount() {

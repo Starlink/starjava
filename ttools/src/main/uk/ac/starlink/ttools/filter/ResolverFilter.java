@@ -170,8 +170,8 @@ public class ResolverFilter extends BasicFilter {
                     }
                     Pair p = cache_.get( objName );
                     if ( p != null ) {
-                        return new Object[] { new Double( p.ra_ ),
-                                              new Double( p.dec_ ) };
+                        return new Object[] { Double.valueOf( p.ra_ ),
+                                              Double.valueOf( p.dec_ ) };
                     }
                 }
             }

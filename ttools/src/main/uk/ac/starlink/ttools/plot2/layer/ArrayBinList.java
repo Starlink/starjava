@@ -171,7 +171,7 @@ public abstract class ArrayBinList implements BinList {
             int ibit = mask.nextSetBit( 0 );
             public Long next() {
                 if ( ibit >= 0 ) {
-                    Long result = new Long( ibit );
+                    Long result = Long.valueOf( ibit );
                     ibit = mask.nextSetBit( ibit + 1 );
                     return result;
                 }

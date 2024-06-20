@@ -869,7 +869,7 @@ public class GridDensityMap extends SingleMapperTask {
                     double dval =
                         PlotUtil.scaleValue( limits[ 0 ], limits[ 1 ],
                                              frac, isLogs_[ icoord ] );
-                    return new Double( dval );
+                    return Double.valueOf( dval );
                 }
             } );
         }

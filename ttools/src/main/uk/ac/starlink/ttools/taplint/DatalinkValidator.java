@@ -714,7 +714,7 @@ public class DatalinkValidator {
                                       "Multiple columns named " + name );
                 }
                 else if ( coldef.getContentClass().isAssignableFrom( clazz ) ) {
-                    icolMap.put( coldef, new Integer( ic ) );
+                    icolMap.put( coldef, Integer.valueOf( ic ) );
                 }
             }
             else {
@@ -807,10 +807,10 @@ public class DatalinkValidator {
         /* But perform some additional checks for things that the
          * library code just ignores. */
         Map<String,Integer> paramCounts = new HashMap<String,Integer>();
-        paramCounts.put( "accessURL", new Integer( 0 ) );
-        paramCounts.put( "standardID", new Integer( 0 ) );
-        paramCounts.put( "resourceIdentifier", new Integer( 0 ) );
-        paramCounts.put( "contentType", new Integer( 0 ) );
+        paramCounts.put( "accessURL", Integer.valueOf( 0 ) );
+        paramCounts.put( "standardID", Integer.valueOf( 0 ) );
+        paramCounts.put( "resourceIdentifier", Integer.valueOf( 0 ) );
+        paramCounts.put( "contentType", Integer.valueOf( 0 ) );
         for ( VOElement pEl : resourceEl.getChildrenByName( "PARAM" ) ) {
             ParamElement paramEl = (ParamElement) pEl;
             String name = paramEl.getName();
@@ -836,7 +836,7 @@ public class DatalinkValidator {
                         .toString();
                     reporter_.report( DatalinkCode.E_PSNS, msg );
                 }
-                paramCounts.put( name, new Integer( count + 1 ) );
+                paramCounts.put( name, Integer.valueOf( count + 1 ) );
             }
         }
         for ( Map.Entry<String,Integer> entry : paramCounts.entrySet() ) {

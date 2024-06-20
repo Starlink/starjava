@@ -88,7 +88,7 @@ public class AttractorStarTable extends AbstractStarTable {
             }
             public Double getCell( int ic ) {
                 if ( point_ != null ) {
-                    return new Double( point_[ ic ] );
+                    return Double.valueOf( point_[ ic ] );
                 }
                 else {
                     throw new IllegalStateException();
@@ -98,7 +98,7 @@ public class AttractorStarTable extends AbstractStarTable {
                 if ( point_ != null ) {
                     Object[] row = new Object[ ndim_ ];
                     for ( int id = 0; id < ndim_; id++ ) {
-                        row[ id ] = new Double( point_[ id ] );
+                        row[ id ] = Double.valueOf( point_[ id ] );
                     }
                     return row;
                 }
@@ -137,7 +137,8 @@ public class AttractorStarTable extends AbstractStarTable {
                                   + "\t" + attractor );
                 StarTable table = new AttractorStarTable( attractor, nrow );
                 table.setParameter( new DescribedValue( FILL_INFO,
-                                                        new Double( frac ) ) );
+                                                        Double
+                                                       .valueOf( frac ) ) );
                 sto.writeStarTable( table, loc, "fits" );
             }
             else {

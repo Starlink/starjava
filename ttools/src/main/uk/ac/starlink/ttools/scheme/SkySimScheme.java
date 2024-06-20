@@ -160,8 +160,9 @@ public class SkySimScheme implements TableScheme, Documented {
          * the extra sig figs are not relevant.  The positional
          * quantisation is no worse than a few tens of mas, which
          * corresponds to a HEALPix level of around 22. */
-        StarTable table = new SkySimTable<Float>( nrow, simData, Float.class,
-                                                  d -> new Float( (float) d ) );
+        StarTable table =
+            new SkySimTable<Float>( nrow, simData, Float.class,
+                                    d -> Float.valueOf( (float) d ) );
         table.setName( "SimulatedSky-" + nrow );
         DescribedValue[] params = {
             new DescribedValue(

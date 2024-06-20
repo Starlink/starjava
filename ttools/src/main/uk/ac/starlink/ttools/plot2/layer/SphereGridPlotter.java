@@ -155,7 +155,7 @@ public class SphereGridPlotter
                 final double r = radius > 0 ? radius
                                             : -radius * net.getDefaultRadius();
                 final ReportMap report = new ReportMap();
-                report.put( RADIUS_REPKEY, new Double( r ) );
+                report.put( RADIUS_REPKEY, Double.valueOf( r ) );
                 return new UnplannedDrawing() {
                     protected void paintData( final Paper paper,
                                               DataStore dataStore ) {

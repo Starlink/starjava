@@ -66,18 +66,21 @@ public class CachedColumnFactoryTest extends TestCase {
             }
         }
         for ( int i = 0; i < nr; i++ ) {
-            colMap.get( StorageType.BOOLEAN ).add( new Boolean( booleans[ i ]));
-            colMap.get( StorageType.BYTE ).add( new Byte( bytes[ i ] ) );
-            colMap.get( StorageType.DOUBLE ).add( new Double( doubles[ i ] ) );
+            colMap.get( StorageType.BOOLEAN )
+                  .add( Boolean.valueOf( booleans[ i ] ) );
+            colMap.get( StorageType.BYTE )
+                  .add( Byte.valueOf( bytes[ i ] ) );
+            colMap.get( StorageType.DOUBLE )
+                  .add( Double.valueOf( doubles[ i ] ) );
             colMap.get( StorageType.DOUBLE_ARRAY ).add( doubleArrays[ i ] );
             colMap.get( StorageType.DOUBLE3 ).add( double3s[ i ] );
-            colMap.get( StorageType.FLOAT ).add( new Float( floats[ i ] ) );
+            colMap.get( StorageType.FLOAT ).add( Float.valueOf( floats[ i ] ) );
             colMap.get( StorageType.FLOAT_ARRAY ).add( floatArrays[ i ] );
             colMap.get( StorageType.FLOAT3 ).add( float3s[ i ] );
-            colMap.get( StorageType.INT ).add( new Integer( ints[ i ] ) );
+            colMap.get( StorageType.INT ).add( Integer.valueOf( ints[ i ] ) );
             colMap.get( StorageType.INT3 ).add( int3s[ i ] );
-            colMap.get( StorageType.LONG ).add( new Long( longs[ i ] ) );
-            colMap.get( StorageType.SHORT ).add( new Short( shorts[ i ] ) );
+            colMap.get( StorageType.LONG ).add( Long.valueOf( longs[ i ] ) );
+            colMap.get( StorageType.SHORT ).add( Short.valueOf( shorts[ i ] ) );
             colMap.get( StorageType.STRING ).add( strings[ i ] );
         }
 

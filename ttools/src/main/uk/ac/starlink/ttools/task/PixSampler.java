@@ -452,8 +452,8 @@ public class PixSampler {
                     }
                 }
             }
-            return count > 0 ? new Double( sum / count )
-                             : Double.NaN;
+            return count > 0 ? Double.valueOf( sum / count )
+                             : Double.valueOf( Double.NaN );
         }
     };
 }

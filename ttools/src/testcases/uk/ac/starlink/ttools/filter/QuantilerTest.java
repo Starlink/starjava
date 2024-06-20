@@ -81,7 +81,7 @@ public class QuantilerTest extends TestCase {
     private static int[] shuffle( int[] array ) {
         List<Integer> list = new ArrayList<>();
         for ( int i = 0; i < array.length; i++ ) {
-            list.add( new Integer( array[ i ] ) );
+            list.add( Integer.valueOf( array[ i ] ) );
         }
         Collections.shuffle( list, new Random( 2313214 ) );
         int[] out = new int[ array.length ];

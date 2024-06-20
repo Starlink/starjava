@@ -401,7 +401,7 @@ public class ConeMatcher {
         ColumnInfo[] distCols = new ColumnInfo[] { distInfo };
         final ColumnSupplement distSup;
         if ( ira < 0 || idec < 0 ) {
-            Object[] blankRow = new Object[] { new Double( Double.NaN ) };
+            Object[] blankRow = new Object[] { Double.valueOf( Double.NaN ) };
             distSup = new ConstantColumnSupplement( distCols, blankRow );
         }
         else {
@@ -418,7 +418,7 @@ public class ConeMatcher {
                     double dec1 = getDouble( inValues[ 1 ] ) * decUnit;
                     double dist = CoordsDegrees
                                  .skyDistanceDegrees( ra0, dec0, ra1, dec1 );
-                    return new Object[] { new Double( dist ) };
+                    return new Object[] { Double.valueOf( dist ) };
                 }
             };
         }

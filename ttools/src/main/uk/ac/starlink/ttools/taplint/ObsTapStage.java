@@ -729,7 +729,8 @@ public class ObsTapStage implements Stage {
 
         /* ObsTAP 1.0 Sec 4.2, ObsTAP 1.1 sec 3.3.2. */
         map.get( "calib_level" ).range_ =
-            new Integer[] { new Integer( 0 ), new Integer( is11 ? 4 : 3 ) };
+            new Integer[] { Integer.valueOf( 0 ),
+                            Integer.valueOf( is11 ? 4 : 3 ) };
 
         /* ObsTAP 1.0 Table 4. */
         map.get( "calib_level" ).nullForbidden_ = true;

@@ -139,7 +139,7 @@ public class StatsMode implements ProcessingMode {
             "";
         statsTable = KeepColumnFilter.keepColumnTable( statsTable, columns );
         statsTable.setParameter( new DescribedValue( ROWCOUNT_INFO,
-                                                     new Long( nrow ) ) );
+                                                     Long.valueOf( nrow ) ) );
 
         /* Return the table which contains the statistics. */
         return statsTable;

@@ -368,17 +368,17 @@ public class SkyMatchTest extends TableTestCase {
 
         final ColumnData idcol = new ColumnData( idInfo ) {
             public Object readValue( long irow ) {
-                return new Integer( (int) irow );
+                return Integer.valueOf( (int) irow );
             }
         };
         final ColumnData ra1col = new ColumnData( ra1Info ) {
             public Object readValue( long irow ) {
-                return new Double( ( 9. + irow / 10. ) % 360. );
+                return Double.valueOf( ( 9. + irow / 10. ) % 360. );
             }
         };
         final ColumnData dec1col = new ColumnData( dec1Info ) {
             public Object readValue( long irow ) {
-                return new Double( -45. + irow / 60. );
+                return Double.valueOf( -45. + irow / 60. );
             }
         };
         final ColumnData ra2col = new ColumnData( ra2Info ) {
@@ -386,7 +386,7 @@ public class SkyMatchTest extends TableTestCase {
                 double theta = irow * 0.1;
                 double dist = irow / ARCSEC_PER_DEGREE / 100.;
                 double ra1 = ((Double) ra1col.readValue( irow )).doubleValue();
-                return new Double( ra1 + Math.sin( theta ) * dist );
+                return Double.valueOf( ra1 + Math.sin( theta ) * dist );
             }
         };
         final ColumnData dec2col = new ColumnData( dec2Info ) {
@@ -394,7 +394,7 @@ public class SkyMatchTest extends TableTestCase {
                 double theta = irow * 0.1;
                 double dist = irow / ARCSEC_PER_DEGREE / 100.;
                 double dec1 =((Double) dec1col.readValue( irow )).doubleValue();
-                return new Double( dec1 + Math.cos( theta ) * dist );
+                return Double.valueOf( dec1 + Math.cos( theta ) * dist );
             }
         };
         final ColumnData errcol = new ColumnData( errInfo ) {
@@ -403,9 +403,10 @@ public class SkyMatchTest extends TableTestCase {
                 double dec1 =((Double) dec1col.readValue( irow )).doubleValue();
                 double ra2 = ((Double) ra2col.readValue( irow )).doubleValue();
                 double dec2 =((Double) dec2col.readValue( irow )).doubleValue();
-                return new Double( CoordsDegrees
-                                  .skyDistanceDegrees( ra1, dec1, ra2, dec2 )
-                                   * ARCSEC_PER_DEGREE );
+                return Double
+                      .valueOf( CoordsDegrees
+                               .skyDistanceDegrees( ra1, dec1, ra2, dec2 )
+                                * ARCSEC_PER_DEGREE );
             };
         };
         
