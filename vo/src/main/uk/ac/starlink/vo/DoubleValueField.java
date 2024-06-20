@@ -98,7 +98,7 @@ public class DoubleValueField {
     public DescribedValue getDescribedValue() {
         Double val;
         try {
-            val = new Double( getValue() );
+            val = Double.valueOf( getValue() );
         }
         catch ( Exception e ) {
             val = null;
@@ -165,7 +165,8 @@ public class DoubleValueField {
         ValueConverter vc =
             convSelector_.getItemAt( convSelector_.getSelectedIndex() );
         try {
-            getEntryField().setText( vc.unconvertValue( new Double( value ) ) );
+            getEntryField().setText( vc.unconvertValue( Double
+                                                       .valueOf( value ) ) );
         }
         catch ( RuntimeException e ) {
             String msg = "Invalid value for " + info_.getName() + " field";

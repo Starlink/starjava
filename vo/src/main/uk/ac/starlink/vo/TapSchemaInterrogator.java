@@ -920,7 +920,7 @@ public class TapSchemaInterrogator {
             int nc = querycols_.length;
             for ( int ic = 0; ic < nc; ic++ ) {
                 String col = querycols_[ ic ];
-                icolMap_.put( col, new Integer( ic ) );
+                icolMap_.put( col, Integer.valueOf( ic ) );
                 if ( ! stdcols.contains( col ) ) {
                     extrasList.add( queryCols[ ic ] );
                 }

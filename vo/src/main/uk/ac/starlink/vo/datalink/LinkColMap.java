@@ -211,7 +211,7 @@ public class LinkColMap {
             return null;
         }
         else {
-            return new Long( cleng.longValue() );
+            return Long.valueOf( cleng.longValue() );
         }
     }
 
@@ -321,7 +321,7 @@ public class LinkColMap {
                                    + " (" + clazz.getSimpleName() + ")" );
                 }
                 else {
-                    icolMap.put( coldef, new Integer( ic ) );
+                    icolMap.put( coldef, Integer.valueOf( ic ) );
                     if ( ! isCorrectUcd ) {
                         if ( ucd == null ) {
                             logger_.warning( "Missing UCD for DataLink column "
