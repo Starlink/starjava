@@ -61,7 +61,6 @@ import uk.ac.starlink.util.URLUtils;
  */
 public class TopcatUtils {
 
-    private static Boolean canExec_;
     private static Boolean canJel_;
     private static String[] about_;
     private static String version_;
@@ -468,59 +467,20 @@ public class TopcatUtils {
     }
 
     /**
-     * Indicates whether we have System.exec permission.
-     * 
-     * @return  true  if it's possible to exec
-     */
-    public static boolean canExec() {
-        if ( canExec_ == null ) {
-            synchronized ( TopcatUtils.class ) {
-                SecurityManager sman = System.getSecurityManager();
-                if ( sman != null ) {
-                    try {
-                        sman.checkExec( null );
-                    }
-                    catch ( SecurityException e ) {
-                        logger_.warning( "Security manager forbids " +
-                                         "system execution" );
-                        canExec_ = Boolean.FALSE;
-                    }
-                }
-                canExec_ = Boolean.TRUE;
-            }
-        }
-        return canExec_.booleanValue();
-    }
-
-    /**
      * Indicates if it's possible to use JEL to compile algebraic expressions.
-     * If the security manager does not permit creation of private
-     * class loaders, it will fail.
      *
-     * @return   true iff JEL epxression compilation will work
+     * <p>This used to query the SecurityManager, but the
+     * <code>java.lang.SecurityManager</code> class is
+     * deprecated for removal in later JREs, and I don't think it's
+     * likely that expression compilation will be blocked.
+     * So this method currently returns true unconditionally,
+     * but retain it in case it turns out there are circumstances
+     * we can test for that bear on this.
+     *
+     * @return   true iff JEL epxression compilation is expected to work
      */
     public static boolean canJel() {
-        if ( canJel_ == null ) {
-            boolean can;
-            synchronized ( TopcatUtils.class ) {
-                SecurityManager sman = System.getSecurityManager();
-                if ( sman != null ) {
-                    try {
-                        sman.checkCreateClassLoader();
-                        can = true;
-                    }
-                    catch ( SecurityException e ) {
-                        logger_.warning( "Security manager forbids JEL use" );
-                        can = false;
-                    }
-                }
-                else {
-                    can = true;
-                }
-            }
-            canJel_ = Boolean.valueOf( can );
-        }
-        return canJel_.booleanValue();
+        return true;
     }
 
     /**

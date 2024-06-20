@@ -55,9 +55,6 @@ import uk.ac.starlink.votable.VOElementFactory;
 public class Driver {
 
     private static boolean standalone = false;
-    private static boolean securityChecked;
-    private static Boolean canRead;
-    private static Boolean canWrite;
     private static StarTable[] demoTables;
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
     private static StarTableFactory tabfact;
@@ -87,75 +84,6 @@ public class Driver {
      */
     public static boolean isStandalone() {
         return standalone;
-    }
-
-    /**
-     * Indicates whether the security context will permit reads from local
-     * disk.
-     *
-     * @return  true iff reads are permitted
-     */
-    public static boolean canRead() {
-        checkSecurity();
-        return canRead.booleanValue();
-    }
-
-    /**
-     * Indicates whether the security context will permit writes to local
-     * disk.
-     *
-     * @return  true iff writes are permitted
-     */
-    public static boolean canWrite() {
-        checkSecurity();
-        return canWrite.booleanValue();
-    }
-
-    /**
-     * Talks to the installed security manager to find out what is and
-     * is not permitted.
-     */
-    private static void checkSecurity() {
-        if ( ! securityChecked ) {
-            SecurityManager sman = System.getSecurityManager();
-            if ( sman == null ) {
-                canRead = Boolean.TRUE;
-                canWrite = Boolean.TRUE;
-            }
-            else {
-                String readDir;
-                String writeDir;
-                try { 
-                    readDir = System.getProperty( "user.home" );
-                }
-                catch ( SecurityException e ) {
-                    readDir = ".";
-                }
-                try {
-                    writeDir = System.getProperty( "java.io.tmpdir" );
-                }
-                catch ( SecurityException e ) {
-                    writeDir = ".";
-                }
-                try {
-                    sman.checkRead( readDir );
-                    canRead = Boolean.TRUE;
-                }
-                catch ( SecurityException e ) {
-                    canRead = Boolean.FALSE;
-                }
-                try {
-                    sman.checkWrite( new File( writeDir, "tOpCTeSt.tmp" )
-                                    .toString() );
-                    canWrite = Boolean.TRUE;
-                }
-                catch ( SecurityException e ) {
-                    canWrite = Boolean.FALSE;
-                }
-            }
-            assert canRead != null;
-            assert canWrite != null;
-        }
     }
 
     /**
