@@ -198,7 +198,7 @@ public class HtmSkyPixellator implements SkyPixellator {
         }
         public Object getValue() {
             int level = getLevel();
-            return level >= 0 ? new Integer( level ) : null;
+            return level >= 0 ? Integer.valueOf( level ) : null;
         }
         public void setValue( Object value ) {
             setLevel( value == null ? -1 : ((Integer) value).intValue() );

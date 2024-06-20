@@ -396,12 +396,12 @@ public class HumanMatchEngine implements MatchEngine {
         }
         public Object wrapValue( Object value ) {
             return value instanceof Number
-                 ? new Double( ((Number) value).doubleValue() / factor_ )
+                 ? Double.valueOf( ((Number) value).doubleValue() / factor_ )
                  : null;
         }
         public Object unwrapValue( Object value ) {
             return value instanceof Number
-                 ? new Double( ((Number) value).doubleValue() * factor_ )
+                 ? Double.valueOf( ((Number) value).doubleValue() * factor_ )
                  : null;
         }
         public double wrapDouble( double value ) {

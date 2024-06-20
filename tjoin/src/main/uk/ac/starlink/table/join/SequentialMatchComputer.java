@@ -130,7 +130,7 @@ class SequentialMatchComputer implements MatchComputer {
                         long[] rrows = binnerR.getLongs( keys[ ikey ] );
                         if ( rrows != null ) {
                             for ( int ir = 0; ir < rrows.length; ir++ ) {
-                                rrowSet.add( new Long( rrows[ ir ] ) );
+                                rrowSet.add( Long.valueOf( rrows[ ir ] ) );
                             }
                         }
                     }
