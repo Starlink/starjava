@@ -198,7 +198,7 @@ public abstract class BadHandler {
                     }
                     public final Number makeNumber( Object array, int pos ) {
                         byte val = ((byte[]) array)[ pos ];
-                        return ( val == byteBad ) ? null : new Byte( val );
+                        return ( val == byteBad ) ? null : Byte.valueOf( val );
                     }
                     public final ArrayHandler arrayHandler( final Object arr ) {
                         return new ArrayHandler() {
@@ -234,7 +234,8 @@ public abstract class BadHandler {
                     }
                     public final Number makeNumber( Object array, int pos ) {
                         short val = ((short[]) array)[ pos ];
-                        return ( val == shortBad ) ? null : new Short( val );
+                        return ( val == shortBad ) ? null
+                                                   : Short.valueOf( val );
                     }
                     public final ArrayHandler arrayHandler( final Object arr ) {
                         return new ArrayHandler() {
@@ -270,7 +271,8 @@ public abstract class BadHandler {
                     }
                     public final Number makeNumber( Object array, int pos ) {
                         int val = ((int[]) array)[ pos ];
-                        return ( val == intBad ) ? null : new Integer( val );
+                        return ( val == intBad ) ? null
+                                                 : Integer.valueOf( val );
                     }
                     public final ArrayHandler arrayHandler( final Object arr ) {
                         return new ArrayHandler() {
@@ -308,7 +310,7 @@ public abstract class BadHandler {
                     public final Number makeNumber( Object array, int pos ) {
                         float val = ((float[]) array)[ pos ];
                         return ( val == floatBad || Float.isNaN( val ) ) 
-                            ? null : new Float( val );
+                            ? null : Float.valueOf( val );
                     }
                     public final ArrayHandler arrayHandler( final Object arr ) {
                         return new ArrayHandler() {
@@ -347,7 +349,7 @@ public abstract class BadHandler {
                     public final Number makeNumber( Object array, int pos ) {
                         double val = ((double[]) array)[ pos ];
                         return ( val == doubleBad || Double.isNaN( val ) )
-                            ? null : new Double( val );
+                            ? null : Double.valueOf( val );
                     }
                     public final ArrayHandler arrayHandler( final Object arr ) {
                         return new ArrayHandler() {
@@ -475,7 +477,7 @@ public abstract class BadHandler {
                 Arrays.fill( (byte[]) array, start, start + size, byteBad );
             }
             public final Number makeNumber( Object array, int pos ) {
-                return new Byte( ((byte[]) array)[ pos ] );
+                return Byte.valueOf( ((byte[]) array)[ pos ] );
             }
             public final ArrayHandler arrayHandler( final Object arr ) {
                 return new NullArrayHandler() {
@@ -497,7 +499,7 @@ public abstract class BadHandler {
                 Arrays.fill( (short[]) array, start, start + size, shortBad );
             }
             public final Number makeNumber( Object array, int pos ) {
-                return new Short( ((short[]) array)[ pos ] );
+                return Short.valueOf( ((short[]) array)[ pos ] );
             }
             public final ArrayHandler arrayHandler( final Object arr ) {
                 return new NullArrayHandler() {
@@ -519,7 +521,7 @@ public abstract class BadHandler {
                 Arrays.fill( (int[]) array, start, start + size, intBad );
             }
             public final Number makeNumber( Object array, int pos ) {
-                return new Integer( ((int[]) array)[ pos ] );
+                return Integer.valueOf( ((int[]) array)[ pos ] );
             }
             public final ArrayHandler arrayHandler( final Object arr ) {
                 return new NullArrayHandler() {
@@ -546,7 +548,7 @@ public abstract class BadHandler {
             }
             public final Number makeNumber( Object array, int pos ) {
                 float val = ((float[]) array)[ pos ];
-                return Float.isNaN( val ) ? null : new Float( val );
+                return Float.isNaN( val ) ? null : Float.valueOf( val );
             }
             public final ArrayHandler arrayHandler( final Object arr ) {
                 return new ArrayHandler() {
@@ -577,7 +579,7 @@ public abstract class BadHandler {
             }
             public final Number makeNumber( Object array, int pos ) {
                 double val = ((double[]) array)[ pos ];
-                return Double.isNaN( val ) ? null : new Double( val );
+                return Double.isNaN( val ) ? null : Double.valueOf( val );
             }
             public final ArrayHandler arrayHandler( final Object arr ) {
                 return new ArrayHandler() {

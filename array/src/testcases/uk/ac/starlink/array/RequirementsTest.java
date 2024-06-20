@@ -21,7 +21,8 @@ public class RequirementsTest extends TestCase {
     public void testSettings() {
         AccessMode mode = AccessMode.UPDATE; 
         Type type = Type.FLOAT;
-        BadHandler bh = BadHandler.getHandler( Type.FLOAT, new Float( 1.5 ) );
+        BadHandler bh = BadHandler.getHandler( Type.FLOAT,
+                                               Float.valueOf( 1.5f ) );
         Order order = Order.ROW_MAJOR;
         NDShape window = new NDShape( new long[ 3 ], new long[] { 1, 4, 9 } );
 
@@ -51,7 +52,7 @@ public class RequirementsTest extends TestCase {
 
     public void testBad() {
         Type type = Type.SHORT;
-        Number badval = new Short( (short) 99 );
+        Number badval = Short.valueOf( (short) 99 );
         Requirements req = new Requirements()
                           .setType( Type.SHORT )
                           .setBadValue( badval );
@@ -72,7 +73,8 @@ public class RequirementsTest extends TestCase {
 
     public void testExceptions() {
         Requirements req = new Requirements();
-        BadHandler ibh = BadHandler.getHandler( Type.INT, new Integer( 23 ) );
+        BadHandler ibh = BadHandler.getHandler( Type.INT,
+                                                Integer.valueOf( 23 ) );
         try {
             req.setBadHandler( ibh );
             fail();

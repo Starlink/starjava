@@ -367,13 +367,14 @@ public class RegistrySearchClient {
             // convert ADQL string to XML
             Element where = convertWhere(adqlwhere);
 
-            args = new Object[] { where, new Integer(from), 
-                                  new Integer(max), new Boolean(idsonly) };
+            args = new Object[] { where, Integer.valueOf(from), 
+                                  Integer.valueOf(max),
+                                  Boolean.valueOf(idsonly) };
         }
 
         public void updateArgs() {
-            args[1] = new Integer(getFrom());
-            args[2] = new Integer(getMax());
+            args[1] = Integer.valueOf(getFrom());
+            args[2] = Integer.valueOf(getMax());
         }
     }
 
@@ -400,14 +401,14 @@ public class RegistrySearchClient {
                       int from, int max, boolean idsonly) 
         {
             super(service, getKeywordSearchMethod(), from, max);
-            args = new Object[] { keywords, new Boolean(orThem), 
-                                  new Integer(from), new Integer(max), new 
-                                  Boolean(idsonly) };
+            args = new Object[] { keywords, Boolean.valueOf(orThem), 
+                                  Integer.valueOf(from), Integer.valueOf(max),
+                                  Boolean.valueOf(idsonly) };
         }
 
         public void updateArgs() {
-            args[2] = new Integer(getFrom());
-            args[3] = new Integer(getMax());
+            args[2] = Integer.valueOf(getFrom());
+            args[3] = Integer.valueOf(getMax());
         }
     }
     

@@ -55,11 +55,11 @@ public class TypeTest extends TestCase {
     }
 
     public void testBad() {
-        Number badByte = new Byte( Byte.MIN_VALUE );
-        Number badShort = new Short( Short.MIN_VALUE );
-        Number badInt = new Integer( Integer.MIN_VALUE );
-        Number badFloat = new Float( Float.NaN );
-        Number badDouble = new Double( Double.NaN );
+        Number badByte = Byte.valueOf( Byte.MIN_VALUE );
+        Number badShort = Short.valueOf( Short.MIN_VALUE );
+        Number badInt = Integer.valueOf( Integer.MIN_VALUE );
+        Number badFloat = Float.valueOf( Float.NaN );
+        Number badDouble = Double.valueOf( Double.NaN );
 
         assertEquals( (byte) -128, badByte.byteValue() );
         assertEquals( (short) -32768, badShort.shortValue() );

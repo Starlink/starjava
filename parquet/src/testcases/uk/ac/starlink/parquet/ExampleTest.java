@@ -59,15 +59,15 @@ public class ExampleTest extends TestCase {
         assertColumnLike( ex.getColumnInfo( 3 ), "strs", String.class );
         assertColumnLike( ex.getColumnInfo( 4 ), "iarrs", long[].class );
         assertArrayEquals( ex.getRow( 0 ), new Object[] { 
-            new Long( 1 ), new Double( 2.5 ), Boolean.TRUE, "foo",
+            Long.valueOf( 1 ), Double.valueOf( 2.5 ), Boolean.TRUE, "foo",
             new long[] { 11, 12, 13, 14 },
         } );
         assertArrayEquals( ex.getRow( 1 ), new Object[] {
-            new Long( 2 ), Double.valueOf( Double.NaN ), null, null,
+            Long.valueOf( 2 ), Double.valueOf( Double.NaN ), null, null,
             new long[] { 21, 22, 23, 24 },
         } );
         assertArrayEquals( ex.getRow( 2 ), new Object[] {
-            new Long( 3 ), new Double( 99 ), Boolean.FALSE, "baz",
+            Long.valueOf( 3 ), Double.valueOf( 99 ), Boolean.FALSE, "baz",
             new long[] { 31, 32, 33, 34 },
         } );
         ex.close();

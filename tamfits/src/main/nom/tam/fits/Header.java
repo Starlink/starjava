@@ -304,7 +304,7 @@ public class Header implements FitsElement {
 	try {
 	    String v = fcard.getValue();
 	    if (v != null) {
-	      return new Double(v).doubleValue();
+	      return Double.parseDouble(v);
 	    }
 	} catch (NumberFormatException e) {
 	}

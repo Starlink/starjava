@@ -98,14 +98,14 @@ public class KeyMapTest extends TestCase {
         assertEquals( 4, map.mapLength( "D" ) );
         assertArrayEquals( new double[] { 1., 2., 3., 4. },
                            map.mapGet1D( "D" ) );
-        assertEquals( new Double( 1.0 ), map.mapGet0D( "D" ) );
+        assertEquals( Double.valueOf( 1.0 ), map.mapGet0D( "D" ) );
 
         map.mapPut1I( "I", new int[] { 1, 2, 3, 4, 5 },
                       " n-n-numbers " );
         assertEquals( 5, map.mapLength( "I" ) );
         assertArrayEquals( new int[] { 1, 2, 3, 4, 5 },
                            map.mapGet1I( "I" ) );
-        assertEquals( new Integer( 1 ), map.mapGet0I( "I" ) );
+        assertEquals( Integer.valueOf( 1 ), map.mapGet0I( "I" ) );
     }
 
     public void testErrors() {

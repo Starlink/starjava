@@ -88,7 +88,7 @@ public class ValueType {
 
     /** Integer type. */
     public static ValueType INT =
-        new ValueType( "INT", Integer.class, new Integer( 0 ) );
+        new ValueType( "INT", Integer.class, Integer.valueOf( 0 ) );
 
     /** Boolean type. */
     public static ValueType BOOLEAN =
@@ -100,7 +100,7 @@ public class ValueType {
 
     /** Double precision type. */
     public static ValueType DOUBLE =
-        new ValueType( "DOUBLE", Double.class, new Double( 0.0 ) );
+        new ValueType( "DOUBLE", Double.class, Double.valueOf( 0.0 ) );
 
     /** ISO-8601 date type. */
     public static ValueType DATE =

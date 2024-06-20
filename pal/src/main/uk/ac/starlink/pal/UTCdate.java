@@ -34,7 +34,7 @@ public class UTCdate {
 /** Get String representation
  */
     public String toString() {
-        String s = new Double( Date ).toString();
+        String s = Double.toString( Date );
         if ( hasDeriv ) s = s.concat( " (" + Deriv + ") ");
         return s;
     }

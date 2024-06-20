@@ -51,7 +51,7 @@ public class Type {
         if ( name.equals( "byte" ) ) {
             clazz = byte.class;
             nBytes = 1;
-            defaultBadValue = new Byte( (byte) 0x80 );
+            defaultBadValue = Byte.valueOf( (byte) 0x80 );
             isFloating = false;
             minval = (double) Byte.MIN_VALUE;
             maxval = (double) Byte.MAX_VALUE;
@@ -59,7 +59,7 @@ public class Type {
         else if ( name.equals( "short" ) ) {
             clazz = short.class;
             nBytes = 2;
-            defaultBadValue = new Short( (short) 0x8000 );
+            defaultBadValue = Short.valueOf( (short) 0x8000 );
             isFloating = false;
             minval = (double) Short.MIN_VALUE;
             maxval = (double) Short.MAX_VALUE;
@@ -67,7 +67,7 @@ public class Type {
         else if ( name.equals( "int" ) ) {
             clazz = int.class;
             nBytes = 4;
-            defaultBadValue = new Integer( 0x80000000 );
+            defaultBadValue = Integer.valueOf( 0x80000000 );
             isFloating = false;
             minval = (double) Integer.MIN_VALUE;
             maxval = (double) Integer.MAX_VALUE;
@@ -75,7 +75,7 @@ public class Type {
         else if ( name.equals( "float" ) ) {
             clazz = float.class;
             nBytes = 4;
-            defaultBadValue = new Float( Float.NaN );
+            defaultBadValue = Float.valueOf( Float.NaN );
             isFloating = true;
             minval = (double) - Float.MAX_VALUE;
             maxval = (double) Float.MAX_VALUE;
@@ -83,7 +83,7 @@ public class Type {
         else if ( name.equals( "double" ) ) {
             clazz = double.class;
             nBytes = 8;
-            defaultBadValue = new Double( Double.NaN );
+            defaultBadValue = Double.valueOf( Double.NaN );
             isFloating = true;
             minval = - Double.MAX_VALUE;
             maxval = Double.MAX_VALUE;

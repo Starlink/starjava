@@ -294,13 +294,15 @@ public class ArrayImplTest extends TestCase {
      */
     private BadHandler makeBadHandler( Type type ) {
         if ( type.equals( Type.BYTE ) ) {
-            return BadHandler.getHandler( type, new Byte( (byte) -126 ) );
+            return BadHandler.getHandler( type, Byte.valueOf( (byte) -126 ) );
         }
         else if ( type.equals( Type.SHORT ) ) {
-            return BadHandler.getHandler( type, new Short( (short) -32766 ) );
+            return BadHandler.getHandler( type,
+                                          Short.valueOf( (short) -32766 ) );
         }
         else if ( type.equals( Type.INT ) ) {
-            return BadHandler.getHandler( type, new Integer( -2147483646 ) );
+            return BadHandler.getHandler( type,
+                                          Integer.valueOf( -2147483646 ) );
         }
         else if ( type.equals( Type.FLOAT ) ) {
 
@@ -317,7 +319,7 @@ public class ArrayImplTest extends TestCase {
                         Float.floatToRawIntBits( Float.NaN ) );
 
             // Return a bad value handler which recognises only that as bad.
-            return new BadHandler( Type.FLOAT, new Float( badval ) ) {
+            return new BadHandler( Type.FLOAT, Float.valueOf( badval ) ) {
                 private int pattern = Float.floatToRawIntBits( badval );
                 public boolean isBad( Object array, int pos ) {
                     float val = ((float[]) array)[ pos ];
@@ -331,7 +333,7 @@ public class ArrayImplTest extends TestCase {
                 }
                 public Number makeNumber( Object array, int pos ) {
                     float val = ((float[]) array)[ pos ];
-                    return isBad( array, pos ) ? null : new Float( val );
+                    return isBad( array, pos ) ? null : Float.valueOf( val );
                 }
                 public BadHandler.ArrayHandler arrayHandler( final Object ar ) {
                     return new BadHandler.ArrayHandler() {
@@ -364,7 +366,7 @@ public class ArrayImplTest extends TestCase {
                         Double.doubleToRawLongBits( Double.NaN ) );
 
             // Return a bad value handler which recognises only that as bad.
-            return new BadHandler( Type.DOUBLE, new Double( badval ) ) {
+            return new BadHandler( Type.DOUBLE, Double.valueOf( badval ) ) {
                 private long pattern = Double.doubleToRawLongBits( badval );
                 public boolean isBad( Object array, int pos ) {
                     double val = ((double[]) array)[ pos ];
@@ -378,7 +380,7 @@ public class ArrayImplTest extends TestCase {
                 }
                 public Number makeNumber( Object array, int pos ) {
                     double val = ((double[]) array)[ pos ];
-                    return isBad( array, pos ) ? null : new Double( val );
+                    return isBad( array, pos ) ? null : Double.valueOf( val );
                 }
                 public BadHandler.ArrayHandler arrayHandler( final Object ar ) {
                     return new BadHandler.ArrayHandler() {

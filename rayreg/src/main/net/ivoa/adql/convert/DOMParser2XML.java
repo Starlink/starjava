@@ -76,9 +76,9 @@ public class DOMParser2XML implements S2XTransformer {
 
     private static Hashtable modes = new Hashtable();
     static {
-        modes.put("default_ns", new Short(ADQLs2DOMParser.MODE_DEFAULT_NS));
+        modes.put("default_ns", Short.valueOf(ADQLs2DOMParser.MODE_DEFAULT_NS));
         modes.put("always_qualified", 
-                  new Short(ADQLs2DOMParser.MODE_ALWAYS_QUALIFIED));
+                  Short.valueOf(ADQLs2DOMParser.MODE_ALWAYS_QUALIFIED));
     }
 
     // default parser classes; these can be overridden in the config file

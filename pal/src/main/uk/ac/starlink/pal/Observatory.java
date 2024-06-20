@@ -44,7 +44,7 @@ public class Observatory {
         if ( Name == null ) return;
         setLong( Obs[i][2] );
         setLat( Obs[i][3] );
-        Height = new Double( Obs[i][4] ).doubleValue();
+        Height = Double.parseDouble( Obs[i][4] );
     }
 
 /** Create Observatory
@@ -60,7 +60,7 @@ public class Observatory {
         if ( Name == null ) return;
         setLong( Obs[i][2] );
         setLat( Obs[i][3] );
-        Height = new Double( Obs[i][4] ).doubleValue();
+        Height = Double.parseDouble( Obs[i][4] );
    }
 
 /** Set Longitude from String
@@ -70,9 +70,9 @@ public class Observatory {
         StringTokenizer st = new StringTokenizer ( lon );
         String s = st.nextToken();
         EW = s.charAt( 0 );
-        longdeg = new Integer ( st.nextToken() ).intValue();
-        longmin = new Integer ( st.nextToken() ).intValue();
-        longsec = new Double ( st.nextToken() ).doubleValue();
+        longdeg = Integer.parseInt( st.nextToken() );
+        longmin = Integer.parseInt( st.nextToken() );
+        longsec = Double.parseDouble( st.nextToken() );
         if ( EW == 'W' )
             Longitude = DAS2R * ( (60.0 * ( (60.0 * longdeg) + longmin ) ) + longsec );
         else 
@@ -86,9 +86,9 @@ public class Observatory {
         StringTokenizer st = new StringTokenizer ( lat );
         String s = st.nextToken();    
         NS = s.charAt( 0 );        
-        latdeg = new Integer ( st.nextToken() ).intValue();
-        latmin = new Integer ( st.nextToken() ).intValue();
-        latsec = new Double ( st.nextToken() ).doubleValue();
+        latdeg = Integer.parseInt( st.nextToken() );
+        latmin = Integer.parseInt( st.nextToken() );
+        latsec = Double.parseDouble( st.nextToken() );
         if ( NS == 'N' ) 
             Latitude = DAS2R * ( (60.0 * ( (60.0 * latdeg) + latmin) ) + latsec );
         else 

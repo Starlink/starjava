@@ -24,18 +24,19 @@ public class UtilTest extends TestCase {
         Class[] reqs =
             new Class[] { Integer.class, Number.class, String.class };
         assertTrue( HubManager.checkArgs(
-            Arrays.asList( new Object[] { new Integer( 1 ), new Float( 2f ), 
+            Arrays.asList( new Object[] { Integer.valueOf( 1 ),
+                                          Float.valueOf( 2f ), 
                                           "3", } ),
             reqs ) );
         assertTrue( HubManager.checkArgs(
-            Arrays.asList( new Object[] { new Integer( 1 ),
-                                          new Short( (short) 2 ), "3",
+            Arrays.asList( new Object[] { Integer.valueOf( 1 ),
+                                          Short.valueOf( (short) 2 ), "3",
                                           new Object() } ),
             reqs ) );
         try {
             HubManager.checkArgs(
-                Arrays.asList( new Object[] { new Integer( 1 ),
-                                              new Short( (short) 2 ), } ),
+                Arrays.asList( new Object[] { Integer.valueOf( 1 ),
+                                              Short.valueOf( (short) 2 ), } ),
                 reqs );
             fail();
         }
@@ -43,7 +44,7 @@ public class UtilTest extends TestCase {
         }
         try {
             HubManager.checkArgs(
-                Arrays.asList( new Object[] { new Integer( 1 ), "2", "3" } ),
+                Arrays.asList( new Object[] { Integer.valueOf( 1 ), "2", "3" }),
                 reqs );
             fail();
         }

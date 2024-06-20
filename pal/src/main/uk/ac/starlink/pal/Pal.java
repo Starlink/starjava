@@ -3777,8 +3777,8 @@ public class Pal {
         double result;
         char c;
 
-        c = new Character( k0 ).toUpperCase ( k0 );
-        if ( c == new Character ( k ).toUpperCase ( k ) ) {
+        c = Character.toUpperCase( k0 );
+        if ( c == Character.toUpperCase( k ) ) {
            result = e;
         } else {
            if ( c == 'B' ) {

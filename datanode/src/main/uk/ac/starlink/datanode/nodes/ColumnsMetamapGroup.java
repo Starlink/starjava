@@ -39,7 +39,7 @@ public class ColumnsMetamapGroup extends ValueInfoMetamapGroup {
         int ncol = startable.getColumnCount();
         for ( int i = 0; i < ncol; i++ ) {
             ColumnInfo colinfo = startable.getColumnInfo( i );
-            addEntry( i, INDEX_KEY, new Integer( i + 1 ) );
+            addEntry( i, INDEX_KEY, Integer.valueOf( i + 1 ) );
             for ( Iterator it = colinfo.getAuxData().iterator();
                   it.hasNext(); ) {
                 Object item = it.next();

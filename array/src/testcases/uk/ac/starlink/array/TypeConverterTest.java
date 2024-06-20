@@ -146,19 +146,19 @@ public class TypeConverterTest extends TestCase {
     private static BadHandler makeBadHandler( Type type, double number ) {
         Number badval = null;
         if ( type == Type.BYTE ) {
-            badval = new Byte( (byte) number );
+            badval = Byte.valueOf( (byte) number );
         }
         else if ( type == Type.SHORT ) {
-            badval = new Short( (short) number );
+            badval = Short.valueOf( (short) number );
         }
         else if ( type == Type.INT ) {
-            badval = new Integer( (int) number );
+            badval = Integer.valueOf( (int) number );
         }
         else if ( type == Type.FLOAT ) {
-            badval = new Float( (float) number );
+            badval = Float.valueOf( (float) number );
         }
         else if ( type == Type.DOUBLE ) {
-            badval = new Double( (double) number );
+            badval = Double.valueOf( (double) number );
         }
         return BadHandler.getHandler( type, badval );
     }

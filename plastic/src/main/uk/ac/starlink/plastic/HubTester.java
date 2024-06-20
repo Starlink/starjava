@@ -391,7 +391,7 @@ public class HubTester {
      * @return  argument list
      */
     private static List calcArgs( String op, int value ) {
-        return Arrays.asList( new Object[] { op, new Integer( value ) } );
+        return Arrays.asList( new Object[] { op, Integer.valueOf( value ) } );
     }
 
     /**
@@ -404,7 +404,7 @@ public class HubTester {
     private static Map intMap( URI[] ids, int[] values ) {
         Map map = new HashMap();
         for ( int i = 0; i < ids.length; i++ ) {
-            map.put( ids[ i ], new Integer( values[ i ] ) );
+            map.put( ids[ i ], Integer.valueOf( values[ i ] ) );
         }
         return map;
     }
@@ -530,11 +530,11 @@ public class HubTester {
                 synchronized ( lock_ ) {
                     lock_.notifyAll();
                 }
-                return new Integer( sum_ );
+                return Integer.valueOf( sum_ );
             }
             catch ( Throwable error ) {
                 error_ = error;
-                return new Integer( sum_ );
+                return Integer.valueOf( sum_ );
             }
         }
         public void dispose() throws HubTestException {
