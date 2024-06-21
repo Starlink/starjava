@@ -136,7 +136,9 @@ public class TableFactoryParameter extends Parameter<StarTableFactory> {
             String clazzname = sval.substring( LOCCLASS_PREFIX.length() );
             TableLocator tloc;
             try {
-                tloc = (TableLocator) Class.forName( clazzname ).newInstance();
+                tloc = (TableLocator) Class.forName( clazzname )
+                                           .getDeclaredConstructor()
+                                           .newInstance();
             }
             catch ( Throwable e ) {
                 throw new UsageException( "Bad TableLocator class name", e );
