@@ -40,8 +40,8 @@ import uk.ac.starlink.util.URLDataSource;
  * This factory delegates the actual table creation to external
  * {@link TableBuilder} objects, each of which knows how to read a
  * particular table format from an input data stream.
- * Various <tt>makeStarTable</tt> methods
- * are offered, which construct <tt>StarTable</tt>s from different
+ * Various <code>makeStarTable</code> methods
+ * are offered, which construct <code>StarTable</code>s from different
  * types of object, such as {@link java.net.URL} and
  * {@link uk.ac.starlink.util.DataSource}.  Each of these comes in
  * two types: automatic format detection and named format.
@@ -54,14 +54,14 @@ import uk.ac.starlink.util.URLDataSource;
  * the following:
  * <ul>
  * <li>The format name - this is a short mnemonic string like "fits"
- *     which is returned by the TableBuilder's <tt>getFormatName</tt> method -
- *     it is matched case insensitively.  This must be one of the
+ *     which is returned by the TableBuilder's <code>getFormatName</code>
+ *     method - it is matched case insensitively.  This must be one of the
  *     builders known to the factory.
  * <li>The classname of a suitable TableBuilder (the class must
- *     implement <tt>TableBuilder</tt> and have no-arg constructor).
+ *     implement <code>TableBuilder</code> and have no-arg constructor).
  *     Such a class must be on the classpath, but need not have been
  *     specified previously to the factory.
- * <li>The empty string or <tt>null</tt> or {@link #AUTO_HANDLER} -
+ * <li>The empty string or <code>null</code> or {@link #AUTO_HANDLER} -
  *     in this case automatic format detection is used.
  * </ul>
  *
@@ -71,8 +71,8 @@ import uk.ac.starlink.util.URLDataSource;
  * of it, it is returned.
  *
  * <p>In either case, failure to make a table will usually result in a
- * <tt>TableFormatException</tt>, though if an error in actual I/O is
- * encountered an <tt>IOException</tt> may be thrown instead.
+ * <code>TableFormatException</code>, though if an error in actual I/O is
+ * encountered an <code>IOException</code> may be thrown instead.
  *
  * <p>By default, if the corresponding classes are present, the following
  * TableBuilders are installed in the <em>default handler list</em>
@@ -123,7 +123,7 @@ import uk.ac.starlink.util.URLDataSource;
  * </ul>
  *
  * <p>Additionally, any classes named in the
- * <tt>startable.readers</tt> system property (as a colon-separated list)
+ * <code>startable.readers</code> system property (as a colon-separated list)
  * which implement the {@link TableBuilder} interface and have a no-arg
  * constructor will be instantiated and added to the known handler list.
  *
@@ -150,9 +150,9 @@ import uk.ac.starlink.util.URLDataSource;
  * {@link TableScheme} interface and have a no-arg constructor
  * will be instantiated and added to the known scheme list.
  *
- * <p>The factory has a flag <tt>requireRandom</tt> which determines 
- * whether the <tt>makeStarTable</tt> methods are guaranteed to return
- * tables which provide random access (<tt>StarTable.isRandom()==true</tt>).
+ * <p>The factory has a flag <code>requireRandom</code> which determines 
+ * whether the <code>makeStarTable</code> methods are guaranteed to return
+ * tables which provide random access (<code>StarTable.isRandom()==true</code>).
  * <strong>NOTE</strong> the meaning (and name) of this flag has changed
  * as of STIL version 2.1.  Previously it was only a hint that random
  * tables were preferred.  Now setting it true guarantees that all
@@ -290,7 +290,7 @@ public class StarTableFactory {
      * This list can be modified to change the behaviour of the factory.
      *
      * @return  a mutable list of {@link TableBuilder} objects used to
-     *          construct <tt>StarTable</tt>s
+     *          construct <code>StarTable</code>s
      */
     public List<TableBuilder> getDefaultBuilders() {
         return defaultBuilders_;
@@ -302,7 +302,7 @@ public class StarTableFactory {
      * table before ones later in the list.
      *
      * @param  builders  an array of TableBuilder objects used to
-     *         construct <tt>StarTable</tt>s
+     *         construct <code>StarTable</code>s
      */
     public void setDefaultBuilders( TableBuilder[] builders ) {
         defaultBuilders_ =
@@ -330,7 +330,7 @@ public class StarTableFactory {
      * plus a few others.
      *
      * @param  builders  an array of TableBuilder objects used to
-     *         construct <tt>StarTable</tt>s
+     *         construct <code>StarTable</code>s
      */
     public void setKnownBuilders( TableBuilder[] builders ) {
         knownBuilders_ =
@@ -379,10 +379,10 @@ public class StarTableFactory {
 
     /**
      * Sets whether random-access tables will be constructed by this factory.
-     * If this flag is set <tt>true</tt> then any table returned by
-     * the various <tt>makeStarTable</tt> methods is guaranteed to
+     * If this flag is set <code>true</code> then any table returned by
+     * the various <code>makeStarTable</code> methods is guaranteed to
      * provide random access (its {@link StarTable#isRandom} method will
-     * return <tt>true</tt>).  If the flag is false, then returned
+     * return <code>true</code>).  If the flag is false, then returned
      * tables may or may not be random-access.
      *
      * @param  requireRandom  whether this factory will create
@@ -393,11 +393,11 @@ public class StarTableFactory {
     }
 
     /**
-     * Returns the <tt>requireRandom</tt> flag.
-     * If this flag is set <tt>true</tt> then any table returned by
-     * the various <tt>makeStarTable</tt> methods is guaranteed to
+     * Returns the <code>requireRandom</code> flag.
+     * If this flag is set <code>true</code> then any table returned by
+     * the various <code>makeStarTable</code> methods is guaranteed to
      * provide random access (its {@link StarTable#isRandom} method will
-     * return <tt>true</tt>).  If the flag is false, then returned
+     * return <code>true</code>).  If the flag is false, then returned
      * tables may or may not be random-access.
      *
      * @return  whether this factory will create random-access tables
@@ -480,29 +480,29 @@ public class StarTableFactory {
 
     /**
      * Returns a table based on a given table and guaranteed to have
-     * random access.  If the original table <tt>table</tt> has random
+     * random access.  If the original table <code>table</code> has random
      * access then it is returned, otherwise a new random access table
      * is built using its data.
      *
      * <p>This convenience method is equivalent to
-     * <tt>getStoragePolicy().randomTable(table)</tt>.
+     * <code>getStoragePolicy().randomTable(table)</code>.
      *
      * @param  table  original table
-     * @return  a table with the same data as <tt>table</tt> and with
-     *          <tt>isRandom()==true</tt>
+     * @return  a table with the same data as <code>table</code> and with
+     *          <code>isRandom()==true</code>
      */
     public StarTable randomTable( StarTable table ) throws IOException {
         return getStoragePolicy().randomTable( table );
     }
 
     /**
-     * Constructs a <tt>StarTable</tt> from a <tt>DataSource</tt>
+     * Constructs a <code>StarTable</code> from a <code>DataSource</code>
      * object using automatic format detection.
      *
      * @param  datsrc  the data source containing the table data
-     * @return a new StarTable view of the resource <tt>datsrc</tt>
+     * @return a new StarTable view of the resource <code>datsrc</code>
      * @throws TableFormatException if none of the default handlers
-     *         could turn <tt>datsrc</tt> into a table
+     *         could turn <code>datsrc</code> into a table
      * @throws IOException  if an I/O error is encountered
      */
     public StarTable makeStarTable( DataSource datsrc )
@@ -559,7 +559,7 @@ public class StarTableFactory {
      * @param  datsrc  the data source containing the table data
      * @return   a sequence of tables loaded from <code>datsrc</code>
      * @throws TableFormatException if none of the default handlers
-     *         could turn <tt>datsrc</tt> into a table
+     *         could turn <code>datsrc</code> into a table
      * @throws IOException  if an I/O error is encountered
      */
     public TableSequence makeStarTables( DataSource datsrc )
@@ -618,7 +618,7 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs a <tt>StarTable</tt> from a location string
+     * Constructs a <code>StarTable</code> from a location string
      * without format specification.
      * The location string can represent a filename or URL,
      * or a scheme-based specification of the form
@@ -626,9 +626,9 @@ public class StarTableFactory {
      * corresponding to one of the installed {@link #getSchemes schemes}.
      *
      * @param  location  the name of the table resource
-     * @return a new StarTable view of the resource at <tt>location</tt>
+     * @return a new StarTable view of the resource at <code>location</code>
      * @throws TableFormatException if no handler capable of turning
-     *        <tt>location</tt> into a table is available
+     *        <code>location</code> into a table is available
      * @throws IOException  if one of the handlers encounters an error
      *         constructing a table
      */
@@ -650,13 +650,13 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs a <tt>StarTable</tt> from a URL using
+     * Constructs a <code>StarTable</code> from a URL using
      * automatic format detection.
      *
      * @param  url  the URL where the table lives
-     * @return a new StarTable view of the resource at <tt>url</tt>
+     * @return a new StarTable view of the resource at <code>url</code>
      * @throws TableFormatException if no handler capable of turning
-     *        <tt>datsrc</tt> into a table is available
+     *        <code>datsrc</code> into a table is available
      * @throws IOException  if one of the handlers encounters an error
      *         constructing a table
      * @deprecated  Use <code>makeStarTable(new URLDataSource(url))</code>
@@ -667,23 +667,23 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs a <tt>StarTable</tt> from a <tt>DataSource</tt>
+     * Constructs a <code>StarTable</code> from a <code>DataSource</code>
      * using a named table input handler.
      * The input handler may be named either using its format name
      * (as returned from the {@link TableBuilder#getFormatName} method)
      * or by giving the full class name of the handler.  In the latter
      * case this factory does not need to have been informed about the
-     * handler previously.  If <tt>null</tt> or the empty string or
+     * handler previously.  If <code>null</code> or the empty string or
      * the special value {@link #AUTO_HANDLER} is
-     * supplied for <tt>handler</tt>, it will fall back on automatic
+     * supplied for <code>handler</code>, it will fall back on automatic
      * format detection.
      *
      * @param  datsrc  the data source containing the table data
      * @param  handler  specifier for the handler which can handle tables
      *         of the right format
-     * @return a new StarTable view of the resource <tt>datsrc</tt>
-     * @throws TableFormatException  if <tt>datsrc</tt> does not contain
-     *         a table in the format named by <tt>handler</tt>
+     * @return a new StarTable view of the resource <code>datsrc</code>
+     * @throws TableFormatException  if <code>datsrc</code> does not contain
+     *         a table in the format named by <code>handler</code>
      * @throws IOException  if an I/O error is encountered
      */
     public StarTable makeStarTable( DataSource datsrc, String handler )
@@ -733,9 +733,9 @@ public class StarTableFactory {
      * (as returned from the {@link TableBuilder#getFormatName} method)
      * or by giving the full class name of the handler.  In the latter
      * case this factory does not need to have been informed about the
-     * handler previously.  If <tt>null</tt> or the empty string or
+     * handler previously.  If <code>null</code> or the empty string or
      * the special value {@link #AUTO_HANDLER} is
-     * supplied for <tt>handler</tt>, it will fall back on automatic
+     * supplied for <code>handler</code>, it will fall back on automatic
      * format detection.
      *
      * <p>If the handler does not implement the {@link MultiTableBuilder}
@@ -744,9 +744,9 @@ public class StarTableFactory {
      * @param  datsrc  the data source containing the table data
      * @param  handler  specifier for the handler which can handle tables
      *         of the right format
-     * @return a sequence of StarTables loaded from <tt>datsrc</tt>
-     * @throws TableFormatException  if <tt>datsrc</tt> does not contain
-     *         a table in the format named by <tt>handler</tt>
+     * @return a sequence of StarTables loaded from <code>datsrc</code>
+     * @throws TableFormatException  if <code>datsrc</code> does not contain
+     *         a table in the format named by <code>handler</code>
      * @throws IOException  if an I/O error is encountered
      */
     public TableSequence makeStarTables( DataSource datsrc, String handler )
@@ -797,15 +797,15 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs a sequence of <tt>StarTable</tt>s from a location string
+     * Constructs a sequence of <code>StarTable</code>s from a location string
      * using a named table input handler.
      * The input handler may be named either using its format name
      * (as returned from the {@link TableBuilder#getFormatName} method)
      * or by giving the full class name of the handler.  In the latter
      * case this factory does not need to have been informed about the
-     * handler previously.  If <tt>null</tt> or the empty string or
+     * handler previously.  If <code>null</code> or the empty string or
      * the special value {@link #AUTO_HANDLER} is
-     * supplied for <tt>handler</tt>, it will fall back on automatic
+     * supplied for <code>handler</code>, it will fall back on automatic
      * format detection.
      *
      * <p>Alternatively, the location string can be a
@@ -815,9 +815,9 @@ public class StarTableFactory {
      * @param  location  the name of the table resource
      * @param  handler  specifier for the handler which can handle tables
      *         of the right format
-     * @return a new StarTable view of the resource at <tt>location</tt>
-     * @throws TableFormatException  if <tt>location</tt> does not point to
-     *         a table in the format named by <tt>handler</tt>
+     * @return a new StarTable view of the resource at <code>location</code>
+     * @throws TableFormatException  if <code>location</code> does not point to
+     *         a table in the format named by <code>handler</code>
      * @throws IOException  if an I/O error is encountered
      */
     public TableSequence makeStarTables( String location, String handler )
@@ -841,15 +841,15 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs a <tt>StarTable</tt> from a location string
+     * Constructs a <code>StarTable</code> from a location string
      * using a named table input handler.
      * The input handler may be named either using its format name
      * (as returned from the {@link TableBuilder#getFormatName} method)
      * or by giving the full class name of the handler.  In the latter
      * case this factory does not need to have been informed about the
-     * handler previously.  If <tt>null</tt> or the empty string or
+     * handler previously.  If <code>null</code> or the empty string or
      * the special value {@link #AUTO_HANDLER} is
-     * supplied for <tt>handler</tt>, it will fall back on automatic
+     * supplied for <code>handler</code>, it will fall back on automatic
      * format detection.
      *
      * <p>A location of "-" means standard input - in this case
@@ -862,9 +862,9 @@ public class StarTableFactory {
      * @param  location  the name of the table resource
      * @param  handler  specifier for the handler which can handle tables
      *         of the right format
-     * @return a new StarTable view of the resource at <tt>location</tt>
-     * @throws TableFormatException  if <tt>location</tt> does not point to
-     *         a table in the format named by <tt>handler</tt>
+     * @return a new StarTable view of the resource at <code>location</code>
+     * @throws TableFormatException  if <code>location</code> does not point to
+     *         a table in the format named by <code>handler</code>
      * @throws IOException  if an I/O error is encountered
      */
     public StarTable makeStarTable( String location, String handler )
@@ -892,23 +892,23 @@ public class StarTableFactory {
     }
 
     /**
-     * Constructs a <tt>StarTable</tt> from a URL
+     * Constructs a <code>StarTable</code> from a URL
      * using a named table input handler.
      * The input handler may be named either using its format name
      * (as returned from the {@link TableBuilder#getFormatName} method)
      * or by giving the full class name of the handler.  In the latter
      * case this factory does not need to have been informed about the
-     * handler previously.  If <tt>null</tt> or the empty string or
+     * handler previously.  If <code>null</code> or the empty string or
      * the special value {@link #AUTO_HANDLER} is
-     * supplied for <tt>handler</tt>, it will fall back on automatic
+     * supplied for <code>handler</code>, it will fall back on automatic
      * format detection.
      *
      * @param  url  the URL where the table lives
      * @param  handler  specifier for the handler which can handle tables
      *         of the right format
-     * @return a new StarTable view of the resource at <tt>url</tt>
-     * @throws TableFormatException  if the resource at <tt>url</tt> cannot
-     *         be turned into a table by <tt>handler</tt>
+     * @return a new StarTable view of the resource at <code>url</code>
+     * @throws TableFormatException  if the resource at <code>url</code> cannot
+     *         be turned into a table by <code>handler</code>
      * @throws IOException  if an I/O error is encountered
      * @deprecated  Use
      *         <code>makeStarTable(new URLDataSource(url),handler)</code>
@@ -928,7 +928,7 @@ public class StarTableFactory {
      * The input stream will be decompressed and buffered if necessary.
      *
      * @param  in  input stream
-     * @param  builder   handler which understands the data in <tt>in</tt>
+     * @param  builder   handler which understands the data in <code>in</code>
      * @return  a table read from the stream if it could be done
      * @see    TableBuilder#streamStarTable
      * @throws  TableFormatException   if <code>builder</code> needs more
@@ -961,7 +961,7 @@ public class StarTableFactory {
      * <li>If it finds a transferable that will supply an
      *     {@link java.io.InputStream}, turns it into a
      *     {@link uk.ac.starlink.util.DataSource} and passes that to the
-     *     <tt>DataSource</tt> constructor
+     *     <code>DataSource</code> constructor
      * </ul>
      *
      * @param  trans  the Transferable object to construct a table from
@@ -1030,9 +1030,9 @@ public class StarTableFactory {
     }
 
     /**
-     * Indicates whether a particular set of <tt>DataFlavor</tt> ojects
+     * Indicates whether a particular set of <code>DataFlavor</code> ojects
      * offered by a {@link java.awt.datatransfer.Transferable}
-     * is suitable for attempting to turn the <tt>Transferable</tt>
+     * is suitable for attempting to turn the <code>Transferable</code>
      * into a StarTable.
      * <p>
      * Each of the builder objects is queried about whether it can
@@ -1091,8 +1091,8 @@ public class StarTableFactory {
      * handler previously.
      *
      * @param   name  specification of the handler required
-     * @return  TableBuilder specified by <tt>name</tt>
-     * @throws  TableFormatException  if <tt>name</tt> doesn't name any
+     * @return  TableBuilder specified by <code>name</code>
+     * @throws  TableFormatException  if <code>name</code> doesn't name any
      *          available handler
      */
     public TableBuilder getTableBuilder( String name )
@@ -1236,7 +1236,7 @@ public class StarTableFactory {
      *
      * @param  startab  table to prepare
      * @param  builder   table builder
-     * @return  prepared table - may be <tt>startab</tt> or a new one
+     * @return  prepared table - may be <code>startab</code> or a new one
      */
     private StarTable prepareTable( StarTable startab, TableBuilder builder )
             throws IOException {

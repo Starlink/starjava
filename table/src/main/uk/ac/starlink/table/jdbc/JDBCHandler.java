@@ -31,7 +31,7 @@ public class JDBCHandler {
 
     /**
      * Clone constructor.  This constructor creates a new JDBCHandler
-     * with the all the same fields as the given one <tt>jh</tt>.
+     * with the all the same fields as the given one <code>jh</code>.
      *
      * @param   jh  the handler whose fields to copy
      */
@@ -177,7 +177,7 @@ public class JDBCHandler {
     /**
      * Indicates whether any drivers are installed.
      *
-     * @return  <tt>true</tt> iff at least one JDBC driver is available
+     * @return  <code>true</code> iff at least one JDBC driver is available
      *          for URL resolution
      */
     public static boolean hasDrivers() {

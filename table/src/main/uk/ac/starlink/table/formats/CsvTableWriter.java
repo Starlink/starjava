@@ -169,7 +169,7 @@ public class CsvTableWriter extends DocumentedStreamStarTableWriter {
 
     /**
      * Writes a single field of CSV output.  Any special characters in 
-     * the <tt>value</tt> are escaped as necessary.
+     * the <code>value</code> are escaped as necessary.
      *
      * @param  out  output stream
      * @param  value  field to write

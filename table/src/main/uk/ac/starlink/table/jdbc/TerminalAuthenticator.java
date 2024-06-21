@@ -6,7 +6,7 @@ import uk.ac.starlink.util.LineReader;
 
 /**
  * Provides JDBC authentication using the terminal; assumes that someone
- * is sitting at <tt>System.in</tt>.
+ * is sitting at <code>System.in</code>.
  */
 public class TerminalAuthenticator implements JDBCAuthenticator {
 

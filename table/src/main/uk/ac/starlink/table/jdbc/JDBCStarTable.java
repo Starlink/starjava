@@ -60,8 +60,8 @@ public class JDBCStarTable extends AbstractStarTable {
      * <p>
      * This was initially written to take a {@link java.sql.Connection} 
      * rather than a {@link Connector} object, but it seems that there
-     * are limits to the number of <tt>ResultSet</tt>s that can be
-     * simultaneously open on a <tt>Connection</tt>.
+     * are limits to the number of <code>ResultSet</code>s that can be
+     * simultaneously open on a <code>Connection</code>.
      *
      * @param  connx object which can supply JDBC connections
      * @param  sql   text of the SQL query
@@ -122,7 +122,7 @@ public class JDBCStarTable extends AbstractStarTable {
 
     /**
      * Ensures that this table provides random access.
-     * Following this call the <tt>isRandom</tt> method will return true.
+     * Following this call the <code>isRandom</code> method will return true.
      * Calling this method multiple times is harmless.
      */
     public void setRandom() throws SQLException {

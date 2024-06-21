@@ -141,7 +141,7 @@ public abstract class StreamStarTable extends AbstractStarTable {
      *
      * @param  in  input stream
      * @return  list of Strings one for each cell in the row, or
-     *          <tt>null</tt> for end of stream
+     *          <code>null</code> for end of stream
      * @throws   TableFormatException  if the data doesn't represent this
      *           kind of table
      * @throws   IOException   if I/O error is encountered

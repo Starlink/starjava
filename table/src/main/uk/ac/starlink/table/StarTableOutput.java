@@ -57,7 +57,7 @@ import uk.ac.starlink.util.Loader;
  * <li> {@link uk.ac.starlink.feather.FeatherTableWriter}
  * <li> {@link uk.ac.starlink.mirage.MirageTableWriter}
  * </ul>
- * Additionally, any classes named in the <tt>startable.writers</tt>
+ * Additionally, any classes named in the <code>startable.writers</code>
  * system property (as a colon-separated list) which implement the
  * {@link StarTableWriter} interface and have a no-arg constructor will be
  * instantiated and added to this list of handlers.
@@ -147,7 +147,7 @@ public class StarTableOutput {
      * table before ones later in the list.  The returned list may be
      * modified to change this object's behaviour.
      *
-     * @return  handlers  a list of <tt>StarTableWriter</tt> objects 
+     * @return  handlers  a list of <code>StarTableWriter</code> objects 
      */
     public List<StarTableWriter> getHandlers() {
         return handlers_;
@@ -158,7 +158,7 @@ public class StarTableOutput {
      * Handlers earlier in the list are given a chance to write the
      * table before ones later in the list.
      *
-     * @param  handlers  an array of <tt>StarTableWriter</tt> objects
+     * @param  handlers  an array of <code>StarTableWriter</code> objects
      */
     public void setHandlers( StarTableWriter[] handlers ) {
         handlers_ =
@@ -166,25 +166,25 @@ public class StarTableOutput {
     }
 
     /**
-     * Writes a <tt>StarTable</tt> object out to some external storage.
+     * Writes a <code>StarTable</code> object out to some external storage.
      * The format in which it is written is determined by some
      * combination of the given output location and a format indicator.
      *
      * @param  startab  the table to output
      * @param  location the location at which to write the new table.
-     *         This may be a filename or URL, including a <tt>jdbc:</tt>
+     *         This may be a filename or URL, including a <code>jdbc:</code>
      *         protocol if suitable JDBC drivers are installed
      * @param  format   a string which indicates in some way what format
      *         should be used for output.  This may be the class name of
-     *         a <tt>StarTableWriter</tt> object (which may or may not be 
-     *         registered with this <tt>StarTableOutput</tt>), or else
+     *         a <code>StarTableWriter</code> object (which may or may not be 
+     *         registered with this <code>StarTableOutput</code>), or else
      *         a string which matches the format name of one of the registered 
-     *         <tt>StarTableWriter</tt>s (first match is used, 
+     *         <code>StarTableWriter</code>s (first match is used, 
      *         case-insensitive, starting substrings OK)
-     *         or <tt>null</tt> or {@link #AUTO_HANDLER} 
+     *         or <code>null</code> or {@link #AUTO_HANDLER} 
      *         to indicate that a handler should be 
-     *         selected based on the value of <tt>location</tt>.
-     *         Ignored for <tt>jdbc:</tt>-protocol locations
+     *         selected based on the value of <code>location</code>.
+     *         Ignored for <code>jdbc:</code>-protocol locations
      * @throws TableFormatException  if no suitable handler is known
      */
     public void writeStarTable( StarTable startab, String location,
@@ -214,7 +214,7 @@ public class StarTableOutput {
     /**
      * Writes a StarTable to an output stream.
      * This convenience method wraps the stream in a BufferedOutputStream
-     * for efficiency and uses the submitted <tt>handler</tt> to perform
+     * for efficiency and uses the submitted <code>handler</code> to perform
      * the write, closing the stream afterwards.
      *
      * @param  startab   table to write
@@ -250,14 +250,15 @@ public class StarTableOutput {
      *          this may be a filename or URL
      * @param  format   a string which indicates in some way what format
      *         should be used for output.  This may be the class name of
-     *         a <tt>MultiStarTableWriter</tt> object (which may or may not be
-     *         registered with this <tt>StarTableOutput</tt>), or else
+     *         a <code>MultiStarTableWriter</code> object
+     *         (which may or may not be registered with this
+     *         <code>StarTableOutput</code>), or else
      *         a string which matches the format name of one of the registered
-     *         <tt>MultiStarTableWriter</tt>s (first match is used,
+     *         <code>MultiStarTableWriter</code>s (first match is used,
      *         case-insensitive, starting substrings OK)
-     *         or <tt>null</tt> or {@link #AUTO_HANDLER}
+     *         or <code>null</code> or {@link #AUTO_HANDLER}
      *         to indicate that a handler should be
-     *         selected based on the value of <tt>location</tt>.
+     *         selected based on the value of <code>location</code>.
      */
     public void writeStarTables( StarTable[] tables, String location,
                                  String format )
@@ -281,7 +282,7 @@ public class StarTableOutput {
     /**
      * Writes an array of StarTables to an output stream.
      * This convenience method wraps the stream in a BufferedOutputStream
-     * for efficiency and uses the submitted <tt>handler</tt> to perform
+     * for efficiency and uses the submitted <code>handler</code> to perform
      * the write, closing the stream afterwards.
      *
      * @param  tables  tables to write
@@ -329,19 +330,19 @@ public class StarTableOutput {
      * passes, a <code>UnrepeatableSequenceException</code> will be thrown.
      *
      * @param  location the location at which to write the new table.
-     *         This may be a filename or URL, including a <tt>jdbc:</tt>
+     *         This may be a filename or URL, including a <code>jdbc:</code>
      *         protocol if suitable JDBC drivers are installed
      * @param  format   a string which indicates in some way what format
      *         should be used for output.  This may be the class name of
-     *         a <tt>StarTableWriter</tt> object (which may or may not be
-     *         registered with this <tt>StarTableOutput</tt>), or else
+     *         a <code>StarTableWriter</code> object (which may or may not be
+     *         registered with this <code>StarTableOutput</code>), or else
      *         a string which matches the format name of one of the registered
-     *         <tt>StarTableWriter</tt>s (first match is used,
+     *         <code>StarTableWriter</code>s (first match is used,
      *         case-insensitive, starting substrings OK)
-     *         or <tt>null</tt> or {@link #AUTO_HANDLER}
+     *         or <code>null</code> or {@link #AUTO_HANDLER}
      *         to indicate that a handler should be
-     *         selected based on the value of <tt>location</tt>.
-     *         Ignored for <tt>jdbc:</tt>-protocol locations
+     *         selected based on the value of <code>location</code>.
+     *         Ignored for <code>jdbc:</code>-protocol locations
      * @return  sink whose data will be written to a new table
      */
     public TableSink createOutputSink( final String location,
@@ -355,15 +356,15 @@ public class StarTableOutput {
 
     /**
      * Returns an output stream which points to a given location.
-     * Typically <tt>location</tt> is a filename and a corresponding
-     * <tt>FileOutputStream</tt> is returned, but there may be other
+     * Typically <code>location</code> is a filename and a corresponding
+     * <code>FileOutputStream</code> is returned, but there may be other
      * possibilities.  The stream returned by this method will not
      * in general be buffered; for high performance writes, wrapping it
      * in a {@link java.io.BufferedOutputStream} may be a good idea.
      *
      * @param   location  name of destination
-     * @return   output stream which writes to <tt>location</tt>
-     * @throws  IOException  if no stream pointing to <tt>location</tt>
+     * @return   output stream which writes to <code>location</code>
+     * @throws  IOException  if no stream pointing to <code>location</code>
      *          can be opened
      */
     public OutputStream getOutputStream( String location ) throws IOException {
@@ -424,10 +425,10 @@ public class StarTableOutput {
      *
      * @param  format  a string which indicates in some way what format
      *         should be used for output.  This may be the class name of
-     *         a <tt>StarTableWriter</tt> object (which may or may not be
-     *         registered with this <tt>StarTableOutput</tt>), or else
+     *         a <code>StarTableWriter</code> object (which may or may not be
+     *         registered with this <code>StarTableOutput</code>), or else
      *         a string which matches the format name of one of the registered
-     *         <tt>StarTableWriter</tt>s (first match is used,
+     *         <code>StarTableWriter</code>s (first match is used,
      *         case-insensitive, starting substrings OK).
      * @throws TableFormatException  if no handler suitable for the arguments
      *         can be found
@@ -551,15 +552,15 @@ public class StarTableOutput {
      *
      * @param  format   a string which indicates in some way what format
      *         should be used for output.  This may be the class name of
-     *         a <tt>StarTableWriter</tt> object (which may or may not be
-     *         registered with this <tt>StarTableOutput</tt>), or else
+     *         a <code>StarTableWriter</code> object (which may or may not be
+     *         registered with this <code>StarTableOutput</code>), or else
      *         a string which matches the format name of one of the registered
-     *         <tt>StarTableWriter</tt>s (first match is used,
+     *         <code>StarTableWriter</code>s (first match is used,
      *         case-insensitive, starting substrings OK)
-     *         or <tt>null</tt> to indicate that a handler should be
-     *         selected based on the value of <tt>location</tt>.
+     *         or <code>null</code> to indicate that a handler should be
+     *         selected based on the value of <code>location</code>.
      * @param  location  destination of the table to be written.
-     *         If <tt>format</tt> is null, the value of this will be used
+     *         If <code>format</code> is null, the value of this will be used
      *         to try to determine which handler to use, typically on the
      *         basis of filename extension
      * @throws TableFormatException  if no handler suitable for the arguments
@@ -602,7 +603,7 @@ public class StarTableOutput {
     /**
      * Returns a list of the format strings which are defined by the
      * handlers registered with this object.  The elements of the returned
-     * list can be passed as the <tt>format</tt> argument to the 
+     * list can be passed as the <code>format</code> argument to the 
      * {@link #writeStarTable} method.
      */
     public List<String> getKnownFormats() {
@@ -638,7 +639,7 @@ public class StarTableOutput {
     }
 
     /**
-     * Returns a <tt>Transferable</tt> object associated with a given
+     * Returns a <code>Transferable</code> object associated with a given
      * StarTable, for use at the drag end of a drag and drop operation.
      *
      * @param  startab  the table which is to be dragged

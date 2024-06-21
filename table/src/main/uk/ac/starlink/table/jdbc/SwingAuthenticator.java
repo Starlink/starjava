@@ -69,7 +69,7 @@ public class SwingAuthenticator implements JDBCAuthenticator {
      * the positioning of the dialog box.
      *
      * @param  parent the parent component for the dialog box - 
-     *         may be <tt>null</tt>
+     *         may be <code>null</code>
      */
     public void setParentComponent( Component parent ) {
         this.parent = parent;
@@ -80,14 +80,14 @@ public class SwingAuthenticator implements JDBCAuthenticator {
      * the positioning of the dialog box.
      *
      * @return the parent component for the dialog box -
-     *         may be <tt>null</tt>
+     *         may be <code>null</code>
      */
     public Component getParentComponent() {
         return parent;
     }
 
     /**
-     * This implementation of <tt>authenticate</tt> takes care to execute
+     * This implementation of <code>authenticate</code> takes care to execute
      * any GUI interactions on the AWT event dipatch thread, so it may
      * be called from any thread.
      */

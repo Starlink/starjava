@@ -15,22 +15,23 @@ import java.util.List;
  * the {@link ColumnInfo} objects returned by {@link #getColumnInfo}.
  * The first row and the first column are numbered 0.
  *
- * <p>All <tt>StarTable</tt>s allow sequential access, provided by 
+ * <p>All <code>StarTable</code>s allow sequential access, provided by 
  * calling {@link #getRowSequence}.  This may in general be
  * called multiple times so that more than one iteration can be made
  * through the rows of the table from start to finish.
  * The {@link #getRowSplittable} method supports multi-threaded
  * sequential access, and is used by {@link RowRunner}.
- * Additionally, if the {@link #isRandom} method returns <tt>true</tt>
+ * Additionally, if the {@link #isRandom} method returns <code>true</code>
  * then the random access methods {@link #getRowAccess},
  * {@link #getRow} and {@link #getCell}
  * may be used to access table contents directly.
  *
- * <p>For random tables, the <tt>getRow</tt> and <tt>getCell</tt> methods
- * should be thread-safe.  Separate <tt>RowSequence</tt>
- * and <tt>RowAccess</tt> objects obtained
+ * <p>For random tables, the <code>getRow</code> and <code>getCell</code>
+ * methods should be thread-safe.  Separate <code>RowSequence</code>
+ * and <code>RowAccess</code> objects obtained
  * from the same table should be safely usable from different threads, 
- * but a given <tt>RowSequence</tt>/<tt>RowAccess</tt> in general will not.
+ * but a given <code>RowSequence</code>/<code>RowAccess</code>
+ * in general will not.
  *
  * <p>In general it is preferred to use {@link #getRowAccess} than
  * the equivalent <code>getRow</code>/<code>getCell</code> methods
@@ -60,14 +61,14 @@ public interface StarTable extends Closeable {
      * Returns the URL of this table, if it has one.  A non-null return
      * from this method indicates that this table is in some sense persistent.
      *
-     * @return  the URL of this table, or <tt>null</tt> if none is known
+     * @return  the URL of this table, or <code>null</code> if none is known
      */
     URL getURL();
 
     /**
      * Sets the URL of this table.  It ought to be possible in principle
-     * to reconstruct this table by reading the resource at <tt>url</tt>.
-     * If called, the supplied <tt>url</tt> should provide the return
+     * to reconstruct this table by reading the resource at <code>url</code>.
+     * If called, the supplied <code>url</code> should provide the return
      * value for subsequent calls of {@link #getURL}.
      *
      * @param  url  table URL
@@ -79,13 +80,13 @@ public interface StarTable extends Closeable {
      * the name is not defined, but it will typically be a short string of
      * text indicating the identity of this table.
      *
-     * @return  a name for this table, or <tt>null</tt> if no suitable one
+     * @return  a name for this table, or <code>null</code> if no suitable one
      *          exists
      */
     String getName();
 
     /**
-     * Sets the name of this table.  If called, the supplied <tt>name</tt>
+     * Sets the name of this table.  If called, the supplied <code>name</code>
      * should provide the return value for subsequent calls of 
      * {@link #getName}.
      *
@@ -97,7 +98,7 @@ public interface StarTable extends Closeable {
      * Returns a list of table parameters, that is metadata items
      * which pertain to the entire table.
      *
-     * @return  a <tt>List</tt> of <tt>DescribedValue</tt> objects 
+     * @return  a <code>List</code> of <code>DescribedValue</code> objects 
      *          constituting table-wide metadata not covered elsewhere 
      *          in this interface
      */
@@ -107,7 +108,7 @@ public interface StarTable extends Closeable {
      * Returns a parameter (table-wide metadata item) of this table located
      * by its name.  If more than one parameter with the given name
      * exists, an arbitrary one will be returned.  If no parameter with
-     * the given name exists, <tt>null</tt> will be returned.
+     * the given name exists, <code>null</code> will be returned.
      *
      * @param   parname  the name of the table parameter required
      */
@@ -131,14 +132,14 @@ public interface StarTable extends Closeable {
      * Returns the object describing the data in a given column.
      *
      * @param   icol  the column for which header information is required
-     * @return  a ValueInfo object for column <tt>icol</tt>
+     * @return  a ValueInfo object for column <code>icol</code>
      */
     ColumnInfo getColumnInfo( int icol );
 
     /**
      * Returns an ordered list of ValueInfo objects representing 
      * the auxiliary metadata returned by 
-     * <tt>getColumnInfo(int).getAuxData()</tt> calls.
+     * <code>getColumnInfo(int).getAuxData()</code> calls.
      * The idea is that the resulting list can be used to find out 
      * the kind of per-column metadata which can be expected to be found 
      * in some or all columns of this table.  Each item in the returned
@@ -175,8 +176,8 @@ public interface StarTable extends Closeable {
      *
      * @return   new RowAccess
      * @throws IOException  if there is an error setting up access
-     * @throws UnsupportedOperationException  if <tt>isRandom</tt> returns
-     *         <tt>false</tt>
+     * @throws UnsupportedOperationException  if <code>isRandom</code> returns
+     *         <code>false</code>
      */
     RowAccess getRowAccess() throws IOException;
 
@@ -202,10 +203,10 @@ public interface StarTable extends Closeable {
 
     /**
      * Indicates whether random access is provided by this table.
-     * Only if the result is <tt>true</tt> may the {@link #getRowAccess},
+     * Only if the result is <code>true</code> may the {@link #getRowAccess},
      * {@link #getRow} and {@link #getCell} methods be used.
      *
-     * @return  <tt>true</tt> if table random access methods are available
+     * @return  <code>true</code> if table random access methods are available
      */
     boolean isRandom();
 
@@ -213,7 +214,7 @@ public interface StarTable extends Closeable {
      * Returns the contents of a given table cell.  
      * The class of the returned object should be the same as, 
      * or a subclass of, the class returned by
-     * <tt>getColumnInfo(icol).getContentClass()</tt>.
+     * <code>getColumnInfo(icol).getContentClass()</code>.
      *
      * <p>This method is safe for concurrent use from multiple threads,
      * but in general it is recommended to use a
@@ -223,15 +224,15 @@ public interface StarTable extends Closeable {
      * @param  icol  the index of the cell's column
      * @return  the contents of this cell
      * @throws IOException  if there is an error reading the data
-     * @throws UnsupportedOperationException  if <tt>isRandom</tt> returns
-     *         <tt>false</tt>
+     * @throws UnsupportedOperationException  if <code>isRandom</code> returns
+     *         <code>false</code>
      */
     Object getCell( long irow, int icol ) throws IOException;
 
     /**
      * Returns the contents of a given table row.  The returned value is
      * equivalent to an array formed of all the objects returned by 
-     * <tt>getCell(irow,icol)</tt> for all the columns <tt>icol</tt> 
+     * <code>getCell(irow,icol)</code> for all the columns <code>icol</code> 
      * in sequence.
      *
      * <p>This method is safe for concurrent use from multiple threads,
@@ -239,10 +240,10 @@ public interface StarTable extends Closeable {
      * {@link #getRowAccess RowAccess} instead.
      *
      * @param  irow  the index of the row to retrieve
-     * @return  an array of the objects in each cell in row <tt>irow</tt>
+     * @return  an array of the objects in each cell in row <code>irow</code>
      * @throws IOException  if there is an error reading the data
-     * @throws UnsupportedOperationException  if <tt>isRandom</tt> returns
-     *         <tt>false</tt>
+     * @throws UnsupportedOperationException  if <code>isRandom</code> returns
+     *         <code>false</code>
      */
     Object[] getRow( long irow ) throws IOException;
 

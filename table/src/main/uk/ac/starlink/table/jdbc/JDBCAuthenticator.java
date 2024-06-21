@@ -4,7 +4,7 @@ import java.io.IOException;
 
 /**
  * Specifies authentication to make a JDBC connection.
- * The <tt>authenticate</tt> method can be called to retrieve the username
+ * The <code>authenticate</code> method can be called to retrieve the username
  * and password to be used.
  */
 public interface JDBCAuthenticator {
@@ -13,9 +13,9 @@ public interface JDBCAuthenticator {
      * Obtains username and password.
      * The return value is a two-element array containing the username
      * and password to be used, in that order.  Either or both of these
-     * may be <tt>null</tt>.
+     * may be <code>null</code>.
      *
-     * @return   <tt>String[]{username,password}</tt>
+     * @return   <code>String[]{username,password}</code>
      * @throws   IOException  if there is some error
      */
     String[] authenticate() throws IOException;

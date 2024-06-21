@@ -145,11 +145,11 @@ public class SQLPanel extends JPanel {
     }
 
     /**
-     * Returns a <tt>Connector</tt> object which will make connections
+     * Returns a <code>Connector</code> object which will make connections
      * based on the information entered in this dialog.  Note the
      * connections will use the information current at the time this
      * method is called, rather than reflecting subsequent changes 
-     * in this object's state when the connector's <tt>getConnection</tt>
+     * in this object's state when the connector's <code>getConnection</code>
      * method is invoked.
      *
      * @return   object which gets JDBC connections

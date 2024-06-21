@@ -4,14 +4,15 @@ import java.util.BitSet;
 
 /**
  * A column which provides data storage in a java array of primitives.
- * Thus a <tt>float[]</tt> array is used rather than a <tt>Float[]</tt>
+ * Thus a <code>float[]</code> array is used rather than a <code>Float[]</code>
  * array, which should be more efficient on memory.
  * Null values may be stored in the column; a {@link java.util.BitSet}
- * is used to keep track of which elements are <tt>null</tt>.
- * By default (on column construction), none of the values are <tt>null</tt>.
+ * is used to keep track of which elements are <code>null</code>.
+ * By default (on column construction),
+ * none of the values are <code>null</code>.
  * <p>
  * Obtain an instance of this class using one of the 
- * <tt>makePrimitiveColumn</tt> methods.
+ * <code>makePrimitiveColumn</code> methods.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -42,8 +43,8 @@ public abstract class PrimitiveArrayColumn extends ArrayColumn {
     }
 
     /**
-     * Sets all the elements in this column to <tt>null</tt>.
-     * Each will remain <tt>null</tt> until it is explicitly set (to a
+     * Sets all the elements in this column to <code>null</code>.
+     * Each will remain <code>null</code> until it is explicitly set (to a
      * non-null value) using {@link #storeValue} or until 
      * {@link #setNoNulls} is called.
      */
@@ -53,10 +54,10 @@ public abstract class PrimitiveArrayColumn extends ArrayColumn {
     }
 
     /**
-     * Sets all the elements in this column to non-<tt>null</tt> values.
+     * Sets all the elements in this column to non-<code>null</code> values.
      * The value of each cell will be determined by the value of the
      * underlying data array, until it is set using
-     * {@link #storeValue} with a <tt>null</tt> argument, or 
+     * {@link #storeValue} with a <code>null</code> argument, or 
      * {@link #setAllNulls} is called.
      */
     public void setNoNulls() {
@@ -69,21 +70,21 @@ public abstract class PrimitiveArrayColumn extends ArrayColumn {
 
     /**
      * Constructs a new PrimitiveArrayColumn based on a given data array.
-     * The <tt>contentClass</tt> of the given base column info must
+     * The <code>contentClass</code> of the given base column info must
      * be compatible with the supplied data array; it should be that of 
      * the corresponding wrapper class.
-     * Alternatively, the <tt>base</tt> column info may have a
-     * <tt>null</tt> content class, in which case the column info for
+     * Alternatively, the <code>base</code> column info may have a
+     * <code>null</code> content class, in which case the column info for
      * the new column will be set appropriately from the data array.
      *
      * @param  base  the column info on which to base this column's info
      * @param  data  an array of primitives which will form
      *         the storage for this column
-     * @return  a new <tt>PrimitiveArrayColumn</tt> based on <tt>base</tt>
-     *          backed by <tt>data</tt>
-     * @throws  IllegalArgumentException if <tt>data</tt> isn't an array or
-     *          <tt>base.getContentClass()</tt> is incompatible with
-     *          <tt>data</tt>
+     * @return  a new <code>PrimitiveArrayColumn</code> based on
+     *          <code>base</code> backed by <code>data</code>
+     * @throws  IllegalArgumentException if <code>data</code> isn't an array or
+     *          <code>base.getContentClass()</code> is incompatible with
+     *          <code>data</code>
      */
     public static PrimitiveArrayColumn makePrimitiveColumn( ColumnInfo base,
                                                             Object data ) {
@@ -120,17 +121,18 @@ public abstract class PrimitiveArrayColumn extends ArrayColumn {
     }
 
     /**
-     * Obtains an <tt>ArrayColumn</tt> object based on a template
+     * Obtains an <code>ArrayColumn</code> object based on a template
      * object with a given number of rows.  A new ColumnInfo object
      * will be constructed based on the given one.
      *
-     * @param   base  the template <tt>ColumnInfo</tt> - note this is
+     * @param   base  the template <code>ColumnInfo</code> - note this is
      *          not the actual ColumnInfo object which will be returned
-     *          by the <tt>getColumnInfo</tt> method of the returned
-     *          <tt>ArrayColumn</tt>
+     *          by the <code>getColumnInfo</code> method of the returned
+     *          <code>ArrayColumn</code>
      * @param   rowCount  the number of rows it is to hold
-     * @return  a new <tt>PrimitiveArrayColumn</tt> based on <tt>base</tt> with
-     *          storage for <tt>rowCount</tt> elements
+     * @return  a new <code>PrimitiveArrayColumn</code>
+     *          based on <code>base</code> with
+     *          storage for <code>rowCount</code> elements
      */
     public static PrimitiveArrayColumn makePrimitiveColumn( ColumnInfo base,
                                                             long rowCount ) {

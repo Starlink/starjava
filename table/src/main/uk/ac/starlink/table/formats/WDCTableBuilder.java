@@ -11,8 +11,8 @@ import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.DataSource;
 
 /**
- * Implementation of the <tt>TableBuilder</tt> interface which gets
- * <tt>StarTable</tt>s from World Data Centre-type text files.
+ * Implementation of the <code>TableBuilder</code> interface which gets
+ * <code>StarTable</code>s from World Data Centre-type text files.
  * This format doesn't appear to have a proper name or definition.
  * This implementation is a result of reverse-engineering the format 
  * specification by looking at a couple of files.

@@ -6,7 +6,7 @@ import java.util.Iterator;
  * Iterates over a shape array, as got from {@link ValueInfo#getShape}.
  * Will only work for a finite-valued array, not for one with a
  * variable last dimension (negative dimension value).
- * The object returned by the <tt>next</tt> method is an array 
+ * The object returned by the <code>next</code> method is an array 
  * with the same number of dimensions as the shape itself, giving
  * the current position (the first returned value is an N-element 
  * array of zeros).
@@ -23,7 +23,7 @@ public class ShapeIterator implements Iterator<int[]> {
      * Constructs a new ShapeIterator.
      *
      * @param  shape  array of dimensions
-     * @throws IllegalArgumentException  if <tt>shape</tt> has negative or
+     * @throws IllegalArgumentException  if <code>shape</code> has negative or
      *         zero elements
      */
     public ShapeIterator( int[] shape ) {

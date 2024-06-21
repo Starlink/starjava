@@ -23,8 +23,8 @@ public abstract class ColumnData {
     }
 
     /**
-     * Constructs a new <tt>ColumnData</tt> with metadata supplied by a 
-     * given <tt>ColumnInfo</tt> object.
+     * Constructs a new <code>ColumnData</code> with metadata supplied by a 
+     * given <code>ColumnInfo</code> object.
      *
      * @param  colinfo  the column metadata
      */
@@ -33,8 +33,8 @@ public abstract class ColumnData {
     }
 
     /**
-     * Performs <tt>ColumnData</tt> initialisation based on template
-     * <tt>ValueInfo</tt> object.
+     * Performs <code>ColumnData</code> initialisation based on template
+     * <code>ValueInfo</code> object.
      *
      * @param  base  template
      */
@@ -43,7 +43,7 @@ public abstract class ColumnData {
     }
 
     /**
-     * Returns the <tt>ColumnInfo</tt> which provides the metadata for this 
+     * Returns the <code>ColumnInfo</code> which provides the metadata for this 
      * column.
      *
      * @return  the column metadata
@@ -53,7 +53,7 @@ public abstract class ColumnData {
     }
 
     /**
-     * Sets the <tt>ColumnInfo</tt> which provides the metadata for this
+     * Sets the <code>ColumnInfo</code> which provides the metadata for this
      * column.
      *
      * @param   colinfo  the column metadata
@@ -66,23 +66,23 @@ public abstract class ColumnData {
      * Returns the value stored at a given row in this column.
      *
      * @param   irow  the row from which to retrieve the value
-     * @return  the value stored at <tt>irow</tt>
+     * @return  the value stored at <code>irow</code>
      * @throws  IOException  if there is some problem reading
      */
     public abstract Object readValue( long irow ) throws IOException;
 
     /**
      * Stores a given value in a given row for this column.
-     * Will only work if the <tt>isWritable</tt> method returns true.
-     * The implementation in the <tt>ColumnData</tt> class throws
-     * an <tt>UnsupportedOperationException</tt>.
+     * Will only work if the <code>isWritable</code> method returns true.
+     * The implementation in the <code>ColumnData</code> class throws
+     * an <code>UnsupportedOperationException</code>.
      *
      * @param   val  the object to store
      * @param   irow  the row to store it in
      * @throws  UnsupportedOperationException  if !{@link #isWritable}
-     * @throws  NullPointerException  if <tt>val==null</tt> and 
+     * @throws  NullPointerException  if <code>val==null</code> and 
      *          this column is not nullable
-     * @throws  ArrayStoreException  if <tt>val</tt> is not compatible
+     * @throws  ArrayStoreException  if <code>val</code> is not compatible
      *          with the content class of this column
      * @throws  IOException  if there is some problem writing
      */
@@ -92,8 +92,8 @@ public abstract class ColumnData {
 
     /**
      * Indicates whether this object can store values.
-     * The implementation in the <tt>ColumnData</tt> class returns 
-     * <tt>false</tt>
+     * The implementation in the <code>ColumnData</code> class returns 
+     * <code>false</code>
      *
      * @return  true  iff {@link #storeValue} can be used 
      */

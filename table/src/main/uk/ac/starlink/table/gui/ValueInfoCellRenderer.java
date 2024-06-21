@@ -6,8 +6,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
- * A <tt>TableCellRenderer</tt> which does its rendering according to
- * a <tt>ValueInfo</tt> object which describes the values which it
+ * A <code>TableCellRenderer</code> which does its rendering according to
+ * a <code>ValueInfo</code> object which describes the values which it
  * is expected to have to render.
  *
  * @author   Mark Taylor (Starlink)
@@ -18,7 +18,7 @@ public class ValueInfoCellRenderer extends DefaultTableCellRenderer {
     private int maxLength = 10000;
 
     /**
-     * Constructs a renderer from a <tt>ValueInfo</tt> object.
+     * Constructs a renderer from a <code>ValueInfo</code> object.
      *
      * @param vinfo  the info describing the type of object to be rendered
      */
@@ -31,8 +31,8 @@ public class ValueInfoCellRenderer extends DefaultTableCellRenderer {
      * DefaultTableCellRenderer to provide more intelligent behaviour.
      * <p>
      * Subclasses note: the work is done by invoking this object's
-     * <tt>setText</tt> and/or <tt>setIcon</tt> methods (remember this 
-     * object is a <tt>javax.swing.JLabel</tt>).
+     * <code>setText</code> and/or <code>setIcon</code> methods (remember this 
+     * object is a <code>javax.swing.JLabel</code>).
      *
      * @param  value  the value to be rendered
      */

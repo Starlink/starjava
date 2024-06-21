@@ -10,7 +10,8 @@ import java.util.Map;
  * as information about the kind of object that the value can assume, 
  * such as Java class and array shape where applicable.
  * It will normally be associated with a method which is declared to 
- * return one or more <tt>Object</tt>s; use of the information in this class 
+ * return one or more <code>Object</code>s;
+ * use of the information in this class 
  * can then be used to make additional sense of the object(s) thus returned.
  *
  * @author   Mark Taylor (Starlink)
@@ -30,7 +31,7 @@ public interface ValueInfo {
      * The syntax and conventions should ideally match those adopted
      * by VOTable, as defined by CDS.
      *
-     * @return  a string giving the units, or <tt>null</tt> if units are
+     * @return  a string giving the units, or <code>null</code> if units are
      *          unknown
      * @see  <a href="http://vizier.u-strasbg.fr/doc/catstd-3.2.htx">Standards
      *       for Astronomical Catalogues: Units, CDS Strasbourg</a>
@@ -41,7 +42,7 @@ public interface ValueInfo {
      * Returns the Unified Column Descriptor string applying to the 
      * values described by this object.
      *
-     * @return  the UCD, or <tt>null</tt> if none is known
+     * @return  the UCD, or <code>null</code> if none is known
      * @see  <a href="http://vizier.u-strasbg.fr/doc/UCD.htx">Unified 
      *       Column Descriptor scheme</a>
      * @see  UCD
@@ -82,25 +83,26 @@ public interface ValueInfo {
 
     /**
      * Returns the java class of the values described by this object.
-     * The intention is that any <tt>Object</tt> described by this 
-     * <tt>ValueInfo</tt> will be an instance of the returned class 
+     * The intention is that any <code>Object</code> described by this 
+     * <code>ValueInfo</code> will be an instance of the returned class 
      * or one of its subclasses.  Note therefore that it must <em>not</em>
-     * return one of the primitive class objects (<tt>int.class</tt> et al.);
+     * return one of the primitive class objects
+     * (<code>int.class</code> et al.);
      * the appropriate wrapper classes must be used instead 
-     * (<tt>Integer.class</tt> etc).
+     * (<code>Integer.class</code> etc).
      * <p>
      * The class returned should not under normal circumstances be an
      * array of arrays; to express multidimensionality of arrays you
      * should store an array of non-array objects or of primitives and
-     * provide shape information via the <tt>getShape</tt> method.
+     * provide shape information via the <code>getShape</code> method.
      * There is nothing to stop you describing arrays of arrays with a 
-     * <tt>ValueInfo</tt>, but some other elements of the tables 
+     * <code>ValueInfo</code>, but some other elements of the tables 
      * infrastructure and applications may work on the assumption that
      * such objects are not present.
      * <p>
      * Note that to store sets of more than 2<sup>31</sup> items it
      * will be necessary to use some custom object, since java arrays
-     * are indexed by type <tt>int</tt>.
+     * are indexed by type <code>int</code>.
      *
      * @return  the java class
      */
@@ -113,7 +115,7 @@ public interface ValueInfo {
      *     getContentClass().getComponentType()!=null
      * </pre>
      *
-     * @return  <tt>true</tt> iff the values described by this object are
+     * @return  <code>true</code> iff the values described by this object are
      *          java arrays
      */
     boolean isArray();
@@ -127,15 +129,15 @@ public interface ValueInfo {
      * the return value of this method, fastest varying first.
      * All elements of the array should be positive, except that the
      * last (slowest varying) element may be &lt;=0 (conventionally -1)
-     * to indicate that the number of <tt>(shape.length-1)</tt>-dimensional
+     * to indicate that the number of <code>(shape.length-1)</code>-dimensional
      * slices contained in the value is not known.
      * If nothing is known about the shape of the array values,
      * then a 1-element array whose only element is &lt;=0 should be returned.
      * <p>
-     * If <tt>getContentClass</tt> does not give an array type 
-     * (hence <tt>isArray</tt> returns false)
+     * If <code>getContentClass</code> does not give an array type 
+     * (hence <code>isArray</code> returns false)
      * the return value for this method is undefined (but should probably
-     * be <tt>null</tt>).
+     * be <code>null</code>).
      *
      * @return  the shape of the array value
      */
@@ -145,12 +147,12 @@ public interface ValueInfo {
      * May indicate the size of a value element stored as the value of
      * this info.  The total size of the value will in this case be the
      * return value of this method multiplied by the number of elements,
-     * as indicated by {@link #getShape} (or by 1, if <tt>getShape</tt>
+     * as indicated by {@link #getShape} (or by 1, if <code>getShape</code>
      * is null).
      * <p>
      * The exact meaning of the value returned is dependent on this 
      * ValueInfo.  This method was introduced to return the maximum
-     * number of characters in a <tt>String</tt>-class ValueInfo; 
+     * number of characters in a <code>String</code>-class ValueInfo; 
      * this information is necessary for writing out to certain formats (FITS).
      * Other ValueInfo types however may use it for their own purposes.
      * <p>
@@ -164,12 +166,14 @@ public interface ValueInfo {
 
     /**
      * Indicates whether values returned described by this object may have the
-     * value <tt>null</tt>.  In general this should return <tt>true</tt>, 
+     * value <code>null</code>.
+     * In general this should return <code>true</code>, 
      * which implies no assertion about the return values (they may or 
-     * may not be <tt>null</tt>).  But if the values are known never to
-     * be <tt>null</tt>, it may return <tt>false</tt>.
+     * may not be <code>null</code>).  But if the values are known never to
+     * be <code>null</code>, it may return <code>false</code>.
      *
-     * @return  <tt>false</tt> if values are guaranteed non-<tt>null</tt>
+     * @return  <code>false</code> if values are guaranteed
+     *          non-<code>null</code>
      */
     boolean isNullable();
 
@@ -179,7 +183,7 @@ public interface ValueInfo {
      * This is intended as a repository for metadata which is not
      * otherwise made available in this interface.
      *
-     * @return   a List of <tt>DescribedValue</tt> items
+     * @return   a List of <code>DescribedValue</code> items
      */
     List<DescribedValue> getAuxData();
 
@@ -201,7 +205,7 @@ public interface ValueInfo {
 
     /**
      * Returns a string representation of a given value described by this
-     * <tt>ValueInfo</tt>.  The returned string should be
+     * <code>ValueInfo</code>.  The returned string should be
      * no longer than a given maximum length.
      *
      * @param   value      the value to represent
@@ -211,12 +215,12 @@ public interface ValueInfo {
     String formatValue( Object value, int maxLength );
 
     /**
-     * Returns an object of the sort described by this <tt>ValueInfo</tt>
-     * represented by the given string <tt>rep</tt>.
+     * Returns an object of the sort described by this <code>ValueInfo</code>
+     * represented by the given string <code>rep</code>.
      *
      * @param  rep  the string representation of a value described by 
-     *         this <tt>ValueInfo</tt>
-     * @return  the Object value represented by <tt>rep</tt>; must match
+     *         this <code>ValueInfo</code>
+     * @return  the Object value represented by <code>rep</code>; must match
      *          this info's content class (or be null)
      */
     Object unformatString( String rep );
@@ -225,9 +229,9 @@ public interface ValueInfo {
      * Gets an item of auxiliary metadata by its name.
      *
      * @param  name  the name of an auxiliary metadata item
-     * @return  a <tt>DescribedValue</tt> object representing the
+     * @return  a <code>DescribedValue</code> object representing the
      *          named auxiliary metadata item for this column,
-     *          or <tt>null</tt> if none exists
+     *          or <code>null</code> if none exists
      */
     default DescribedValue getAuxDatumByName( String name ) {
         return Tables.getDescribedValueByName( getAuxData(), name );

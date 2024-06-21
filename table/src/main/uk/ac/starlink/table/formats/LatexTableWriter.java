@@ -12,7 +12,7 @@ import uk.ac.starlink.util.ConfigMethod;
  * A StarTableWriter that outputs text to a LaTeX document.
  * Depending on the value of the <code>standalone</code> attribute,
  * the output may either be a complete LaTeX document or just a
- * <tt>tabular</tt> environment suitable for inserting into an existing
+ * <code>tabular</code> environment suitable for inserting into an existing
  * document.
  *
  * @author   Mark Taylor (Starlnk)
@@ -232,7 +232,7 @@ public class LatexTableWriter extends DocumentedStreamStarTableWriter {
      * ways.
      *
      * @param  line  the input string
-     * @return  a LaTeX-friendly version of <tt>line</tt>
+     * @return  a LaTeX-friendly version of <code>line</code>
      */
     private String escape( String line ) {
         StringBuffer sbuf = new StringBuffer();

@@ -11,9 +11,9 @@ import uk.ac.starlink.table.StarTable;
  * {@link uk.ac.starlink.table.RowListStarTable}.
  * This is better-behaved than the RowStore contract requires; it
  * is guaranteed to be able to store any StarTable object
- * ({@link #acceptMetadata} will not throw a <tt>TableFormatException</tt>).
+ * ({@link #acceptMetadata} will not throw a <code>TableFormatException</code>).
  * Cautious users of this class will note the fact that for large tables,
- * {@link #acceptRow} may throw an <tt>OutOfMemoryError</tt>.
+ * {@link #acceptRow} may throw an <code>OutOfMemoryError</code>.
  *
  * @author   Mark Taylor (Starlink)
  * @since    3 Aug 2004

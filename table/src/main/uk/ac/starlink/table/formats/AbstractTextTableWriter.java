@@ -11,7 +11,8 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.ConfigMethod;
 
 /**
- * A <tt>StarTableWriter</tt> which outputs text to a human-readable text file.
+ * A <code>StarTableWriter</code> which outputs text to
+ * a human-readable text file.
  * Table parameters (per-table metadata) can optionally be output 
  * as well as the table data themselves.
  *
@@ -295,11 +296,11 @@ public abstract class AbstractTextTableWriter
      * Formats a data value for output.
      *
      * @param  val  the value
-     * @param  vinfo  the metadata object describing <tt>val</tt>'s type
+     * @param  vinfo  the metadata object describing <code>val</code>'s type
      * @param  width  maximum preferred width into which the value should
      *         be formatted
-     * @return  formatted string meaning <tt>value</tt>, preferably no longer
-     *          than <tt>width</tt> characters
+     * @return  formatted string meaning <code>value</code>,
+     *          preferably no longer than <code>width</code> characters
      */
     protected abstract String formatValue( Object val, ValueInfo vinfo,
                                            int width );

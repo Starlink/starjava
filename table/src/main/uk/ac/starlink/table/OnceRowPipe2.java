@@ -20,7 +20,8 @@ import java.util.concurrent.LinkedBlockingQueue;
  * The returned table is unusual in that it
  * can only return a <code>RowSequence</code> once.
  * This violates the normal rules of the <code>StarTable</code> interface.
- * Any calls beyond the first to <tt>waitForStarTable().getRowSequence()</tt>
+ * Any calls beyond the first to
+ * <code>waitForStarTable().getRowSequence()</code>
  * will throw a {@link uk.ac.starlink.table.UnrepeatableSequenceException}.
  *  
  * @author   Mark Taylor (Starlink)
@@ -48,7 +49,7 @@ class OnceRowPipe2 implements RowPipe, RowSequence {
      * Constructs a new streaming row store with a given buffer size.
      *
      * @param  queueSize  the maximum number of rows buffered between
-     *         write and read before <tt>acceptRow</tt> will block
+     *         write and read before <code>acceptRow</code> will block
      */
     public OnceRowPipe2( int queueSize ) {
         rowQueue_ = new LinkedBlockingQueue<Object[]>( queueSize );
@@ -139,9 +140,9 @@ class OnceRowPipe2 implements RowPipe, RowSequence {
 
     /**
      * Returns a non-random table whose first call to
-     * <tt>getRowSequence</tt> will return a sequence that steps through
+     * <code>getRowSequence</code> will return a sequence that steps through
      * the same rows which are being written to this sink.
-     * The <tt>getRowSequence</tt> method can only be called once;
+     * The <code>getRowSequence</code> method can only be called once;
      * any subsequent attempts to call it will result in a
      * {@link UnrepeatableSequenceException}.
      * This method will block until {@link #acceptMetadata} has been called.

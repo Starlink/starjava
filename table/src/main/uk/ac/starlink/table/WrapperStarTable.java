@@ -9,7 +9,7 @@ import java.util.List;
  * around an existing 'base' StarTable object; almost all its methods are
  * implemented by forwarding to the corresponding methods of that base
  * table.  The exception is the {@link #getURL} method which returns
- * <tt>null</tt> as an indication that the actual table is not a persistent
+ * <code>null</code> as an indication that the actual table is not a persistent
  * one (though it may be based on, and even identical to, a persistent one).
  *
  * <p>This class is provided so that it can be extended by
@@ -30,7 +30,7 @@ public class WrapperStarTable implements StarTable {
     private URL url;
 
     /**
-     * Constructs a new <tt>WrapperStarTable</tt> from a given base table.
+     * Constructs a new <code>WrapperStarTable</code> from a given base table.
      *
      * @param  baseTable  the table to which methods invoked upon the
      *         new wrapper table will be forwarded
@@ -58,7 +58,7 @@ public class WrapperStarTable implements StarTable {
     }
 
     /**
-     * Initially returns <tt>null</tt> to indicate that this table 
+     * Initially returns <code>null</code> to indicate that this table 
      * itself is not persistent.
      */
     public URL getURL() {
@@ -132,7 +132,8 @@ public class WrapperStarTable implements StarTable {
     }
 
     /**
-     * Convenience method to get an <tt>int</tt> value from a <tt>long</tt>.
+     * Convenience method to get an <code>int</code>
+     * value from a <code>long</code>.
      * Invokes {@link Tables#checkedLongToInt}.
      */
     public static int checkedLongToInt( long lval ) {

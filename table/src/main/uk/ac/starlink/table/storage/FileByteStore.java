@@ -59,7 +59,7 @@ public class FileByteStore implements ByteStore {
      * Constructs a new FileByteStore which uses a temporary file as
      * backing store.
      * The temporary file will be written to the default temporary
-     * directory, given by the value of the <tt>java.io.tmpdir</tt>
+     * directory, given by the value of the <code>java.io.tmpdir</code>
      * system property.
      *
      * @throws IOException  if there is some I/O-related problem with

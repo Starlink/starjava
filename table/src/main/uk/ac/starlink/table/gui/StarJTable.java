@@ -19,7 +19,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
- * Extends the <tt>JTable</tt> for use with <tt>StarTable</tt> objects.
+ * Extends the <code>JTable</code> for use with <code>StarTable</code> objects.
  * This convenience class adapts a JTable and sets its components appropriately
  * for viewing a StarTable.  The main jobs it does are to set its
  * model to a suitable StarTableModel and make sure the cell renderers
@@ -45,7 +45,7 @@ public class StarJTable extends JTable {
     private static final long MAX_CONFIG_TIME = 8000;
 
     /**
-     * Constructs a new <tt>StarJTable</tt>, optionally with a dummy
+     * Constructs a new <code>StarJTable</code>, optionally with a dummy
      * first column displaying the row number.
      *
      * @param  rowHeader  whether column 0 should contain row indices
@@ -56,14 +56,14 @@ public class StarJTable extends JTable {
     }
 
     /**
-     * Construsts a new <tt>StarJTable</tt> to display a given 
-     * <tt>StarTable</tt>, 
+     * Construsts a new <code>StarJTable</code> to display a given 
+     * <code>StarTable</code>, 
      * optionally with a dummy first column displaying the row number.
      *
-     * @param  startable  the <tt>StarTable</tt> to display
+     * @param  startable  the <code>StarTable</code> to display
      * @param  rowHeader  whether column 0 should contain row indices
-     * @throws  IllegalArgumentException  if <tt>startable.isRandom</tt>
-     *          returns <tt>false</tt>
+     * @throws  IllegalArgumentException  if <code>startable.isRandom</code>
+     *          returns <code>false</code>
      * @see     uk.ac.starlink.table.Tables#randomTable
      */
     public StarJTable( StarTable startable, boolean rowHeader ) {
@@ -75,24 +75,24 @@ public class StarJTable extends JTable {
      * Indicates whether the first column of this table is a dummy column
      * displaying the row index.
      *
-     * @return  <tt>true</tt> iff column 0 displays row index
+     * @return  <code>true</code> iff column 0 displays row index
      */
     public boolean hasRowHeader() {
         return rowHeader_;
     }
 
     /**
-     * Sets this <tt>StarJTable</tt> up to display a given 
-     * <tt>StarTable</tt> object,
+     * Sets this <code>StarJTable</code> up to display a given 
+     * <code>StarTable</code> object,
      * optionally with a dummy first column displaying the row number.
      * This table's model will be set to a {@link StarTableModel},
      * and the colum model will be set to one of which all the columns
      * are {@link StarTableColumn}s.
      *
-     * @param  startable  the <tt>StarTable</tt> to display
+     * @param  startable  the <code>StarTable</code> to display
      * @param  rowHeader  whether column 0 should contain row indices
-     * @throws  IllegalArgumentException  if <tt>startable.isRandom</tt>
-     *          returns <tt>false</tt>
+     * @throws  IllegalArgumentException  if <code>startable.isRandom</code>
+     *          returns <code>false</code>
      * @see     uk.ac.starlink.table.Tables#randomTable
      */
     public void setStarTable( StarTable startable, boolean rowHeader ) {
@@ -355,7 +355,7 @@ public class StarJTable extends JTable {
 
     /**
      * Returns an iterator over row indices representing a sample of 
-     * rows in a table.  If <tt>nsample&gt;=nrow</tt> it will iterate
+     * rows in a table.  If <code>nsample&gt;=nrow</code> it will iterate
      * over all the rows, otherwise it try to cover a representative 
      * sample, broadly speaking the first few, last few, and some in the
      * middle.  The iterator will not continue to iterate for an 
@@ -365,7 +365,7 @@ public class StarJTable extends JTable {
      * @param   nsample   maximum number of rows to sample
      * @param   maxTime  maximum elapsed time (approx) for iterator to live
      *                   in milliseconds
-     * @return  iterator over <tt>Integer</tt> objects each representing 
+     * @return  iterator over <code>Integer</code> objects each representing 
      *          a table row index 
      */
     private static Iterator<Integer> sampleIterator( final int nrow,

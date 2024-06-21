@@ -59,7 +59,7 @@ public class MultilineJTable extends JTable {
 
     /**
      * Constructs a MultilineJTable without any data. 
-     * Its TableModel is initialised to <tt>null</tt>.
+     * Its TableModel is initialised to <code>null</code>.
      */
     public MultilineJTable() {
         setModel( getModel() );

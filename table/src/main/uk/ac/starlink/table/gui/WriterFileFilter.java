@@ -5,7 +5,7 @@ import javax.swing.filechooser.FileFilter;
 import uk.ac.starlink.table.StarTableWriter;
 
 /**
- * Makes a <tt>FileFilter</tt> out of a <tt>StarTableWriter</tt>.
+ * Makes a <code>FileFilter</code> out of a <code>StarTableWriter</code>.
  */
 class WriterFileFilter extends FileFilter {
 

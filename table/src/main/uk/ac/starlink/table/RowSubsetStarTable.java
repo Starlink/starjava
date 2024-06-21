@@ -33,7 +33,7 @@ public class RowSubsetStarTable extends WrapperStarTable {
      * Constructs a new RowSubsetStarTable with a given mask.
      *
      * @param  baseTable  base table which provides the underlying data
-     * @param  mask    bitmask determining which rows in <tt>baseTable</tt>
+     * @param  mask    bitmask determining which rows in <code>baseTable</code>
      *                 are seen
      */
     public RowSubsetStarTable( StarTable baseTable, BitSet mask ) {

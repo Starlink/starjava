@@ -85,12 +85,12 @@ public class UCD implements Comparable<UCD> {
 
     /**
      * Returns the UCD object corresponding to a given UCD ID string.
-     * Returns <tt>null</tt> if no UCD with the given name is known.
+     * Returns <code>null</code> if no UCD with the given name is known.
      *
      * @param  id  the string used to identify the UCD (it will have
      *             surrounding spaces trimmed)
-     * @return  the UCD object corresponding to <tt>id</tt>, or 
-     *          <tt>null</tt> if none can be found
+     * @return  the UCD object corresponding to <code>id</code>, or 
+     *          <code>null</code> if none can be found
      */
     public static UCD getUCD( String id ) {
         ensureInitialised();
@@ -103,8 +103,8 @@ public class UCD implements Comparable<UCD> {
      * The iterator returns the UCDs in their natural order (alphabetic
      * by ID).
      *
-     * @return  an Iterator which iterates over all the existing <tt>UCD</tt> 
-     *          objects
+     * @return  an Iterator which iterates over all the existing
+     *          <code>UCD</code> objects
      */
     public static Iterator<UCD> getUCDs() {
         ensureInitialised();
@@ -122,7 +122,7 @@ public class UCD implements Comparable<UCD> {
 
     /**
      * Reads the text list of all defined UCDs to populate the lookup
-     * table used by the <tt>getUCD</tt> method.
+     * table used by the <code>getUCD</code> method.
      */
     private static void ensureInitialised() {
 
@@ -169,7 +169,7 @@ public class UCD implements Comparable<UCD> {
      * expect to get.
      *
      * @param  text  the HTML-like input string
-     * @return  a plain-text equivalent of <tt>text</tt>
+     * @return  a plain-text equivalent of <code>text</code>
      */
     private static String unEscape( String text ) {
         return text

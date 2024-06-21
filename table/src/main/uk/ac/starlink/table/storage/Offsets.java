@@ -16,7 +16,7 @@ abstract class Offsets {
      * at which the start of a given row can be found.
      * 
      * @param   lrow  row index
-     * @return  byte offset of the start of row <tt>lrow</tt>
+     * @return  byte offset of the start of row <code>lrow</code>
      */
     public abstract long getRowOffset( long lrow );
 
@@ -26,7 +26,7 @@ abstract class Offsets {
      *
      * @param   lrow  row index
      * @param   icol  column index
-     * @return  byte offset of the cell at <tt>(lrow,icol)</tt>
+     * @return  byte offset of the cell at <code>(lrow,icol)</code>
      */
     public abstract long getCellOffset( long lrow, int icol );
 
@@ -42,7 +42,7 @@ abstract class Offsets {
      * Indicates whether this offsets implementation is fixed (cheap)
      * or variable (expensive).
      *
-     * @return  <tt>true</tt> iff all rows have the same structure
+     * @return  <code>true</code> iff all rows have the same structure
      */
     public abstract boolean isFixed();
 

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.NoSuchElementException;
 
 /**
- * Partial implementation of <tt>RowSequence</tt> suitable for subclassing
+ * Partial implementation of <code>RowSequence</code> suitable for subclassing
  * by classes which can read a row at a time and don't know when the
  * row stream will come to an end.
  * Concrete subclasses have to implement the {@link #readRow} method.
@@ -20,12 +20,12 @@ public abstract class ReaderRowSequence implements RowSequence {
     /**
      * Acquires the next row of objects from the input stream.
      * When there are no more rows to read this method must return
-     * <tt>null</tt>; note it should <em>not</em> throw an
+     * <code>null</code>; note it should <em>not</em> throw an
      * exception to indicate this fact.
      * Otherwise it must return an array of objects representing 
      * the row content for the next row.
      *
-     * @return  the next row, or <tt>null</tt> if there are no more
+     * @return  the next row, or <code>null</code> if there are no more
      * @throws  IOException if there is trouble reading the data
      */
     protected abstract Object[] readRow() throws IOException;
@@ -53,7 +53,7 @@ public abstract class ReaderRowSequence implements RowSequence {
     }
 
     /**
-     * The <tt>ReaderRowSequence</tt> implementation does nothing.
+     * The <code>ReaderRowSequence</code> implementation does nothing.
      */
     public void close() throws IOException {
     }

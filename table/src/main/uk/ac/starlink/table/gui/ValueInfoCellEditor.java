@@ -18,7 +18,7 @@ public class ValueInfoCellEditor {
 
     /**
      * Returns a TableCellEditor that can be used for editing the values
-     * described by this <tt>ValueInfo</tt>.
+     * described by this <code>ValueInfo</code>.
      *
      * @param  vinfo  the ValueInfo object describing the cell to be edited
      * @return  a TableCellEditor

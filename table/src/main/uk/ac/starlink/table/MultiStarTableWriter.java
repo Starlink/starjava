@@ -30,11 +30,11 @@ public interface MultiStarTableWriter extends StarTableWriter {
 
     /**
      * Writes an array of StarTable objects to a given location.
-     * Implementations are free to interpret the <tt>location</tt> argument
+     * Implementations are free to interpret the <code>location</code> argument
      * in any way appropriate for them.  Typically however the location
      * will simply be used to get an output stream (for instance interpreting
-     * it as a filename).  In this case the <tt>sto</tt> argument should
-     * normally be used to turn <tt>location</tt> into a stream.
+     * it as a filename).  In this case the <code>sto</code> argument should
+     * normally be used to turn <code>location</code> into a stream.
      *
      * @param  tableSeq  sequence of tables to write
      * @param  location  destination for tables

@@ -33,7 +33,7 @@ public class EditableColumn extends WrapperColumn {
     }
 
     /**
-     * Returns <tt>true</tt>.
+     * Returns <code>true</code>.
      *
      * @return  whether cells can be edited.  They can.
      */

@@ -7,13 +7,14 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
- * A <tt>TableColumn</tt> representing a column in a <tt>StarJTable</tt>.
- * This simple extension to <tt>TableColumn</tt> provides a constructor
+ * A <code>TableColumn</code> representing a column
+ * in a <code>StarJTable</code>.
+ * This simple extension to <code>TableColumn</code> provides a constructor
  * and an accessor which reference the 
  * {@link uk.ac.starlink.table.ColumnInfo} object 
  * associated with a table column.  The renderers and column headings etc
  * used by this column are based by default on the characteristics of
- * the associated <tt>ColumnInfo</tt>.
+ * the associated <code>ColumnInfo</code>.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -22,13 +23,13 @@ public class StarTableColumn extends TableColumn {
     private ColumnInfo colinfo;
 
     /**
-     * Constructs a <tt>StarTableColumn</tt> from a <tt>ColumnInfo</tt>
+     * Constructs a <code>StarTableColumn</code> from a <code>ColumnInfo</code>
      * object with a given model index.
      *
-     * @param   colinfo  the <tt>ColumnInfo</tt> object which supplies the
+     * @param   colinfo  the <code>ColumnInfo</code> object which supplies the
      *          characteristics of this column
-     * @param   modelIndex the index of the column in the <tt>TableModel</tt>
-     *          which will be displayed by this column
+     * @param   modelIndex the index of the column in the
+     *          <code>TableModel</code> which will be displayed by this column
      */
     public StarTableColumn( ColumnInfo colinfo, int modelIndex ) {
         super( modelIndex );
@@ -39,10 +40,10 @@ public class StarTableColumn extends TableColumn {
     }
 
     /**
-     * Constructs a <tt>StarTableColumn</tt> from a <tt>ColumnInfo</tt>
+     * Constructs a <code>StarTableColumn</code> from a <code>ColumnInfo</code>
      * object using a default model index of 0.
      *
-     * @param   colinfo  the <tt>ColumnInfo</tt> object which supplies the
+     * @param   colinfo  the <code>ColumnInfo</code> object which supplies the
      *          characteristics of this column
      */
     public StarTableColumn( ColumnInfo colinfo ) {
@@ -50,7 +51,7 @@ public class StarTableColumn extends TableColumn {
     }
 
     /**
-     * Returns the <tt>ColumnInfo</tt> object associated with this column.
+     * Returns the <code>ColumnInfo</code> object associated with this column.
      *
      * @return  the metadata for this column
      */
