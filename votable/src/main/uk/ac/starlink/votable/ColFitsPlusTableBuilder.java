@@ -178,7 +178,7 @@ public class ColFitsPlusTableBuilder implements TableBuilder {
      *
      * @param  icard  card index
      * @param  card   header card
-     * @return  true  if <tt>card</tt> looks like the <tt>icard</tt>'th
+     * @return  true  if <code>card</code> looks like the <code>icard</code>'th
      *          header card of a FitsPlus primary header should do
      */
     private static boolean primaryHeaderCardOK( int icard,

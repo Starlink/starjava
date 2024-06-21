@@ -29,7 +29,7 @@ import org.w3c.dom.Text;
  * used and extended when using the delegate DOM package.
  *
  * <p>In order to specialise the nodes which appear in a DOM, 
- * you have to override the protected <tt>createDelegating*</tt> 
+ * you have to override the protected <code>createDelegating*</code> 
  * methods to return your own custom DelegatingNode subclasses.
  *
  * @author   Mark Taylor (Starlink)
@@ -44,10 +44,10 @@ public class DelegatingDocument extends DelegatingNode implements Document {
  
     /**
      * Constructs a new document which delegates its behaviour to a
-     * <tt>Document</tt> from another DOM.
+     * <code>Document</code> from another DOM.
      *
      * @param   base  delegate document node
-     * @param   documentURI   location of the document, or <tt>null</tt>
+     * @param   documentURI   location of the document, or <code>null</code>
      */
     public DelegatingDocument( Document base, String documentURI ) {
         super( base );
@@ -66,7 +66,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * but shouldn't do for any sensibly set up JVM -
      * any such condition is rethrown as a RuntimeException.
      *
-     * @param   documentURI   location of the document, or <tt>null</tt>
+     * @param   documentURI   location of the document, or <code>null</code>
      */
     public DelegatingDocument( String documentURI ) {
         this( makeEmptyDocument(), documentURI );
@@ -106,10 +106,11 @@ public class DelegatingDocument extends DelegatingNode implements Document {
 
     /**
      * Creates a delegator node from a base node, by invoking one of the
-     * <tt>createDelegating*</tt> mehtods.
+     * <code>createDelegating*</code> mehtods.
      *
      * @param  baseNode   base node 
-     * @return  a new node in this model which delegates to <tt>baseNode</tt>
+     * @return  a new node in this model which delegates
+     *          to <code>baseNode</code>
      */
     private DelegatingNode createDelegator( Node baseNode ) {
         if ( baseNode == null ) {
@@ -166,7 +167,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * node types.
      * 
      * @param   baseNode  delegate node
-     * @return  new node in this model based on <tt>baseNode</tt>
+     * @return  new node in this model based on <code>baseNode</code>
      */
     protected DelegatingNode createDelegatingSimpleNode( Node baseNode ) {
         return baseNode == null ? null 
@@ -180,7 +181,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * node types.
      * 
      * @param   baseNode  delegate node
-     * @return  new node in this model based on <tt>baseNode</tt>
+     * @return  new node in this model based on <code>baseNode</code>
      */
     protected DelegatingAttr createDelegatingAttr( Attr baseNode ) {
         return baseNode == null ? null
@@ -197,7 +198,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * @param   baseNode  delegate node
      * @param   isId  true if this node knows it is an ID, false if it knows
      *          it isn't
-     * @return  new node in this model based on <tt>baseNode</tt>
+     * @return  new node in this model based on <code>baseNode</code>
      */
     protected DelegatingAttr createDelegatingAttr( Attr baseNode,
                                                    boolean isId ) {
@@ -212,7 +213,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * node types.
      * 
      * @param   baseNode  delegate node
-     * @return  new node in this model based on <tt>baseNode</tt>
+     * @return  new node in this model based on <code>baseNode</code>
      */
     protected DelegatingCDATASection 
               createDelegatingCDATASection( CDATASection baseNode ) {
@@ -227,7 +228,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * node types.
      * 
      * @param   baseNode  delegate node
-     * @return  new node in this model based on <tt>baseNode</tt>
+     * @return  new node in this model based on <code>baseNode</code>
      */
     protected DelegatingCharacterData 
               createDelegatingCharacterData( CharacterData baseNode ) {
@@ -242,7 +243,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * node types.
      * 
      * @param   baseNode  delegate node
-     * @return  new node in this model based on <tt>baseNode</tt>
+     * @return  new node in this model based on <code>baseNode</code>
      */
     protected DelegatingComment createDelegatingComment( Comment baseNode ) {
         return baseNode == null ? null
@@ -256,7 +257,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * node types.
      * 
      * @param   baseNode  delegate node
-     * @return  new node in this model based on <tt>baseNode</tt>
+     * @return  new node in this model based on <code>baseNode</code>
      */
     protected DelegatingDocumentFragment 
               createDelegatingDocumentFragment( DocumentFragment baseNode ) {
@@ -272,7 +273,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * node types.
      * 
      * @param   baseNode  delegate node
-     * @return  new node in this model based on <tt>baseNode</tt>
+     * @return  new node in this model based on <code>baseNode</code>
      */
     protected DelegatingDocumentType
               createDelegatingDocumentType( DocumentType baseNode ) {
@@ -288,7 +289,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * node types.
      * 
      * @param   baseNode  delegate node
-     * @return  new node in this model based on <tt>baseNode</tt>
+     * @return  new node in this model based on <code>baseNode</code>
      */
     protected DelegatingElement createDelegatingElement( Element baseNode ) {
         return baseNode == null ? null
@@ -302,7 +303,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * node types.
      * 
      * @param   baseNode  delegate node
-     * @return  new node in this model based on <tt>baseNode</tt>
+     * @return  new node in this model based on <code>baseNode</code>
      */
     protected DelegatingEntity createDelegatingEntity( Entity baseNode ) {
         return baseNode == null ? null
@@ -316,7 +317,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * node types.
      * 
      * @param   baseNode  delegate node
-     * @return  new node in this model based on <tt>baseNode</tt>
+     * @return  new node in this model based on <code>baseNode</code>
      */
     protected DelegatingEntityReference 
               createDelegatingEntityReference( EntityReference baseNode ) {
@@ -332,7 +333,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * node types.
      * 
      * @param   baseNode  delegate node
-     * @return  new node in this model based on <tt>baseNode</tt>
+     * @return  new node in this model based on <code>baseNode</code>
      */
     protected DelegatingNotation createDelegatingNotation( Notation baseNode ) {
         return baseNode == null ? null
@@ -346,7 +347,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * node types.
      * 
      * @param   baseNode  delegate node
-     * @return  new node in this model based on <tt>baseNode</tt>
+     * @return  new node in this model based on <code>baseNode</code>
      */
     protected DelegatingProcessingInstruction
              createDelegatingProcessingInstruction( 
@@ -363,7 +364,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * node types.
      * 
      * @param   baseNode  delegate node
-     * @return  new node in this model based on <tt>baseNode</tt>
+     * @return  new node in this model based on <code>baseNode</code>
      */
     protected DelegatingText createDelegatingText( Text baseNode ) {
         return baseNode == null ? null
@@ -374,7 +375,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * Returns a NodeList which will dispense nodes in this document.
      *
      * @param  baseList  node list which dispenses nodes in the base document
-     * @return  equivalent of <tt>baseList</tt> in this document
+     * @return  equivalent of <code>baseList</code> in this document
      */
     protected NodeList createDelegatingNodeList( NodeList baseList ) {
         return baseList == null ? null
@@ -385,7 +386,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * Returns a NamedNodeMap which will dispense nodes in this document.
      *
      * @param  baseMap  node map which dispenses nodes in the base document
-     * @return  equivalent of <tt>baseMap</tt> in this document
+     * @return  equivalent of <code>baseMap</code> in this document
      */
     protected NamedNodeMap 
             createDelegatingNamedNodeMap( NamedNodeMap baseMap ) {

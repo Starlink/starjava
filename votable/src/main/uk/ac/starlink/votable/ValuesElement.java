@@ -26,7 +26,7 @@ public class ValuesElement extends VOElement {
      * Returns the specified maximum value for this ValuesElement object
      * (the value of any Maximum child).
      *
-     * @return  maximum value, or <tt>null</tt> if none specified
+     * @return  maximum value, or <code>null</code> if none specified
      */
     public String getMaximum() {
         VOElement maxel = getChildByName( "MAX" );
@@ -44,7 +44,7 @@ public class ValuesElement extends VOElement {
      * Returns the specified minimum value for this ValuesElement object
      * (the value of any Minimum child).
      *
-     * @return  minimum value, or <tt>null</tt> if none specified
+     * @return  minimum value, or <code>null</code> if none specified
      */
     public String getMinimum() {
         VOElement minel = getChildByName( "MIN" );
@@ -80,10 +80,10 @@ public class ValuesElement extends VOElement {
      * value which represents an undefined data value.  This is
      * the value of the 'null' attribute of the VALUES element,
      * but does not have anything to do with the Java language
-     * <tt>null</tt> value.
+     * <code>null</code> value.
      *
      * @return   the 'null' value for this ValuesElement object or, confusingly,
-     *           <tt>null</tt> if none is defined
+     *           <code>null</code> if none is defined
      */
     public String getNull() {
         return hasAttribute( "null" )

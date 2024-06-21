@@ -389,7 +389,8 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
     }
 
     /**
-     * Returns <tt>true</tt> for a flavor with the MIME type "application/fits".
+     * Returns <code>true</code> for a flavor with
+     * the MIME type "application/fits".
      */
     public boolean canImport( DataFlavor flavor ) {
         if ( flavor.getPrimaryType().equals( "application" ) &&
@@ -437,7 +438,7 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
      *
      * @param  icard  card index
      * @param  card   header card
-     * @return  true  if <tt>card</tt> looks like the <tt>icard</tt>'th
+     * @return  true  if <code>card</code> looks like the <code>icard</code>'th
      *          header card of a FitsPlus primary header should do
      */
     static boolean primaryHeaderCardOK( int icard, ParsedCard<?> card ) {

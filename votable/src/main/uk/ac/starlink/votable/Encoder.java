@@ -172,7 +172,7 @@ abstract class Encoder {
      * so should not be further escaped.
      *
      * @return  a string containing XML text for inside the FIELD element -
-     *          may be empty but will not be <tt>null</tt>
+     *          may be empty but will not be <code>null</code>
      */
     public String getFieldContent() {
         if ( content_ == null ) {
@@ -239,7 +239,7 @@ abstract class Encoder {
     /**
      * Returns an Encoder suitable for encoding values described by a
      * given ValueInfo object.
-     * If <tt>info</tt> is a ColumnInfo, then the preferred binary 
+     * If <code>info</code> is a ColumnInfo, then the preferred binary 
      * representation of bad values can be submitted in its auxiliary
      * metadata under the key {@link Tables#NULL_VALUE_INFO}.
      * Byte values will normally be serialised as short ints
@@ -921,7 +921,7 @@ abstract class Encoder {
          * XML special characters has been done.
          *
          * @param  array  an object of the type handled by this encoder
-         * @param  index  the index of <tt>array</tt> to be returned
+         * @param  index  the index of <code>array</code> to be returned
          * @return  text representation
          */
         String encodeAsText1( Object array, int index );
@@ -930,7 +930,7 @@ abstract class Encoder {
          * Writes one element of a given array to an output stream.
          *
          * @param  array  array object
-         * @param  index  the index of <tt>array</tt> to be written
+         * @param  index  the index of <code>array</code> to be written
          * @param  out   destination stream
          */
         void encodeToStream1( Object array, int index, DataOutput out )
@@ -939,7 +939,7 @@ abstract class Encoder {
         /**
          * Writes one padding element to an output stream.
          * The streamed output must comprise the same number of bytes as
-         * a call to <tt>encode1</tt>.
+         * a call to <code>encode1</code>.
          *
          * @param  out   destination stream
          */

@@ -27,7 +27,7 @@ public class LinkElement extends VOElement {
      * represents a relative URL.
      *
      * @return  the URL represented by this LinkElement's 'href' attribute,
-     *          or <tt>null</tt> if it has none
+     *          or <code>null</code> if it has none
      * @throws  MalformedURLException in the case of a badly-formed URL
      */
     public URL getHref() throws MalformedURLException {

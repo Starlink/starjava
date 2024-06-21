@@ -15,7 +15,7 @@ import uk.ac.starlink.votable.dom.DelegatingNode;
 /**
  * Document implementation which holds a VOTable-specific DOM.
  * The elements in it are all instances of {@link VOElement},
- * or of <tt>VOElement</tt> subclasses according to their element names,
+ * or of <code>VOElement</code> subclasses according to their element names,
  * that is any element with a tagname of "TABLE" in this DOM will be
  * an instance of the class {@link TableElement} and so on.
  *

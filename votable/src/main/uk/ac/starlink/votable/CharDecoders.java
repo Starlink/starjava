@@ -18,7 +18,8 @@ abstract class CharDecoders {
      *
      * @param  arrraysize  array representing value dimensions - last element
      *         may be -1 to indicate unknown
-     * @return  decoder for <tt>arraysize</tt>-sized array of <tt>char</tt>s
+     * @return  decoder for <code>arraysize</code>-sized array
+     *          of <code>char</code>s
      */
     public static Decoder makeCharDecoder( long[] arraysize ) {
         CharReader cread = new CharReader() {
@@ -40,8 +41,8 @@ abstract class CharDecoders {
      *
      * @param  arrraysize  array representing value dimensions - last element
      *         may be -1 to indicate unknown
-     * @return  decoder for <tt>arraysize</tt>-sized array of 
-     *          <tt>unicodeChar</tt>s
+     * @return  decoder for <code>arraysize</code>-sized array of 
+     *          <code>unicodeChar</code>s
      */
     public static Decoder makeUnicodeCharDecoder( long[] arraysize ) {
         CharReader cread = new CharReader() {
@@ -57,7 +58,7 @@ abstract class CharDecoders {
     }
 
     /**
-     * Helper interface defining how to get a <tt>char</tt> from a stream.
+     * Helper interface defining how to get a <code>char</code> from a stream.
      */
     private static interface CharReader {
 
@@ -65,7 +66,7 @@ abstract class CharDecoders {
          * Reads a character from a stream.
          *
          * @param   strm   input stream
-         * @return   single character read from <tt>strm</tt>
+         * @return   single character read from <code>strm</code>
          */
         char readCharFromStream( DataInput strm ) throws IOException;
 

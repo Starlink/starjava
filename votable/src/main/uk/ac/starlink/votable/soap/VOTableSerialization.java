@@ -16,13 +16,13 @@ public class VOTableSerialization {
     /**
      * QName used to describe objects which are serialized using this
      * serializer.  This is currently
-     * <tt>{http://www.ivoa.net/xml/VOTable/v1.1}VOTABLE</tt>.
+     * <code>{http://www.ivoa.net/xml/VOTable/v1.1}VOTABLE</code>.
      */
     public static final QName QNAME_VOTABLE =
         new QName( "http://www.ivoa.net/xml/VOTable/v1.1", "VOTABLE" );
 
     /**
-     * Configures a <tt>Call</tt> object for use with VOTable custom
+     * Configures a <code>Call</code> object for use with VOTable custom
      * serialization by registering the requisite type mappings,
      * and perhaps other things too.
      *

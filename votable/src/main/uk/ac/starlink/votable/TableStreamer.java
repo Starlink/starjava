@@ -24,7 +24,7 @@ import uk.ac.starlink.util.StarEntityResolver;
  * <p>A previous version of this class skipped all elements until it
  * found the TABLE element it was looking for.  This is a bit too
  * drastic - other parts of the DOM may be required in case the
- * required TABLE references them using by ID using <tt>ref</tt> attributes.
+ * required TABLE references them using by ID using <code>ref</code> attributes.
  * So it was changed to pull out everything until the end of the TABLE
  * element of interest.
  *

@@ -13,9 +13,9 @@ import org.xml.sax.SAXException;
  * in which STREAM element contains the byte data as text children)
  * are always messaged to the handler.  Externally-referenced ones
  * (FITS/BINARY/BINARY2 ones in which the data is located from an
- * <tt>href</tt> attribute on the STREAM element) may either be ignored
+ * <code>href</code> attribute on the STREAM element) may either be ignored
  * or streamed to the table handler according to the setting of
- * the <tt>setReadHrefTables</tt> member.
+ * the <code>setReadHrefTables</code> member.
  *
  * @author   Mark Taylor (Starlink)
  * @since    15 Apr 2005

@@ -16,18 +16,18 @@ public interface TableHandler {
     /**
      * Called when a table is about to be transmitted.
      * This call will occur somewhere between matched DATA element 
-     * <tt>startElement</tt> and <tt>endElement</tt> calls.
-     * The <tt>metadata</tt> argument signals column and table metadata
+     * <code>startElement</code> and <code>endElement</code> calls.
+     * The <code>metadata</code> argument signals column and table metadata
      * argument about the table whose rows are about to be transmitted.
      *
      * If the number of rows that will be transmitted via subsequent
-     * calls to <tt>rowData</tt> is known, this value should be made
-     * available as the row count of <tt>metadata</tt>
+     * calls to <code>rowData</code> is known, this value should be made
+     * available as the row count of <code>metadata</code>
      * ({@link StarTable#getRowCount}); if it is not known, the row count
      * should be -1.  However, this object should not attempt to read
-     * any of <tt>meta</tt>'s cell data.
+     * any of <code>meta</code>'s cell data.
      * <p>
-     * The data to be transmitted in subsequent calls of <tt>acceptRow</tt>
+     * The data to be transmitted in subsequent calls of <code>acceptRow</code>
      * must match the metadata transmitted in this call in the same way
      * that rows of a StarTable must match its own metadata (number and
      * content clases of columns etc).
@@ -38,7 +38,7 @@ public interface TableHandler {
 
     /**
      * Called when a row has been read.  This method will be called
-     * between matched <tt>startTable</tt> and <tt>endTable</tt> calls.
+     * between matched <code>startTable</code> and <code>endTable</code> calls.
      *
      * @param   row   array of data objects representing a row in the 
      *          current table

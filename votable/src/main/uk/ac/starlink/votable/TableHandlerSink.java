@@ -21,7 +21,7 @@ class TableHandlerSink implements TableSink {
     /**
      * Constructs a new TableSink based on a handler, optionally forcing
      * use of a given metadata table.
-     * If the <tt>meta</tt> argument is supplied then it, and not the
+     * If the <code>meta</code> argument is supplied then it, and not the
      * one passed in the subsequent {@link #acceptMetadata} call, is
      * the one which will be passed to the handler.
      *

@@ -17,8 +17,8 @@ import uk.ac.starlink.table.formats.DocumentedTableBuilder;
 import uk.ac.starlink.util.DataSource;
 
 /**
- * Implementation of the <tt>TableBuilder</tt> interface which 
- * gets <tt>StarTable</tt>s from VOTable documents.
+ * Implementation of the <code>TableBuilder</code> interface which 
+ * gets <code>StarTable</code>s from VOTable documents.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -63,7 +63,7 @@ public class VOTableBuilder extends DocumentedTableBuilder
      * Makes a StarTable out of a DataSource which points to a VOTable.
      * If the source has a position attribute, it is currently 
      * interpreted as an index into a breadth-first list of the TABLE
-     * elements in the document pointed to by <tt>datsrc</tt>,
+     * elements in the document pointed to by <code>datsrc</code>,
      * thus it must be a non-negative integer less than the number of
      * TABLE elements.  If it has no position attribute, the first
      * TABLE element is used.  The interpretation of the position
@@ -75,8 +75,8 @@ public class VOTableBuilder extends DocumentedTableBuilder
      *         should be returned (doesn't guarantee that it will be random)
      * @param  storagePolicy  a StoragePolicy object which may be used to
      *         supply scratch storage if the builder needs it
-     * @return  a StarTable made out of <tt>datsrc</tt>, or <tt>null</tt>
-     *          if this handler can't handle it
+     * @return  a StarTable made out of <code>datsrc</code>,
+     *          or <code>null</code> if this handler can't handle it
      */
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy storagePolicy )
@@ -141,7 +141,7 @@ public class VOTableBuilder extends DocumentedTableBuilder
     }
 
     /**
-     * Returns <tt>true</tt> for flavors which have MIME types starting
+     * Returns <code>true</code> for flavors which have MIME types starting
      * <ul>
      * <li>text/xml
      * <li>application/xml
@@ -183,7 +183,7 @@ public class VOTableBuilder extends DocumentedTableBuilder
      * @param  index  if present, a string representation of the index of
      *                the table in the document to be read - "0" means the
      *                first one encountered, "1" means the second, etc.
-     *                If it's <tt>null</tt> or not of numeric form the 
+     *                If it's <code>null</code> or not of numeric form the 
      *                first table will be used
      */
     public void streamStarTable( InputStream istrm, TableSink sink, 

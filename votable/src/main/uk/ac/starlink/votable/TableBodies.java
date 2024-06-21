@@ -141,7 +141,7 @@ class TableBodies {
 
     /**
      * TabularData implementation for a BINARY or BINARY2 STREAM element
-     * with an <tt>href</tt> attribute pointing to the data.
+     * with an <code>href</code> attribute pointing to the data.
      */
     static class HrefBinaryTabularData extends SequentialTabularData {
         private final Decoder[] decoders;

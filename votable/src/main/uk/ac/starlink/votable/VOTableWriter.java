@@ -24,8 +24,8 @@ import uk.ac.starlink.util.DataBufferedOutputStream;
 import uk.ac.starlink.util.IOUtils;
 
 /**
- * Implementation of the <tt>StarTableWriter</tt> interface for
- * VOTables.  The <tt>dataFormat</tt> and <tt>inline</tt> attributes
+ * Implementation of the <code>StarTableWriter</code> interface for
+ * VOTables.  The <code>dataFormat</code> and <code>inline</code> attributes
  * can be modified to affect how the bulk cell data are output -
  * this may be in TABLEDATA, FITS, BINARY or BINARY2 format, and in the
  * latter three cases may be either inline as base64 encoded CDATA or
@@ -186,9 +186,10 @@ public class VOTableWriter
      *
      * @param   startab  the table to write
      * @param   out  the stream down which to write the table
-     * @param   file  the filename to which <tt>out</tt> refers; this is used
-     *          if necessary to come up with a suitable filename for
-     *          related files which need to be written.  May be <tt>null</tt>.
+     * @param   file  the filename to which <code>out</code> refers;
+     *          this is used if necessary to come up with a suitable
+     *          filename for related files which need to be written.
+     *          May be <code>null</code>.
      */
     public void writeStarTable( StarTable startab, OutputStream out, File file )
             throws IOException {
@@ -200,9 +201,10 @@ public class VOTableWriter
      *
      * @param  tableSeq  table sequence to write
      * @param  out  destination stream
-     * @param   file  the filename to which <tt>out</tt> refers; this is used
-     *          if necessary to come up with a suitable filename for
-     *          related files which need to be written.  May be <tt>null</tt>.
+     * @param   file  the filename to which <code>out</code> refers;
+     *          this is used if necessary to come up with a suitable
+     *          filename for related files which need to be written.
+     *          May be <code>null</code>.
      */
     public void writeStarTables( TableSequence tableSeq, OutputStream out,
                                  File file )
@@ -528,7 +530,7 @@ public class VOTableWriter
      * Sets whether STREAM elements should be written inline or to an
      * external file in the case of FITS and BINARY encoding.
      *
-     * @param  inline  <tt>true</tt> iff streamed data will be encoded
+     * @param  inline  <code>true</code> iff streamed data will be encoded
      *         inline in the STREAM element
      */
     @ConfigMethod(
@@ -549,7 +551,7 @@ public class VOTableWriter
      * Indicates whether STREAM elements will be written inline or to
      * an external file in the case of FITS and BINARY encoding.
      *
-     * @return  <tt>true</tt> iff streamed data will be encoded inline in
+     * @return  <code>true</code> iff streamed data will be encoded inline in
      *          the STREAM element
      */
     public boolean getInline() {

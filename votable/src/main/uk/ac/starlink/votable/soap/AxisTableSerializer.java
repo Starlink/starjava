@@ -32,14 +32,14 @@ public class AxisTableSerializer implements Serializer {
         Logger.getLogger( "uk.ac.starlink.votable.soap" );
 
     /**
-     * Writes <tt>table</tt> out to the serialization context as a
+     * Writes <code>table</code> out to the serialization context as a
      * binary-inline VOTable.
      *
      * @param  name  qname
      * @param  atts  attribute
      * @param  value   {@link uk.ac.starlink.table.StarTable} object
      * @param  context  context
-     * @throws  ClassCastException if <tt>table</tt> is not a StarTable
+     * @throws  ClassCastException if <code>table</code> is not a StarTable
      */
     public void serialize( QName name, Attributes atts, Object value,
                            SerializationContext context ) throws IOException {
