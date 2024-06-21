@@ -646,7 +646,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
      *          (only applies if varShape is true)
      * @param   nullableInt  true if we are going to have to store nulls in
      *          an integer column
-     * @return  a suitable column writer, or <tt>null</tt> if we don't
+     * @return  a suitable column writer, or <code>null</code> if we don't
      *          know how to write this to FITS
      */
     ColumnWriter createColumnWriter( ColumnInfo cinfo, int[] shape,

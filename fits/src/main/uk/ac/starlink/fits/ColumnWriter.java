@@ -16,7 +16,7 @@ interface ColumnWriter {
      * Writes a value to an output stream.
      *
      * @param  stream to squirt the value's byte serialization into
-     * @param  value  the value to write into <tt>stream</tt>
+     * @param  value  the value to write into <code>stream</code>
      */
     void writeValue( DataOutput stream, Object value ) throws IOException;
 
@@ -37,7 +37,7 @@ interface ColumnWriter {
     char getFormatChar();
 
     /**
-     * Returns the number of bytes that <tt>writeValue</tt> will write.
+     * Returns the number of bytes that <code>writeValue</code> will write.
      *
      * @return number of bytes written to stream for each write
      */

@@ -56,11 +56,11 @@ public class FitsUtil {
     /**
      * Indicates whether the supplied buffer is the start of a FITS file.
      * Its contents is checked against the FITS 'magic number', which is
-     * the ASCII string "<tt>SIMPLE&nbsp;&nbsp;=</tt>".
+     * the ASCII string "<code>SIMPLE&nbsp;&nbsp;=</code>".
      *
      * @param   buffer  a byte buffer containing
      *          the start of a file to test
-     * @return  <tt>true</tt> iff the bytes in <tt>buffer</tt> look like
+     * @return  <code>true</code> iff the bytes in <code>buffer</code> look like
      *          the start of a FITS file
      */
     public static boolean isMagic( byte[] buffer ) {

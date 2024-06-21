@@ -453,7 +453,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
      *
      * @param  stream a stream containing the byte data, positioned to
      *                the right place
-     * @return  <tt>ncol</tt>-element array of cells for this row
+     * @return  <code>ncol</code>-element array of cells for this row
      */
     protected Object[] readRow( BasicInput stream ) throws IOException {
         Object[] row = new Object[ ncol_ ];
@@ -477,7 +477,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
      * Returns the array of byte offsets from the start of the row at
      * which each column starts.
      *
-     * @return  <tt>ncol</tt>-element array of byte offsets
+     * @return  <code>ncol</code>-element array of byte offsets
      */
     protected long[] getColumnOffsets() {
         return colOffsets_;

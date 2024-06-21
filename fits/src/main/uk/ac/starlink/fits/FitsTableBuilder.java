@@ -21,8 +21,8 @@ import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.IOUtils;
 
 /**
- * Implementation of the <tt>TableBuilder</tt> interface which 
- * gets <tt>StarTable</tt>s from FITS files.
+ * Implementation of the <code>TableBuilder</code> interface which 
+ * gets <code>StarTable</code>s from FITS files.
  *
  * <p>The table implementation used by uncompressed binary FITS tables
  * stored on disk <em>maps</em> the file into memory 
@@ -99,8 +99,8 @@ public class FitsTableBuilder extends DocumentedTableBuilder
      * @param  wantRandom  whether a random-access table is preferred
      * @param  policy   a StoragePolicy object which may be used to
      *         supply scratch storage if the builder needs it
-     * @return  a new StarTable based on <tt>datsrc</tt>, or <tt>null</tt>
-     *          if it doesn't look like a FITS table
+     * @return  a new StarTable based on <code>datsrc</code>,
+     *          or <code>null</code> if it doesn't look like a FITS table
      */
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy policy )
@@ -212,7 +212,8 @@ public class FitsTableBuilder extends DocumentedTableBuilder
     }
 
     /**
-     * Returns <tt>true</tt> for a flavor with the MIME type "application/fits".
+     * Returns <code>true</code> for a flavor with the MIME type
+     * "application/fits".
      */
     public boolean canImport( DataFlavor flavor ) {
         if ( flavor.getPrimaryType().equals( "application" ) &&
@@ -272,7 +273,7 @@ public class FitsTableBuilder extends DocumentedTableBuilder
      * @param  sink  destination for the table data if one is found
      * @param  readAnyway  whether to skip forward to the end of the HDU
      *         even if it does not contain a table
-     * @return  <tt>true</tt> if the table was successfully copied
+     * @return  <code>true</code> if the table was successfully copied
      */
     private boolean attemptStreamStarTable( InputStream in, TableSink sink,
                                             boolean readAnyway )
@@ -308,12 +309,13 @@ public class FitsTableBuilder extends DocumentedTableBuilder
      * @param  in  stream to read from, positioned at the start of an HDU
      *         (before the header)
      * @param  datsrc  a DataSource which can supply the data 
-     *         in <tt>strm</tt>
+     *         in <code>strm</code>
      * @param  name  target extension name or name-version
      * @param   wide  convention for representing extended columns;
      *                use null to avoid use of extended columns
-     * @param  pos  a 1-element array holding the position in <tt>datsrc</tt>
-     *         at which <tt>strm</tt> is positioned -
+     * @param  pos  a 1-element array holding the position
+     *         in <code>datsrc</code>
+     *         at which <code>strm</code> is positioned -
      *         it's an array so it can be updated by this routine (sorry)
      * @param  policy  storage policy, or null for default (normally not used)
      * @return  a new table
@@ -358,14 +360,15 @@ public class FitsTableBuilder extends DocumentedTableBuilder
      *         (before the header)
      * @param  wantRandom  whether a random-access table is preferred
      * @param  datsrc  a DataSource which can supply the data 
-     *         in <tt>strm</tt>
+     *         in <code>strm</code>
      * @param   wide  convention for representing extended columns;
      *                use null to avoid use of extended columns
-     * @param  pos  a 1-element array holding the position in <tt>datsrc</tt>
-     *         at which <tt>strm</tt> is positioned -
+     * @param  pos  a 1-element array holding the position
+     *         in <code>datsrc</code>
+     *         at which <code>strm</code> is positioned -
      *         it's an array so it can be updated by this routine (sorry)
      * @param  policy  storage policy, or null for default (normally not used)
-     * @return   a StarTable made from the HDU at the start of <tt>strm</tt>
+     * @return   a StarTable made from the HDU at the start of <code>strm</code>
      *           or null
      */
     public static StarTable attemptReadTable( InputStream in,

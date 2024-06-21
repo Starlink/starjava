@@ -10,7 +10,7 @@ import uk.ac.starlink.util.IOConsumer;
 /**
  * Handles writing of a StarTable in FITS binary format.
  * Not all columns can be written to a FITS table, only those ones
- * whose <tt>contentClass</tt> is in the following list:
+ * whose <code>contentClass</code> is in the following list:
  * <ul>
  * <li>Boolean
  * <li>Character
@@ -74,7 +74,7 @@ public class FitsTableWriter extends AbstractFitsTableWriter {
     }
 
     /**
-     * Returns true if <tt>location</tt> ends with something like ".fit"
+     * Returns true if <code>location</code> ends with something like ".fit"
      * or ".fits" or ".fts".
      *
      * @param  location  filename

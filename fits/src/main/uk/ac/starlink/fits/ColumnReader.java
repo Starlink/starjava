@@ -34,11 +34,11 @@ abstract class ColumnReader {
     /**
      * Constructs a new reader with a given content class, shape and length.
      *
-     * @param clazz  the class which <tt>readValue</tt> will return
+     * @param clazz  the class which <code>readValue</code> will return
      * @param shape  the shape to be imposed on the array returned by
-     *               <tt>readValue</tt>, or <tt>null</tt> if that
+     *               <code>readValue</code>, or <code>null</code> if that
      *               returns a scalar
-     * @param length  the number of bytes <tt>readValue</tt> reads from
+     * @param length  the number of bytes <code>readValue</code> reads from
      *                the stream
      * @param flags  additional information
      */
@@ -52,9 +52,9 @@ abstract class ColumnReader {
     /**
      * Constructs a scalar reader with a given content class and length.
      *
-     * @param clazz  the class which <tt>readValue</tt> will return
+     * @param clazz  the class which <code>readValue</code> will return
      *               (shouldn't be an array)
-     * @param length  the number of bytes <tt>readValue</tt> reads from
+     * @param length  the number of bytes <code>readValue</code> reads from
      *                the stream
      * @param flags  additional information
      */
@@ -67,12 +67,12 @@ abstract class ColumnReader {
      *
      * @param  stream containing bytes to turn into an object
      * @return  an object read from the stream of type
-     *          <tt>getContentClass</tt> (or <tt>null</tt>)
+     *          <code>getContentClass</code> (or <code>null</code>)
      */
     abstract Object readValue( BasicInput stream ) throws IOException;
 
     /**
-     * Returns the class which objects returned by <tt>readValue</tt>
+     * Returns the class which objects returned by <code>readValue</code>
      * will belong to.
      *
      * @return  value class
@@ -101,7 +101,7 @@ abstract class ColumnReader {
     }
 
     /**
-     * Returns the number of bytes each call to <tt>readValue</tt> reads
+     * Returns the number of bytes each call to <code>readValue</code> reads
      * from the stream.
      *
      * @return  byte count
@@ -1232,7 +1232,7 @@ abstract class ColumnReader {
      * Reads a string from a data stream.
      * A fixed number of bytes are read from the stream, but the returned
      * object is a variable-length string with trailing spaces omitted.
-     * If it's all spaces, <tt>null</tt> is returned.
+     * If it's all spaces, <code>null</code> is returned.
      *
      * @param  stream  the stream to read from
      * @param  count  number of bytes to read from the stream
@@ -1264,9 +1264,9 @@ abstract class ColumnReader {
      * Returns a dimensions array based on a given one, but with an extra
      * dimension of extent 2 prepended to the list.
      *
-     * @param  dims  intial dimensions array (<tt>null</tt> is interpreted
+     * @param  dims  intial dimensions array (<code>null</code> is interpreted
      *               as a zero-dimensional array
-     * @return  like <tt>dims</tt> but with a 2 at the start
+     * @return  like <code>dims</code> but with a 2 at the start
      */
     private static int[] complexShape( int[] dims ) {
         if ( dims == null ) {

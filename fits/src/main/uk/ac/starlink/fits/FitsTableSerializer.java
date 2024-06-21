@@ -37,13 +37,13 @@ public interface FitsTableSerializer {
 
     /**
      * Returns the dimensions of the items which will be output for a
-     * given column.  This will be <tt>null</tt> only if that column
+     * given column.  This will be <code>null</code> only if that column
      * is not being output.  Otherwise it will be a zero-element array
      * for a scalar, 1-element array for a vector, etc.
      * 
      * @param  icol  column to query
-     * @return   dimensions array for data in column <tt>icol</tt>
-     *           or <tt>null</tt>  for a column being skipped
+     * @return   dimensions array for data in column <code>icol</code>
+     *           or <code>null</code>  for a column being skipped
      */
     int[] getDimensions( int icol );
 
@@ -51,11 +51,11 @@ public interface FitsTableSerializer {
      * Returns the FITS TFORM letter which describes the type of data
      * output for a given column.  This is as described by the FITS
      * standard - 'J' for 4-byte integer, 'A' for characters, etc.
-     * If the column is not being output, <tt>(char)0</tt> will be
+     * If the column is not being output, <code>(char)0</code> will be
      * returned.
      *
      * @param  icol   column to query
-     * @return   format letter for data in column <tt>icol</tt>,
+     * @return   format letter for data in column <code>icol</code>,
      *           or 0 for a column being skipped
      */
     char getFormatChar( int icol );
