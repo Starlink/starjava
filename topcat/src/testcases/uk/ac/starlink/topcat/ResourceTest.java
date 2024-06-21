@@ -12,6 +12,7 @@ public class ResourceTest extends TestCase {
 
     static {
         LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.topcat" ).setLevel( Level.WARNING );
     }
 
     public ResourceTest( String name ) {
@@ -44,5 +45,11 @@ public class ResourceTest extends TestCase {
                    .startsWith( "http://" ) );
         assertTrue( TopcatUtils.toHttpsUrl( TopcatUtils.STATUS_URL )
                    .startsWith( "https://" ) );
+    }
+
+    public void testHtmlPanel() {
+        AbstractHtmlPanel hpanel = AbstractHtmlPanel.createPanel();
+        assertEquals( AbstractHtmlPanel.hasJavaFx(),
+                      hpanel.getClass().getSimpleName().equals("FxHtmlPanel") );
     }
 }
