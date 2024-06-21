@@ -31,8 +31,8 @@ import org.xml.sax.SAXException;
 /**
  * Utility class which takes a single XML file and writes it out to
  * a number of new XML/HTML files.
- * Each <tt>&lt;filesection&gt;</tt> element in the file is written
- * to a new file, with the name taken from the filesection's <tt>file</tt>
+ * Each <code>&lt;filesection&gt;</code> element in the file is written
+ * to a new file, with the name taken from the filesection's <code>file</code>
  * attribute.
  * Anything outside of a filesection is ignored.  Filesection elements should
  * not be nested.
@@ -52,7 +52,7 @@ import org.xml.sax.SAXException;
  * <dd>Whether the processor may prettyprint ("yes"/"no")
  * </dl>
  * These attribute names and values match those in XSLT's 
- * <tt>xsl:output</tt> element.
+ * <code>xsl:output</code> element.
  * <p>
  * This class is intended for use when you are doing an XSLT-based 
  * transformation which you would like to produce multiple output files
@@ -79,17 +79,17 @@ public class MultiXML {
      * </pre>
      * Where:
      * <dl>
-     * <dt><tt>-verbose</tt>
+     * <dt><code>-verbose</code>
      * <dd>prints the name of each file as it is written
-     * <dt><tt>-style sheet</tt>
+     * <dt><code>-style sheet</code>
      * <dd>specifies the system id of an XSLT stylesheet with which to 
-     *     process the <tt>infile</tt> prior to doing the split
-     * <dt><tt>-param name=value</tt>
+     *     process the <code>infile</code> prior to doing the split
+     * <dt><code>-param name=value</code>
      * <dd>defines a parameter for use in the stylesheet transformation if
      *     there is one (may be used multiple times)
-     * <dt><tt>infile</tt>
+     * <dt><code>infile</code>
      * <dd>the system id of the input XML file
-     * <dt><tt>outdir</tt>
+     * <dt><code>outdir</code>
      * <dd>directory into which output files will be written
      * </dl>
      *
@@ -195,7 +195,7 @@ public class MultiXML {
      * Sets the location of a stylesheet which is to be used to process
      * the input file before the splitting is done.  May be null if
      * the input file doesn't need further processing (already contains
-     * <tt>filesection</tt> elements).
+     * <code>filesection</code> elements).
      *
      * @param  stylesheet  XSLT stylesheet system id
      */
