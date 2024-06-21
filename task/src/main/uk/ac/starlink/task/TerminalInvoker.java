@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Invokes Task objects in a way suitable for use from the <tt>main</tt> 
+ * Invokes Task objects in a way suitable for use from the <code>main</code> 
  * method, using a command line interface.
  * The Task invoke methods are invoked and may throw any exception; 
  * {@link UsageException} and {@link ExecutionException} will be treated
@@ -29,11 +29,11 @@ public class TerminalInvoker {
     /**
      * Creates a new invoker based on the given class with a given name.
      * This should generally be invoked from a main method - in the
-     * event of an error it will call <tt>System.exit</tt> rather than
+     * event of an error it will call <code>System.exit</code> rather than
      * returning.
      *
      * @param   toolname   the name of this tool, used for user messages
-     * @param   taskmap    map of task names to <tt>Task</tt> objects
+     * @param   taskmap    map of task names to <code>Task</code> objects
      */
     public TerminalInvoker( String toolname, Map<String,Task> taskmap ) {
         this.toolname = toolname;
@@ -42,10 +42,10 @@ public class TerminalInvoker {
 
     /**
      * Invokes a method from this TerminalInvoker's class.
-     * The first element of the <tt>args</tt> identifies the method to be
+     * The first element of the <code>args</code> identifies the method to be
      * called - it is a case-insensitive version of the name of a method
      * in the class.  Subsequent elements are passed 
-     * (as an <tt>args.length-1</tt> element array of Strings) 
+     * (as an <code>args.length-1</code> element array of Strings) 
      * to the method in question.
      * In the event of any trouble (e.g. unknown task, task method throws
      * an exception) a message is printed to standard error and 

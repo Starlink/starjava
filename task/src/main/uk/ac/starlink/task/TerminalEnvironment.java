@@ -32,12 +32,12 @@ public class TerminalEnvironment implements Environment {
     /**
      * Constructs a new Environment based on a String array containing
      * supplied arguments, and a list of parameters which may be encountered.
-     * The initial arguments may have the form <tt>value</tt> or 
-     * <tt>name=value</tt>; in the former case they must correspond
+     * The initial arguments may have the form <code>value</code> or 
+     * <code>name=value</code>; in the former case they must correspond
      * to a parameter with a non-zero position attribute indicating
      * where it is expected on the command line, and in the latter case
-     * the <tt>name</tt> must correspond to the name of one of the 
-     * parameters in <tt>params</tt>.
+     * the <code>name</code> must correspond to the name of one of the 
+     * parameters in <code>params</code>.
      *
      * @param  args  an array of words found on the command line
      * @param  params  an array of Parameter objects which this Environment
@@ -182,7 +182,7 @@ public class TerminalEnvironment implements Environment {
     }
 
     /**
-     * Returns <tt>System.out</tt>.
+     * Returns <code>System.out</code>.
      *
      * @return   System.out
      */
@@ -191,7 +191,7 @@ public class TerminalEnvironment implements Environment {
     }
 
     /**
-     * Returns <tt>System.err</tt>.
+     * Returns <code>System.err</code>.
      *
      * @return   System.err
      */

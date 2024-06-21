@@ -214,7 +214,7 @@ public class LineEnvironment implements Environment {
      * not specified it explicitly), then <code>null</code> will be returned.
      *
      * @param   param  parameter to locate
-     * @return  string value for <tt>param</tt>
+     * @return  string value for <code>param</code>
      */
     private String findValue( Parameter<?> param ) throws TaskException {
 

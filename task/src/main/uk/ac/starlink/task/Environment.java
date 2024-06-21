@@ -16,11 +16,11 @@ public interface Environment {
      * Obtains a legal value for a given parameter from the environment and 
      * sets the parameter's value accordingly.
      * <p>
-     * This environment should obtain a value for the parameter <tt>par</tt>
-     * in whatever way it sees fit, and must then call <tt>par</tt>'s 
+     * This environment should obtain a value for the parameter <code>par</code>
+     * in whatever way it sees fit, and must then call <code>par</code>'s 
      * {@link Parameter#setValueFromString} method so that the parameter
-     * knows what its new value is.  If the <tt>setValueFromString</tt> call
-     * throws a <tt>ParameterValueException</tt> the environment may 
+     * knows what its new value is.  If the <code>setValueFromString</code> call
+     * throws a <code>ParameterValueException</code> the environment may 
      * try to get another value (for instance by re-prompting the user)
      * or may give up and re-throw the exception.
      *
