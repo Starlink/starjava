@@ -327,7 +327,8 @@ public abstract class FigureIcon implements Icon {
                     return 1;
                 }
                 try {
-                    fig = (FigureIcon) clazz.newInstance();
+                    fig = (FigureIcon) clazz.getDeclaredConstructor()
+                                            .newInstance();
                 }
                 catch ( Throwable e ) {
                     System.err.println( "Error instantiating " + clazz.getName()
