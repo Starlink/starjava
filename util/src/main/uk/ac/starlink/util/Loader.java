@@ -280,7 +280,7 @@ public class Loader {
         }
         final T target;
         try {
-            target = type.cast( clazz.newInstance() );
+            target = type.cast( clazz.getDeclaredConstructor().newInstance() );
         }
         catch ( ExceptionInInitializerError e ) {
             warn( e.getCause() + " loading class " + className );

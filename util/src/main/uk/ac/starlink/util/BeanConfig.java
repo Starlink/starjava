@@ -703,7 +703,7 @@ public class BeanConfig {
             throws ReflectiveOperationException, LoadException {
         BeanConfig config = BeanConfig.parseSpec( args[ 0 ] );
         Class<?> clazz = Class.forName( config.getBaseText() );
-        Object target = clazz.newInstance();
+        Object target = clazz.getDeclaredConstructor().newInstance();
         config.configBean( target );
         System.out.println( target );
     }
