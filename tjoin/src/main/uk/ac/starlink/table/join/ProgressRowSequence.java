@@ -7,7 +7,7 @@ import uk.ac.starlink.table.WrapperRowSequence;
 
 /**
  * RowSequence which logs progress to a {@link ProgressIndicator}.
- * Has to contain a couple methods extra to the <tt>RowSequence</tt>
+ * Has to contain a couple methods extra to the <code>RowSequence</code>
  * interface to make it behave properly.
  *
  * @author   Mark Taylor (Starlink)

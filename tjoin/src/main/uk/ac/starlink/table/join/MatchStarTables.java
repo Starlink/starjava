@@ -112,13 +112,13 @@ public class MatchStarTables {
      * The columns of the resulting table are made by appending the
      * columns of the constituent tables side by side.
      * Each row in the resulting table corresponds to one {@link RowLink}
-     * entry in a set <tt>rowLinks</tt>; if that RowLink
+     * entry in a set <code>rowLinks</code>; if that RowLink
      * contains a row from one of the tables being joined here,
      * the columns corresponding to that table are filled in.
      * If it contains multiple rows from that table, an arbitrary one
      * of them is filled in.
      * <p>
-     * The <tt>tables</tt> array determines which tables columns appear
+     * The <code>tables</code> array determines which tables columns appear
      * in the output table.  It must have (at least) as many elements
      * as the highest table index in the RowLink set.  Table data
      * will be picked from the <i>n</i>'th table in this array for RowRef
@@ -140,7 +140,7 @@ public class MatchStarTables {
      *          should, if appropriate, include {@link #GRP_ID_INFO} and
      *          {@link #GRP_SIZE_INFO} columns
      * @param   fixActs  actions to take for deduplicating column names
-     *          (array of the same length as <tt>tables</tt>)
+     *          (array of the same length as <code>tables</code>)
      * @param   matchScoreInfo  may supply information about the meaning
      *          of the link scores
      */
@@ -483,14 +483,14 @@ public class MatchStarTables {
      * The output columns are defined by the constants 
      * {@link #GRP_ID_INFO} and {@link #GRP_SIZE_INFO}.
      * Rows of the table linked together
-     * by <tt>rowLinks</tt> are assigned the same integer value in
+     * by <code>rowLinks</code> are assigned the same integer value in
      * the new GRP_ID_INFO column, and the GRP_SIZE_INFO column
      * indicates how many rows are linked together in this way.
      * Each group corresponds to a single RowLink; if a row is part of
      * more than one RowLink then only one of them will be recorded
      * in the new columns.
-     * Any rows linked in <tt>rowLinks</tt> which do not refer to 
-     * <tt>table</tt> have null entries in these columns.
+     * Any rows linked in <code>rowLinks</code> which do not refer to 
+     * <code>table</code> have null entries in these columns.
      *
      * @param   iTable the index of the table in which internal matches 
      *          are to be sought
@@ -498,7 +498,7 @@ public class MatchStarTables {
      *          linking groups of rows together
      * @param   rowCount  number of rows in the returned table 
      *          (must be large enough
-     *          to accommodate the indices in <tt>rowLinks</tt>)
+     *          to accommodate the indices in <code>rowLinks</code>)
      * @return  a new two-column table with a one-to-one row correspondance
      *          with the table describing internal row matches
      */

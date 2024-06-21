@@ -455,7 +455,7 @@ public class RowMatcher {
      *         correspond to groups of possibly matched objects according
      *         to the match engine's criteria
      * @return  a set of RowLink objects which represent all the actual
-     *          distinct row pairs from <tt>possibleLinks</tt>
+     *          distinct row pairs from <code>possibleLinks</code>
      */
     private LinkSet findPairs( LinkSet possibleLinks )
             throws IOException, InterruptedException {
@@ -707,8 +707,8 @@ public class RowMatcher {
      * @param   links  set of {@link RowLink}s
      * @param   iTable  table index for the rows which must be represented
      * @return  new set of RowLinks containing one singleton entry for
-     *          each RowRef in table <tt>iTable</tt> which does not appear
-     *          in any of the links in <tt>links</tt>
+     *          each RowRef in table <code>iTable</code> which does not appear
+     *          in any of the links in <code>links</code>
      */
     private LinkSet missingSingles( LinkSet links, int iTable ) {
 
@@ -1047,7 +1047,7 @@ public class RowMatcher {
     }
 
     /**
-     * Rationalises the elements of a set of <tt>RowLink</tt>s 
+     * Rationalises the elements of a set of <code>RowLink</code>s 
      * so that it contains guaranteed
      * mutually exclusive RowLink objects (no member RowLink contains
      * a RowRef contained by any other member).
@@ -1055,9 +1055,9 @@ public class RowMatcher {
      * joined with any links which are joined
      * by other links in which any of its members participates.
      * Any row which appears in the initial
-     * one or more times (as part of one or more <tt>RowLink</tt>s)
+     * one or more times (as part of one or more <code>RowLink</code>s)
      * therefore appears exactly once in the resulting set
-     * as part of a new <tt>RowLink</tt> which may contain more RowRefs.
+     * as part of a new <code>RowLink</code> which may contain more RowRefs.
      *
      * <p>Typically this method will be called on a set
      * resulting from an invocation of {@link #findPairs}.
@@ -1065,7 +1065,7 @@ public class RowMatcher {
      * it is not guaranteed that all the rows it links are mutually equal
      * in the sense defined by the match engine's
      * {@link MatchEngine#matches} method, but the members of each
-     * <tt>RowLink</tt> will form a connected graph with the nodes
+     * <code>RowLink</code> will form a connected graph with the nodes
      * connected by matches.
      *
      * @param   links  set of {@link RowLink} objects
@@ -1224,7 +1224,7 @@ public class RowMatcher {
     /**
      * Checks that the given tables all provide random access.
      *
-     * @throws  IllegalArgumentException if any of <tt>tables</tt> does
+     * @throws  IllegalArgumentException if any of <code>tables</code> does
      *          not provide random access
      */
     private void checkRandom() {
@@ -1445,7 +1445,7 @@ public class RowMatcher {
     }
 
     /**
-     * Turns a <tt>long</tt> into an <tt>int</tt>, throwing an unchecked
+     * Turns a <code>long</code> into an <code>int</code>, throwing an unchecked
      * exception if it can't be done.
      */
     private static int checkedLongToInt( long lval ) {

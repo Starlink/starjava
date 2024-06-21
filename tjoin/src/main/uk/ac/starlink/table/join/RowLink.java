@@ -9,15 +9,16 @@ import java.util.Iterator;
  * which are considered in some way linked to each other.
  * Although it doesn't implement the {@link java.util.SortedSet} interface
  * (being immutable this wouldn't gain you much) its spirit is that of
- * a sorted set - its <tt>equals</tt> and <tt>hashCode</tt> methods 
- * are implemented such that two <tt>RowLink</tt>s which contain
- * equivalent groups of <tt>RowRef</tt> objects are considered the same.
+ * a sorted set - its <code>equals</code> and <code>hashCode</code> methods 
+ * are implemented such that two <code>RowLink</code>s which contain
+ * equivalent groups of <code>RowRef</code> objects are considered the same.
  * This makes RowLink instances suitable for use
  * as keys in hashes that should not contain duplicate entries for
  * duplicate links.
  *
- * <p><strong>Note:</strong> The <tt>getRef</tt> method <strong>must</strong>
- * return <tt>RowRef</tt>s in their natural (<code>Comparable</code>) order.
+ * <p><strong>Note:</strong> The <code>getRef</code> method
+ * <strong>must</strong> return <code>RowRef</code>s
+ * in their natural (<code>Comparable</code>) order.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -31,18 +32,18 @@ public abstract class RowLink implements Comparable<RowLink> {
     public abstract int size();
 
     /**
-     * Returns the <tt>i</tt><sup>th</sup> row ref in this ordered
+     * Returns the <code>i</code><sup>th</sup> row ref in this ordered
      * sequence of refs.  The sequence must be as defined by
      * <code>RowRef.compareTo</code>.
      *
      * @param  i  index
-     * @return  RowRef at <tt>i</tt>
+     * @return  RowRef at <code>i</code>
      */
     public abstract RowRef getRef( int i );
 
     /**
-     * Assesses equality.  Two <tt>RowLink</tt> objects are equal if they
-     * contain equivalent sets of <tt>RowRef</tt>s.
+     * Assesses equality.  Two <code>RowLink</code> objects are equal if they
+     * contain equivalent sets of <code>RowRef</code>s.
      */
     @Override
     public boolean equals( Object o ) {
@@ -68,7 +69,7 @@ public abstract class RowLink implements Comparable<RowLink> {
 
     /**
      * Returns a hash code which is consistent with the
-     * <tt>equals</tt> method.  Since <tt>RowLink</tt>s are immutable,
+     * <code>equals</code> method.  Since <code>RowLink</code>s are immutable,
      * this is only calculated once, for efficiency.
      */
     @Override

@@ -35,7 +35,7 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
 
     /**
      * Constructs a new match engine which will match on differences
-     * not greater than a given number <tt>err</tt>, in the same units
+     * not greater than a given number <code>err</code>, in the same units
      * that the range part of the tuples is specified.
      *
      * @param   err  maximum separation for a match

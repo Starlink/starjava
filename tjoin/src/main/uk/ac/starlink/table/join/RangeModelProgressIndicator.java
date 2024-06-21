@@ -6,11 +6,12 @@ import javax.swing.SwingUtilities;
 /**
  * ProgressIndicator implementation that can serve as the model for
  * a {@link javax.swing.JProgressBar}.
- * Calls to <tt>startStage</tt>, <tt>setLevel</tt> and <tt>endStage</tt>
+ * Calls to <code>startStage</code>, <code>setLevel</code>
+ * and <code>endStage</code>
  * cause the state of the {@link javax.swing.BoundedRangeModel} that
  * this implements to be updated accordingly (asynchronously of course).
- * The string messages passed to <tt>startStage</tt> and
- * <tt>logMessage</tt> are ignored -
+ * The string messages passed to <code>startStage</code> and
+ * <code>logMessage</code> are ignored -
  * subclasses should override these methods (calling the superclass
  * implementations as well) to do something with these strings.
  *
@@ -66,7 +67,7 @@ public class RangeModelProgressIndicator extends DefaultBoundedRangeModel
     }
 
     /**
-     * Updates the state of the <tt>BoundedRangeModel</tt> - should only
+     * Updates the state of the <code>BoundedRangeModel</code> - should only
      * be called from the event dispatch thread.
      */
     public void run() {
