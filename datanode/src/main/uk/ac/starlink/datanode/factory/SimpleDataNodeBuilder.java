@@ -32,7 +32,7 @@ public abstract class SimpleDataNodeBuilder extends DataNodeBuilder {
      * Construct a new builder which will turn out DataNode of a given
      * class from objects of a given class.
      * Just invokes
-     * <tt>SimpleDataNodeBuilder(nodeClass.getName(),argClass)</tt>.
+     * <code>SimpleDataNodeBuilder(nodeClass.getName(),argClass)</code>.
      *
      * @param  nodeClass  the class of DataNode objects which this builder
      *                    will be building

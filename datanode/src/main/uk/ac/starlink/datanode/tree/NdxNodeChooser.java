@@ -108,13 +108,13 @@ public class NdxNodeChooser extends TreeNodeChooser {
     /**
      * Pops up a modal dialog to choose an NDX from this chooser.
      * If an error occurs in turning the selection into an NDX,
-     * the user will be informed, and <tt>null</tt> will be returned.
+     * the user will be informed, and <code>null</code> will be returned.
      * 
      * @param  parent  the parent component for the dialog
      * @param  buttonText  the text to appear on the 'choose' button
      * @param  title  the title of the dialog window
      * @return  an NDX corresponding to the selected DataNode, 
-     *          or <tt>null</tt> if none was selected or there was
+     *          or <code>null</code> if none was selected or there was
      *          an error converting it to an NDX
      */
     public Ndx chooseNdx( Component parent, String buttonText, String title ) {
@@ -134,11 +134,11 @@ public class NdxNodeChooser extends TreeNodeChooser {
      * Pops up a modal dialog to choose an NDX from this chooser, with 
      * default characteristics.
      * If an error occurs in turning the selection into an NDX,
-     * the user will be informed, and <tt>null</tt> will be returned.
+     * the user will be informed, and <code>null</code> will be returned.
      *
      * @param  parent  the parent component for the dialog
      * @return  an NDX corresponding to the selected DataNode,
-     *          or <tt>null</tt> if none was selected or there was
+     *          or <code>null</code> if none was selected or there was
      *          an error converting it to an NDX
      */
     public Ndx chooseNdx( Component parent ) {
@@ -149,7 +149,7 @@ public class NdxNodeChooser extends TreeNodeChooser {
      * Turns a DataNode into an NDX.
      *
      * @param  node  the data node
-     * @return  NDX made from <tt>node</tt>
+     * @return  NDX made from <code>node</code>
      * @throws  IOException if there's trouble
      */
     public Ndx makeNdx( DataNode node ) throws IOException {

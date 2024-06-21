@@ -97,8 +97,8 @@ public class DataNodeTransferable extends BasicTransferable {
      * a URL which can be applied to it.
      *
      * @param  node  the DataNode
-     * @return  a URL which references <tt>node</tt> if there is one,
-     *          otherwise <tt>null</tt>
+     * @return  a URL which references <code>node</code> if there is one,
+     *          otherwise <code>null</code>
      */
     private static URL getURL( DataNode node ) {
         Object creator = node.getCreator().getObject();

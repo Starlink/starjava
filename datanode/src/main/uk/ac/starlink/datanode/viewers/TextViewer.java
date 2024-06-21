@@ -109,8 +109,8 @@ public class TextViewer extends JTextArea {
     }
 
     /**
-     * Displays the stacktrace of a given <tt>Throwable</tt> in a text viewer
-     * window.
+     * Displays the stacktrace of a given <code>Throwable</code>
+     * in a text viewer window.
      *
      * @param  th  the Throwable to print the stack trace of
      */

@@ -74,7 +74,7 @@ import uk.ac.starlink.datanode.tree.select.NodeRootModel;
  * eligible, and node eligibility will be reflected visually by the
  * component (node names written in bold for choosable nodes, that sort
  * of thing), as well as controlling the enabled status of the selection
- * button etc.  The <tt>getSearch*Action</tt> methods provide actions 
+ * button etc.  The <code>getSearch*Action</code> methods provide actions 
  * which may be useful in this context; they will search through the 
  * tree recursively and expand it so that any choosable nodes are visible
  * to the user.  Note this may result in some non-choosable nodes being
@@ -275,7 +275,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
 
     /**
      * Sets the root of the displayed tree to one made from a given object.
-     * This attempts to create a DataNode from <tt>obj</tt> by feeding it
+     * This attempts to create a DataNode from <code>obj</code> by feeding it
      * to the DataNodeFactory.
      *
      * @param obj  object from which to form new root node.
@@ -288,7 +288,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
 
     /**
      * Attempts to call setRootObject; if succesful a new DataNode made
-     * from <tt>obj</tt> is installed  as the
+     * from <code>obj</code> is installed  as the
      * tree's new root, otherwise, there's a beep.
      *
      * @param obj  object from which to form a new root node
@@ -415,8 +415,8 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
 
     /**
      * Called when the user has finished interacting with this chooser.
-     * The <tt>node</tt> argument will be the DataNode which the user
-     * has selected if s/he has selected one, or <tt>null</tt> if the
+     * The <code>node</code> argument will be the DataNode which the user
+     * has selected if s/he has selected one, or <code>null</code> if the
      * user pushed the cancel button.  This may be overridden to do
      * something useful as an alternative to using the {@link #chooseDataNode}
      * method.  The default implementation does nothing.
@@ -428,15 +428,15 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
 
     /**
      * Pops up a modal dialog which asks the user for a DataNode.
-     * The return value is a node which the user selected, or <tt>null</tt>
+     * The return value is a node which the user selected, or <code>null</code>
      * if no selection was made.
      *
      * @param  parent  the parent of the dialog
      * @param  buttonText  the text to appear on the 'choose' button
-     *         (or <tt>null</tt> for default)
+     *         (or <code>null</code> for default)
      * @param  title  the title of the dialog window
-     *         (or <tt>null</tt> for default)
-     * @return  the selected DataNode, or <tt>null</tt> if none was selected
+     *         (or <code>null</code> for default)
+     * @return  the selected DataNode, or <code>null</code> if none was selected
      */
     public DataNode chooseDataNode( Component parent, String buttonText,
                                     String title ) {
@@ -457,7 +457,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
     /**
      * Returns the path of the currently chosen node.
      *
-     * @return  chosen node path, or <tt>null</tt> if none is chosen
+     * @return  chosen node path, or <code>null</code> if none is chosen
      */
     public String getChosenPath() {
         return chosenNode == null ? null
@@ -522,11 +522,12 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
 
     /**
      * Indicates whether a given node is eligable to be chosen with
-     * the Accept button.  The implementation in <tt>TreeNodeChooser</tt>
-     * always returns <tt>true</tt>.
+     * the Accept button.  The implementation in <code>TreeNodeChooser</code>
+     * always returns <code>true</code>.
      *
      * @param  node  the node to test
-     * @return  <tt>true</tt> iff <tt>node</tt> can be chosen by this chooser
+     * @return  <code>true</code> iff <code>node</code> can be chosen
+     *          by this chooser
      */
     protected boolean isChoosable( DataNode node ) {
         return node != null;

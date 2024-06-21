@@ -39,8 +39,8 @@ import org.xml.sax.helpers.DefaultHandler;
  * any further work.  It deliberately doesn't store the DOM, since
  * keeping DOMs for all the nodes we've encountered can take up too
  * much memory - it violates DataNode's rule about allocating large 
- * memory resources in a node's constructor before <tt>getChildren</tt> or
- * maybe <tt>configureDetail</tt> have been called.  DataNode constructors
+ * memory resources in a node's constructor before <code>getChildren</code> or
+ * maybe <code>configureDetail</code> have been called.  DataNode constructors
  * which do operate on an XMLDocument should not construct and cache
  * a DOM themselves, though other DataNode methods may do so.
  *
@@ -67,7 +67,7 @@ public class XMLDocument {
      * if it does not, a NoSuchDataException is thrown.
      *
      * @param  datsrc  data source
-     * @throws  NoSuchDataException  if <tt>datsrc</tt> doesn't contain XML
+     * @throws  NoSuchDataException  if <code>datsrc</code> doesn't contain XML
      */
     public XMLDocument( DataSource datsrc ) throws NoSuchDataException {
         this.datsrc = datsrc;
@@ -272,7 +272,7 @@ public class XMLDocument {
      * negatives.
      *
      * @param   magic  buffer containing the first few bytes of the stream
-     * @return  <tt>true</tt> iff this looks like an XML file
+     * @return  <code>true</code> iff this looks like an XML file
      */
     public static boolean isMagic( byte[] magic ) {
         return getEncoding( magic ) != null;
@@ -283,7 +283,7 @@ public class XMLDocument {
      * starts with a given magic number.  This is based on how we expect
      * an XML stream to start in terms of Unicode characters (one of the
      * strings {@link #MAGICS}).  The result will be one of the
-     * encoding names listed in {@link #ENCODINGS}, or <tt>null</tt> if
+     * encoding names listed in {@link #ENCODINGS}, or <code>null</code> if
      * it doesn't look like the start of an XML stream in any of these
      * encodings.
      *

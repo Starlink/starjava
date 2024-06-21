@@ -19,10 +19,10 @@ import java.util.Map;
 import uk.ac.starlink.util.DataSource;
 
 /**
- * A basic implementation of the <tt>Transferable</tt> interface used
+ * A basic implementation of the <code>Transferable</code> interface used
  * to implement drag'n'drop operations.  It initially supports no
  * {@link java.awt.datatransfer.DataFlavor}s, but they can be added
- * by using the various <tt>add*</tt> methods provided.  They should
+ * by using the various <code>add*</code> methods provided.  They should
  * be called in order of priority (most specific first).
  *
  * @author   Mark Taylor (Starlink)
@@ -169,8 +169,9 @@ public class BasicTransferable implements Transferable {
      * the Swing or AWT DnD infrastructure, but what we need to provide
      * here is an InputStream subclass which has the following things:
      * <ul>
-     * <li>A constructor which takes a single arg of type <tt>InputStream</tt>
-     * <li>A <tt>read(byte[],int,int)</tt> method
+     * <li>A constructor which takes a single arg
+     *     of type <code>InputStream</code>
+     * <li>A <code>read(byte[],int,int)</code> method
      * </ul>
      * (see the Java Drag And Drop Specification).
      * I must admit, I don't fully understand this; I suspect it's 

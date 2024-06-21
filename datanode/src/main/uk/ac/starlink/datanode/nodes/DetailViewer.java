@@ -128,8 +128,8 @@ public interface DetailViewer {
     /**
      * Adds a new deferred-construction component which will 
      * draw itself at a size appropriate to the size of its container.
-     * The <tt>JComponent</tt> returned by <tt>maker</tt>
-     * should generally have a <tt>paintComponent</tt> method
+     * The <code>JComponent</code> returned by <code>maker</code>
+     * should generally have a <code>paintComponent</code> method
      * which senses its actual size and draws itself accordingly,
      * something like this:
      * <pre>

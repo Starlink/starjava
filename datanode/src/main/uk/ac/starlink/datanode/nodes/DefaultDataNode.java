@@ -53,16 +53,16 @@ public class DefaultDataNode implements DataNode {
     }
 
     /**
-     * The <tt>DefaultDataNode</tt> implementation of this method returns 
-     * <tt>false</tt>.
+     * The <code>DefaultDataNode</code> implementation of this method returns 
+     * <code>false</code>.
      */
     public boolean allowsChildren() {
         return false;
     }
 
     /**
-     * The <tt>DefaultDataNode</tt> implementation of this method throws
-     * <tt>UnsupportedOperationException</tt> 
+     * The <code>DefaultDataNode</code> implementation of this method throws
+     * <code>UnsupportedOperationException</code> 
      * ({@link #allowsChildren} is false).
      */
     public Iterator getChildIterator() {
@@ -125,7 +125,7 @@ public class DefaultDataNode implements DataNode {
     }
 
     /**
-     * The <tt>DefaultDataNode</tt> implementation returns the string "...".
+     * The <code>DefaultDataNode</code> implementation returns the string "...".
      *
      * @return  "..."
      */
@@ -178,7 +178,7 @@ public class DefaultDataNode implements DataNode {
     }
 
     /**
-     * The <tt>DefaultDataNode</tt> implementation 
+     * The <code>DefaultDataNode</code> implementation 
      * returns the label as a default path element.
      *
      * @return  the node's label
@@ -195,12 +195,12 @@ public class DefaultDataNode implements DataNode {
      * for a particular data type.  Note that this is only suitable if
      * the data object is free or cheap to come by - in the case
      * that its construction is expensive then the data object ought to
-     * be constructed on demand by <tt>getDataObject</tt> rather than being
+     * be constructed on demand by <code>getDataObject</code> rather than being
      * registered as a matter of course (since it may never be needed).
      *
      * @param   type  data type of object to register
-     * @param   data  data object of type <tt>type</tt> for this node - 
-     *          must be non-null and of class <tt>type.getDataClass()</tt>
+     * @param   data  data object of type <code>type</code> for this node - 
+     *          must be non-null and of class <code>type.getDataClass()</code>
      */
     public void registerDataObject( DataType type, Object data ) {
         if ( type != null ) {
@@ -215,7 +215,7 @@ public class DefaultDataNode implements DataNode {
     }
 
     /**
-     * The <tt>DefaultDataNode</tt> implementation returns true for 
+     * The <code>DefaultDataNode</code> implementation returns true for 
      * only those data objects which have been registered using 
      * {@link #registerDataObject}.
      */
@@ -224,7 +224,7 @@ public class DefaultDataNode implements DataNode {
     }
 
     /**
-     * The <tt>DefaultDataNode</tt> implementation returns any data object
+     * The <code>DefaultDataNode</code> implementation returns any data object
      * which has been registered using {@link #registerDataObject}.
      */
     public Object getDataObject( DataType type ) throws DataObjectException {
@@ -261,7 +261,7 @@ public class DefaultDataNode implements DataNode {
     /**
      * Uses the node's childMaker to turn objects into data nodes.
      * This convenience method just calls 
-     * <tt>getChildMaker().makeChildNode(this,childObj)</tt>.
+     * <code>getChildMaker().makeChildNode(this,childObj)</code>.
      * In general, nodes should use this method to construct their
      * children.
      *
@@ -277,7 +277,7 @@ public class DefaultDataNode implements DataNode {
      * Constructs an error data node from a throwable.  This method can
      * be used to create a error which is the child of this node.
      * This convenience method just calls 
-     * <tt>getChildMaker().makeErrorDataNode(this,th)</tt>
+     * <code>getChildMaker().makeErrorDataNode(this,th)</code>
      *
      * @param  th  the throwable on which the data node will be based
      * @see   DataNodeFactory#makeErrorDataNode

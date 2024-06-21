@@ -37,7 +37,7 @@ public abstract class DataNodeBuilder {
      * of a given class.
      *
      * @param   objClass  the class of an object which might be passed
-     *          as the argument of <tt>buildNode</tt>
+     *          as the argument of <code>buildNode</code>
      * @return  whether it's OK to do that
      */
     public abstract boolean suitable( Class objClass );
@@ -46,7 +46,7 @@ public abstract class DataNodeBuilder {
      * Builds a DataNode from a given object.
      *
      * @param   obj   the object to build a datanode from
-     * @return  a new DataNode made from <tt>obj</tt>
+     * @return  a new DataNode made from <code>obj</code>
      * @throws  NoSuchDataException  if no new node can be created
      */
     public abstract DataNode buildNode( Object obj ) throws NoSuchDataException;
@@ -54,7 +54,7 @@ public abstract class DataNodeBuilder {
     /**
      * Returns the class which all nodes returned by the {@link #buildNode}
      * method will belong to.  DataNodeBuilder's implementation of this
-     * returns <tt>DataNode.class</tt>, but implementations which can
+     * returns <code>DataNode.class</code>, but implementations which can
      * be more specific should override this method.
      *
      * @return   superclass of all the classes of DataNode this builder
@@ -69,7 +69,7 @@ public abstract class DataNodeBuilder {
      * ones that can be found by reflection in the supplied class.
      *
      * @param   clazz   a class to reflect on
-     * @return  an array of builder objects found in <tt>clazz</tt>
+     * @return  an array of builder objects found in <code>clazz</code>
      */
     public static DataNodeBuilder[] getBuilders( final Class clazz ) {
 

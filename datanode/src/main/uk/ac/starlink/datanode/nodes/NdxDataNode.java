@@ -35,7 +35,7 @@ import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.util.URLUtils;
 
 /**
- * An implementation of the <tt>DataNode</tt> interface for representing
+ * An implementation of the <code>DataNode</code> interface for representing
  * {@link uk.ac.starlink.ndx.Ndx} objects.
  *
  * @author   Mark Taylor (Starlink)

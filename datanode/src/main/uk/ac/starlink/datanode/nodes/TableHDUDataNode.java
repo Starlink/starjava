@@ -132,17 +132,17 @@ public class TableHDUDataNode extends HDUDataNode {
     /**
      * Reads the next header, and if it represents a table HDU, makes a
      * StarTable out of it and returns.  If it is some other kind of HDU, 
-     * <tt>null</tt> is returned.  In either case, the stream is advanced
+     * <code>null</code> is returned.  In either case, the stream is advanced
      * the end of that HDU.
      * 
      * @param  strm  stream to read from, positioned at the start of an HDU
      *         (before the header)
      * @param  datsrc  a DataSource which can supply the data 
-     *         in <tt>strm</tt>
-     * @param  pos  a 1-element array holding the position in <tt>datsrc</tt>
-     *         at which <tt>strm</tt> is positioned -
+     *         in <code>strm</code>
+     * @param  pos  a 1-element array holding the position in
+     *         <code>datsrc</code> at which <code>strm</code> is positioned -
      *         it's an array so it can be updated by this routine (sorry)
-     * @return   a StarTable made from the HDU at the start of <tt>strm</tt>
+     * @return   a StarTable made from the HDU at the start of <code>strm</code>
      *           or null
      */
     private static StarTable attemptReadTable( final ArrayDataInput strm,

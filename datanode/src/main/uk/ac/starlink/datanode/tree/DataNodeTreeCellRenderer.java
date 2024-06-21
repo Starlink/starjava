@@ -51,12 +51,12 @@ public class DataNodeTreeCellRenderer extends DefaultTreeCellRenderer {
     /**
      * Performs additional configuration on the rendered cell based 
      * on the node and its expanding status.  This method is called
-     * from <tt>getTreeCellRendererComponent</tt> and may be 
+     * from <code>getTreeCellRendererComponent</code> and may be 
      * overridden by subclasses to provide additional visual control
      * over the rendering.
      *
      * @param  node  the DataNode being rendered
-     * @param  isExpanding  whether <tt>node</tt> is currently in the
+     * @param  isExpanding  whether <code>node</code> is currently in the
      *         process of expanding
      */
     protected void configureNode( DataNode node, boolean isExpanding ) {

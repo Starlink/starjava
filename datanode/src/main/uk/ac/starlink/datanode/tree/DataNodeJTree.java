@@ -33,7 +33,7 @@ import uk.ac.starlink.datanode.nodes.NoSuchDataException;
  * A JTree configured to display a {@link DataNodeTreeModel}.
  * This class doesn't add much to {@link javax.swing.JTree}, but provides
  * by default a suitable cell renderer and guarantees that its model
- * is a <tt>DataNodeTreeModel</tt>.
+ * is a <code>DataNodeTreeModel</code>.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -117,9 +117,9 @@ public class DataNodeJTree extends JTree {
     /**
      * Sets the model for this JTree to a given {@link DataNodeTreeModel}.
      *
-     * @param  model  a <tt>DataNodeTreeModel</tt> object
-     * @throws  ClassCastException  if <tt>model</tt> is not a
-     *          <tt>DataNodeTreeModel</tt>
+     * @param  model  a <code>DataNodeTreeModel</code> object
+     * @throws  ClassCastException  if <code>model</code> is not a
+     *          <code>DataNodeTreeModel</code>
      */
     public synchronized void setModel( TreeModel model ) {
         this.model = (DataNodeTreeModel) model;

@@ -48,7 +48,7 @@ public class NodeRootComboBox extends JComboBox {
 
     /**
      * Sets this combo box's model.  Will only accept a suitable model
-     * (one acquired from another <tt>NodeRootComboBox</tt>).
+     * (one acquired from another <code>NodeRootComboBox</code>).
      *
      * @param  model  model
      * @throws  ClassCastException  if it's the wrong type
