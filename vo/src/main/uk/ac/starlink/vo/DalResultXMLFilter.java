@@ -14,7 +14,6 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLFilterImpl;
-import org.xml.sax.helpers.XMLReaderFactory;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.votable.Namespacing;
