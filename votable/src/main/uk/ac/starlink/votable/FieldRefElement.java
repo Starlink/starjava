@@ -28,8 +28,8 @@ public class FieldRefElement extends VOElement {
     }
 
     /**
-     * Returns the value of the <tt>ucd</tt> attribute,
-     * or <tt>null</tt> if there is none.
+     * Returns the value of the <code>ucd</code> attribute,
+     * or <code>null</code> if there is none.
      * Note that (since VOTable 1.2) this may differ from the ucd of
      * the referenced FIELD.
      *
@@ -41,8 +41,8 @@ public class FieldRefElement extends VOElement {
     }
 
     /**
-     * Returns the value of the <tt>utype</tt> attribute,
-     * or <tt>null</tt> if there is none.
+     * Returns the value of the <code>utype</code> attribute,
+     * or <code>null</code> if there is none.
      * Note that (since VOTable 1.2) this may differ from the utype of
      * the referenced FIELD.
      *

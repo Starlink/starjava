@@ -31,7 +31,7 @@ import uk.ac.starlink.util.DataSource;
  * and discard the content of the original (STREAM or TABLEDATA) nodes
  * which contained the data from the DOM.
  *
- * <p>The easiest way to access the data stored in a <tt>TableElement</tt>
+ * <p>The easiest way to access the data stored in a <code>TableElement</code>
  * is to make it into a {@link VOStarTable}.
  *
  * @author   Mark Taylor (Starlink)
@@ -55,7 +55,7 @@ public class TableElement extends VOElement {
     /**
      * Returns the FIELD elements for this table.  Note these may come
      * from a different TABLE element referenced using this one's
-     * <tt>ref</tt> attribute.
+     * <code>ref</code> attribute.
      *
      * @return  the FIELD elements which describe the columns of this table
      */
@@ -92,7 +92,7 @@ public class TableElement extends VOElement {
 
     /**
      * Returns the number of rows in this table.
-     * This may be determined from the optional <tt>nrows</tt> attribute
+     * This may be determined from the optional <code>nrows</code> attribute
      * or from the table data itself.
      * If this cannot be determined, or cannot be determined efficiently,
      * the value -1 may be returned.
@@ -297,7 +297,7 @@ public class TableElement extends VOElement {
      * Returns the element which provides the metadata (FIELD elements -
      * and other things?  the standard isn't too clear) for this table.
      * This is usually this element itself, but it
-     * might be one referenced by a <tt>ref</tt> element, or it might
+     * might be one referenced by a <code>ref</code> element, or it might
      * be a dummy empty element if the one referenced by a ref element
      * doesn't exist.
      *

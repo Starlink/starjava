@@ -46,13 +46,13 @@ import uk.ac.starlink.util.StarEntityResolver;
  * need to worry about this; however if for some reason you want to
  * work on a 'normal' DOM, or if you want validation, you can construct
  * the DOM yourself and invoke one of the non-transforming
- * <tt>makeVOElement</tt> methods on the result.
+ * <code>makeVOElement</code> methods on the result.
  * <p>
- * The various <tt>makeVOElement</tt> methods may return an object of class
- * <tt>VOElement</tt> or of one of its subclasses, according to the
+ * The various <code>makeVOElement</code> methods may return an object of class
+ * <code>VOElement</code> or of one of its subclasses, according to the
  * name of the element in question; specific subclasses are provided only
  * where some extra functionality is available, for instance the
- * {@link TableElement#getData} method of the <tt>TableElement</tt> class.
+ * {@link TableElement#getData} method of the <code>TableElement</code> class.
  * One upshot of this is that a tree of VOElements need not conform to
  * the VOTable DTD, elements of any name may be in it.  Wherever an
  * element has a name which matches an element with specific significance
@@ -131,7 +131,7 @@ public class VOElementFactory {
      * The systemId is also required since some elements (STREAM, LINK)
      * may need it for URL resolution.  It may be null however
      * (which is fine if there are no relative URLs used in the document).
-     * If <tt>el</tt> is already a VOElement, it is just returned.
+     * If <code>el</code> is already a VOElement, it is just returned.
      *
      * @param  el  DOM element on which the new object will be based
      * @param  systemId  the location of the document
@@ -156,7 +156,7 @@ public class VOElementFactory {
      *
      * @param  doc  DOM document node
      * @param  systemId  the location of the document
-     * @return  VOElement based on <tt>doc</tt>
+     * @return  VOElement based on <code>doc</code>
      */
     public VOElement makeVOElement( Document doc, String systemId ) {
         if ( doc instanceof VODocument ) {
@@ -173,7 +173,7 @@ public class VOElementFactory {
      * Returns a VOElement based on a DOM source.
      *
      * @param   dsrc   DOM source representing an Element or Document node
-     * @return  VOElement based on <tt>dsrc</tt>
+     * @return  VOElement based on <code>dsrc</code>
      */
     public VOElement makeVOElement( DOMSource dsrc ) {
         String systemId = dsrc.getSystemId();
@@ -213,10 +213,10 @@ public class VOElementFactory {
      * If the source is a SAX or Stream source, this will involve a parse.
      *
      * @param   xsrc  the XML source representing the element
-     * @return  VOElement based on <tt>xsrc</tt>
-     * @throws  SAXException  if <tt>xsrc</tt> is not a DOM source
+     * @return  VOElement based on <code>xsrc</code>
+     * @throws  SAXException  if <code>xsrc</code> is not a DOM source
      *          and there is a parse error transforming it to a DOM
-     * @throws  IOException  if <tt>xsrc</tt> is not a DOM source
+     * @throws  IOException  if <code>xsrc</code> is not a DOM source
      *          and there is an I/O error transforming to a DOM
      */
     public VOElement makeVOElement( Source xsrc )
@@ -320,7 +320,7 @@ public class VOElementFactory {
      * All elements in the returned DOM will be instances of 
      * {@link VOElement} or one of its specialist subclasses.
      *
-     * <p>The clever bit is that during the parse (if <tt>xsrc</tt>
+     * <p>The clever bit is that during the parse (if <code>xsrc</code>
      * is not already a DOMSource) it intercepts SAX events
      * which indicate the start and end of any DATA events it finds so
      * that they are not incorporated as part of the DOM.
@@ -330,9 +330,10 @@ public class VOElementFactory {
      *
      * @param   xsrc  input XML source
      * @param   validate  whether to use a validating parser if the
-     *          transformation needs to be done (that is, if <tt>xsrc</tt>
+     *          transformation needs to be done (that is, if <code>xsrc</code>
      *          is not already a DOMSource)
-     * @return  a DOMSource representing the XML document held by <tt>xsrc</tt>
+     * @return  a DOMSource representing the XML document
+     *          held by <code>xsrc</code>
      *          The DOMSource's node will be either a VOElement or a VODocument
      */
     public DOMSource transformToDOM( Source xsrc, boolean validate )
@@ -423,10 +424,11 @@ public class VOElementFactory {
      * enforced.  Currently if strict is set to false the
      * following standard-violating assumptions will be made:
      * <ul>
-     * <li>A <tt>FIELD</tt> or <tt>PARAM</tt> element with 
-     *     a <tt>datatype</tt> attribute of "<tt>char</tt>" or
-     *     "<tt>unicodeChar</tt>" but no <tt>arraysize</tt> attribute will
-     *     be assumed to represent a character array (<tt>arraysize="*"</tt>)
+     * <li>A <code>FIELD</code> or <code>PARAM</code> element with 
+     *     a <code>datatype</code> attribute of "<code>char</code>" or
+     *     "<code>unicodeChar</code>" but no <code>arraysize</code>
+     *     attribute will be assumed to represent a character array
+     *     (<code>arraysize="*"</code>)
      *     rather than a single-character value.</li>
      * </ul>
      *
@@ -574,7 +576,7 @@ public class VOElementFactory {
      * SAXException so that it is.
      *
      * @param  e  exception
-     * @return  tweaked <tt>e</tt>
+     * @return  tweaked <code>e</code>
      */
     static SAXException fixStackTrace( SAXException e ) {
         if ( e.getException() != null && e.getCause() == null ) {

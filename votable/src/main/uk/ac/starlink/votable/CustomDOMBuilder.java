@@ -14,14 +14,15 @@ import org.w3c.dom.Node;
  * an installed handler may install a different handler to
  * cope with subsequent events.  The idea is that to customisze
  * parsing functionality you should instantiate a new subclass of the 
- * member class <tt>DefaultContentHandler</tt> or <tt>NullContentHandler</tt>
+ * member class <code>DefaultContentHandler</code>
+ * or <code>NullContentHandler</code>
  * and plug this in using {@link #setCustomHandler}.
  * <p>
  * I thought there would be this functionality somewhere in the J2SE,
  * but I can't find it, even in the non-public classes.
  * <p>
  * To use this class, install it as the {@link org.xml.sax.ContentHandler}
- * of a SAX parser ({@link org.xml.sax.XMLReader}), do a <tt>parse</tt>,
+ * of a SAX parser ({@link org.xml.sax.XMLReader}), do a <code>parse</code>,
  * and get the result of the {@link #getDocument} method.
  * 
  * @author   Mark Taylor (Starlink)
@@ -64,7 +65,7 @@ class CustomDOMBuilder implements ContentHandler {
     /**
      * Returns the node most recently added to the document.
      * Immediately following a call to the default content handler's
-     * <tt>startElement</tt> method, this will be the element which has
+     * <code>startElement</code> method, this will be the element which has
      * just been started.
      *
      * @return   lastest node added to the DOM
@@ -123,7 +124,7 @@ class CustomDOMBuilder implements ContentHandler {
      *
      * @param  atts  attribute set
      * @param  name  normal VOTable name of the attribute
-     * @return  value of attribute <tt>name</tt> or null if it doesn't exist
+     * @return  value of attribute <code>name</code> or null if it doesn't exist
      */
     protected String getAttribute( Attributes atts, String name ) {
         String val = atts.getValue( name );

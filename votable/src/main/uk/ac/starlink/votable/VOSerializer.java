@@ -258,10 +258,11 @@ public abstract class VOSerializer {
      * The binary data itself will be written to an
      * output stream supplied separately (it will not be inline).
      * If this serializer's format is not binary (i.e. if it's TABLEDATA)
-     * an <tt>UnsupportedOperationException</tt> will be thrown.
+     * an <code>UnsupportedOperationException</code> will be thrown.
      *
      * @param  xmlwriter  destination stream for the XML output
-     * @param  href   URL for the external stream (output as the <tt>href</tt>
+     * @param  href   URL for the external stream
+     *                (output as the <code>href</code>
      *                attribute of the written &lt;STREAM&gt; element)
      * @param  streamout  destination stream for the binary table data
      */
@@ -832,7 +833,7 @@ public abstract class VOSerializer {
      * will be written as XML CDATA.
      *
      * @param   text  the input text
-     * @return  <tt>text</tt> but with XML special characters escaped
+     * @return  <code>text</code> but with XML special characters escaped
      */
     public static String formatText( String text ) {
         int leng = text.length();

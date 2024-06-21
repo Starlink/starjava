@@ -29,7 +29,7 @@ public class FieldElement extends VOElement {
 
     /**
      * Returns the array size.  The returned value is an array of
-     * <tt>long</tt>, with one element for each dimension.
+     * <code>long</code>, with one element for each dimension.
      * The final dimension only may have the value -1, which indicates
      * that this dimension is unknown.  All other elements will be positive.
      *
@@ -81,9 +81,9 @@ public class FieldElement extends VOElement {
      * with type='legal', or if that doesn't exist the 'null' attribute
      * of the VALUES child with type='actual' (this is some kind of
      * guesswork based on what is not written in the VOTable document).
-     * This has nothing to do with the java <tt>null</tt> value.
+     * This has nothing to do with the java <code>null</code> value.
      *
-     * @return  the bad ("null") value or, confusingly, <tt>null</tt> if
+     * @return  the bad ("null") value or, confusingly, <code>null</code> if
      *          none is defined
      */
     public String getNull() {
@@ -101,7 +101,7 @@ public class FieldElement extends VOElement {
     }
 
     /**
-     * Returns the value of the <tt>datatype</tt> attribute.
+     * Returns the value of the <code>datatype</code> attribute.
      * If no datatype attribute has been defined (which is illegal, but
      * not uncommon) then "char" will be returned.
      *
@@ -119,8 +119,8 @@ public class FieldElement extends VOElement {
     }
 
     /**
-     * Returns the value of the <tt>unit</tt> attribute,
-     * or <tt>null</tt> if there is none.
+     * Returns the value of the <code>unit</code> attribute,
+     * or <code>null</code> if there is none.
      *
      * @return  the unit string
      */
@@ -129,8 +129,8 @@ public class FieldElement extends VOElement {
     }
 
     /**
-     * Returns the value of the <tt>ucd</tt> attribute,
-     * or <tt>null</tt> if there is none.
+     * Returns the value of the <code>ucd</code> attribute,
+     * or <code>null</code> if there is none.
      *
      * @return  the ucd string
      * @see     uk.ac.starlink.table.UCD
@@ -140,8 +140,8 @@ public class FieldElement extends VOElement {
     }
 
     /**
-     * Returns the value of the <tt>utype</tt> attribute,
-     * or <tt>null</tt> if there is none.
+     * Returns the value of the <code>utype</code> attribute,
+     * or <code>null</code> if there is none.
      *
      * @return  the utype string
      */
@@ -150,8 +150,8 @@ public class FieldElement extends VOElement {
     }
 
     /**
-     * Returns the value of the <tt>xtype</tt> attribute,
-     * or <tt>null</tt> if there is none.
+     * Returns the value of the <code>xtype</code> attribute,
+     * or <code>null</code> if there is none.
      *
      * @return  the xtype string
      */
@@ -163,10 +163,10 @@ public class FieldElement extends VOElement {
      * Returns the index of this field in a given table; that is the
      * index of the column it represents.  The first FIELD child of a
      * TABLE element has index 0, and so on.
-     * If this field is not associated with <tt>table</tt>, -1 is returned.
+     * If this field is not associated with <code>table</code>, -1 is returned.
      * 
      * @param   table  table within which to locate this field
-     * @return  0-based index of this field in <tt>table</tt>, or -1
+     * @return  0-based index of this field in <code>table</code>, or -1
      */
     public int getIndexInTable( TableElement table ) {
         FieldElement[] fields = table.getFields();
@@ -180,7 +180,7 @@ public class FieldElement extends VOElement {
 
     /**
      * Returns a VALUES child of this element with the attribute
-     * type='legal', or <tt>null</tt> if none exists.
+     * type='legal', or <code>null</code> if none exists.
      *
      * @return  the 'legal' Values object
      */
@@ -197,7 +197,7 @@ public class FieldElement extends VOElement {
 
     /**
      * Returns a VALUES child of this element with the attribute
-     * type='actual', or <tt>null</tt> if none exists.
+     * type='actual', or <code>null</code> if none exists.
      *
      * @return  the 'actual' Values object
      */

@@ -29,7 +29,7 @@ class BinaryRowSequence implements RowSequence {
      *
      * @param  n-element array of decoders for decoding n-column data
      * @param  in  input stream containing binary data
-     * @param  encoding  encoding string as per <tt>encoding</tt> attribute
+     * @param  encoding  encoding string as per <code>encoding</code> attribute
      *         of STREAM element ("gzip" or "base64", else assumed none)
      * @param  isBinary2 true for BINARY2 format, false for BINARY
      */

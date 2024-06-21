@@ -24,11 +24,11 @@ import uk.ac.starlink.votable.dom.DelegatingElement;
  * <p>This class is extended to provide the classes associated with 
  * specific VOTable elements.  These in turn provide more additional
  * methods associated with the specific properties of such elements, 
- * for instance the {@link TableElement} class has a <tt>getData</tt>
+ * for instance the {@link TableElement} class has a <code>getData</code>
  * which returns the actual table cell data.  Those element types
  * which don't require any extra associated functionality (such as
  * RESOURCE) don't have their own subclass, they are just represented
- * as <tt>VOElement</tt>s.  The class of each element in the DOM 
+ * as <code>VOElement</code>s.  The class of each element in the DOM 
  * is determined by its tag name - so every TABLE element will be
  * represented in the DOM as a {@link TableElement} and so on.
  *
@@ -59,7 +59,7 @@ public class VOElement extends DelegatingElement {
      *
      * @param  base  element in base DOM
      * @param  doc   owner document for new element
-     * @param  tagname  name which <tt>base</tt> is asserted to have
+     * @param  tagname  name which <code>base</code> is asserted to have
      */
     VOElement( Element base, VODocument doc, String tagname ) {
         this( base, doc );
@@ -72,7 +72,7 @@ public class VOElement extends DelegatingElement {
 
     /**
      * Returns the text of a DESCRIPTION element associated with this object,
-     * or <tt>null</tt> if none exists.  The return value is a plain
+     * or <code>null</code> if none exists.  The return value is a plain
      * text string - any XML tags (XHTML is allowed in the VOTable1.1
      * DESCRIPTION content model) are stripped out.
      * If you want the full XML structure of the DESCRIPTION tag,
@@ -88,8 +88,8 @@ public class VOElement extends DelegatingElement {
     }
 
     /** 
-     * Returns the <tt>ID</tt> attribute value for this element,
-     * or <tt>null</tt> if none exists.
+     * Returns the <code>ID</code> attribute value for this element,
+     * or <code>null</code> if none exists.
      *
      * @return  the ID
      */
@@ -98,8 +98,8 @@ public class VOElement extends DelegatingElement {
     }
 
     /**
-     * Returns the <tt>name</tt> attribute value for this element,
-     * or <tt>null</tt> if none exists.
+     * Returns the <code>name</code> attribute value for this element,
+     * or <code>null</code> if none exists.
      *
      * @return  the name
      */
@@ -111,7 +111,7 @@ public class VOElement extends DelegatingElement {
      * Returns the parent element of this element as a VOElement.
      * Note that the returned object is not guaranteed to be one of
      * the elements in the VOTable DTD.  If this element is at the
-     * root of the document, <tt>null</tt> will be returned.
+     * root of the document, <code>null</code> will be returned.
      *
      * @return  parent VOElement
      */
@@ -161,7 +161,7 @@ public class VOElement extends DelegatingElement {
      * @param  votagname  the unqualified element name in the VOTable 
      *         namespace required (such as "TABLE")
      * @return an array of VOElement children of this one, all with element
-     *         name <tt>tagname</tt>
+     *         name <code>tagname</code>
      */
     public VOElement[] getChildrenByName( String votagname ) {
         List<VOElement> children = new ArrayList<VOElement>();
@@ -180,7 +180,7 @@ public class VOElement extends DelegatingElement {
      * Returns the first child element of this element which has a given
      * name in the VOTable namespace.  If there are more than one with 
      * the given name, later ones are ignored.
-     * If there are none, <tt>null</tt> is returned.
+     * If there are none, <code>null</code> is returned.
      * The element is returned as a VOElement or the appropriate specific
      * VOElement subclass.
      *
@@ -190,7 +190,8 @@ public class VOElement extends DelegatingElement {
      *
      * @param  votagname  the unqualified element name in the VOTable
      *         namespace required (such as "TABLE")
-     * @return  the first child of this one with element name <tt>tagname</tt>
+     * @return  the first child of this one with element name
+     *          <code>tagname</code>
      */
     public VOElement getChildByName( String votagname ) {
         for ( Node ch = getFirstChild(); ch != null;
@@ -251,10 +252,10 @@ public class VOElement extends DelegatingElement {
     }
 
     /**
-     * Returns a URL corresponding to a given <tt>href</tt> string in the
+     * Returns a URL corresponding to a given <code>href</code> string in the
      * context of this document's system ID.
      *
-     * @return  URL for <tt>href</tt> in the current context
+     * @return  URL for <code>href</code> in the current context
      * @see   uk.ac.starlink.util.URLUtils
      */
     URL getContextURL( String href ) {

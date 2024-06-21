@@ -68,14 +68,14 @@ public class DelegatingNode implements Node {
      * node is from, a WRONG_DOCUMENT_ERR exception is thrown; this 
      * isn't exactly required, but such a check for this is likely to be
      * useful where this method is called.  If you don't want the check,
-     * you can supply <tt>doc</tt> as null.
+     * you can supply <code>doc</code> as null.
      *
      * @param   node   delegating node whose base is required
-     * @param   doc    document which is expected to own <tt>node</tt>
+     * @param   doc    document which is expected to own <code>node</code>
      * @throws  DOMException  <dl>
      *          <dt>WRONG_DOCUMENT_ERR
      *          <dd>if the resulting node is from a document other than 
-     *              <tt>doc</tt>
+     *              <code>doc</code>
      *          </dl>
      */
     static Node getBaseNode( Node node, Document doc ) {

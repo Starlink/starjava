@@ -23,7 +23,7 @@ public class ParamElement extends FieldElement {
     }
 
     /**
-     * Returns the value of the <tt>value</tt> attribute,
+     * Returns the value of the <code>value</code> attribute,
      * or an empty string if it has none.
      *
      * @return  the value string
@@ -34,7 +34,7 @@ public class ParamElement extends FieldElement {
 
     /**
      * Returns the object represented by the value of this Param.
-     * This is constructed by decoding the <tt>value</tt> attribute in
+     * This is constructed by decoding the <code>value</code> attribute in
      * the same way as for TABLEDATA content of a table for a FIELD
      * of this kind.
      *

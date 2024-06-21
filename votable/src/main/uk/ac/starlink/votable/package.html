@@ -5,15 +5,15 @@ Classes for VOTable input and output.
 {@link uk.ac.starlink.votable.VOElement} 
 or one of its subclasses.  Not every VOTable 
 element has a corresponding class, but the generic facilities
-of <tt>VOElement</tt> can still be used for navigation if required.
-In general a subclass of <tt>VOElement</tt> is provided in those 
+of <code>VOElement</code> can still be used for navigation if required.
+In general a subclass of <code>VOElement</code> is provided in those 
 cases for which functionality beyond that given by the
 {@link uk.ac.starlink.votable.VOElement#getAttribute} and
 {@link uk.ac.starlink.votable.VOElement#getChildren} 
 is required.
 
 <p>The usual way of using these classes to read a VOTable document 
-would be to use one of the static <tt>makeVOElement</tt> methods in
+would be to use one of the static <code>makeVOElement</code> methods in
 {@link uk.ac.starlink.votable.VOElementFactory} to construct a 
 top-level VOElement from a file, URL, input stream, DOM or whatever
 and then to interrogate this element for its children to find 

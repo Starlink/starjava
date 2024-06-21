@@ -36,7 +36,7 @@ import uk.ac.starlink.votable.datalink.ServiceDescriptorInfo;
  *     String ucd = table.getColumnInfo(0).getUCD();
  * </pre>
  * The ones that don't are stored in the ColumnInfo's auxiliary metadata
- * keyed using the various <tt>*_INFO</tt> public static variables defined
+ * keyed using the various <code>*_INFO</code> public static variables defined
  * in this class.  These are accessed using the
  * {@link uk.ac.starlink.table.ColumnInfo#getAuxDatum} method, for instance:
  * <pre>
@@ -64,68 +64,68 @@ public class VOStarTable extends AbstractStarTable {
 
     /* Public column auxiliary metadata definitions. */
 
-    /** ValueInfo for VOTable <tt>ID</tt> attribute. */
+    /** ValueInfo for VOTable <code>ID</code> attribute. */
     public final static ValueInfo ID_INFO = new DefaultValueInfo(
         "VOTable ID", String.class, "VOTable ID attribute" );
 
-    /** ValueInfo for VOTable <tt>ucd</tt> attribute. */
+    /** ValueInfo for VOTable <code>ucd</code> attribute. */
     public final static ValueInfo UCD_INFO = new DefaultValueInfo(
         "UCD", String.class, "Table UCD" );
 
-    /** ValueInfo for VOTable <tt>utype</tt> attribute. */
+    /** ValueInfo for VOTable <code>utype</code> attribute. */
     public final static ValueInfo UTYPE_INFO =
         new DefaultValueInfo( "utype", String.class,
                               "Usage-specific type"
                             + " (ties value to an external data model)" );
 
-    /** ValueInfo for VOTable <tt>width</tt> attribute. */
+    /** ValueInfo for VOTable <code>width</code> attribute. */
     public final static ValueInfo WIDTH_INFO = new DefaultValueInfo(
         "VOTable width", Integer.class, "VOTable width attribute" );
 
-    /** ValueInfo for VOTable <tt>precision</tt> attribute. */
+    /** ValueInfo for VOTable <code>precision</code> attribute. */
     public final static ValueInfo PRECISION_INFO = new DefaultValueInfo(
         "VOTable precision", String.class, "VOTable precision attribute" );
 
-    /** ValueInfo for VOTable <tt>ref</tt> attribute. */
+    /** ValueInfo for VOTable <code>ref</code> attribute. */
     public final static ValueInfo REF_INFO = new DefaultValueInfo(
         "VOTable ref", String.class, "VOTable ref attribute" );
 
-    /** ValueInfo for VOTable <tt>type</tt> attribute. */
+    /** ValueInfo for VOTable <code>type</code> attribute. */
     public final static ValueInfo TYPE_INFO = new DefaultValueInfo(
         "Type", String.class, "VOTable type attribute" );
 
-    /** ValueInfo for VOTable <tt>datatype</tt> attribute. */
+    /** ValueInfo for VOTable <code>datatype</code> attribute. */
     public final static ValueInfo DATATYPE_INFO = new DefaultValueInfo(
         "Datatype", String.class, "VOTable data type name" );
 
-    /** ValueInfo for COOSYS <tt>system</tt> attribute. */
+    /** ValueInfo for COOSYS <code>system</code> attribute. */
     public final static ValueInfo COOSYS_SYSTEM_INFO = new DefaultValueInfo(
         "CoosysSystem", String.class, "Sky coordinate system name from COOSYS");
   
-    /** ValueInfo for COOSYS <tt>epoch</tt> attribute. */
+    /** ValueInfo for COOSYS <code>epoch</code> attribute. */
     public final static ValueInfo COOSYS_EPOCH_INFO = new DefaultValueInfo(
         "CoosysEpoch", String.class, "Sky epoch from COOSYS" );
 
-    /** ValueInfo for COOSYS <tt>refposition</tt> attribute. */
+    /** ValueInfo for COOSYS <code>refposition</code> attribute. */
     public final static ValueInfo COOSYS_REFPOSITION_INFO =
         new DefaultValueInfo( "CoosysRefposition", String.class,
                               "Reference position from COOSYS" );
 
-    /** ValueInfo for COOSYS <tt>equinox</tt> attribute. */
+    /** ValueInfo for COOSYS <code>equinox</code> attribute. */
     public final static ValueInfo COOSYS_EQUINOX_INFO = new DefaultValueInfo(
         "CoosysEquinox", String.class, "Sky equinox from COOSYS" );
 
-    /** ValueInfo for TIMESYS <tt>timeorigin</tt> attribute. */
+    /** ValueInfo for TIMESYS <code>timeorigin</code> attribute. */
     public final static ValueInfo TIMESYS_TIMEORIGIN_INFO =
         new DefaultValueInfo( "TimesysTimeorigin", String.class,
                               "Time origin from TIMESYS" );
 
-    /** ValueInfo for TIMESYS <tt>timescale</tt> attribute. */
+    /** ValueInfo for TIMESYS <code>timescale</code> attribute. */
     public final static ValueInfo TIMESYS_TIMESCALE_INFO =
         new DefaultValueInfo( "TimesysTimescale", String.class,
                               "Timescale from TIMESYS" );
 
-    /** ValueInfo for TIMESYS <tt>refposition</tt> attribute. */
+    /** ValueInfo for TIMESYS <code>refposition</code> attribute. */
     public final static ValueInfo TIMESYS_REFPOSITION_INFO =
         new DefaultValueInfo( "TimesysRefposition", String.class,
                               "Ref position from TIMESYS" );
@@ -480,7 +480,7 @@ public class VOStarTable extends AbstractStarTable {
      *
      * @param   field  the FieldElement object for which the ValueInfo is to be
      *          constructed
-     * @return  a ValueInfo suitable for <tt>field</tt>
+     * @return  a ValueInfo suitable for <code>field</code>
      */
     public static ValueInfo getValueInfo( FieldElement field ) {
 
@@ -644,7 +644,7 @@ public class VOStarTable extends AbstractStarTable {
      * Returns a DescribedValue representing a LINK element.
      *
      * @param  link link element
-     * @return value describing <tt>link</tt>
+     * @return value describing <code>link</code>
      */
     static DescribedValue getDescribedValue( LinkElement link ) {
         try {
