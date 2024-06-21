@@ -1406,7 +1406,9 @@ public class ActivationWindow extends AuxWindow {
             }
             try {
                 ActivationType atype =
-                    (ActivationType) Class.forName( clazzName ).newInstance();
+                    (ActivationType) Class.forName( clazzName )
+                                          .getDeclaredConstructor()
+                                          .newInstance();
                 typeMap_.put( atype.getClass().getName(), atype );
                 return atype;
             }
