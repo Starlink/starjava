@@ -80,9 +80,9 @@ public class ClassTableScheme implements TableScheme, Documented {
             (Class<? extends TableScheme>) clazz;
         TableScheme subscheme;
         try {
-            subscheme = schemeClazz.newInstance();
+            subscheme = schemeClazz.getDeclaredConstructor().newInstance();
         }
-        catch ( InstantiationException | IllegalAccessException e ) {
+        catch ( ReflectiveOperationException e ) {
             throw new TableFormatException( "Can't instantiate "
                                           + clazz.getName(), e );
         }

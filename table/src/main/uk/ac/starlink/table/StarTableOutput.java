@@ -119,7 +119,8 @@ public class StarTableOutput {
                     (Class<? extends StarTableWriter>)
                     Class.forName( className );
 
-                StarTableWriter handler = clazz.newInstance();
+                StarTableWriter handler =
+                    clazz.getDeclaredConstructor().newInstance();
                 handlers_.add( handler );
                 logger.config( "Handler " + handler.getFormatName() +
                                " registered" );
@@ -506,7 +507,7 @@ public class StarTableOutput {
                 Class<? extends StarTableWriter> hclazz = handler.getClass();
                 StarTableWriter handler1;
                 try {
-                    handler1 = hclazz.newInstance();
+                    handler1 = hclazz.getDeclaredConstructor().newInstance();
                 }
                 catch ( ReflectiveOperationException e ) {
                     throw new TableFormatException( "Can't instantiate class "
@@ -531,7 +532,7 @@ public class StarTableOutput {
             Class<? extends StarTableWriter> hclazz =
                 clazz.asSubclass( StarTableWriter.class );
             try {
-                return hclazz.newInstance();
+                return hclazz.getDeclaredConstructor().newInstance();
             }
             catch ( ReflectiveOperationException e ) {
                 throw new TableFormatException( "Can't instantiate class "
