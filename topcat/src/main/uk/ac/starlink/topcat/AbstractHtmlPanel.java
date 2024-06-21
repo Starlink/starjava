@@ -55,7 +55,7 @@ public abstract class AbstractHtmlPanel extends JPanel {
                 hasFx_ = Boolean.TRUE;
             }
             catch ( Throwable e ) {
-                logger_.log( Level.INFO, "No JavaFX: " + e, e );
+                logger_.log( Level.INFO, "No JavaFX: " + e );
                 hasFx_ = Boolean.FALSE;
             }
         }
@@ -72,6 +72,11 @@ public abstract class AbstractHtmlPanel extends JPanel {
     public static AbstractHtmlPanel createFxPanel() {
         if ( hasJavaFx() ) {
             try {
+
+                /* Note: at time of writing this class is provided
+                 * (with source) in the source package as a pre-built
+                 * class in a separate jar file, to avoid problems with
+                 * building it in an environment that may lack JavaFX. */
                 return new FxHtmlPanel();
             }
             catch ( Throwable e ) {
