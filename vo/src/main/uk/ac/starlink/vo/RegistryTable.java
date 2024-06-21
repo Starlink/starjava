@@ -15,8 +15,9 @@ import uk.ac.starlink.util.gui.ArrayTableSorter;
 
 /**
  * Specialised JTable for displaying the results of a registry query 
- * (<tt>RegResource</tt> elements).
- * It installs specialised <tt>TableModel</tt> and <tt>TableColumnModel</tt>,
+ * (<code>RegResource</code> elements).
+ * It installs specialised <code>TableModel</code> and
+ * <code>TableColumnModel</code>,
  * so these should not be reset.
  * It provides a number of convenience features for making sure that
  * the column widths are and stay reasonably sensible.
