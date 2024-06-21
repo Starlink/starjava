@@ -9,12 +9,12 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Event;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -114,15 +114,15 @@ public class TapQueryPanel extends JPanel {
     private UndoManager undoer_;
 
     private static final KeyStroke[] UNDO_KEYS = new KeyStroke[] {
-        KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.CTRL_MASK ),
-        KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.META_MASK ),
+        KeyStroke.getKeyStroke( KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK ),
+        KeyStroke.getKeyStroke( KeyEvent.VK_Z, InputEvent.META_DOWN_MASK ),
     };
     private static final KeyStroke[] REDO_KEYS = new KeyStroke[] {
-        KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.CTRL_MASK
-                                             | Event.SHIFT_MASK ),
-        KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.META_MASK
-                                             | Event.SHIFT_MASK ),
-        KeyStroke.getKeyStroke( KeyEvent.VK_Y, Event.CTRL_MASK ),
+        KeyStroke.getKeyStroke( KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK
+                                             | InputEvent.SHIFT_DOWN_MASK ),
+        KeyStroke.getKeyStroke( KeyEvent.VK_Z, InputEvent.META_DOWN_MASK
+                                             | InputEvent.SHIFT_DOWN_MASK ),
+        KeyStroke.getKeyStroke( KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK ),
     };
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
