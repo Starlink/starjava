@@ -5,8 +5,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import javax.swing.SwingUtilities;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Worker;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -33,26 +31,16 @@ public class FxHtmlPanel extends AbstractHtmlPanel {
     public FxHtmlPanel() {
         fxPanel_ = new JFXPanel();
         add( fxPanel_, BorderLayout.CENTER );
-        Platform.runLater( new Runnable() {
-            public void run() {
-                initFxWebView();
-            }
-        } );
+        Platform.runLater( () -> initFxWebView() );
     }
 
     public void setUrl( final URL url ) {
-        Platform.runLater( new Runnable() {
-            public void run() {
-                final URL oldUrl =
-                    toUrl( engine_.locationProperty().getValue() );
-                engine_.load( url == null ? null : url.toString() );
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        FxHtmlPanel.this
-                       .firePropertyChange( "url", oldUrl, url );
-                    }
-                } );
-            }
+        Platform.runLater( () -> {
+            final URL oldUrl = toUrl( engine_.locationProperty().getValue() );
+            engine_.load( url == null ? null : url.toString() );
+            SwingUtilities.invokeLater( () ->
+                FxHtmlPanel.this.firePropertyChange( "url", oldUrl, url )
+            );
         } );
     }
 
@@ -67,38 +55,28 @@ public class FxHtmlPanel extends AbstractHtmlPanel {
     private void initFxWebView() {
         WebView view = new WebView();
         engine_ = view.getEngine();
-        engine_.locationProperty().addListener( new ChangeListener<String>() {
-            public void changed( ObservableValue<? extends String> ov,
-                                 String oldValue, String newValue ) {
-                final URL oldUrl = toUrl( oldValue );
-                final URL newUrl = toUrl( newValue );
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        FxHtmlPanel.this
-                       .firePropertyChange( "url", oldUrl, newUrl );
-                    }
-                } );
-            }
+        engine_.locationProperty().addListener( (ov, oldValue, newValue) -> {
+            final URL oldUrl = toUrl( oldValue );
+            final URL newUrl = toUrl( newValue );
+            SwingUtilities.invokeLater( () -> 
+                FxHtmlPanel.this.firePropertyChange( "url", oldUrl, newUrl )
+            );
         } );
         final Worker<Void> loadWorker = engine_.getLoadWorker();
-        loadWorker.stateProperty()
-                  .addListener( new ChangeListener<Worker.State>() {
-            public void changed( ObservableValue<? extends Worker.State> obs,
-                                 Worker.State oldState, Worker.State state ) {
-                if ( state == Worker.State.FAILED ) {
-                    Throwable err = loadWorker.exceptionProperty().getValue();
-                    StringBuffer msg = new StringBuffer()
-                       .append( "<html><body>" )
-                       .append( "<p><b>Page load error" )
-                       .append( err == null ? "" : ":" )
-                       .append( "</b></p>" );
-                    if ( err != null ) {
-                        msg.append( "<p>" )
-                           .append( err )
-                           .append( "</p>" );
-                    }
-                    engine_.loadContent( msg.toString(), "text/html" );
+        loadWorker.stateProperty().addListener( (ov, oldState, state) -> {
+            if ( state == Worker.State.FAILED ) {
+                Throwable err = loadWorker.exceptionProperty().getValue();
+                StringBuffer msg = new StringBuffer()
+                   .append( "<html><body>" )
+                   .append( "<p><b>Page load error" )
+                   .append( err == null ? "" : ":" )
+                   .append( "</b></p>" );
+                if ( err != null ) {
+                    msg.append( "<p>" )
+                       .append( err )
+                       .append( "</p>" );
                 }
+                engine_.loadContent( msg.toString(), "text/html" );
             }
         } );
         fxPanel_.setScene( new Scene( view ) );
