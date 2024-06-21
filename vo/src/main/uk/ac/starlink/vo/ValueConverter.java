@@ -35,8 +35,8 @@ public abstract class ValueConverter {
      * Converts a string value to a numeric for this format
      *
      * @param   sval  string value
-     * @return   numeric equivalent of <tt>sval</tt>
-     * @throws   IllegalArgumentException if <tt>sval</tt> doesn't make
+     * @return   numeric equivalent of <code>sval</code>
+     * @throws   IllegalArgumentException if <code>sval</code> doesn't make
      *           sense to this converter
      */
     public abstract double convertValue( String sval );
@@ -45,7 +45,7 @@ public abstract class ValueConverter {
      * Converts a numeric value to a string value for this format.
      *
      * @param  dval  numeric value
-     * @return  string representation of <tt>dval</tt>
+     * @return  string representation of <code>dval</code>
      */
     public abstract String unconvertValue( double dval );
 

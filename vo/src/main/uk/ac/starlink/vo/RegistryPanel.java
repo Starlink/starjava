@@ -576,7 +576,7 @@ public class RegistryPanel extends JPanel {
 
     /**
      * Configures this component to be working on a query or not.
-     * If <tt>message</tt> is non-null, it is displayed to the user,
+     * If <code>message</code> is non-null, it is displayed to the user,
      * and normal interaction is suspended.  Otherwise, normal interaction
      * is resumed.
      *
