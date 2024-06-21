@@ -23,7 +23,7 @@ public class DoubleParameter extends Parameter<Double> {
     }
 
     /**
-     * Returns the value of this parameter as a <tt>double</tt>.
+     * Returns the value of this parameter as a <code>double</code>.
      * A null string value, if permitted, will give a NaN result.
      *
      * @param   env  execution environment

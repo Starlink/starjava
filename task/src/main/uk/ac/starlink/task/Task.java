@@ -2,7 +2,7 @@ package uk.ac.starlink.task;
 
 /**
  * Defines a user-level task.
- * Each task has a list of parameters, and an <tt>invoke</tt> method.
+ * Each task has a list of parameters, and an <code>invoke</code> method.
  *
  * @author   Mark Taylor (Starlink)
  */

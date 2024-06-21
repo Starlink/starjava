@@ -205,11 +205,11 @@ public abstract class Parameter<T> {
      * Gets the value of this parameter as a String.
      * The value is lazily acquired by the supplied environment object.
      *
-     * <p>The returned value may be <tt>null</tt> 
+     * <p>The returned value may be <code>null</code> 
      * only if the {@link #isNullPermitted} method returns true.
      *
      * @param   env  execution environment from which value is obtained
-     * @return   the value of this parameter as a string, or <tt>null</tt>
+     * @return   the value of this parameter as a string, or <code>null</code>
      * @throws  AbortException  if during the course of trying to obtain
      *          a value the Environment determines that the task should
      *          not continue.
@@ -228,7 +228,7 @@ public abstract class Parameter<T> {
      * if the {@link #isNullPermitted} method returns true.
      *
      * @param   env  execution environment from which value is obtained
-     * @return   the value of this parameter as a string, or <tt>null</tt>
+     * @return   the value of this parameter as a string, or <code>null</code>
      * @throws  AbortException  if during the course of trying to obtain
      *          a value the Environment determines that the task should
      *          not continue.

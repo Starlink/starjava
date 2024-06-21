@@ -19,26 +19,26 @@ could be written to invoke the same tasks.
     the actual value of the parameter when it has been obtained from
     the environment.  When it has obtained a value it can return it
     as a string.
-    <tt>Parameter</tt> can be subclassed to enforce different validity
+    <code>Parameter</code> can be subclassed to enforce different validity
     constraints or so it knows how to return itself as some object other
     than a string (see for instance 
     {@link uk.ac.starlink.task.IntegerParameter}).
 
-<dt><tt>{@link uk.ac.starlink.task.Environment}</tt>
+<dt><code>{@link uk.ac.starlink.task.Environment}</code>
 <dd>is an interface which defines how to request
     the value of a parameter.  It can also tell you about what output
     stream to use for messages to be dispatched to the user.
 
 <dt>{@link uk.ac.starlink.task.TerminalEnvironment}
-<dd>is an implementation of <tt>Environment</tt> which assumes a user
+<dd>is an implementation of <code>Environment</code> which assumes a user
     is sitting at a terminal with standard input and standard output.
 
 <dt>{@link uk.ac.starlink.task.TerminalInvoker}
-<dd>given a map of task names to <tt>Task</tt> objects will use a 
-    <tt>TerminalEnvironment</tt> to invoke tasks from an <tt>args</tt>-style
-    string array.
+<dd>given a map of task names to <code>Task</code> objects will use a 
+    <code>TerminalEnvironment</code> to invoke tasks from
+    an <code>args</code>-style string array.
 
-<dt><tt>{@link uk.ac.starlink.task.Task}</tt>
+<dt><code>{@link uk.ac.starlink.task.Task}</code>
 <dd>is the interface which user tasks themselves have to implement.
     A Task must be able to return a list of the parameters which it uses;
     since each parameter knows its name, default value, order on the
@@ -52,12 +52,12 @@ could be written to invoke the same tasks.
 </dl>
 
 <p>Setting up a user-level package containing tasks is then a case of
-writing a top-level class with a <tt>main</tt> method which invokes
-<tt>TerminalInvoker</tt>, and writing a number of classes which 
-implement <tt>Task</tt>.  See the NDTools package for an example.
+writing a top-level class with a <code>main</code> method which invokes
+<code>TerminalInvoker</code>, and writing a number of classes which 
+implement <code>Task</code>.  See the NDTools package for an example.
 
 <p>To invoke the same tasks from a GUI you'd want to write something like
-a <tt>GUIEnvironment</tt> and <tt>GUIInvoker</tt> class.
+a <code>GUIEnvironment</code> and <code>GUIInvoker</code> class.
 
 
 </body>
