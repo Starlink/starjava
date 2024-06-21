@@ -1117,7 +1117,7 @@ public class StarTableFactory {
         if ( clazz != null ) {
             TableBuilder tbuilder;
             try {
-                tbuilder = clazz.newInstance();
+                tbuilder = clazz.getDeclaredConstructor().newInstance();
             }
             catch ( ReflectiveOperationException e ) {
                 throw new TableFormatException( "Can't instantiate class "
@@ -1412,7 +1412,7 @@ public class StarTableFactory {
                 @SuppressWarnings("unchecked")
                 Class<? extends T> clazz =
                     (Class<? extends T>) Class.forName( cname );
-                T instance = clazz.newInstance();
+                T instance = clazz.getDeclaredConstructor().newInstance();
                 list.add( instance );
                 logger.config( cname + " registered" );
             }
