@@ -2041,7 +2041,7 @@ public class ControlWindow extends AuxWindow
          * Throw it away after that.  Not ideal. */
         TableLoadDialog tld0;
         try {
-            tld0 = tldClazz.newInstance();
+            tld0 = tldClazz.getDeclaredConstructor().newInstance();
         }
         catch ( Throwable e ) {
             logger_.log( Level.WARNING, "Can't set up TAP action", e );
