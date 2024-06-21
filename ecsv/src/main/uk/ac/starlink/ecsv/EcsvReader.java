@@ -146,7 +146,7 @@ public class EcsvReader implements Closeable {
     /**
      * Returns the contents of a cell in the current row.
      *
-     * @return  the contents of cell <tt>icol</tt> in the current row
+     * @return  the contents of cell <code>icol</code> in the current row
      */
     public Object getCell( int icol ) {
         if ( cellWords_ == null ) {
