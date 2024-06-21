@@ -3,10 +3,10 @@ package uk.ac.starlink.table.join;
 /**
  * Represents a reference to a table row.
  * This class really just exists to encapsulate the combination of an
- * <tt>int</tt> index referencing a table
- * and a <tt>long</tt> referencing a row of that table.
- * Importantly though, it implements <tt>equals</tt>, <tt>hashCode</tt>
- * and the <tt>Comparable</tt> interface in such a way as to make it
+ * <code>int</code> index referencing a table
+ * and a <code>long</code> referencing a row of that table.
+ * Importantly though, it implements <code>equals</code>, <code>hashCode</code>
+ * and the <code>Comparable</code> interface in such a way as to make it
  * suitable for use as keys in a SortedSet.
  * The sort order defined sorts lowest table index first, then lowest
  * row index.

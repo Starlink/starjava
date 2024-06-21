@@ -29,12 +29,12 @@ public class IsotropicCartesianMatchEngine
 
     /**
      * Constructs a matcher which matches points in an
-     * <tt>ndim</tt>-dimensional Cartesian space.
+     * <code>ndim</code>-dimensional Cartesian space.
      * An initial isotropic error margin is specified.
      *
      * @param   ndim  dimensionality of the space
      * @param   err  initial maximum distance between two matching points
-     * @param   normaliseScores  <tt>true</tt> iff you want match scores
+     * @param   normaliseScores  <code>true</code> iff you want match scores
      *                           to be normalised
      */
     public IsotropicCartesianMatchEngine( int ndim, double err, 

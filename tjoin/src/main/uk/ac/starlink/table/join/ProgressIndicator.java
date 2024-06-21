@@ -25,7 +25,7 @@ public interface ProgressIndicator {
      * Specifies that the work of the most recently-started stage is a certain
      * proportion complete.  Calls to this method must take place 
      * between paired calls to {@link #startStage} and {@link #endStage},
-     * preferably with non-decreasing values of <tt>level</tt>.
+     * preferably with non-decreasing values of <code>level</code>.
      *
      * <p>The method may throw an InterruptedException as a message to the
      * caller that the work should be interrupted.  A caller which 

@@ -203,19 +203,20 @@ public abstract class Match1Type {
      * Constructs a new wide table from a single given base table and a set of
      * RowLinks.  The resulting table consists of a number of sections
      * of the original table placed side by side, so it has
-     * <tt>width</tt> times the number of columns that <tt>table</tt> does.
+     * <code>width</code> times the number of columns
+     * that <code>table</code> does.
      * Each row is constructed from one or more rows of the original table;
      * each output row corresponds to a single RowLink.
-     * Only row links which have at least <tt>minSize</tt> entries and
-     * no more than <tt>maxSize</tt> entries are converted into output rows;
+     * Only row links which have at least <code>minSize</code> entries and
+     * no more than <code>maxSize</code> entries are converted into output rows;
      * if there are more entries than the width of the table the extras
      * are just discarded.
      * Any row references in a RowLink not corresponding to table index
-     * <tt>iTable</tt> are ignored.
+     * <code>iTable</code> are ignored.
      *
      * @param  table  input table
      * @param  iTable  index corresponding to this table in the
-     *                 <tt>rowLinks</tt> set
+     *                 <code>rowLinks</code> set
      * @param  links     collection of {@link RowLink} objects describing the
      *                   matches.  This collection is modified on exit
      * @param  width     width of the output table as a multiple of the
@@ -226,7 +227,8 @@ public abstract class Match1Type {
      *                   an output row; also the width of the output table
      *                   (as a multiple of the width of the input table)
      * @param  fixActs   actions to take for deduplicating column names
-     *                   (<tt>width</tt>-element array, or <tt>null</tt>)
+     *                   (<code>width</code>-element array,
+     *                   or <code>null</code>)
      */
     private static StarTable makeParallelMatchTable( StarTable table,
                                                      int iTable,

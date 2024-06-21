@@ -191,7 +191,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
      * the Cartesian coordinates.
      *
      * @param  idim  index of the coordinate in question
-     * @return  metadata for coordinate <tt>idim</tt>
+     * @return  metadata for coordinate <code>idim</code>
      */
     ValueInfo createCoordinateInfo( int idim ) {
         DefaultValueInfo info =
@@ -205,7 +205,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
      * Returns a name for one of the coordinates.
      *
      * @param  idim  index of coordinate
-     * @return  name to use for coordinate <tt>idim</tt>
+     * @return  name to use for coordinate <code>idim</code>
      */
     String getCoordinateName( int idim ) {
         return ndim_ <= 3 ? new String[] { "X", "Y", "Z" }[ idim ]
@@ -216,7 +216,7 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
      * Returns the description of one of the coordinates.
      *
      * @param  idim  index of coordinate
-     * @return  description to use for coordinate <tt>idim</tt>
+     * @return  description to use for coordinate <code>idim</code>
      */
     String getCoordinateDescription( int idim ) {
         return "Cartesian co-ordinate #" + ( idim + 1 );

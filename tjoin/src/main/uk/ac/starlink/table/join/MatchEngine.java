@@ -85,7 +85,7 @@ public interface MatchEngine {
      * Returns a set of ValueInfo objects indicating what is required for
      * the elements of each tuple.  The length of this array is the 
      * number of elements in the tuple.  Each element should at least
-     * have a defined name and content class.  The info's <tt>nullable</tt> 
+     * have a defined name and content class.  The info's <code>nullable</code> 
      * attribute has a special meaning: if true it means that it makes
      * sense for this element of the tuple to be always blank (for instance
      * assigned to no column).

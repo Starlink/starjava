@@ -18,16 +18,16 @@ package uk.ac.starlink.table.join;
  * <p>Formally, the requirements for correct implementations of this
  * interface are as follows:
  * <ol>
- * <li><tt>matchScore(t1,t2)</tt> == <tt>matchScore(t2,t1)</tt>
- * <li><tt>matchScore(t1,t2)&gt;=0</tt> implies a non-zero intersection of
- *     <tt>getBins(t1)</tt> and <tt>getBins(t2)</tt>
+ * <li><code>matchScore(t1,t2)</code> == <code>matchScore(t2,t1)</code>
+ * <li><code>matchScore(t1,t2)&gt;=0</code> implies a non-zero intersection of
+ *     <code>getBins(t1)</code> and <code>getBins(t2)</code>
  * </ol>
  * The best efficiency will be achieved when:
  * <ol>
- * <li>the intersection of <tt>getBins(t1)</tt> and <tt>getBins(t2)</tt>
- *     is as small as possible for non-matching <tt>t1</tt> and <tt>t2</tt>
- *     (preferably 0)
- * <li>the number of bins returned by <tt>getBins</tt> is as small as
+ * <li>the intersection of <code>getBins(t1)</code> and <code>getBins(t2)</code>
+ *     is as small as possible for non-matching <code>t1</code>
+ *     and <code>t2</code> (preferably 0)
+ * <li>the number of bins returned by <code>getBins</code> is as small as
  *     possible (preferably 1)
  * </ol>
  * These two efficiency requirements are usually conflicting to some extent.
@@ -52,19 +52,19 @@ public interface MatchKit {
      * Returns a set of keys for bins into which possible matches for
      * a given tuple might fall.
      * The returned objects can be anything, but should have their
-     * <tt>equals</tt> and <tt>hashCode</tt> methods implemented
+     * <code>equals</code> and <code>hashCode</code> methods implemented
      * properly for comparison.
      *
      * @param  tuple   tuple
      * @return   set of bin keys which might be returned by invoking this
      *           method on other tuples which count as matches for the
-     *           submitted <tt>tuple</tt>
+     *           submitted <code>tuple</code>
      */
     Object[] getBins( Object[] tuple );
 
     /**
      * Indicates whether two tuples count as matching each other, and if
-     * so how closely.  If <tt>tuple1</tt> and <tt>tuple2</tt> are
+     * so how closely.  If <code>tuple1</code> and <code>tuple2</code> are
      * considered as a matching pair, then a non-negative value should
      * be returned indicating how close the match is - the higher the
      * number the worse the match, and a return value of zero indicates
@@ -82,7 +82,7 @@ public interface MatchKit {
      *
      * @param  tuple1  one tuple
      * @param  tuple2  the other tuple
-     * @return  'distance' between <tt>tuple1</tt> and <tt>tuple2</tt>;
+     * @return  'distance' between <code>tuple1</code> and <code>tuple2</code>;
      *          0 is a perfect match, larger values indicate worse matches,
      *          negative values indicate no match
      */
