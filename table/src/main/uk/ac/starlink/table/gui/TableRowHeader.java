@@ -20,8 +20,9 @@ import javax.swing.table.TableModel;
 
 /**
  * Provides a component suitable for use as a rowHeader component in
- * the same <tt>JScrollPane</tt> as is being used to house a 
- * <tt>JTable</tt>.  It displays the row indices starting at 1 and increasing.
+ * the same <code>JScrollPane</code> as is being used to house a 
+ * <code>JTable</code>.
+ * It displays the row indices starting at 1 and increasing.
  * If you want some other number to be displayed, override the
  * {@link #rowNumber} method.
  * <p>
@@ -179,7 +180,7 @@ public class TableRowHeader extends JTable {
     /**
      * Determines the numeric index to be displayed for a given row 
      * number into the table.  The default implementation returns
-     * <tt>irow+1</tt> so that the first row is labelled 1, the second
+     * <code>irow+1</code> so that the first row is labelled 1, the second
      * one 2 etc, but this method may be overridden for more specialised
      * behaviour.
      * 

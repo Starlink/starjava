@@ -158,7 +158,7 @@ public class AsciiStarTable extends StreamStarTable {
 
     /**
      * Tries to make sense of any comment lines which have been read.
-     * It may make changes to the initial <tt>colInfos</tt> set with
+     * It may make changes to the initial <code>colInfos</code> set with
      * which it is provided.
      *
      * @param  colInfos  column infos already worked out for this table
@@ -211,7 +211,7 @@ public class AsciiStarTable extends StreamStarTable {
      *
      * @param  in  input stream
      * @return  list of Strings one for each cell in the row, or 
-     *          <tt>null</tt> for end of stream
+     *          <code>null</code> for end of stream
      */
     @SuppressWarnings("fallthrough")
     protected List<String> readRow( PushbackInputStream in )

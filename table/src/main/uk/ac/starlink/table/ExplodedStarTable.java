@@ -252,7 +252,7 @@ public class ExplodedStarTable extends WrapperStarTable {
          * @param  baseIndex  index of the column in the base table 
          *         corresponding to this column
          * @param  subIndex  index of the element in the array value of the
-         *         <tt>baseIndex</tt> column in the base table; -1 if
+         *         <code>baseIndex</code> column in the base table; -1 if
          *         it's scalar
          * @param  label  suffix describing the position of the subindex
          */

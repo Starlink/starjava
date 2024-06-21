@@ -332,10 +332,10 @@ public class JDBCFormatter {
      * Returns a mapping of Type id to SQL type name.  The map key is
      * an Integer object with the value of the corresponding 
      * {@link java.sql.Types} constant and the value is a string which
-     * <tt>conn</tt> will understand.
+     * <code>conn</code> will understand.
      *
      * @param  conn  the connection to work out the mapping for
-     * @return   a new type id-&gt;name mapping for <tt>conn</tt>
+     * @return   a new type id-&gt;name mapping for <code>conn</code>
      */
     private static Map<Integer,String> makeTypesMap( Connection conn )
             throws SQLException {
@@ -371,9 +371,9 @@ public class JDBCFormatter {
     }
 
     /**
-     * Doctors a type map by adding an entry for a given type <tt>req</tt> 
-     * with a copy of an existing one <tt>fallback</tt>, if the map
-     * doesn't contain <tt>req</tt> in the first place.
+     * Doctors a type map by adding an entry for a given type <code>req</code> 
+     * with a copy of an existing one <code>fallback</code>, if the map
+     * doesn't contain <code>req</code> in the first place.
      *
      * @param  types  type -> name mapping
      * @param  req   required type code
@@ -395,7 +395,7 @@ public class JDBCFormatter {
      * @param  name  initial column name
      * @param  maxLeng  maximum name length; 0 means no limit
      * @param  idType   type of identifier being quoted, used in log messages
-     * @return   fixed column name (may be the same as <tt>name</tt>)
+     * @return   fixed column name (may be the same as <code>name</code>)
      */
     private String fixName( String name, int maxLeng, String idtype ) {
         final String name0 = name;

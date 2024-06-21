@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * Defines an object which can output a <tt>StarTable</tt> in a particular
+ * Defines an object which can output a <code>StarTable</code> in a particular
  * format.
  *
  * @author   Mark Taylor (Starlink)
@@ -12,8 +12,8 @@ import java.io.OutputStream;
 public interface StarTableWriter {
    
     /**
-     * Writes a <tt>StarTable</tt> object to a given output stream.
-     * The implementation can assume that <tt>out</tt> is suitable for
+     * Writes a <code>StarTable</code> object to a given output stream.
+     * The implementation can assume that <code>out</code> is suitable for
      * direct writing (for instance it should not normally wrap it in a 
      * {@link java.io.BufferedOutputStream}), and should not close it
      * at the end of the call.
@@ -23,7 +23,7 @@ public interface StarTableWriter {
      * indicate that it cannot do so.
      *
      * @param  startab  the table to write
-     * @param  out  the output stream to which <tt>startab</tt> should be 
+     * @param  out  the output stream to which <code>startab</code> should be 
      *              written
      * @throws  TableFormatException  if this table cannot be written to a
      *          stream
@@ -33,20 +33,20 @@ public interface StarTableWriter {
             throws TableFormatException, IOException;
 
     /**
-     * Writes a <tt>StarTable</tt> object to a given location.
-     * Implementations are free to interpret the <tt>location</tt> argument
+     * Writes a <code>StarTable</code> object to a given location.
+     * Implementations are free to interpret the <code>location</code> argument
      * in any way appropriate for them.  Typically however the location
      * will simply be used to get an output stream (for instance interpreting
-     * it as a filename).  In this case the <tt>sto</tt> argument should
-     * normally be used to turn <tt>location</tt> into a stream.
+     * it as a filename).  In this case the <code>sto</code> argument should
+     * normally be used to turn <code>location</code> into a stream.
      * {@link StreamStarTableWriter} provides a suitable implementation
      * for this case.
      *
      * @param  startab  table to write
-     * @param  location   destination for <tt>startab</tt>
+     * @param  location   destination for <code>startab</code>
      * @param  sto     StarTableOutput which dispatched this request
-     * @throws  TableFormatException   if <tt>startab</tt> cannot be written
-     *          to <tt>location</tt>
+     * @throws  TableFormatException   if <code>startab</code> cannot be
+     *          written to <code>location</code>
      * @throws  IOException  if there is some I/O error
      */
     void writeStarTable( StarTable startab, String location, 
@@ -57,12 +57,12 @@ public interface StarTableWriter {
      * Indicates whether the destination is of a familiar form for this
      * kind of writer.  This may be used to guess what kind of format
      * a table should be written in.  Implementations should return
-     * <tt>true</tt> for values of <tt>location</tt> which look like
+     * <code>true</code> for values of <code>location</code> which look like
      * the normal form for their output format, for instance one with
      * the usual file extension.
      *
      * @param  location  the location name (probably filename)
-     * @return <tt>true</tt> iff it looks like a file this writer would
+     * @return <code>true</code> iff it looks like a file this writer would
      *         normally write
      */
     boolean looksLikeFile( String location );

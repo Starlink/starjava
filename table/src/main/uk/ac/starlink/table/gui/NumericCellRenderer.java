@@ -102,11 +102,12 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
 
     /**
      * Sets the state of this renderer, overriding the method in 
-     * <tt>DefaultTableCellRenderer</tt> to provide more intelligent behaviour.
+     * <code>DefaultTableCellRenderer</code> to provide
+     * more intelligent behaviour.
      * <p>
      * Subclasses note: the work is done by invoking this object's
-     * <tt>setText</tt> and possibly <tt>setIcon</tt> methods (remember this 
-     * object is a <tt>javax.swing.JLabel</tt>).
+     * <code>setText</code> and possibly <code>setIcon</code> methods
+     * (remember this object is a <code>javax.swing.JLabel</code>).
      *
      * @param  value  the value to be rendered
      */
@@ -235,7 +236,7 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
 
     /**
      * Sets a value to be regarded as bad when found in a non-header cell.
-     * Any cell containing an object which <tt>equals()</tt> this value
+     * Any cell containing an object which <code>equals()</code> this value
      * will be represented specially in the table body (currently just blank).
      *
      * @param  badValue  the special bad value
@@ -306,7 +307,7 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
     }
 
     /**
-     * Does fixed-type formatting of a <tt>double</tt> value.
+     * Does fixed-type formatting of a <code>double</code> value.
      */
     private String formatFixedDouble( double dval ) {
         if ( fixFormatDouble == null ) {
@@ -335,7 +336,7 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
     }
 
     /**
-     * Does fixed-type formatting of a <tt>float</tt> value.
+     * Does fixed-type formatting of a <code>float</code> value.
      */
     private String formatFixedFloat( float fval ) {
         if ( fixFormatFloat0 == null ) {
@@ -408,7 +409,7 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
     }
 
     /**
-     * Does scientific-type formatting of a <tt>double</tt> value.
+     * Does scientific-type formatting of a <code>double</code> value.
      */
     private String formatSciDouble( double dval ) {
         if ( sciFormatDouble == null ) {
@@ -428,7 +429,7 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
     }
 
     /**
-     * Does scientific-type formatting of a <tt>float</tt> value.
+     * Does scientific-type formatting of a <code>float</code> value.
      */
     private String formatSciFloat( float fval ) {
         if ( sciFormatFloat == null ) {

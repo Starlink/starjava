@@ -11,7 +11,8 @@ import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
- * A <tt>StarTableWriter</tt> which outputs text to a human-readable text file.
+ * A <code>StarTableWriter</code> which outputs text to
+ * a human-readable text file.
  * Table parameters (per-table metadata) can optionally be output 
  * as well as the table data themselves.
  *

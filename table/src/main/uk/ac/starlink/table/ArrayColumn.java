@@ -14,10 +14,10 @@ public abstract class ArrayColumn extends ColumnData {
     private final Object data;
 
     /**
-     * Constructs a new column based on an existing <tt>ColumnInfo</tt> object
-     * and with a given number of rows.
+     * Constructs a new column based on an existing <code>ColumnInfo</code>
+     * object and with a given number of rows.
      *
-     * @param   base   the template <tt>ColumnInfo</tt>
+     * @param   base   the template <code>ColumnInfo</code>
      * @param   data   the array used to hold the data
      */
     ArrayColumn( final ColumnInfo base, Object data ) {
@@ -84,18 +84,18 @@ public abstract class ArrayColumn extends ColumnData {
     }
 
     /**
-     * Obtains an <tt>ArrayColumn</tt> object based on a template 
+     * Obtains an <code>ArrayColumn</code> object based on a template 
      * object with a given number of rows.  A new ColumnInfo object
      * will be constructed based on the given one.  It will return a 
-     * PrimitiveArrayColumn if <tt>info</tt> describes a primitive type.
+     * PrimitiveArrayColumn if <code>info</code> describes a primitive type.
      *
-     * @param   base  the template <tt>ColumnInfo</tt> - note this is
+     * @param   base  the template <code>ColumnInfo</code> - note this is
      *          not the actual ColumnInfo object which will be returned
-     *          by the <tt>getColumnInfo</tt> method of the returned 
-     *          <tt>ArrayColumn</tt>
+     *          by the <code>getColumnInfo</code> method of the returned 
+     *          <code>ArrayColumn</code>
      * @param   rowCount  the number of rows it is to hold
-     * @return  a new <tt>ArrayColumn</tt> based on <tt>base</tt> with
-     *          storage for <tt>rowCount</tt> elements
+     * @return  a new <code>ArrayColumn</code> based on <code>base</code> with
+     *          storage for <code>rowCount</code> elements
      */
     public static ArrayColumn makeColumn( ColumnInfo base, long rowCount ) {
 
@@ -136,21 +136,21 @@ public abstract class ArrayColumn extends ColumnData {
 
     /**
      * Constructs a new ArrayColumn based on a given data array.
-     * The <tt>contentClass</tt> of the given base column info must
+     * The <code>contentClass</code> of the given base column info must
      * be compatible with the supplied data array; in the case of
-     * a primitive <tt>data</tt> array it should be that of the 
+     * a primitive <code>data</code> array it should be that of the 
      * corresponding wrapper class, and for non-primitive classes
      * it should be the class of what the array is an array of.
-     * Alternatively, the <tt>base</tt> column info may have a 
-     * <tt>null</tt> content class, in which case the column info for
+     * Alternatively, the <code>base</code> column info may have a 
+     * <code>null</code> content class, in which case the column info for
      * the new column will be set appropriately from the data array.
      *
      * @param  base  the column info on which to base this column's info
      * @param  data  an array of primitives or objects which will form
      *         the storage for this column
-     * @throws  IllegalArgumentException if <tt>data</tt> isn't an array or 
-     *          <tt>base.getContentClass()</tt> is incompatible with 
-     *          <tt>data</tt>
+     * @throws  IllegalArgumentException if <code>data</code> isn't an array or 
+     *          <code>base.getContentClass()</code> is incompatible with 
+     *          <code>data</code>
      */
     public static ArrayColumn makeColumn( ColumnInfo base, Object data ) {
 

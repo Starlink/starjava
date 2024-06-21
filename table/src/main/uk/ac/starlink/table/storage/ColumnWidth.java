@@ -11,7 +11,7 @@ import uk.ac.starlink.table.Tables;
 abstract class ColumnWidth {
 
     /**
-     * Returns the number of bytes used in row <tt>lrow</tt> to store the
+     * Returns the number of bytes used in row <code>lrow</code> to store the
      * data for this column. 
      *
      * @param   lrow  row index
@@ -20,10 +20,10 @@ abstract class ColumnWidth {
     public abstract int getWidth( long lrow );
 
     /**
-     * Indicates whether the return value of <tt>getWidth</tt> is a 
-     * varying function of <tt>lrow</tt> or not.
+     * Indicates whether the return value of <code>getWidth</code> is a 
+     * varying function of <code>lrow</code> or not.
      *
-     * @return  if true, <tt>getWidth</tt> always gives the same answer
+     * @return  if true, <code>getWidth</code> always gives the same answer
      */
     public abstract boolean isConstant();
 

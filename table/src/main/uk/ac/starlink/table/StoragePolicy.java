@@ -27,7 +27,7 @@ import uk.ac.starlink.util.Loader;
  * The initial value of this may be selected by setting the 
  * system property named by the string {@link #PREF_PROPERTY}
  * ("startable.storage").
- * You may also use the name of a class which extends <tt>StoragePolicy</tt>
+ * You may also use the name of a class which extends <code>StoragePolicy</code>
  * and has a no-arg constructor, in which case one of these will be
  * instantiated and used.
  * The default, if not otherwise set, corresponds to "<code>adaptive</code>".
@@ -126,7 +126,7 @@ public abstract class StoragePolicy {
     abstract public ByteStore makeByteStore();
 
     /**
-     * Returns a new <tt>RowStore</tt> object which can be used to
+     * Returns a new <code>RowStore</code> object which can be used to
      * provide a destination for random-access table storage.
      *
      * @return   a RowStore object
@@ -139,20 +139,20 @@ public abstract class StoragePolicy {
      *
      * @param   meta  template giving the metadata which describes the rows
      *          that will have to be stored
-     * @return  a RowStore on which <tt>acceptMetadata(meta)</tt> has been
+     * @return  a RowStore on which <code>acceptMetadata(meta)</code> has been
      *          called
      */
     abstract public RowStore makeConfiguredRowStore( StarTable meta );
 
     /**
      * Returns a table based on a given table and guaranteed to have
-     * random access.  If the original table <tt>table</tt> has random
+     * random access.  If the original table <code>table</code> has random
      * access then it is returned, otherwise a new random access table
      * is built using its data.
      *
      * @param  table  original table
-     * @return  a table with the same data as <tt>table</tt> and with
-     *          <tt>isRandom()==true</tt>
+     * @return  a table with the same data as <code>table</code> and with
+     *          <code>isRandom()==true</code>
      */
     public StarTable randomTable( StarTable table ) throws IOException {
 
@@ -224,7 +224,7 @@ public abstract class StoragePolicy {
      * It might also use memory if it thinks it's got a small table 
      * to deal with.
      * Temporary disk files are written in the default temporary 
-     * directory, which is the value of the <tt>java.io.tmpdir</tt>
+     * directory, which is the value of the <code>java.io.tmpdir</code>
      * system property.  These files will be deleted when the JVM exits,
      * if not before.  They will <em>probably</em> be deleted around the
      * time they are no longer needed (when the RowStore in question is 
@@ -251,7 +251,7 @@ public abstract class StoragePolicy {
      * to using memory storage.
      * Temporary disk files (at least one per column) are written 
      * in the default temporary directory, which is the value of the 
-     * <tt>java.io.tmpdir</tt> system property.  
+     * <code>java.io.tmpdir</code> system property.  
      * These files will be deleted when the JVM exits,
      * if not before.  They will <em>probably</em> be deleted around the
      * time they are no longer needed (when the RowStore in question is 
@@ -291,7 +291,7 @@ public abstract class StoragePolicy {
      * Storage policy which will store small amounts of data in an array
      * in memory, and larger amounts in a scratch disk file.
      * Temporary disk files are written in the default temporary 
-     * directory, which is the value of the <tt>java.io.tmpdir</tt>
+     * directory, which is the value of the <code>java.io.tmpdir</code>
      * system property.  These files will be deleted when the JVM exits,
      * if not before.  They will <em>probably</em> be deleted around the
      * time they are no longer needed (when the RowStore in question is 

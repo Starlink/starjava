@@ -13,9 +13,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Default implementation of the <tt>ValueInfo</tt> interface.
+ * Default implementation of the <code>ValueInfo</code> interface.
  * Additionally provides mutator methods for the accessors defined in 
- * <tt>ValueInfo</tt>.
+ * <code>ValueInfo</code>.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -39,7 +39,7 @@ public class DefaultValueInfo implements ValueInfo {
     private static Pattern trailSpaces = Pattern.compile( "( +)$" );
 
     /**
-     * Constructs a new generic <tt>DefaultValueInfo</tt> object
+     * Constructs a new generic <code>DefaultValueInfo</code> object
      * without a name.
      */
     public DefaultValueInfo() {
@@ -47,7 +47,7 @@ public class DefaultValueInfo implements ValueInfo {
     }
 
     /**
-     * Constructs a new generic <tt>DefaultValueInfo</tt> object 
+     * Constructs a new generic <code>DefaultValueInfo</code> object 
      * with a given name.
      *
      * @param  name  the name applying to described values
@@ -57,7 +57,7 @@ public class DefaultValueInfo implements ValueInfo {
     }
 
     /**
-     * Constructs a new <tt>DefaultValueInfo</tt> object with a given
+     * Constructs a new <code>DefaultValueInfo</code> object with a given
      * name and class.
      *
      * @param  name  the name applying to described values
@@ -69,7 +69,7 @@ public class DefaultValueInfo implements ValueInfo {
     }
 
     /**
-     * Constructs a new <tt>DefaultValueInfo</tt> object with a given
+     * Constructs a new <code>DefaultValueInfo</code> object with a given
      * name, class and description.
      *
      * @param  name  the name applying to described values
@@ -128,7 +128,7 @@ public class DefaultValueInfo implements ValueInfo {
      * Sets the string representing the units for the values described by
      * this object.
      *
-     * @param  unitString  a string giving the units, or <tt>null</tt> if
+     * @param  unitString  a string giving the units, or <code>null</code> if
      *         units are unknown
      */
     public void setUnitString( String unitString ) {
@@ -143,7 +143,7 @@ public class DefaultValueInfo implements ValueInfo {
      * Sets the Unified Content Descriptor string applying to values
      * described by this object.
      *
-     * @param  ucd  the UCD, or <tt>null</tt> if none is known
+     * @param  ucd  the UCD, or <code>null</code> if none is known
      */
     public void setUCD( String ucd ) {
         ucd_ = ucd;
@@ -201,7 +201,8 @@ public class DefaultValueInfo implements ValueInfo {
      * Sets the java class of objects contained in this column.
      *
      * @param  contentClass  the class of items in this column
-     * @throws  IllegalArgumentException if <tt>contentClass</tt> is primitive
+     * @throws  IllegalArgumentException if <code>contentClass</code>
+     *          is primitive
      */
     public void setContentClass( Class<?> contentClass ) {
         configureContentClass( contentClass );
@@ -212,7 +213,8 @@ public class DefaultValueInfo implements ValueInfo {
      * This is a final method that is safe to call from the constructor.
      *
      * @param  contentClass  the class of items in this column
-     * @throws  IllegalArgumentException if <tt>contentClass</tt> is primitive
+     * @throws  IllegalArgumentException if <code>contentClass</code>
+     *                                   is primitive
      */
     private final void configureContentClass( Class<?> contentClass ) {
         if ( contentClass.isPrimitive() ) {
@@ -252,8 +254,8 @@ public class DefaultValueInfo implements ValueInfo {
      * Sets the shape of values described by this object.
      *
      * @param   shape  the shape
-     * @throws  IllegalArgumentException if <tt>shape</tt> has elements apart
-     *          from the last one which are &lt;=0
+     * @throws  IllegalArgumentException if <code>shape</code>
+     *          has elements apart from the last one which are &lt;=0
      */
     public void setShape( int[] shape ) {
         if ( shape != null ) {
@@ -285,11 +287,12 @@ public class DefaultValueInfo implements ValueInfo {
 
     /**
      * Sets whether values described by this object may have the value
-     * <tt>null</tt>.  By setting this to <tt>false</tt> you assert that
-     * no <tt>null</tt> objects will be returned from this column.
+     * <code>null</code>.
+     * By setting this to <code>false</code> you assert that
+     * no <code>null</code> objects will be returned from this column.
      *
-     * @param  isNullable <tt>false</tt> if objects in this column are
-     *         guaranteed non-<tt>null</tt>
+     * @param  isNullable <code>false</code> if objects in this column are
+     *         guaranteed non-<code>null</code>
      */
     public void setNullable( boolean isNullable ) {
         isNullable_ = isNullable;
@@ -314,7 +317,7 @@ public class DefaultValueInfo implements ValueInfo {
      * The returned value may, if mutable, be modified to change
      * the aux data of this object.
      *
-     * @return   a List of <tt>DescribedValue</tt> items
+     * @return   a List of <code>DescribedValue</code> items
      */
     public List<DescribedValue> getAuxData() {
         return auxData_;
@@ -323,23 +326,23 @@ public class DefaultValueInfo implements ValueInfo {
     /**
      * Sets the list of auxiliary metadata items for this column.
      *
-     * @param   auxData  a list of <tt>DescribedValue</tt> objects
+     * @param   auxData  a list of <code>DescribedValue</code> objects
      */
     public void setAuxData( List<DescribedValue> auxData ) {
         auxData_ = auxData;
     }
 
     /**
-     * Returns a <tt>ValueInfo</tt> object which is sufficiently general
+     * Returns a <code>ValueInfo</code> object which is sufficiently general
      * to cover every object described by either of two given 
-     * <tt>ValueInfo</tt> objects.  For most of the info attributes this
+     * <code>ValueInfo</code> objects.  For most of the info attributes this
      * entails setting to null any attribute which is not the same for
      * both, though for contentClass it involves finding the most 
      * specific common ancestor class.
      *
-     * @param   vi1  one <tt>ValueInfo</tt> object
-     * @param   vi2  the other <tt>ValueInfo</tt> object
-     * @return  a generalised <tt>ValueInfo</tt> object
+     * @param   vi1  one <code>ValueInfo</code> object
+     * @param   vi2  the other <code>ValueInfo</code> object
+     * @return  a generalised <code>ValueInfo</code> object
      */
     public static ValueInfo generalise( ValueInfo vi1, ValueInfo vi2 ) {
 
@@ -539,7 +542,7 @@ public class DefaultValueInfo implements ValueInfo {
      * "Integer" or "byte[][]" or "uk.ac.starlink.FrameSet".
      *
      * @param  clazz  the class
-     * @return  a string showing the class and shape of <tt>clazz</tt>
+     * @return  a string showing the class and shape of <code>clazz</code>
      */
     public static String formatClass( Class<?> clazz ) {
         String cname = clazz.getName();

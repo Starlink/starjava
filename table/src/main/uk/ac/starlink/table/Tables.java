@@ -36,7 +36,7 @@ public class Tables {
      * wish to communicate this information; the table system does not
      * guarantee to honour instances of this value in a column's 
      * auxiliary data.  It is the job of a StarTable instance to ensure
-     * that a <tt>null</tt> is returned from the table interrogation methods
+     * that a <code>null</code> is returned from the table interrogation methods
      * if that is what is meant.
      */
     public static final ValueInfo NULL_VALUE_INFO =
@@ -101,16 +101,16 @@ public class Tables {
 
     /**
      * Returns a table based on a given table and guaranteed to have 
-     * random access.  If the original table <tt>stab</tt> has random
+     * random access.  If the original table <code>stab</code> has random
      * access then it is returned, otherwise a new random access table
      * is built using its data.
      *
      * <p>This convenience method is equivalent to calling
-     * <tt>StoragePolicy.getDefaultPolicy().randomTable(startab)</tt>.
+     * <code>StoragePolicy.getDefaultPolicy().randomTable(startab)</code>.
      *
      * @param  startab  original table
-     * @return  a table with the same data as <tt>startab</tt> and with 
-     *          <tt>isRandom()==true</tt>
+     * @return  a table with the same data as <code>startab</code> and with 
+     *          <code>isRandom()==true</code>
      */
     public static StarTable randomTable( StarTable startab )
             throws IOException {
@@ -140,8 +140,8 @@ public class Tables {
      *
      * @param  startab  the table from which to delete a column
      * @param  icol     the index of the column to be deleted
-     * @throws  IndexOutOfBoundsException if <tt>startab</tt> has no column
-     *          at <tt>icol</tt>
+     * @throws  IndexOutOfBoundsException if <code>startab</code> has no column
+     *          at <code>icol</code>
      */
     public static StarTable deleteColumn( StarTable startab, int icol ) {
         int ncol = startab.getColumnCount();
@@ -161,7 +161,7 @@ public class Tables {
     }
 
     /**
-     * Copies the data and metadata from a <tt>StarTable</tt> into a 
+     * Copies the data and metadata from a <code>StarTable</code> into a 
      * table sink.  
      * This method is supplied for convenience; its implementation is
      * very straightforward.
@@ -432,12 +432,12 @@ public class Tables {
     /**
      * Indicates whether a given value is conventionally regarded as a 
      * blank value.  For most objects this is equivalent to testing
-     * whether it is equall to <tt>null</tt>, but some classes have
-     * additional non-<tt>null</tt> values which count as blanks,
+     * whether it is equall to <code>null</code>, but some classes have
+     * additional non-<code>null</code> values which count as blanks,
      * for instance zero-length Strings and floating Not-A-Number values.
      *
      * @param  value  value to test
-     * @return  true iff <tt>value</tt> counts as a blank value
+     * @return  true iff <code>value</code> counts as a blank value
      */
     public static boolean isBlank( Object value ) {
         return ( value == null ) 
@@ -509,7 +509,8 @@ public class Tables {
 
     /**
      * Returns a sorted version of a table.  The sorting is done on the
-     * values of one or more columns, as specified by the <tt>colIndices</tt>
+     * values of one or more columns, as specified by
+     * the <code>colIndices</code>
      * argument; the first element is the primary sort key, but in case
      * of a tie the second element is used, and so on.  The original table
      * is not affected.  The natural comparison order of the values in
@@ -524,9 +525,9 @@ public class Tables {
      * @param   nullsLast  true if blank values should be considered 
      *          last in the collation order, false if they should 
      *          be considered first
-     * @return  a table with the same rows as <tt>table</tt> but in an 
+     * @return  a table with the same rows as <code>table</code> but in an 
      *          order determined by the other arguments
-     * @throws  IOException if <tt>table.isRandom</tt> is not true
+     * @throws  IOException if <code>table.isRandom</code> is not true
      */
     public static StarTable sortTable( StarTable table, int[] colIndices,
                                        boolean up, boolean nullsLast )
@@ -573,13 +574,16 @@ public class Tables {
     }
 
     /**
-     * Convenience method to get an <tt>int</tt> value from a <tt>long</tt>.
-     * If the supplied long integer <tt>lval</tt> is out of the range
-     * which can be represented in an <tt>int</tt>, then unlike a
-     * typecast, this method will throw an <tt>IllegalArgumentException</tt>.
+     * Convenience method to get an <code>int</code> value
+     * from a <code>long</code>.
+     * If the supplied long integer <code>lval</code> is out of the range
+     * which can be represented in an <code>int</code>, then unlike a
+     * typecast, this method will throw
+     * an <code>IllegalArgumentException</code>.
      *
-     * @param  lval the <tt>long</tt> value to convert
-     * @return an <tt>int</tt> value which has the same value as <tt>lval</tt>
+     * @param  lval the <code>long</code> value to convert
+     * @return an <code>int</code> value which has the same value
+     *         as <code>lval</code>
      * @throws IllegalArgumentException  if the conversion cannot be done
      */
     public static int checkedLongToInt( long lval ) {
@@ -619,8 +623,8 @@ public class Tables {
     /**
      * Returns an array of strings suitable as labels or label suffixes
      * for elements of an array as returned by {@link ValueInfo#getShape}.
-     * If the given <tt>shape</tt> cannot be decomposed into a fixed
-     * size array, returns <tt>null</tt>.
+     * If the given <code>shape</code> cannot be decomposed into a fixed
+     * size array, returns <code>null</code>.
      *
      * @param   shape  vector giving dimensions of an array value
      * @return   array with one element for each element of the array values
@@ -856,12 +860,13 @@ public class Tables {
     }
 
     /**
-     * Implements assertion semantics.  This differs from the <tt>assert</tt>
+     * Implements assertion semantics.
+     * This differs from the <code>assert</code>
      * Java 1.4 language element in that the assertion is always done,
      * it doesn't depend on the JVM running in assertions-enabled mode.
      *
      * @param  ok  the thing that should be true
-     * @throws  AssertionError  if <tt>ok</tt> is <tt>false</tt>
+     * @throws  AssertionError  if <code>ok</code> is <code>false</code>
      */
     private static void assertTrue( boolean ok ) {
         if ( ! ok ) {

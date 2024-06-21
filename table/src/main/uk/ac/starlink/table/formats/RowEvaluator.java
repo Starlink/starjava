@@ -265,9 +265,9 @@ public class RowEvaluator {
      * Looks at a given row (list of strings) and records information about
      * what sort of things it looks like it contains.
      *
-     * @param   row  <tt>ncol</tt>-element list of strings
+     * @param   row  <code>ncol</code>-element list of strings
      * @throws  TableFormatException  if the number of elements in
-     *          <tt>row</tt> is not the same as on the first call
+     *          <code>row</code> is not the same as on the first call
      */
     public void submitRow( List<String> row ) throws TableFormatException {
         nrow_++;
@@ -325,7 +325,7 @@ public class RowEvaluator {
     }
 
     /**
-     * Returns information gleaned from previous <tt>submitRow</tt>
+     * Returns information gleaned from previous <code>submitRow</code>
      * calls about the kind of data that appears to be in the columns.
      *
      * @return  metadata
@@ -380,10 +380,10 @@ public class RowEvaluator {
     }
 
     /**
-     * Returns a new <tt>ncol</tt>-element boolean array.
+     * Returns a new <code>ncol</code>-element boolean array.
      *
      * @param   val  initial value of all flags
-     * @return  new flag array initialized to <tt>val</tt>
+     * @return  new flag array initialized to <code>val</code>
      */
     private boolean[] makeFlagArray( boolean val ) {
         boolean[] flags = new boolean[ ncol_ ];
@@ -399,10 +399,10 @@ public class RowEvaluator {
      *
      * @param   item  string representing a floating point number
      * @return  object encapsulating information about the floating pont
-     *          value extracted from <tt>item</tt> - note it's always the
+     *          value extracted from <code>item</code> - note it's always the
      *          same instance returned, so don't hang onto it
-     * @throws  NumberFormatException  if <tt>item</tt> can't be understood
-     *          as a float or double
+     * @throws  NumberFormatException  if <code>item</code> can't be understood
+     *                                 as a float or double
      */
     private static ParsedFloat parseFloating( String item ) {
 

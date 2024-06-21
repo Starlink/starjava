@@ -6,17 +6,17 @@ import javax.swing.table.AbstractTableModel;
 import uk.ac.starlink.table.StarTable;
 
 /**
- * Adapts a <tt>StarTable</tt> into a <tt>TableModel</tt>.
- * The base StarTable must provide random access (its <tt>isRandom</tt>
- * method must return <tt>true</tt>); to make a StarTableModel if your
+ * Adapts a <code>StarTable</code> into a <code>TableModel</code>.
+ * The base StarTable must provide random access (its <code>isRandom</code>
+ * method must return <code>true</code>); to make a StarTableModel if your
  * StarTable is not random you will have to make a random one using
  * for instance {@link uk.ac.starlink.table.Tables#randomTable}.
  * <p>
  * One extra bit of functionality is enabled, namely that an extra column
  * containing row indices may be provided.
  * <p>
- * As well as providing the data model for a <tt>JTable</tt>, this 
- * class can be used as a general wrapper for <tt>StarTable</tt> objects
+ * As well as providing the data model for a <code>JTable</code>, this 
+ * class can be used as a general wrapper for <code>StarTable</code> objects
  * when the event handling mechanism it supplies is required.
  * 
  * @author   Mark Taylor (Starlink)
@@ -32,13 +32,13 @@ public class StarTableModel extends AbstractTableModel {
         Logger.getLogger( "uk.ac.starlink.table.gui" );
 
     /**
-     * Constructs a <tt>StarTableModel</tt> from a <tt>StarTable</tt>,
+     * Constructs a <code>StarTableModel</code> from a <code>StarTable</code>,
      * without row index column.
-     * The supplied <tt>StarTable</tt> must provide random access.
+     * The supplied <code>StarTable</code> must provide random access.
      *
-     * @param   startable  the <tt>StarTable</tt> object
-     * @throws  IllegalArgumentException  if <tt>startable.isRandom</tt>
-     *          returns <tt>false</tt>
+     * @param   startable  the <code>StarTable</code> object
+     * @throws  IllegalArgumentException  if <code>startable.isRandom</code>
+     *          returns <code>false</code>
      * @see     uk.ac.starlink.table.Tables#randomTable
      */
     public StarTableModel( StarTable startable ) {
@@ -46,15 +46,15 @@ public class StarTableModel extends AbstractTableModel {
     }
 
     /**
-     * Constructs a <tt>StarTableModel</tt> from a <tt>StarTable</tt>,
+     * Constructs a <code>StarTableModel</code> from a <code>StarTable</code>,
      * optionally with a row index column.
-     * The supplied <tt>StarTable</tt> must provide random access.
+     * The supplied <code>StarTable</code> must provide random access.
      *
-     * @param   startable  the <tt>StarTable</tt> object
+     * @param   startable  the <code>StarTable</code> object
      * @param   rowHeader  whether to add an extra column at the start
      *          containing the row index
-     * @throws  IllegalArgumentException  if <tt>startable.isRandom</tt>
-     *          returns <tt>false</tt>
+     * @throws  IllegalArgumentException  if <code>startable.isRandom</code>
+     *          returns <code>false</code>
      * @see     uk.ac.starlink.table.Tables#randomTable
      */
     public StarTableModel( StarTable startable, boolean rowHeader ) {
@@ -80,16 +80,16 @@ public class StarTableModel extends AbstractTableModel {
      * Indicates whether the first column in this table is an artificial
      * one containing just the index of the row.
      *
-     * @return  <tt>true</tt> iff column 0 is a row index
+     * @return  <code>true</code> iff column 0 is a row index
      */
     public boolean hasRowHeader() {
         return rowHeader;
     }
 
     /**
-     * Gets the <tt>StarTable</tt> underlying this model.
+     * Gets the <code>StarTable</code> underlying this model.
      *
-     * @return  the <tt>StarTable</tt> object
+     * @return  the <code>StarTable</code> object
      */
     public StarTable getStarTable() {
         return startable;

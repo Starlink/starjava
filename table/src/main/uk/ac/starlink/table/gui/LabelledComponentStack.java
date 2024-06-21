@@ -147,7 +147,7 @@ public class LabelledComponentStack extends JPanel {
 
     /**
      * Returns an array of labels which have been added.  Each corresponds
-     * to the <tt>name</tt> argument of an <tt>addLine</tt> call.
+     * to the <code>name</code> argument of an <code>addLine</code> call.
      *
      * @return  an array of JLabels, one for each line
      */
@@ -157,8 +157,8 @@ public class LabelledComponentStack extends JPanel {
 
     /**
      * Returns an array of the components which have been added.
-     * Each corresponds to the <tt>comp</tt> argument of an <tt>addLine</tt>
-     * call.
+     * Each corresponds to the <code>comp</code> argument
+     * of an <code>addLine</code> call.
      *
      * @return   an array of field components, one for each line
      */

@@ -20,7 +20,7 @@ import java.util.Map;
  * and each of its rows displays one instance of this class.
  * It has a column for each readable property.
  * As usual, a bean is anything which has likely-looking getter methods,
- * though since this class uses the <tt>java.beans</tt> package 
+ * though since this class uses the <code>java.beans</code> package 
  * any cleverer stuff held in BeanInfos will get used as well/instead.
  *
  * @author   Mark Taylor (Starlink)
@@ -183,7 +183,7 @@ public class BeanStarTable extends RandomStarTable {
      *
      * @param  bean  the bean to interrogate
      * @param  prop  property whose value is required
-     * @return   value of the <tt>prop</tt> in <tt>bean</tt>
+     * @return   value of the <code>prop</code> in <code>bean</code>
      */
     private Object getProperty( Object bean, PropertyDescriptor prop )
             throws IOException {
@@ -219,7 +219,7 @@ public class BeanStarTable extends RandomStarTable {
      * in the constructor, it can't sensibly be overridden by subclasses.
      *
      * @param  prop  property to evaluate
-     * @return  whether to use <tt>prop<tt> as a column in this model
+     * @return  whether to use <code>prop<code> as a column in this model
      */
     private static boolean useProperty( PropertyDescriptor prop ) {
         Class<?> pclazz = prop.getPropertyType();

@@ -1,7 +1,7 @@
 package uk.ac.starlink.table;
 
 /**
- * Contains a value (an <tt>Object</tt>) as well as a 
+ * Contains a value (an <code>Object</code>) as well as a 
  * {@link ValueInfo} object which provides metadata about that value
  * (name, class, shape, units and so on). 
  *
@@ -13,8 +13,8 @@ public class DescribedValue {
     private Object value;
 
     /**
-     * Constructs a new <tt>DescribedValue</tt> object to hold values
-     * described by a given <tt>ValueInfo</tt> object.
+     * Constructs a new <code>DescribedValue</code> object to hold values
+     * described by a given <code>ValueInfo</code> object.
      *
      * @param  vinfo  the metadata handler for this value
      */
@@ -23,14 +23,14 @@ public class DescribedValue {
     }
 
     /**
-     * Constructs a new <tt>DescribedValue</tt> object to hold values
-     * described by a given <tt>ValueInfo</tt> object and with a
+     * Constructs a new <code>DescribedValue</code> object to hold values
+     * described by a given <code>ValueInfo</code> object and with a
      * given initial value.
      *
      * @param  vinfo  the metadata describing this object's value
      * @param  value  the value of this object
-     * @throws  IllegalArgumentException  if <tt>value.getClass()</tt>
-     *          is not compatible with <tt>vinfo.getContentClass()</tt>
+     * @throws  IllegalArgumentException  if <code>value.getClass()</code>
+     *          is not compatible with <code>vinfo.getContentClass()</code>
      */
     public DescribedValue( ValueInfo vinfo, Object value ) {
         this( vinfo );
@@ -38,7 +38,7 @@ public class DescribedValue {
     }
 
     /**
-     * Returns the <tt>ValueInfo</tt> object which describes the value
+     * Returns the <code>ValueInfo</code> object which describes the value
      * held by this object.
      *
      * @return  the metadata describing this object's value
@@ -51,8 +51,9 @@ public class DescribedValue {
      * Sets the actual value content of this object.
      *
      * @param   value  the value
-     * @throws  IllegalArgumentException  if <tt>value.getClass()</tt> is not
-     *          compatible with <tt>getValueInfo().getContentClass()</tt>
+     * @throws  IllegalArgumentException  if <code>value.getClass()</code>
+     *          is not compatible with
+     *          <code>getValueInfo().getContentClass()</code>
      */
     public void setValue( Object value ) {
         Class<?> cclass = vinfo.getContentClass();

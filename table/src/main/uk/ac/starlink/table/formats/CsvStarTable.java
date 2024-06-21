@@ -183,7 +183,7 @@ public class CsvStarTable extends StreamStarTable {
      *
      * @param  in  input stream
      * @return  list of Strings one for each cell in the row, or
-     *          <tt>null</tt> for end of stream
+     *          <code>null</code> for end of stream
      */
     @SuppressWarnings("fallthrough")
     protected List<String> readRow( PushbackInputStream in )

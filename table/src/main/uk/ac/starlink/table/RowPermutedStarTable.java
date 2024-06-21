@@ -11,14 +11,14 @@ import java.util.Arrays;
  * <p>
  * A <code>long[]</code> array, <code>rowMap</code>, is used to keep
  * track of which rows in this table correspond to which rows in the
- * base table; the <tt>n</tt>'th row in this table corresponds to the
- * <tt>rowMap[n]</tt>'th row in the base table.
- * The <tt>rowMap</tt> array may contain duplicate entries, but should
+ * base table; the <code>n</code>'th row in this table corresponds to the
+ * <code>rowMap[n]</code>'th row in the base table.
+ * The <code>rowMap</code> array may contain duplicate entries, but should
  * not contain any entries larger than the number of rows in the base table.
  * Any negative entry is treated as a special case resulting in a 'blank'
  * row of all null values.
  * It can be modified during the life of the table, but it's not a good
- * idea to do this while a <tt>RowSequence</tt> is active.
+ * idea to do this while a <code>RowSequence</code> is active.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -27,16 +27,16 @@ public class RowPermutedStarTable extends WrapperStarTable {
     private long[] rowMap;
 
     /**
-     * Constructs a new <tt>RowPermutedStarTable</tt> from a base table
-     * and a <tt>rowMap</tt> array.
+     * Constructs a new <code>RowPermutedStarTable</code> from a base table
+     * and a <code>rowMap</code> array.
      * <p>
-     * <tt>baseTable</tt> must provide random access.
+     * <code>baseTable</code> must provide random access.
      *
      * @param  baseTable  base table
      * @param  rowMap     array mapping rows in the new permuted table to 
-     *                    rows in <tt>baseTable</tt>
-     * @throws IllegalArgumentException  if <tt>baseTable.isRandom</tt> returns
-     *         <tt>false</tt>
+     *                    rows in <code>baseTable</code>
+     * @throws IllegalArgumentException  if <code>baseTable.isRandom</code>
+     *         returns <code>false</code>
      */
     public RowPermutedStarTable( StarTable baseTable, long[] rowMap ) {
         super( baseTable );

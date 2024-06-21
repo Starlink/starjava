@@ -145,7 +145,7 @@ public abstract class Codec {
             throws IOException;
 
     /**
-     * Returns the number of bytes a call to <tt>encode</tt> will write.
+     * Returns the number of bytes a call to <code>encode</code> will write.
      * If this value may vary, -1 is returned.
      *
      * @return  size in bytes of serialized items, or -1
@@ -155,7 +155,7 @@ public abstract class Codec {
     /**
      * Returns a codec suitable for serializing/deserializing the contents
      * of a given ValueInfo.  If no codec can be supplied to match
-     * <tt>info</tt>, <tt>null</tt> is returned.
+     * <code>info</code>, <code>null</code> is returned.
      *
      * @param  info  object describing the kind of item which is required to
      *         be de/serialized
@@ -805,7 +805,7 @@ public abstract class Codec {
          * Serializes an element of an array to a stream.
          *
          * @param  array   buffer containing data
-         * @param  index   index of item in <tt>array</tt> to be serialized
+         * @param  index   index of item in <code>array</code> to be serialized
          * @param  out     destination stream
          */
         abstract void encode1( Object array, int index, DataOutput out )
@@ -816,22 +816,22 @@ public abstract class Codec {
          * an array.
          *
          * @param  array  buffer to which item will be deserialized
-         * @param  index  position in <tt>array/tt> to which to write
+         * @param  index  position in <code>array/code> to which to write
          * @param  in     source stream
          */
         abstract void decode1( Object array, int index, ByteStoreAccess in )
                 throws IOException;
 
         /**
-         * Returns a <tt>size</tt>-element array suitable for use in
-         * the <tt>encode1</tt> and <tt>decode1</tt> methods.
+         * Returns a <code>size</code>-element array suitable for use in
+         * the <code>encode1</code> and <code>decode1</code> methods.
          *
          * @param  new array
          */
         abstract Object getBuffer( int size );
 
         /**
-         * Returns the number of bytes written by <tt>encode1</tt>.
+         * Returns the number of bytes written by <code>encode1</code>.
          */
         abstract int getItemSize1();
 

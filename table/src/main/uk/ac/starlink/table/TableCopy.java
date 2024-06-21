@@ -8,7 +8,7 @@ import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.LogUtils;
 
 /**
- * Class containing <tt>main</tt> method for copying tables.
+ * Class containing <code>main</code> method for copying tables.
  *
  * @author   Mark Taylor (Starlink)
  */

@@ -14,8 +14,8 @@ import java.io.OutputStream;
 public abstract class StreamStarTableWriter implements StarTableWriter {
 
     /**
-     * Gets an output stream from <tt>location</tt> with reference to
-     * <tt>sto</tt> and writes to it using this writer's
+     * Gets an output stream from <code>location</code> with reference to
+     * <code>sto</code> and writes to it using this writer's
      * {@link #writeStarTable(uk.ac.starlink.table.StarTable,
      *                        java.io.OutputStream)} method.
      *

@@ -96,7 +96,7 @@ public abstract class SaveWorker {
 
     /**
      * Called from the event dispatch thread when the save has completed.
-     * The <tt>success</tt> argument indicates whether the table was
+     * The <code>success</code> argument indicates whether the table was
      * saved successfully or not.  If it was not, the user will already
      * have been informed of this.
      *

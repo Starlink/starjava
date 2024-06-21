@@ -53,7 +53,7 @@ public class UCDSelector extends JPanel implements ItemListener {
     }
 
     /**
-     * Returns the UCD ID selected by the user, or <tt>null</tt> if none
+     * Returns the UCD ID selected by the user, or <code>null</code> if none
      * is selected.  Since the combobox is editable, this is not guaranteed
      * to be the ID of an existing UCD.  You can use the 
      * {@link uk.ac.starlink.table.UCD#getUCD} method to try to turn this

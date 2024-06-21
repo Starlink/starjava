@@ -346,7 +346,7 @@ public class HTMLTableWriter extends DocumentedStreamStarTableWriter
      * any special characters are escaped in an HTML-friendly fashion.
      *
      * @param   line  string to escape
-     * @return   an HTML-friendly version of <tt>line</tt>
+     * @return   an HTML-friendly version of <code>line</code>
      */
     private String escape( String line ) {
         StringBuffer sbuf = new StringBuffer();

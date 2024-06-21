@@ -6,7 +6,7 @@ import java.io.InputStream;
 import uk.ac.starlink.util.DataSource;
 
 /**
- * Interface for objects which can construct a <tt>StarTable</tt> from
+ * Interface for objects which can construct a <code>StarTable</code> from
  * a data resource.
  * TableBuilder implementations may also choose to implement
  * {@link MultiTableBuilder}.
@@ -16,15 +16,15 @@ import uk.ac.starlink.util.DataSource;
 public interface TableBuilder {
 
     /**
-     * Constructs a {@link StarTable} based on a given <tt>DataSource</tt>.
+     * Constructs a {@link StarTable} based on a given <code>DataSource</code>.
      * If the source is not recognised or this builder does not know
      * how to construct a table from it, then a 
      * {@link TableFormatException} should be thrown.
      * If this builder thinks it should be able to handle the source
-     * but an error occurs during processing, an <tt>IOException</tt>
+     * but an error occurs during processing, an <code>IOException</code>
      * can be thrown.
      * <p>
-     * The <tt>wantRandom</tt> parameter is used to indicate whether,
+     * The <code>wantRandom</code> parameter is used to indicate whether,
      * ideally, a random-access table should be returned.  There is no
      * requirement for the builder to honour this request, but if
      * it knows how to make both random and non-random tables, it can
@@ -46,7 +46,7 @@ public interface TableBuilder {
      *         should be returned
      * @param  storagePolicy  a StoragePolicy object which may be used to
      *         supply scratch storage if the builder needs it
-     * @return  a StarTable made out of <tt>datsrc</tt>
+     * @return  a StarTable made out of <code>datsrc</code>
      * @throws TableFormatException  if the table is not of a kind that
      *         can be handled by this handler
      * @throws IOException  if an unexpected I/O error occurs during processing
@@ -64,7 +64,7 @@ public interface TableBuilder {
      *
      * <p>The input stream should be prepared for use prior to calling
      * this method, so implementations should not in general attempt to
-     * decompress or buffer <tt>istrm</tt>.
+     * decompress or buffer <code>istrm</code>.
      *
      * @param  istrm   input stream containing table data
      * @param  sink    destination of the table
@@ -81,19 +81,19 @@ public interface TableBuilder {
 
     /**
      * Indicates whether this builder is able to turn a resource of
-     * media type indicated by <tt>flavor</tt> into a table.
-     * It should return <tt>true</tt> if it thinks that its 
+     * media type indicated by <code>flavor</code> into a table.
+     * It should return <code>true</code> if it thinks that its 
      * {@link #streamStarTable} method stands a reasonable chance of 
-     * successfully constructing a <tt>StarTable</tt> from a 
-     * <tt>DataSource</tt> whose input stream is described by the
-     * {@link java.awt.datatransfer.DataFlavor} <tt>flavor</tt>.
+     * successfully constructing a <code>StarTable</code> from a 
+     * <code>DataSource</code> whose input stream is described by the
+     * {@link java.awt.datatransfer.DataFlavor} <code>flavor</code>.
      * It will typically make this determination based on the flavor's
      * MIME type.  
      * <p>
-     * This method should only return <tt>true</tt> if the flavor looks like
+     * This method should only return <code>true</code> if the flavor looks like
      * it is targeted at this builder; for instance a builder which 
      * uses a text-based format should return false for a 
-     * flavor which indicates a MIME type of <tt>text/plain</tt>.
+     * flavor which indicates a MIME type of <code>text/plain</code>.
      * <p>
      * This method is used in supporting drag and drop functionality
      * (see {@link 
@@ -101,9 +101,9 @@ public interface TableBuilder {
      *
      * @param  flavor  the DataFlavor whose suitability as stream input
      *         is to be assessed
-     * @return <tt>true</tt> iff this builder reckons it stands a good 
-     *         chance of turning a stream of type <tt>flavor</tt> into a 
-     *         <tt>StarTable</tt>
+     * @return <code>true</code> iff this builder reckons it stands a good 
+     *         chance of turning a stream of type <code>flavor</code> into a 
+     *         <code>StarTable</code>
      */
     boolean canImport( DataFlavor flavor );
 

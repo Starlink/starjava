@@ -5,7 +5,7 @@ import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
 
 /**
- * Minimal implementation of <tt>RowStore</tt> which throws away the row
+ * Minimal implementation of <code>RowStore</code> which throws away the row
  * data it is given.  The table returned by {@link #getStarTable} has the
  * same metadata as the one passed in by the {@link #acceptMetadata},
  * but no rows.

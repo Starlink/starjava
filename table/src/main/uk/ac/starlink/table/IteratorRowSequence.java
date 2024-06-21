@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.util.Iterator;
 
 /**
- * Implementation of <tt>RowSequence</tt> based on an Iterator which 
+ * Implementation of <code>RowSequence</code> based on an Iterator which 
  * returns table rows in sequence.  The iterator's next method may 
  * throw an exception of the (unchecked) type 
  * {@link uk.ac.starlink.table.IteratorRowSequence.PackagedIOException}
- * if it needs to throw something (<tt>Iterator.next</tt> is not declared
+ * if it needs to throw something (<code>Iterator.next</code> is not declared
  * to throw any checked exceptions).
  */
 public class IteratorRowSequence implements RowSequence {
@@ -18,10 +18,10 @@ public class IteratorRowSequence implements RowSequence {
 
     /**
      * Constructs a new RowSequence from an Iterator.
-     * Each object returned by the iterator's <tt>next</tt> method must
-     * be an <tt>Object[]</tt> array representing the data in the next
+     * Each object returned by the iterator's <code>next</code> method must
+     * be an <code>Object[]</code> array representing the data in the next
      * table row (it must have one element for each column).
-     * The <tt>next</tt> method may throw 
+     * The <code>next</code> method may throw 
      * {@link uk.ac.starlink.table.IteratorRowSequence.PackagedIOException}s.
      *
      * @param   rowIt  iterator over the rows
@@ -59,9 +59,9 @@ public class IteratorRowSequence implements RowSequence {
 
     /**
      * Unchecked exception class to be used for smuggling 
-     * <tt>IOException</tt>s out of 
-     * the <tt>next</tt> method of an Iterator for use by 
-     * <tt>IteratorRowSequence</tt>
+     * <code>IOException</code>s out of 
+     * the <code>next</code> method of an Iterator for use by 
+     * <code>IteratorRowSequence</code>
      */
     public static class PackagedIOException extends RuntimeException {
 

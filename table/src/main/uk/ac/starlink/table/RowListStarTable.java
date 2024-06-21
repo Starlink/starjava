@@ -36,7 +36,7 @@ public class RowListStarTable extends RandomStarTable {
 
     /**
      * Constructs a new RowListStarTable with its column and table metadata
-     * copied from an existing table.  The data of the <tt>template</tt>
+     * copied from an existing table.  The data of the <code>template</code>
      * is ignored.
      *
      * @param  template  template table supplying column and table metadata
@@ -71,13 +71,14 @@ public class RowListStarTable extends RandomStarTable {
 
     /**
      * Sets the value of a given cell in the table.
-     * <tt>value</tt> has to have a class compatible with its column.
+     * <code>value</code> has to have a class compatible with its column.
      * 
      * @param  lrow  row index
      * @param  icol  column index
-     * @param  value  new value for the cell at <tt>lrow</tt>, <tt>icol</tt>
-     * @throws IllegalArgumentException  if <tt>value</tt> is not compatible
-     *         with column <tt>icol</tt>
+     * @param  value  new value for the cell at
+     *                <code>lrow</code>, <code>icol</code>
+     * @throws IllegalArgumentException  if <code>value</code> is not
+     *         compatible with column <code>icol</code>
      */
     public void setCell( long lrow, int icol, Object value ) {
         validateCell( icol, value );
@@ -87,13 +88,13 @@ public class RowListStarTable extends RandomStarTable {
     /**
      * Sets the value of a given row in the table.
      * Overwrites the existing values of the cells in that row.
-     * <tt>values</tt> has to have the same number of elements as there
+     * <code>values</code> has to have the same number of elements as there
      * are columns in this table, and its elements have to have classes
      * compatible with the table columns.
      *
      * @param  lrow  row index
-     * @param  values  new values for the cells in row <tt>lrow</tt> 
-     * @throws IllegalArgumentException   if <tt>values</tt> has the wrong
+     * @param  values  new values for the cells in row <code>lrow</code> 
+     * @throws IllegalArgumentException   if <code>values</code> has the wrong
      *         number of elements or they are of the wrong class
      */
     public void setRow( long lrow, Object[] values ) {
@@ -104,12 +105,12 @@ public class RowListStarTable extends RandomStarTable {
 
     /**
      * Adds a new row to the end of the table.
-     * <tt>values</tt> has to have the same number of elements as there
+     * <code>values</code> has to have the same number of elements as there
      * are columns in this table, and its elements have to have classes
      * compatible with the table columns.
      *
      * @param  values  values for the cells in the new row
-     * @throws IllegalArgumentException   if <tt>values</tt> has the wrong
+     * @throws IllegalArgumentException   if <code>values</code> has the wrong
      *         number of elements or they are of the wrong class
      */
     public void addRow( Object[] values ) {
@@ -119,14 +120,14 @@ public class RowListStarTable extends RandomStarTable {
 
     /**
      * Adds a new row in the middle of the table.
-     * Rows after <tt>lrow</tt> will be shoved down by one.
-     * <tt>values</tt> has to have the same number of elements as there
+     * Rows after <code>lrow</code> will be shoved down by one.
+     * <code>values</code> has to have the same number of elements as there
      * are columns in this table, and its elements have to have classes
      * compatible with the table columns.
      *
      * @param  lrow    row index for the new row
      * @param  values  values for the cells in the new row
-     * @throws IllegalArgumentException   if <tt>values</tt> has the wrong
+     * @throws IllegalArgumentException   if <code>values</code> has the wrong
      *         number of elements or they are of the wrong class
      */
     public void insertRow( long lrow, Object[] values ) {
@@ -137,7 +138,7 @@ public class RowListStarTable extends RandomStarTable {
 
     /**
      * Removes an existing row from the table.
-     * Rows after <tt>lrow</tt> will be moved up by one.
+     * Rows after <code>lrow</code> will be moved up by one.
      *
      * @param  lrow  index of the row to remove
      */
@@ -154,11 +155,11 @@ public class RowListStarTable extends RandomStarTable {
     }
 
     /**
-     * Throws an unchecked exception if <tt>values</tt> is not a suitable
-     * element of the <tt>rows</tt> array.
+     * Throws an unchecked exception if <code>values</code> is not a suitable
+     * element of the <code>rows</code> array.
      *
      * @param  values  potential new row
-     * @throws IllegalArgumentException   if <tt>values</tt> is no good
+     * @throws IllegalArgumentException   if <code>values</code> is no good
      */
     void validateRow( Object[] values ) {
         int ncol = getColumnCount();
@@ -173,12 +174,12 @@ public class RowListStarTable extends RandomStarTable {
     }
 
     /**
-     * Throws an unchecked exception if <tt>value</tt> is not a suitable
-     * element for column <tt>icol</tt>.
+     * Throws an unchecked exception if <code>value</code> is not a suitable
+     * element for column <code>icol</code>.
      *
      * @param  icol  column index
-     * @param  value  potential new value for column <tt>icol</tt>
-     * @throws IllegalArgumentException  if <tt>value</tt> is no good
+     * @param  value  potential new value for column <code>icol</code>
+     * @throws IllegalArgumentException  if <code>value</code> is no good
      */
     void validateCell( int icol, Object value ) {
         if ( value != null ) {

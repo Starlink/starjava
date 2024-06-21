@@ -269,7 +269,7 @@ public class FilestoreTableSaveDialog implements TableSaveDialog {
      * Indicates whether a leaf corresponds to an existing file or not.
      *
      * @param   leaf  abstract path for a leaf node
-     * @return  true iff <tt>leaf</tt> already exists in the virtual
+     * @return  true iff <code>leaf</code> already exists in the virtual
      *          filesystem
      */
     private static boolean exists( Leaf leaf ) {
@@ -293,7 +293,7 @@ public class FilestoreTableSaveDialog implements TableSaveDialog {
      * @param  parent   the parent component, used for positioning
      *         dialog boxes
      * @param  loc  location of the file to overwrite
-     * @return  <tt>true</tt> if the user agrees it's OK to overwrite
+     * @return  <code>true</code> if the user agrees it's OK to overwrite
      */
     public static boolean confirmOverwrite( Component parent, String loc ) {
         String[] msg = new String[] {

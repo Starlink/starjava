@@ -6,7 +6,7 @@ import javax.swing.table.AbstractTableModel;
 import uk.ac.starlink.util.MapGroup;
 
 /**
- * Provides a <tt>TableModel</tt> view of a <tt>MapGroup</tt> object.
+ * Provides a <code>TableModel</code> view of a <code>MapGroup</code> object.
  * For performance reasons this implementation takes a snapshot of 
  * the MapGroup at construction time rather than treating it as a
  * live object.

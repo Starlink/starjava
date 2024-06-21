@@ -21,22 +21,22 @@ import java.io.IOException;
 public interface TableSink {
 
     /**
-     * Takes delivery of a row-less <tt>StarTable</tt> object which defines
+     * Takes delivery of a row-less <code>StarTable</code> object which defines
      * the metadata of the table to be transmitted. 
      * If the number of rows that will be transmitted via subsequent
-     * calls to <tt>acceptRow</tt> is known, this value should be made
-     * available as the row count of <tt>meta</tt> 
+     * calls to <code>acceptRow</code> is known, this value should be made
+     * available as the row count of <code>meta</code> 
      * ({@link StarTable#getRowCount}); if it is not known, the row count
      * should be -1.  However, this object should not attempt to read
-     * any of <tt>meta</tt>'s cell data.
+     * any of <code>meta</code>'s cell data.
      * <p> 
-     * The data to be transmitted in subsequent calls of <tt>acceptRow</tt>
+     * The data to be transmitted in subsequent calls of <code>acceptRow</code>
      * must match the metadata transmitted in this call in the same way
      * that rows of a StarTable must match its own metadata (number and
      * content clases of columns etc).
-     * If this sink cannot dispose of a table corresponding to <tt>meta</tt>
+     * If this sink cannot dispose of a table corresponding to <code>meta</code>
      * then it may throw a TableFormatException - this may be the case
-     * if for instance <tt>meta</tt> has columns with types that this
+     * if for instance <code>meta</code> has columns with types that this
      * sink can't deal with.
      *
      * @param   meta   table metadata object
@@ -46,9 +46,9 @@ public interface TableSink {
     void acceptMetadata( StarTable meta ) throws TableFormatException;
 
     /**
-     * Takes delivery of one row of data.  <tt>row</tt> is an array of
+     * Takes delivery of one row of data.  <code>row</code> is an array of
      * objects comprising the contents of one row of the table being
-     * transmitted.  The number and classes of the elements of <tt>row</tt>
+     * transmitted.  The number and classes of the elements of <code>row</code>
      * are described by the metadata object previously accepted.
      *
      * @param   row  table data row

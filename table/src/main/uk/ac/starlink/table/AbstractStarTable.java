@@ -12,10 +12,11 @@ import java.util.TreeMap;
 
 /**
  * Abstract base class providing an implementation of the generic and
- * straightforward parts of the <tt>StarTable</tt> interface.
+ * straightforward parts of the <code>StarTable</code> interface.
  * This implementation assumes that random access is not available;
  * subclasses which provide random access should override 
- * the <tt>isRandom</tt>, <tt>getCell</tt> and perhaps <tt>getRow</tt> methods.
+ * the <code>isRandom</code>, <code>getCell</code>
+ * and perhaps <code>getRow</code> methods.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -26,15 +27,15 @@ public abstract class AbstractStarTable implements StarTable {
     private URL url_;
 
     /**
-     * Goes through the table columns (<tt>ColumnInfo</tt> objects) 
+     * Goes through the table columns (<code>ColumnInfo</code> objects) 
      * and picks out all the AuxData items which exist, generalising
      * where necessary and returning a union of them in 
      * alphabetical order by name.
      * Subclasses should override this if they can do better, for instance
      * providing an order for the keys.
      *
-     * @return  a list of all the auxiliary metadata <tt>ValueInfo</tt> items
-     *          which in fact crop up in column metadata
+     * @return  a list of all the auxiliary metadata <code>ValueInfo</code>
+     *          items which in fact crop up in column metadata
      */
     public List<ValueInfo> getColumnAuxDataInfos() {
         Map<String,ValueInfo> auxMap = new TreeMap<String,ValueInfo>();
@@ -72,9 +73,9 @@ public abstract class AbstractStarTable implements StarTable {
     /**
      * Sets the list of table parameters, that is items which pertain
      * to the entire table.  Each element of the provided list 
-     * <tt>parameters</tt> should be a {@link DescribedValue} object.
+     * <code>parameters</code> should be a {@link DescribedValue} object.
      *
-     * @param  parameters   a List of <tt>DescribedValue</tt>s pertaining
+     * @param  parameters   a List of <code>DescribedValue</code>s pertaining
      *         to this table
      */
     public void setParameters( List<DescribedValue> parameters ) {
@@ -88,7 +89,7 @@ public abstract class AbstractStarTable implements StarTable {
     /**
      * Sets the name for this table. 
      *
-     * @param  name  the table name - may be <tt>null</tt>
+     * @param  name  the table name - may be <code>null</code>
      */
     public void setName( String name ) {
         name_ = name;
@@ -101,14 +102,15 @@ public abstract class AbstractStarTable implements StarTable {
     /**
      * Sets the URL for this table.
      *
-     * @param  url  the URL where this table lives - may be <tt>null</tt>
+     * @param  url  the URL where this table lives - may be <code>null</code>
      */
     public void setURL( URL url ) {
         url_ = url;
     }
 
     /**
-     * Convenience method to get an <tt>int</tt> value from a <tt>long</tt>.
+     * Convenience method to get an <code>int</code>
+     * value from a <code>long</code>.
      * Invokes {@link Tables#checkedLongToInt}.
      */
     public static int checkedLongToInt( long lval ) {
@@ -116,8 +118,8 @@ public abstract class AbstractStarTable implements StarTable {
     }
 
     /**
-     * The <tt>AbstractStarTable</tt> implementation of this method 
-     * returns <tt>false</tt>.
+     * The <code>AbstractStarTable</code> implementation of this method 
+     * returns <code>false</code>.
      */
     public boolean isRandom() {
         return false;
@@ -141,16 +143,16 @@ public abstract class AbstractStarTable implements StarTable {
     }
 
     /**
-     * The <tt>AbstractStarTable</tt> implementation of this method throws an
-     * <tt>UnsupportedOperationException</tt>, since unless otherwise
-     * provided there is no random access.
+     * The <code>AbstractStarTable</code> implementation of this method
+     * throws an <code>UnsupportedOperationException</code>,
+     * since unless otherwise provided there is no random access.
      */
     public Object getCell( long irow, int icol ) throws IOException {
         throw new UnsupportedOperationException( "No random access available" );
     }
 
     /**
-     * The <tt>AbstractStarTable</tt> implementation of this method 
+     * The <code>AbstractStarTable</code> implementation of this method 
      * constructs a row by repeated invocation of {@link #getCell}.
      */
     public Object[] getRow( long irow ) throws IOException {
@@ -163,7 +165,7 @@ public abstract class AbstractStarTable implements StarTable {
     }
 
     /**
-     * The <tt>AbstractStarTable</tt> implementation of this method
+     * The <code>AbstractStarTable</code> implementation of this method
      * does nothing.
      */
     public void close() throws IOException {

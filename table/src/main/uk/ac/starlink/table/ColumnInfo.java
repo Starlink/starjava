@@ -15,7 +15,7 @@ package uk.ac.starlink.table;
 public class ColumnInfo extends DefaultValueInfo {
 
     /**
-     * Constructs a <tt>ColumnInfo</tt> object.
+     * Constructs a <code>ColumnInfo</code> object.
      *
      * @param  name  the name of the column
      */
@@ -24,18 +24,18 @@ public class ColumnInfo extends DefaultValueInfo {
     }
 
     /**
-     * Constructs a new <tt>ColumnInfo</tt> based on a <tt>ValueInfo</tt>
-     * object.  All attributes are copied from the template to the new
-     * object.
+     * Constructs a new <code>ColumnInfo</code> based on
+     * a <code>ValueInfo</code> object.
+     * All attributes are copied from the template to the new object.
      *
-     * @param  base  the template <tt>ValueInfo</tt>
+     * @param  base  the template <code>ValueInfo</code>
      */
     public ColumnInfo( ValueInfo base ) {
         super( base );
     }
 
     /**
-     * Constructs a new <tt>ColumnInfo</tt> object with a given name,
+     * Constructs a new <code>ColumnInfo</code> object with a given name,
      * class and description.
      *
      * @param  name  the name applying to described values
@@ -50,13 +50,14 @@ public class ColumnInfo extends DefaultValueInfo {
 
     /**
      * Gets an item of auxiliary metadata from its specification.
-     * Currently this just calls <tt>getAuxDatumByName(vinfo.getName())</tt>,
+     * Currently this just calls
+     * <code>getAuxDatumByName(vinfo.getName())</code>,
      * but may be revised in future to match on other attributes.
      *
      * @param  vinfo  the data item to match
-     * @return  a <tt>DescribedValue</tt> object representing the 
-     *          auxiliary metadata item matching <tt>vinfo</tt> for this column,
-     *          or <tt>null</tt> if none exists
+     * @return  a <code>DescribedValue</code> object representing the 
+     *          auxiliary metadata item matching <code>vinfo</code>
+     *          for this column, or <code>null</code> if none exists
      */
     public DescribedValue getAuxDatum( ValueInfo vinfo ) {
         return getAuxDatumByName( vinfo.getName() );
@@ -68,14 +69,14 @@ public class ColumnInfo extends DefaultValueInfo {
      * This convenience method works like {@link #getAuxDatum} 
      * but returns a non-null value
      * only if the named item exists and if its value is an instance of
-     * the given type <tt>clazz</tt>.
+     * the given type <code>clazz</code>.
      *
      * @param  vinfo  the data item to match
      * @param  clazz  required return type
      * @return  value of the auxiliary metadata item matching 
-     *          <tt>vinfo</tt> for this 
-     *          column if it exists and is an instance of <tt>clazz</tt> or
-     *          one of its subtypes, otherwise <tt>null</tt>
+     *          <code>vinfo</code> for this 
+     *          column if it exists and is an instance of <code>clazz</code>
+     *          or one of its subtypes, otherwise <code>null</code>
      */
     public <T> T getAuxDatumValue( ValueInfo vinfo, Class<T> clazz ) {
         DescribedValue dval = getAuxDatum( vinfo );
@@ -87,14 +88,14 @@ public class ColumnInfo extends DefaultValueInfo {
      * requiring a particular return type.
      * This convenience method works like {@link #getAuxDatumByName},
      * but returns a non-null value only if the named item exists, 
-     * and if its value is an instance of the given type <tt>clazz</tt>.
+     * and if its value is an instance of the given type <code>clazz</code>.
      *
      * @param  name  the name of an auxiliary metadata item
      * @param  clazz  required return type
      * @return  value of the auxiliary metadata item matching 
-     *          <tt>vinfo</tt> for this column if it exists and is an
-     *          instance of <tt>clazz</tt> or one of its subtypes, 
-     *          otherwise <tt>null</tt>
+     *          <code>vinfo</code> for this column if it exists and is an
+     *          instance of <code>clazz</code> or one of its subtypes, 
+     *          otherwise <code>null</code>
      */
     public <T> T getAuxDatumValueByName( String name, Class<T> clazz ) {
         DescribedValue dval = getAuxDatumByName( name );

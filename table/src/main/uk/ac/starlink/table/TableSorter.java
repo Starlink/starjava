@@ -25,7 +25,7 @@ class TableSorter {
      *          last in the collation order, false if they should
      *          be considered first
      * @return  an array mapping the rows in a table to their sorted order
-     * @throws  IOException  if <tt>table.isRandom()</tt> returns false
+     * @throws  IOException  if <code>table.isRandom()</code> returns false
      */ 
     public static long[] getSortedOrder( StarTable table, int[] colIndices,
                                          boolean up, boolean nullsLast )
@@ -56,7 +56,7 @@ class TableSorter {
     /**
      * Helper class which can compare objects representing the rows of
      * a table.  The objects compared using this comparator must be
-     * <tt>Number</tt>s containing the row index of a table.
+     * <code>Number</code>s containing the row index of a table.
      */
     private static class RowComparator implements Comparator<Number> {
 
@@ -128,8 +128,8 @@ class TableSorter {
 
         /**
          * Compares two values.  Each value is the content of a cell in 
-         * a table - <tt>o1</tt> and <tt>o2</tt> should be from the same
-         * column.  Either or both may be null.
+         * a table - <code>o1</code> and <code>o2</code> should be from
+         * the same column.  Either or both may be null.
          *
          * @param  o1  first value
          * @param  o2  second value
