@@ -73,7 +73,7 @@ public class LinkChecker {
      * Checks whether a link string (representing an absolute URL or a URL 
      * relative to this checker's context) is valid or not.
      * If it's not, then a brief message to this effect will be logged,
-     * and either the <tt>localFailures</tt> or <tt>extFailures</tt> 
+     * and either the <code>localFailures</code> or <code>extFailures</code> 
      * counts will be incremented.
      *
      * @param   href  link string to check
@@ -135,7 +135,7 @@ public class LinkChecker {
      * Checks whether a document at the named URL exists.
      *
      * @param  url  URL to check
-     * @return  true  iff <tt>url</tt> exists
+     * @return  true  iff <code>url</code> exists
      */
     private boolean checkUrlExists( URL url ) throws IOException {
         if ( urlNames.containsKey( url ) ) {
@@ -199,13 +199,13 @@ public class LinkChecker {
 
     /**
      * Checks whether a named URL apparently contains an &lt;a&gt; element
-     * with the given <tt>name</tt> attribute.  The HTML parsing is not
+     * with the given <code>name</code> attribute.  The HTML parsing is not
      * foolproof, so it might miss a name which is there.
      *
      * @param  url  the URL 
      * @param  frag   the sought name attribute
-     * @return  true  iff <tt>url</tt> exists and apparently contains
-     *          the target <tt>frag</tt>
+     * @return  true  iff <code>url</code> exists and apparently contains
+     *          the target <code>frag</code>
      */
     private boolean checkUrlContains( URL url, String frag )
             throws IOException {
@@ -257,7 +257,7 @@ public class LinkChecker {
      * @param  xsltSrc  source for the XSLT stylesheet which converts to
      *         HTML or an HTML-like output format
      * @param  xmlSrc   source for the XML document which will be
-     *         transformed by <tt>xsltSrc</tt> to produce the HTML to test
+     *         transformed by <code>xsltSrc</code> to produce the HTML to test
      * @return  true  iff all the links in the resulting XHTML document
      *          can be successfully resolved
      */
@@ -273,7 +273,7 @@ public class LinkChecker {
      * @param  xsltSrc  source for the XSLT stylesheet which converts to
      *         HTML or an HTML-like output format
      * @param  xmlSrc   source for the XML document which will be
-     *         transformed by <tt>xsltSrc</tt> to produce the HTML to test
+     *         transformed by <code>xsltSrc</code> to produce the HTML to test
      * @param  params   stylesheet parameter map (or null)
      * @return  true  iff all the links in the resulting XHTML document
      *          can be successfully resolved
