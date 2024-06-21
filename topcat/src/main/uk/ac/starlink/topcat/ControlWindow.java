@@ -540,12 +540,12 @@ public class ControlWindow extends AuxWindow
         listActs.put( delkey, removeAct_ );
         Object upkey = upAct_.getValue( Action.NAME );
         listInputs.put( KeyStroke.getKeyStroke( KeyEvent.VK_UP,
-                                                InputEvent.ALT_MASK ),
+                                                InputEvent.ALT_DOWN_MASK ),
                         upkey );
         listActs.put( upkey, upAct_ );
         Object downkey = downAct_.getValue( Action.NAME );
         listInputs.put( KeyStroke.getKeyStroke( KeyEvent.VK_DOWN,
-                                                InputEvent.ALT_MASK ),
+                                                InputEvent.ALT_DOWN_MASK ),
                         downkey );
         listActs.put( downkey, downAct_ );
 
