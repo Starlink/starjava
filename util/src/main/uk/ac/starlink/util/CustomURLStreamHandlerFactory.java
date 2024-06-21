@@ -67,7 +67,8 @@ public class CustomURLStreamHandlerFactory implements URLStreamHandlerFactory {
             URLStreamHandler handler;
             try {
                 handler = (URLStreamHandler)
-                          Class.forName( clazzName ).newInstance();
+                          Class.forName( clazzName ).getDeclaredConstructor()
+                                                    .newInstance();
             }
             catch ( Throwable e ) {
                 handler = null;
