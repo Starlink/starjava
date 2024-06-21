@@ -27,8 +27,8 @@ import uk.ac.starlink.datanode.nodes.WCSDataNode;
  * {@link uk.ac.starlink.table.StarTable} objects.
  * DataNode implementations which wish to declare themselves (potentially)
  * choosable by this chooser, because they can provide an
- * associated <tt>StarTable</tt> object,
- * must return true from <tt>DataNode.hasDataObject(DataType.TABLE)</tt>.
+ * associated <code>StarTable</code> object,
+ * must return true from <code>DataNode.hasDataObject(DataType.TABLE)</code>.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -87,15 +87,15 @@ public class TableNodeChooser extends TreeNodeChooser {
     /**
      * Pops up a modal dialog to choose a table from this chooser.
      * If an error occurs in turning the selection into a table,
-     * the user will be informed, and <tt>null</tt> will be returned.
+     * the user will be informed, and <code>null</code> will be returned.
      *
      * @param  parent  the parent component for the dialog
      * @param  buttonText  the text to appear on the 'choose' button
-     *         (or <tt>null</tt> for default)
+     *         (or <code>null</code> for default)
      * @param  title  the title of the dialog window
-     *         (or <tt>null</tt> for default)
+     *         (or <code>null</code> for default)
      * @return a table corresponding to the selected DataNode, 
-     *         or <tt>null</tt> if none was selected or there was an error
+     *         or <code>null</code> if none was selected or there was an error
      *         in converting it to a table
      */
     public StarTable chooseStarTable( Component parent, String buttonText,
@@ -116,11 +116,11 @@ public class TableNodeChooser extends TreeNodeChooser {
      * Pops up a modal dialog to choose a table from this chooser, with
      * default characteristics.
      * If an error occurs in turning the selection into a table,
-     * the user will be informed, and <tt>null</tt> will be returned.
+     * the user will be informed, and <code>null</code> will be returned.
      *
      * @param  parent  the parent component for the dialog
      * @return a table corresponding to the selected DataNode, 
-     *         or <tt>null</tt> if none was selected or there was an error
+     *         or <code>null</code> if none was selected or there was an error
      *         in converting it to a table
      */
     public StarTable chooseStarTable( Component parent ) {
@@ -131,7 +131,7 @@ public class TableNodeChooser extends TreeNodeChooser {
      * Turns a DataNode into a StarTable.
      *
      * @param   node the data node
-     * @return  StarTable made from <tt>node</tt>
+     * @return  StarTable made from <code>node</code>
      * @throws  IOException  if there's trouble
      */
     public StarTable makeStarTable( DataNode node ) throws IOException {

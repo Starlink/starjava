@@ -93,7 +93,7 @@ public class BasicDropHandler extends DropTarget {
      * Indicates whether a given location is permissible for a drop event.
      *
      * @param   loc  the point at which a drop might take place
-     * @return  <tt>true</tt> iff it's OK to drop at <tt>loc</tt>
+     * @return  <code>true</code> iff it's OK to drop at <code>loc</code>
      */
     protected boolean isDropLocation( Point loc ) {
         return true;

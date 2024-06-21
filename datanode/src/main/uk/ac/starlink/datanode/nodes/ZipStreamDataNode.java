@@ -175,7 +175,7 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
      * over the wire, or a compressed one).
      *
      * @param   reqEnt  the entry for which the stream data is required
-     * @return  a stream containing the data in <tt>reqEnt</tt>
+     * @return  a stream containing the data in <code>reqEnt</code>
      */
     private InputStream getEntryInputStream( ZipEntry reqEnt ) 
             throws IOException {

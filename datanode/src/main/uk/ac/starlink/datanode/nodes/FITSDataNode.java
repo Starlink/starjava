@@ -125,7 +125,8 @@ public abstract class FITSDataNode extends DefaultDataNode {
     /**
      * Returns an ArrayDataMaker encapsulating the same input stream as the
      * on one which this FITSDataNode is based, but starting at a given
-     * offset <tt>start</tt> into the stream and <tt>size</tt> bytes long.
+     * offset <code>start</code> into the stream
+     * and <code>size</code> bytes long.
      *
      * @param  start  the offset into this FITSDataNode's stream at which
      *         the returned source's streams should start
@@ -287,7 +288,7 @@ public abstract class FITSDataNode extends DefaultDataNode {
      * file.
      *
      * @param    buffer   the first few bytes of a potential stream
-     * @return   true if <tt>buffer</tt> matches the FITS file magic number
+     * @return   true if <code>buffer</code> matches the FITS file magic number
      */
     public static boolean isMagic( byte[] buffer ) {
         return FitsConstants.isMagic( buffer );

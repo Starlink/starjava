@@ -247,8 +247,8 @@ public class TarStreamDataNode extends DefaultDataNode {
      * with a given string.
      *
      * @param   level  the required prefix
-     * @return  a list of all the <tt>TarEntry</tt> objects in this archive 
-     *          whose names begin with <tt>level</tt>.  They appear in the
+     * @return  a list of all the <code>TarEntry</code> objects in this archive 
+     *          whose names begin with <code>level</code>.  They appear in the
      *          list in the same order as they appear in the archive
      */
     protected List getEntriesAtLevel( String level ) throws IOException {
@@ -298,7 +298,7 @@ public class TarStreamDataNode extends DefaultDataNode {
     }
 
     /**
-     * Returns a list of all the <tt>TarEntry</tt> objects in this archive.
+     * Returns a list of all the <code>TarEntry</code> objects in this archive.
      *
      * @return  a list of the entries of this archive, in order of their
      *          appearance in the archive
@@ -326,7 +326,7 @@ public class TarStreamDataNode extends DefaultDataNode {
      * over the wire, or a compressed one).
      *
      * @param   reqEnt  the entry for which the stream data is required
-     * @return  a stream containing the data in <tt>reqEnt</tt>
+     * @return  a stream containing the data in <code>reqEnt</code>
      */
     private InputStream getEntryInputStream( TarEntry reqEnt ) 
             throws IOException {
@@ -352,11 +352,11 @@ public class TarStreamDataNode extends DefaultDataNode {
 
     /**
      * Reads an entry from a TarInputStream.
-     * This does much the same as <tt>tstrm.getNextEntry()</tt>, but 
+     * This does much the same as <code>tstrm.getNextEntry()</code>, but 
      * does a bit of essential doctoring on the entry name.
      *
      * @param  tstrm  the tar input stream
-     * @return  the next tar entry, or <tt>null</tt> if there is none or if
+     * @return  the next tar entry, or <code>null</code> if there is none or if
      *          any I/O error occurred
      */
     private static TarEntry getNextEntry( TarInputStream tstrm ) {
@@ -379,7 +379,8 @@ public class TarStreamDataNode extends DefaultDataNode {
      *
      * @param   magic  a buffer of bytes containing at least the first
      *                 264 bytes of a potential tar stream
-     * @return  true   if <tt>magic</tt> looks like the start of a tar stream
+     * @return  true   if <code>magic</code> looks like the start
+     *                 of a tar stream
      */
     public static boolean isMagic( byte[] magic ) {
         return magic.length > 264

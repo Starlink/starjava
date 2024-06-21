@@ -40,8 +40,8 @@ class NodeChain {
 
     /**
      * Sets this chain's terminal node.  The chain will consist of
-     * <tt>node</tt> as well as all of its ancestors as retrieved
-     * recursively using <tt>getCreator().getParent()</tt>.
+     * <code>node</code> as well as all of its ancestors as retrieved
+     * recursively using <code>getCreator().getParent()</code>.
      *
      * @param   node   new terminal node
      */
@@ -85,7 +85,7 @@ class NodeChain {
     }
 
     /**
-     * Returns the <tt>level</tt>'th ancestor.  Level 0 is the root.
+     * Returns the <code>level</code>'th ancestor.  Level 0 is the root.
      *
      * @param   level  distance from root
      * @return  node

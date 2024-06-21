@@ -99,11 +99,11 @@ import uk.ac.starlink.util.FileDataSource;
  * should be turned into.
  * <p>
  * Initially a newly constructed DataNodeFactory has a
- * <tt>FileDataNodeBuilder</tt>,
- * <tt>StringDataNodeBuilder</tt>,
- * <tt>SourceDataNodeBuilder</tt>
- * <tt>DocumentDataNodeBuilder</tt> and
- * <tt>XMLDataNodeBuilder</tt>
+ * <code>FileDataNodeBuilder</code>,
+ * <code>StringDataNodeBuilder</code>,
+ * <code>SourceDataNodeBuilder</code>
+ * <code>DocumentDataNodeBuilder</code> and
+ * <code>XMLDataNodeBuilder</code>
  * at the head of the list, followed by
  * ones got from constructors of the known DataNode implementations.
  * This means that a file or string will get tackled first by
@@ -145,7 +145,8 @@ public class DataNodeFactory {
     }
 
     /**
-     * Copy constructor.  Creates a clone of <tt>orig</tt> which has identical
+     * Copy constructor.  Creates a clone of <code>orig</code>
+     * which has identical
      * characteristics to it but its own copies of the data structures,
      * so that modifying the resulting factory will not affect the original.
      *
@@ -163,8 +164,8 @@ public class DataNodeFactory {
     /**
      * Ensures that the factory will not generate nodes of a given class.
      * Following this call, calls to {@link #makeDataNode} will not 
-     * return any nodes of class <tt>clazz</tt>.  Note this does not
-     * affect the construction of classes of subtypes of <tt>clazz</tt>.
+     * return any nodes of class <code>clazz</code>.  Note this does not
+     * affect the construction of classes of subtypes of <code>clazz</code>.
      *
      * @param  clazz  the shunned class (presumably a subtype of DataNode)
      */
@@ -266,7 +267,7 @@ public class DataNodeFactory {
      * it knows what it's doing, but beware that by modifying this 
      * list in strange ways the behaviour of this factory may be
      * compromised.  In particular, don't put anything in here which
-     * is not a <tt>DataNodeBuilder</tt> object.
+     * is not a <code>DataNodeBuilder</code> object.
      *
      * @return   a mutable list of {@link DataNodeBuilder} objects
      */
@@ -286,12 +287,13 @@ public class DataNodeFactory {
      * directly may not.
      *
      * @param  parent  the DataNode whose child the new node will be in
-     *          the node hierarchy.  May be <tt>null</tt> for a hierarchy root
+     *          the node hierarchy.  May be <code>null</code>
+     *          for a hierarchy root
      * @param  obj  an object which is to be turned into a DataNode by 
      *          one of the builders
-     * @return  a new DataNode object based on <tt>obj</tt>
+     * @return  a new DataNode object based on <code>obj</code>
      * @throws  NoSuchDataException  if none of the builders in the list
-     *          could turn <tt>obj</tt> into a <tt>DataNode</tt>
+     *          could turn <code>obj</code> into a <code>DataNode</code>
      */
     public DataNode makeDataNode( DataNode parent, Object obj )
             throws NoSuchDataException {
@@ -421,7 +423,7 @@ public class DataNodeFactory {
      * is about to get inserted into the tree.  This method is called
      * by {@link #makeDataNode} and in most cases should
      * not be called by nodes creating children.  However, if a node
-     * is creating children other than using <tt>makeDataNode</tt>
+     * is creating children other than using <code>makeDataNode</code>
      * (for instance because their constructors are not suitable for
      * the generic node creation system on which this class is based)
      * then this method should be called on the new child before it is
@@ -432,10 +434,10 @@ public class DataNodeFactory {
      * functionality for the nodes in question.
      *
      * @param   node   the new node to configure
-     * @param   parentNode   <tt>node</tt>'s parent data node 
-     *          (may be <tt>null</tt>) if it's at the top of the tree)
-     * @param   obj   the object on which <tt>node</tt> is based 
-     *          (may be <tt>null</tt>) if nothing suitable applies
+     * @param   parentNode   <code>node</code>'s parent data node 
+     *          (may be <code>null</code>) if it's at the top of the tree)
+     * @param   obj   the object on which <code>node</code> is based 
+     *          (may be <code>null</code>) if nothing suitable applies
      */
     public void configureDataNode( DataNode node, DataNode parentNode, 
                                    Object obj ) {
@@ -496,13 +498,14 @@ public class DataNodeFactory {
 
     /**
      * Makes a DataNode from a Throwable.  This behaves the same as
-     * <tt>makeDataNode</tt> but for convenience it doesn't throw a
+     * <code>makeDataNode</code> but for convenience it doesn't throw a
      * NoSuchDataException, since it can guarantee to make a DataNode
      * from the throwable.
      *
      * @param  parent   the DataNode whose child this is
      * @param  th  the Throwable object from which to construct the node
-     * @return  a DataNode (probably an ErrorDataNode) representing <tt>th</tt>
+     * @return  a DataNode (probably an ErrorDataNode)
+     *          representing <code>th</code>
      */
     public DataNode makeErrorDataNode( DataNode parent, Throwable th ) {
         try {
@@ -515,15 +518,16 @@ public class DataNodeFactory {
 
     /**
      * Convenience method which invokes {@link #makeDataNode} but does not
-     * throw a <tt>NoSuchDataException</tt>.  If the node construction
+     * throw a <code>NoSuchDataException</code>.  If the node construction
      * fails, then {@link #makeErrorDataNode} will be called to construct
      * the node for return instead.
      *
      * @param  parent  the DataNode whose child the new node will be in
-     *          the node hierarchy.  May be <tt>null</tt> for a hierarchy root
+     *          the node hierarchy.
+     *          May be <code>null</code> for a hierarchy root
      * @param  obj  an object which is to be turned into a DataNode by 
      *          one of the builders
-     * @return  a new DataNode object based on <tt>obj</tt>
+     * @return  a new DataNode object based on <code>obj</code>
      */
     public DataNode makeChildNode( DataNode parent, Object obj ) {
         try {

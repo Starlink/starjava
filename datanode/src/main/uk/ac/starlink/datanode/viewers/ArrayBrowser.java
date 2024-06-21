@@ -47,7 +47,7 @@ public class ArrayBrowser extends JPanel {
      *
      * @param   nda  the NDArray to browse
      * @throws  IOException if there is some trouble doing random access
-     *          reads on <tt>nda</tt>
+     *          reads on <code>nda</code>
      */
     public ArrayBrowser( NDArray nda ) throws IOException {
         this( makeCellGetter( nda ), nda.getShape() );
@@ -57,7 +57,7 @@ public class ArrayBrowser extends JPanel {
      * Constructs an ArrayBrowser from an ArrayStructure.
      *
      * @param   ary  the ArrayStructure to browse
-     * @throws  HDSException if there is some trouble reading <tt>ary</tt>
+     * @throws  HDSException if there is some trouble reading <code>ary</code>
      */
     public ArrayBrowser( ArrayStructure ary ) throws HDSException {
         this( makeCellGetter( ary ), ary.getShape() );

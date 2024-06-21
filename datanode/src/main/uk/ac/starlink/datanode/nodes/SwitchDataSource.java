@@ -41,11 +41,11 @@ abstract class SwitchDataSource extends DataSource {
     /**
      * Set the provisional input stream.  If this is set to a non-null
      * value, then the next getRawInputStream invocation on this DataSource
-     * will be given the value specified in this method (<tt>strm</tt>),
+     * will be given the value specified in this method (<code>strm</code>),
      * otherwise {@link #getBackupRawInputStream} will be invoked.
      *
      * @param   strm  the new provisional input stream to use.
-     *          May be <tt>null</tt> to indicate that there is none
+     *          May be <code>null</code> to indicate that there is none
      */
     public void setProvisionalStream( InputStream strm ) {
         this.provisionalStream = strm;

@@ -49,7 +49,7 @@ public class InfoPanel extends JPanel {
     /**
      * Sets the icon for this panel.
      *
-     * @param  icon  the icon to add (or <tt>null</tt>)
+     * @param  icon  the icon to add (or <code>null</code>)
      */
     public void setIcon( Icon icon ) {
         iconLabel.setIcon( icon );

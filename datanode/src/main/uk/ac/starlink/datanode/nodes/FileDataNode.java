@@ -82,7 +82,7 @@ public class FileDataNode extends DefaultDataNode {
      * Initialises a <code>FileDataNode</code> from a top-level HDSObject.
      *
      * @param  hobj  an HDSObject at the top of its container file
-     * @throws  NoSuchDataException  if <tt>hobj</tt> is not at top level
+     * @throws  NoSuchDataException  if <code>hobj</code> is not at top level
      */
     public FileDataNode( HDSObject hobj ) throws NoSuchDataException {
         this( getTopLevelFile( hobj ) );
@@ -155,7 +155,7 @@ public class FileDataNode extends DefaultDataNode {
      * Determines whether hidden files are included in the list of 
      * children of a directory file node.
      *
-     * @param  showHidden  <tt>true</tt> iff you want hidden files to
+     * @param  showHidden  <code>true</code> iff you want hidden files to
      *         be included in the child list
      */
     public static void setShowHidden( boolean showHidden ) {
@@ -251,7 +251,7 @@ public class FileDataNode extends DefaultDataNode {
      * top level item.
      *
      * @param  hobj  an HDSObject at the top of its container file
-     * @throws  NoSuchDataException  if <tt>hobj</tt> is not at top level
+     * @throws  NoSuchDataException  if <code>hobj</code> is not at top level
      */
     private static File getTopLevelFile( HDSObject hobj )
             throws NoSuchDataException {

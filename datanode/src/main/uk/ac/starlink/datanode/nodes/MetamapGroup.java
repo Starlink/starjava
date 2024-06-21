@@ -40,8 +40,8 @@ public class MetamapGroup {
 
     /**
      * Adds an entry to one of the metadata sets.
-     * No entry is added if <tt>value==null</tt> or if 
-     * <tt>value.toString().length()==0</tt>.
+     * No entry is added if <code>value==null</code> or if 
+     * <code>value.toString().length()==0</code>.
      * 
      * @param  item   the index of the set to which the entry should be added
      * @param  key    the metadatum key
@@ -58,12 +58,12 @@ public class MetamapGroup {
 
     /**
      * Retrieves an entry from one of the metadata sets by key.
-     * <tt>null</tt> is returned if no such entry exists.
+     * <code>null</code> is returned if no such entry exists.
      *
      * @param  item  the index of the set from which the entry should be got
      * @param  key   the metadatum key
-     * @return  the value of the entry associated with <tt>key</tt>,
-     *          or <tt>null</tt> if there isn't one
+     * @return  the value of the entry associated with <code>key</code>,
+     *          or <code>null</code> if there isn't one
      */
     public Object getEntry( int item, String key ) {
         return metamaps[ item ].get( key );
@@ -75,8 +75,8 @@ public class MetamapGroup {
      *
      * @param  item  the index of the set from which the entry should be got
      * @param  key   the metadatum key
-     * @return   true iff the entry corresponding to <tt>key</tt> exists
-     *           in set number <tt>item</tt>
+     * @return   true iff the entry corresponding to <code>key</code> exists
+     *           in set number <code>item</code>
      */
     public boolean hasEntry( int item, String key ) {
         return metamaps[ item ].containsKey( key );
@@ -87,7 +87,7 @@ public class MetamapGroup {
      * The effect of this call is to influence the order of the list 
      * returned by subsequent calls of {@link #getKnownKeys}.
      * <p>
-     * The supplied argument <tt>ordering</tt> is a list of strings;
+     * The supplied argument <code>ordering</code> is a list of strings;
      * a string which appears earlier in this list is considered to be
      * earlier in the list of metadata keys.  Any which do not appear 
      * in this list will be ranked in an unspecified order at the end.

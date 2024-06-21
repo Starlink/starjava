@@ -190,7 +190,7 @@ public class TfitsDataNode extends DefaultDataNode {
      * file.
      *
      * @param    buffer   the first few bytes of a potential stream
-     * @return   true if <tt>buffer</tt> matches the FITS file magic number
+     * @return   true if <code>buffer</code> matches the FITS file magic number
      */
     public static boolean isMagic( byte[] buffer ) {
         return FitsUtil.isMagic( buffer );

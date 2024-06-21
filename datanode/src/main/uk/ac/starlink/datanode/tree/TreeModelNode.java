@@ -11,12 +11,13 @@ import uk.ac.starlink.datanode.nodes.DataNode;
  * {@link javax.swing.tree.DefaultTreeModel}, but also takes care of
  * some of the duties related to asynhronous expansion of the node.
  * <p>
- * You should generally synchronize on a <tt>TreeModelNode</tt> when 
+ * You should generally synchronize on a <code>TreeModelNode</code> when 
  * accessing it in a way which might modify it or be sensitive to 
  * modification of it.
  * <p>
- * To create a <tt>TreeModelNode</tt>, use the 
- * {@link DataNodeTreeModel#makeModelNode} method of <tt>DataNodeTreeModel</tt>.
+ * To create a <code>TreeModelNode</code>, use the 
+ * {@link DataNodeTreeModel#makeModelNode} method
+ * of <code>DataNodeTreeModel</code>.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -51,7 +52,7 @@ public class TreeModelNode {
     }
 
     /**
-     * Returns the parent of this node.  Will be <tt>null</tt> for the
+     * Returns the parent of this node.  Will be <code>null</code> for the
      * root.
      *
      * @return  parent node
@@ -72,7 +73,7 @@ public class TreeModelNode {
     /**
      * Installs a NodeExpander object to take charge of 
      * locating this node's children.  Any existing NodeExpander owned
-     * by this node will be uninstalled.  <tt>NodeExpander</tt>s behave in
+     * by this node will be uninstalled.  <code>NodeExpander</code>s behave in
      * such a way that such uninstallation will (at least may) cause 
      * them to stop expanding, 
      * so an expander should not be deinstalled and installed again later.
@@ -88,7 +89,7 @@ public class TreeModelNode {
 
     /**
      * Returns the object which is currently in charge of locating this
-     * nodes children.  If <tt>null</tt>, no node expansion has been
+     * nodes children.  If <code>null</code>, no node expansion has been
      * attempted on this node.
      *
      * @return  the expander which has started (and may have finished)

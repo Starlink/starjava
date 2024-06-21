@@ -52,7 +52,7 @@ public class DataNodeTransferHandler extends TransferHandler {
     /**
      * Sets the DataNodeFactory which will be used by this handler to
      * perform import of Transferables (convert them into DataNodes).
-     * By default this is set to <tt>null</tt>; unless it is set to
+     * By default this is set to <code>null</code>; unless it is set to
      * a non-null value, no node import will be permitted.
      */
     public void setNodeMaker( DataNodeFactory nodeMaker ) {
@@ -201,10 +201,10 @@ public class DataNodeTransferHandler extends TransferHandler {
      * @param  flavor  a DataFlavor
      * @param  root  the root DataNode of the tree into which the new
      *               node will be imported
-     * @return  a DataNode based on <tt>trans</tt> using <tt>flavor</tt>
+     * @return  a DataNode based on <code>trans</code> using <code>flavor</code>
      * @throws  NoSuchDataException  if it can't be done
-     * @throws  UnsupportedFlavorException  if <tt>trans</tt> does not
-     *          have any data of type <tt>flavor</tt>
+     * @throws  UnsupportedFlavorException  if <code>trans</code> does not
+     *          have any data of type <code>flavor</code>
      * @throws  IOException  if there is an error reading from the
      *          transferable's input stream
      */

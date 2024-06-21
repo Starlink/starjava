@@ -108,20 +108,22 @@ public interface DataNode {
 
     /**
      * Returns an object which is in some sense the parent of the one
-     * this node is based on.  The parent is <em>not</em> a <tt>DataNode</tt>,
-     * it is something which may get fed to a <tt>DataNodeFactory</tt> 
-     * to create <tt>DataNode</tt>.  If no such object exists, which 
-     * may well be the case, <tt>null</tt> should be returned.
+     * this node is based on.
+     * The parent is <em>not</em> a <code>DataNode</code>,
+     * it is something which may get fed to a <code>DataNodeFactory</code> 
+     * to create <code>DataNode</code>.  If no such object exists, which 
+     * may well be the case, <code>null</code> should be returned.
      *
-     * @return  an object which is the parent of this one, or <tt>null</tt>
+     * @return  an object which is the parent of this one, or <code>null</code>
      */
     Object getParentObject();
 
     /**
      * Sets the object which is in some sense the parent of the one
-     * this node is based on.  The parent is <em>not</em> a <tt>DataNode</tt>,
-     * it is something which may get fed to a <tt>DataNodeFactory</tt>
-     * to create <tt>DataNode</tt>.
+     * this node is based on.
+     * The parent is <em>not</em> a <code>DataNode</code>,
+     * it is something which may get fed to a <code>DataNodeFactory</code>
+     * to create <code>DataNode</code>.
      * 
      * @param parentObj  an object which is the parent of this one
      */
@@ -198,7 +200,7 @@ public interface DataNode {
     /**
      * Gets the contribution of this node to a pathname.
      * The return value should be the name of this node as it forms part
-     * of a path name.  This may or may not be equal to the <tt>name</tt>
+     * of a path name.  This may or may not be equal to the <code>name</code>
      * member variable.  Can be null to indicate the no pathname can
      * be formed from this node.
      *
@@ -209,7 +211,7 @@ public interface DataNode {
     /**
      * Gets the delimiter string which separates the name of this node from
      * the name of one of its children when constructing a pathname.
-     * If <tt>null</tt> is returned it indicates that no pathname 
+     * If <code>null</code> is returned it indicates that no pathname 
      * can be formed from this node and one of its children (for instance
      * if it has no children).
      *
@@ -230,31 +232,31 @@ public interface DataNode {
      * <p>Invoking this method ought not to create such a data object
      * if that is an expensive process, merely to indicate whether 
      * a subsequent invocation of {@link #getDataObject} using the same
-     * <tt>type</tt> is likely to be successful.
+     * <code>type</code> is likely to be successful.
      *
      * @param   type  data object type of interest
-     * @return  true iff a subsequent call of <tt>getDataObject(type)</tt> is
-     *          likely to be successful
+     * @return  true iff a subsequent call of
+     *          <code>getDataObject(type)</code> is likely to be successful
      */
     boolean hasDataObject( DataType type );
 
     /**
      * Returns a data object of a given type which corresponds to this node.
      * This method should only be invoked if a prior invocation of
-     * {@link #hasDataObject} using the same <tt>type</tt> has returned true
-     * (otherwise an <tt>IllegalArgumentException</tt> may be thrown).
+     * {@link #hasDataObject} using the same <code>type</code> has returned true
+     * (otherwise an <code>IllegalArgumentException</code> may be thrown).
      * The returned object must be in instance of the class returned by
-     * <tt>type.getDataClass()</tt>.
+     * <code>type.getDataClass()</code>.
      *
      * @param  type  data object type of interest
-     * @return  data object of type <tt>type</tt>
+     * @return  data object of type <code>type</code>
      */
     Object getDataObject( DataType type ) throws DataObjectException;
 
     /**
      * Configures a DetailViewer object to show additional class-specific 
      * details associated with this node.  Implementing classes should 
-     * call various methods on the given <tt>DetailViewer</tt> object
+     * call various methods on the given <code>DetailViewer</code> object
      * to customise it to contain information about the node in question.
      * This will
      * consist of populating the main panel with basic and compact

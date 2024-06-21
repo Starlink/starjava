@@ -49,7 +49,7 @@ public abstract class ZipArchiveDataNode extends DefaultDataNode {
     }
 
     /**
-     * Returns a list of all the <tt>ZipEntry</tt> objects in 
+     * Returns a list of all the <code>ZipEntry</code> objects in 
      * this zip archive.
      *
      * @return  a List of all the {@link java.util.zip.ZipEntry} objects
@@ -61,13 +61,13 @@ public abstract class ZipArchiveDataNode extends DefaultDataNode {
      * Returns an iterator over the DataNodes at a given level in the
      * hierarchy of this archive.  The iterator creates DataNodes for
      * each ZipEntry in this archive whose name begins with the 
-     * supplied string <tt>level</tt>.
+     * supplied string <code>level</code>.
      *
      * @param  level  the required starting substring of the name of all
      *         ZipEntries to be represented in the result
      * @param  parent  the DataNode whose children the resulting nodes will be
      * @return  an Iterator over {@link DataNode} objects corresponding to
-     *          the ZipEntry objects specified by <tt>level</tt>
+     *          the ZipEntry objects specified by <code>level</code>
      */
     protected abstract Iterator getChildIteratorAtLevel( String level,
                                                          DataNode parent )
@@ -79,7 +79,7 @@ public abstract class ZipArchiveDataNode extends DefaultDataNode {
      *
      * @param  magic  a byte array containing the
      *         first few bytes of a source which might be a zip
-     * @return true iff <tt>magic</tt> represents the magic number of a 
+     * @return true iff <code>magic</code> represents the magic number of a 
      *         zip archive
      */
     public static boolean isMagic( byte[] magic ) {
@@ -127,12 +127,12 @@ public abstract class ZipArchiveDataNode extends DefaultDataNode {
     /**
      * Returns all the ZipEntry objects in this archive at a given level
      * in the hierarchy.  The selected entries are all those whose name
-     * starts with the supplied string <tt>level</tt>.
+     * starts with the supplied string <code>level</code>.
      *
      * @param  level the required starting substring of the name of all
      *         ZipEntries to be returned
      * @return a list of all the {@link java.util.zip.ZipEntry}
-     *         objects at the given <tt>level</tt>
+     *         objects at the given <code>level</code>
      */
     protected List getEntriesAtLevel( String level ) throws IOException {
 

@@ -24,12 +24,12 @@ import uk.ac.starlink.datanode.nodes.EmptyDataNode;
  * be a time-consuming operation and might cause the user interface
  * to lock up for longer than was acceptable.
  * <p>
- * Associated with each <tt>DataNode</tt> in the tree is a 
+ * Associated with each <code>DataNode</code> in the tree is a 
  * {@link TreeModelNode}, which handles some of the structure and is
  * in fact used internally by this tree model to store the tree structure.
  * This can be obtained using the {@link #getModelNode} method 
  * and manipulated directly for more direct control over the tree structure
- * than is possibly by manipulating <tt>DataNode</tt>s.
+ * than is possibly by manipulating <code>DataNode</code>s.
  * 
  * @author   Mark Taylor
  */
@@ -88,9 +88,9 @@ public class DataNodeTreeModel implements TreeModel {
      * Returns a given child of a node in the tree.
      *
      * @param  parentDataNode  parent {@link DataNode}
-     * @param  index  index of the child of <tt>parentDataNode</tt> required
-     * @return  child {@link DataNode}, the <tt>index</tt>'th child of
-     *          <tt>parentDataNode</tt>
+     * @param  index  index of the child of <code>parentDataNode</code> required
+     * @return  child {@link DataNode}, the <code>index</code>'th child of
+     *          <code>parentDataNode</code>
      */
     public Object getChild( Object parentDataNode, int index ) {
         TreeModelNode childModelNode = 
@@ -108,7 +108,7 @@ public class DataNodeTreeModel implements TreeModel {
      * number of children which can be determined without delay
      * (this may be zero), and will initiate the process of retrieving
      * all the other children.  This is done in a separate thread,
-     * and a suitable <tt>TreeModelEvent</tt> is fired each time a
+     * and a suitable <code>TreeModelEvent</code> is fired each time a
      * child arrives.  The expansion process will continue until 
      * all the children have been found.  No notification is currently
      * made when the set of children is complete.
@@ -146,7 +146,7 @@ public class DataNodeTreeModel implements TreeModel {
      * the current state of the model.
      *
      * @param  dataNode  the node whose children are being enquired about
-     * @return  an array of <tt>dataNode</tt>'s children
+     * @return  an array of <code>dataNode</code>'s children
      */
     public DataNode[] getCurrentChildren( DataNode dataNode ) {
         TreeModelNode modelNode = getModelNode( dataNode );
@@ -167,7 +167,7 @@ public class DataNodeTreeModel implements TreeModel {
      * children.  Non-leaf nodes may still be childless though.
      *
      * @param   dataNode  {@link DataNode} node to query
-     * @return  true iff <tt>dataNode</tt> cannot support children
+     * @return  true iff <code>dataNode</code> cannot support children
      */
     public boolean isLeaf( Object dataNode ) {
         return ! ((DataNode) dataNode).allowsChildren();
@@ -176,16 +176,16 @@ public class DataNodeTreeModel implements TreeModel {
     /**
      * Returns the index of a given child if it is a direct child of another.
      * <p>
-     * Note this returns -1 (without error) if <tt>childDataNode</tt> 
+     * Note this returns -1 (without error) if <code>childDataNode</code> 
      * does not appear in the tree at all; this appears to be required 
      * on occasion by Sun's JTree implementation, though that's not 
      * documented in the {@link javax.swing.tree.TreeModel} interface.
      *
      * @param  parentDataNode  {@link DataNode} which is the parent object
      * @param  childDataNode {@link DataNode} which is a child of 
-     *         <tt>parentDataNode</tt>
-     * @return the child number of <tt>childDataNode</tt> within
-     *         <tt>parentDataNode</tt> or -1 if it's not a child
+     *         <code>parentDataNode</code>
+     * @return the child number of <code>childDataNode</code> within
+     *         <code>parentDataNode</code> or -1 if it's not a child
      */
     public int getIndexOfChild( Object parentDataNode, Object childDataNode ) {
         if ( parentDataNode != null && childDataNode != null &&
@@ -205,9 +205,9 @@ public class DataNodeTreeModel implements TreeModel {
      * Messaged when the user has altered the value for an item.
      * 
      * @param  path  path to the altered node (all the objects in the
-     *         path must be <tt>DataNode</tt>s)
+     *         path must be <code>DataNode</code>s)
      * @param  newDataNode  the {@link DataNode} which is now found at
-     *         <tt>path</tt>
+     *         <code>path</code>
      */
     public void valueForPathChanged( TreePath path, Object newDataNode ) {
         replaceNode( (DataNode) path.getLastPathComponent(), 
@@ -234,7 +234,7 @@ public class DataNodeTreeModel implements TreeModel {
     /**
      * Indicates whether this model contains a given data node.
      *
-     * @return  <tt>true</tt> iff this model contains <tt>node</tt>
+     * @return  <code>true</code> iff this model contains <code>node</code>
      */
     public boolean containsNode( DataNode node ) {
         return nodeMap.containsKey( node );
@@ -242,15 +242,15 @@ public class DataNodeTreeModel implements TreeModel {
 
     /**
      * Returns an array representing the position of the given 
-     * <tt>DataNode</tt> in the tree.  
+     * <code>DataNode</code> in the tree.  
      * The root is the first element in the returned
-     * array, and <tt>dataNode</tt> is the last.  The length of
+     * array, and <code>dataNode</code> is the last.  The length of
      * the returned array gives the node's depth in the tree.
-     * If <tt>dataNode</tt> does not exist in this model, <tt>null</tt>
+     * If <code>dataNode</code> does not exist in this model, <code>null</code>
      * is returned.
      *
      * @param  dataNode  the node to find the path of
-     * @return  the path from the root to <tt>dataNode</tt>
+     * @return  the path from the root to <code>dataNode</code>
      */
     public DataNode[] getPathToRoot( DataNode dataNode ) {
         return nodeMap.containsKey( dataNode ) 
@@ -260,10 +260,10 @@ public class DataNodeTreeModel implements TreeModel {
 
     /**
      * Returns an array representing the position of the given 
-     * <tt>ModelNode</tt> in the tree.
+     * <code>ModelNode</code> in the tree.
      *
      * @param  modelNode  the node to find the path of
-     * @return  the path from the root to <tt>modelNode</tt>
+     * @return  the path from the root to <code>modelNode</code>
      */
     private DataNode[] getPathToRoot( TreeModelNode modelNode ) { 
         List pathList = new ArrayList();
@@ -281,8 +281,8 @@ public class DataNodeTreeModel implements TreeModel {
      * not just the event dispatch thread.
      *
      * @param  newChild  the new data node to insert into
-     *         <tt>parent</tt>'s list of children
-     * @param  parent  the parent node in whose children <tt>newChild</tt>
+     *         <code>parent</code>'s list of children
+     * @param  parent  the parent node in whose children <code>newChild</code>
      *         should be inserted
      * @param  ipos the position at which the insertion should take place
      */
@@ -318,8 +318,8 @@ public class DataNodeTreeModel implements TreeModel {
      * not just the event dispatch thread.
      *
      * @param  newChild  the new data node to add at the end of 
-     *         <tt>parent</tt>'s list of children
-     * @param  parent  the parent node to whose children <tt>newChild</tt>
+     *         <code>parent</code>'s list of children
+     * @param  parent  the parent node to whose children <code>newChild</code>
      *         should be appended
      */
     public void appendNode( DataNode newChild, DataNode parent ) {
@@ -502,11 +502,11 @@ public class DataNodeTreeModel implements TreeModel {
     }
 
     /**
-     * Returns the <tt>TreeModelNode</tt> which acts as the container
+     * Returns the <code>TreeModelNode</code> which acts as the container
      * for a given data node.
      *
      * @param  dataNode  the data node whose model node is required
-     * @return   <tt>dataNode</tt>'s container model node
+     * @return   <code>dataNode</code>'s container model node
      */
     public TreeModelNode getModelNode( DataNode dataNode ) {
         TreeModelNode modelNode = (TreeModelNode) nodeMap.get( dataNode );

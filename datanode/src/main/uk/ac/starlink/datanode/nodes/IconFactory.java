@@ -97,7 +97,7 @@ public class IconFactory {
     /**
      * Gets the icon with the given ID.
      *
-     * @throws  IllegalArgumentException  if <tt>id</tt> is not one of the
+     * @throws  IllegalArgumentException  if <code>id</code> is not one of the
      *          known icon identifiers
      */
     public static Icon getIcon( short id ) {
@@ -111,7 +111,7 @@ public class IconFactory {
      *
      * @param  id  icon identifier
      * @return  the URL of the icon, or null
-     * @throws  IllegalArgumentException  if <tt>id</tt> is not one of the
+     * @throws  IllegalArgumentException  if <code>id</code> is not one of the
      *          known icon identifiers
      */
     public static URL getIconURL( short id ) {
@@ -121,11 +121,11 @@ public class IconFactory {
     /**
      * Returns the name by which the icon with a given id is known internally.
      * This may refer to a resource in the IMAGE_PATH directory, or may not.
-     * It is used as the key to the <tt>iconMap</tt> map.
+     * It is used as the key to the <code>iconMap</code> map.
      *
      * @param   id  the icon identifier
      * @return  the internal name of the icon
-     * @throws  IllegalArgumentException  if <tt>id</tt> is not one of the
+     * @throws  IllegalArgumentException  if <code>id</code> is not one of the
      *          known icon identifiers
      */
     private static String getIconName( short id ) {

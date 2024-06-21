@@ -29,7 +29,7 @@ public class NodeUtil {
      * or not.  This is just a guess based on what characters are in there.
      *
      * @param  buf  the buffer to test
-     * @return  <tt>true</tt> iff <tt>buf</tt> looks like ASCII
+     * @return  <code>true</code> iff <code>buf</code> looks like ASCII
      */
     public static boolean isASCII( byte[] buf ) {
         int leng = buf.length;
@@ -182,15 +182,15 @@ public class NodeUtil {
 
     /**
      * Recursively accumulates the path of a given datanode into a 
-     * list of elements.  The path is returned, or <tt>null</tt> if
+     * list of elements.  The path is returned, or <code>null</code> if
      * a full path is not available.
      *
      * @param  node  the data node whose path is to be accumulated 
-     *               into the <tt>path</tt> list
+     *               into the <code>path</code> list
      * @param  path  a list of path elements; the first element is
      *               furthest away from the root
-     * @return  the complete path for <tt>node</tt> as a list of Strings; 
-     *          the root is the last element.  <tt>null</tt> if no path
+     * @return  the complete path for <code>node</code> as a list of Strings; 
+     *          the root is the last element.  <code>null</code> if no path
      *          can be found
      */
     private static List accumulatePath( DataNode node, List path ) {
