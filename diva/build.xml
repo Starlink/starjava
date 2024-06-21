@@ -88,6 +88,7 @@
   <property name="debug" value="true"/>
   <property name="deprecation" value="false"/>
   <property name="optimize" value="true"/>
+  <property name="source.version" value="1.8"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
@@ -342,6 +343,7 @@
            destdir="${build.classes}"
            debug="${debug}"
            deprecation="${deprecation}"
+           source="${source.version}"
            optimize="${optimize}">
 
       <classpath refid="classpath"/>
@@ -812,6 +814,7 @@
              locale="en"
              windowtitle="${Name} API"
              doctitle="${Name}"
+             source="${source.version}"
              classpathref="classpath">
       <arg value="-Xdoclint:none"/>
       <arg value="-tag"/>
@@ -894,6 +897,7 @@
     <javac srcdir="${tests.dir}"
            destdir="${build.tests}"
            debug="${debug}"
+           source="${source.version}"
            deprecation="${deprecation}" >
       <classpath refid="tests-classpath"/>
     </javac>
