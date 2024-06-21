@@ -285,8 +285,7 @@ public class AuthUtil {
      * @throws   Throwable  if something goes wrong
      */
     private static AuthScheme[] getNamedSchemes( String[] names )
-            throws ClassNotFoundException, InstantiationException,
-                   IllegalAccessException {
+            throws ReflectiveOperationException {
         List<AuthScheme> schemes = new ArrayList<>();
         for ( String name : names ) {
             AuthScheme scheme =
@@ -296,7 +295,9 @@ public class AuthUtil {
                       .findFirst()
                       .orElse( null );
             if ( scheme == null ) {
-                scheme = (AuthScheme) Class.forName( name ).newInstance();
+                scheme = (AuthScheme) Class.forName( name )
+                                           .getDeclaredConstructor()
+                                           .newInstance();
             }
             schemes.add( scheme );
         }
