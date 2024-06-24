@@ -38,9 +38,9 @@ public class WindowArrayImpl extends WrapperArrayImpl {
      * @param  nda    the base NDArray which supplies the original pixel values
      * @param  window the shape of the window through which the base 
      *                array will be viewed.  Must have the same number
-     *                of dimensions as <tt>nda</tt>
+     *                of dimensions as <code>nda</code>
      * @throws  IllegalArgumentException  if window has a different number of
-     *                dimensions from <tt>nda</tt>
+     *                dimensions from <code>nda</code>
      */
     public WindowArrayImpl( NDArray nda, NDShape window ) {
         super( nda );

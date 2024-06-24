@@ -62,8 +62,8 @@ public class ChunkStepper {
      * @param   length     the total number of elements to iterate over
      * @param   chunkSize  the size of chunk which will be used (except
      *                     perhaps for the last chunk)
-     * @throws  IllegalArgumentException  if <tt>chunkSize&lt;=0</tt>
-     *                                    or <tt>length&lt;0</tt>
+     * @throws  IllegalArgumentException  if <code>chunkSize&lt;=0</code>
+     *                                    or <code>length&lt;0</code>
      */
     public ChunkStepper( long length, int chunkSize ) {
         if ( chunkSize <= 0 ) {

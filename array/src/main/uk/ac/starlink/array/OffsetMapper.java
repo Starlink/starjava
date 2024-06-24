@@ -17,7 +17,7 @@ public interface OffsetMapper {
     /**
      * Returns an offset into array 2 corresponding to a given offset
      * in array 1.
-     * Any <tt>long</tt> value may be returned, though depending on the
+     * Any <code>long</code> value may be returned, though depending on the
      * the size of array 2 it may not fall within its bounds. 
      * A negative value always corresponds to a pixel which does not
      * exist in array 2.  It is the responsibility of clients
@@ -31,7 +31,7 @@ public interface OffsetMapper {
     long mapOffset( long off1 );
 
     /**
-     * Returns a two-element array <tt>(min,max)</tt>
+     * Returns a two-element array <code>(min,max)</code>
      * indicating the range of mapping
      * output values (array 2 offsets) which correspond to a 
      * given range of input values (array 1 offsets).
@@ -41,18 +41,19 @@ public interface OffsetMapper {
      * is not supplied to it.  The returned range is only used
      * for efficiency purposes and may be conservative (a larger range 
      * than will actually be returned).  A null value may be returned;
-     * this, like a return value of <tt>{-Long.MIN_VALUE,Long.MAX_VALUE}</tt>
+     * this, like a return value of
+     * <code>{-Long.MIN_VALUE,Long.MAX_VALUE}</code>
      * constitutes no guarantee about the mapping output values.
      * 
      * @param  range1 a two-element array giving the lowest value and highest
      *                value (inclusive) which will be supplied to the 
-     *                <tt>mapOffset</tt> method (range to be considered 
+     *                <code>mapOffset</code> method (range to be considered 
      *                in array 1)
      * @return  a two-element array giving the lowest value and highest 
      *          value (inclusive) which could be returned by the 
-     *          <tt>mapOffset</tt> method (range which could be returned
+     *          <code>mapOffset</code> method (range which could be returned
      *          in array 2) under the above circumstances.
-     *          May be <tt>null</tt> if the information is not available
+     *          May be <code>null</code> if the information is not available
      */
     long[] mapRange( long[] range1 );
 }

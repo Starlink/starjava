@@ -131,11 +131,11 @@ public class BridgeNDArray extends DefaultArrayDescription implements NDArray {
     }
 
     /**
-     * Returns the <tt>ArrayImpl</tt> object supplying the implementation
-     * for this <tt>BridgeNDArray</tt>.
+     * Returns the <code>ArrayImpl</code> object supplying the implementation
+     * for this <code>BridgeNDArray</code>.
      *
      * @return  the object which supplies services to this
-     *          <tt>BridgeNDArray</tt>
+     *          <code>BridgeNDArray</code>
      */
     public ArrayImpl getImpl() {
         return impl;

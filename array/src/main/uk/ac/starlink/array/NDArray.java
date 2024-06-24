@@ -177,10 +177,10 @@ public interface NDArray extends ArrayDescription {
      * still require pixel access to it via a retained reference.
      * The general rule is that an application
      * which obtains a new NDArray from a URL should arrange for 
-     * <tt>close</tt> to be called 
+     * <code>close</code> to be called 
      * on it at the end of its lifetime, but that utility routines which
      * perform operations on an NDArray should not close it after use
-     * (though they should close any <tt>ArrayAccess</tt> objects
+     * (though they should close any <code>ArrayAccess</code> objects
      * which they take out).
      * Note that closing an NDArray will normally result in closing any
      * arrays which it wraps.

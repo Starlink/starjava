@@ -48,7 +48,7 @@ public class CombineArrayImpl implements ArrayImpl {
      * @param  shape  the shape of the resulting array object
      * @param  type  the type of the resulting array object
      * @param  bh    the bad value handler for the resulting array object.
-     *               If <tt>null</tt>, a non-null bad value handler using a
+     *               If <code>null</code>, a non-null bad value handler using a
      *               default value is used.
      */
     public CombineArrayImpl( NDArray nda1, NDArray nda2, Combiner combi,

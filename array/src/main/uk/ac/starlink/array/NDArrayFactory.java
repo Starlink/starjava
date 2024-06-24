@@ -163,12 +163,12 @@ public class NDArrayFactory {
      * builders is willing to handle the URL but fails to make an array
      * resource at it.
      * <p>
-     * The <tt>bh</tt> parameter indicates a requested bad value handling
+     * The <code>bh</code> parameter indicates a requested bad value handling
      * scheme, but does not guarantee that it will be used, since not all
      * storage formats are capable of storing bad values in arbitrary
      * ways.  According to the resource type, bad value handling will
      * be provided on a best-efforts basis.
-     * If <tt>bh</tt> is null, the implementation will choose a bad value
+     * If <code>bh</code> is null, the implementation will choose a bad value
      * handling policy of its own.
      *
      * @param   url  a URL pointing to a writable resource.  This may be
@@ -182,8 +182,8 @@ public class NDArrayFactory {
      *           or null if none could be constructed because none of
      *           the handlers recognised the URL
      * @throws IOException  if an I/O error occurs
-     * @throws IllegalArgumentException if the type of <tt>bh</tt> does not 
-     *         match <tt>type</tt> 
+     * @throws IllegalArgumentException if the type of <code>bh</code> does not 
+     *         match <code>type</code> 
      */
     public NDArray makeNewNDArray( URL url, NDShape shape, Type type,
                                    BadHandler bh )
@@ -207,8 +207,8 @@ public class NDArrayFactory {
      * Constructs a new NDArray to which data can be written given a URL
      * and another template NDArray.  This convenience method simply
      * calls {@link #makeNewNDArray(URL,NDShape,Type,BadHandler)}
-     * with the <tt>shape</tt>, <tt>type</tt> and <tt>bh</tt> 
-     * parameters copied from the <tt>template</tt> NDArray.
+     * with the <code>shape</code>, <code>type</code> and <code>bh</code> 
+     * parameters copied from the <code>template</code> NDArray.
      *
      * @param   url  a URL pointing to a writable resource.  This may be
      *               a suitable <code>file:</code>-protocol URL or one
@@ -235,7 +235,7 @@ public class NDArrayFactory {
      *         parsed as a URL, it will be treated as a filename
      * @param   mode the mode with which it should be accessed
      * @return   a readable NDArray object view of the data at
-     *           <tt>location</tt>, or null if one could not be found
+     *           <code>location</code>, or null if one could not be found
      * @throws   IOException  if there is any I/O error
      */
     public NDArray makeNDArray( String location, AccessMode mode ) 

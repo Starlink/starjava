@@ -242,9 +242,11 @@ public interface ArrayAccess extends ArrayDescription {
 
     /**
      * Shuts down this accessor for further data access.
-     * Following a call to <tt>close</tt> the offset will have an illegal value
+     * Following a call to <code>close</code> the offset
+     * will have an illegal value
      * and calls to any read, write or position setting methods
-     * will fail with an IllegalStateException.  A <tt>close</tt> should always
+     * will fail with an IllegalStateException.
+     * A <code>close</code> should always
      * be called on an ArrayAccess when it is finished with.
      * In the case of a readable
      * object it enables release of associated resources beyond those taken

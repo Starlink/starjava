@@ -127,8 +127,8 @@ public class Requirements implements Cloneable {
 
     /**
      * Sets this object's required ordered shape (pixel sequence).
-     * This is simply a shortcut way of calling <tt>setWindow</tt>
-     * and <tt>setOrder</tt> in one go.
+     * This is simply a shortcut way of calling <code>setWindow</code>
+     * and <code>setOrder</code> in one go.
      *
      * @param  oshape  the ordered shape (or equivalently, pixel sequence)
      *                 required
@@ -156,7 +156,7 @@ public class Requirements implements Cloneable {
      * @param  handler   the required handler
      * @return  this object
      * @throws  IllegalStateException  if no type has been set
-     * @throws  IllegalArgumentException  if the type of <tt>handler</tt>
+     * @throws  IllegalArgumentException  if the type of <code>handler</code>
      *              does not match the type of this object
      */
     public Requirements setBadHandler( BadHandler handler ) { 
@@ -185,7 +185,7 @@ public class Requirements implements Cloneable {
      *         must use
      * @return  this object
      * @throws IllegalStateException  if no type has been set
-     * @throws IllegalArgumentException  if the type of <tt>badValue</tt>
+     * @throws IllegalArgumentException  if the type of <code>badValue</code>
      *           does not match the reqired type of this object
      */
     public Requirements setBadValue( Number badValue ) {

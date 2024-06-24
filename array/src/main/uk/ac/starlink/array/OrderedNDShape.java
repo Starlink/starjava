@@ -91,7 +91,8 @@ public class OrderedNDShape extends NDShape implements Cloneable {
 
     /**
      * Creates a new OrderedNDShape from an NDShape.
-     * If <tt>shape</tt> is in fact an instance of <tt>OrderedNDShape</tt>,
+     * If <code>shape</code> is in fact an instance
+     * of <code>OrderedNDShape</code>,
      * the created object will be equivalent to it.  If not, a new 
      * OrderedNDShape object will be created with an arbitrary 
      * ordering scheme.
@@ -201,7 +202,7 @@ public class OrderedNDShape extends NDShape implements Cloneable {
      *
      * @param   pos    a coordinate vector giving a pixel position
      * @return  the offset into this shape's pixel sequence at which the pixel
-     *          at <tt>pos</tt> occurs
+     *          at <code>pos</code> occurs
      * @throws  IndexOutOfBoundsException  if pos is outside this shape
      */
     public long positionToOffset( long[] pos ) {
@@ -226,8 +227,8 @@ public class OrderedNDShape extends NDShape implements Cloneable {
      * It will validate its input, and so may not be maximally efficient.
      *
      * @param   offset  an offset into the list of pixels
-     * @return  the coordinates of the pixel at <tt>offset</tt>
-     * @throws  IndexOutOfBoundsException  if <tt>offset</tt> 
+     * @return  the coordinates of the pixel at <code>offset</code>
+     * @throws  IndexOutOfBoundsException  if <code>offset</code> 
      *          is outside this shape
      */
     public long[] offsetToPosition( long offset ) {

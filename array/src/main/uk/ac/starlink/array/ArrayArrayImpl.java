@@ -24,11 +24,11 @@ public class ArrayArrayImpl implements ArrayImpl {
      * @param   data  the java primitive array; must be a numeric
      *          type corresponding to one of the {@link Type} instances
      * @param   oshape  the shape of the array; must have the same number
-     *          of pixels as <tt>data</tt>
+     *          of pixels as <code>data</code>
      * @param   badValue  the bad data value; must match the type of 
-     *          <tt>data</tt> if it is not <tt>null</tt>
-     * @throws  IllegalArgumentException  if <tt>data</tt> is not a suitable
-     *          primitive numeric type or <tt>oshape</tt> has the wrong 
+     *          <code>data</code> if it is not <code>null</code>
+     * @throws  IllegalArgumentException  if <code>data</code> is not a suitable
+     *          primitive numeric type or <code>oshape</code> has the wrong 
      *          number of pixels
      */
     public ArrayArrayImpl( Object data, OrderedNDShape oshape, 
