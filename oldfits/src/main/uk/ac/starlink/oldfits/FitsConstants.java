@@ -254,11 +254,11 @@ public class FitsConstants {
     /**
      * Indicates whether the supplied buffer is the start of a FITS file.
      * Its contents is checked against the FITS 'magic number', which is
-     * the ASCII string "<tt>SIMPLE&nbsp;&nbsp;=</tt>".
+     * the ASCII string "<code>SIMPLE&nbsp;&nbsp;=</code>".
      *
      * @param   buffer  a byte buffer containing
      *          the start of a file to test
-     * @return  <tt>true</tt> iff the bytes in <tt>buffer</tt> look like 
+     * @return  <code>true</code> iff the bytes in <code>buffer</code> look like
      *          the start of a FITS file
      */
     public static boolean isMagic( byte[] buffer ) {
@@ -280,7 +280,7 @@ public class FitsConstants {
      * start of the stream.
      *
      * @param  datsrc  the DataSource pointing to the file/HDU required
-     * @return  an ArrayDataInput acquired from <tt>datsrc</tt>,
+     * @return  an ArrayDataInput acquired from <code>datsrc</code>,
      */
     public static ArrayDataInput getInputStreamStart( DataSource datsrc )
             throws IOException {
@@ -300,11 +300,11 @@ public class FitsConstants {
      * This does the same as {@link nom.tam.fits.Header#read}, but
      * it returns the number of bytes read from the input stream in order
      * to populate the header (including any padding bytes).  There is
-     * no way to retrieve this information from the <tt>Header</tt> class
+     * no way to retrieve this information from the <code>Header</code> class
      * in general; though {@link nom.tam.fits.Header#getSize} 
      * will sometimes give you the right answer, in the case of 
      * duplicated header keywords it can give an underestimate.
-     * This could be seen as a bug in <tt>nom.tam.fits</tt> classes,
+     * This could be seen as a bug in <code>nom.tam.fits</code> classes,
      * but there may be code somewhere which relies on that behaviour.
      * <p>
      * You can make a Header from scratch by doing
@@ -312,7 +312,7 @@ public class FitsConstants {
      *     Header hdr = new Header();
      *     int headsize = read( hdr, strm );
      * </pre>
-     * This method also differs from the <tt>Header</tt> implementation
+     * This method also differs from the <code>Header</code> implementation
      * in that it does not print warnings to standard output about
      * duplicate keywords.
      *
@@ -449,7 +449,7 @@ public class FitsConstants {
      *
      * @param  hdr  the Header 
      * @return  the number of bytes in the data segment 
-     *          associated with <tt>hdr</tt>
+     *          associated with <code>hdr</code>
      */
     public static long getDataSize( Header hdr ) {
         long nel = getRawSize( hdr );

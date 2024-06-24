@@ -44,14 +44,14 @@ import uk.ac.starlink.util.URLUtils;
  * </blockquote>
  * or
  * <blockquote>
- *    <i>fits-url.fit</i><tt>[</tt><i>hdu-num</i><tt>]</tt>
+ *    <i>fits-url.fit</i><code>[</code><i>hdu-num</i><code>]</code>
  * </blockquote>
- * where the <tt>[]</tt> represent literal square brackets 
+ * where the <code>[]</code> represent literal square brackets 
  * or
  * <blockquote>
- *    <i>fits-url.fit</i><tt>#</tt><i>hdu-num</i>
+ *    <i>fits-url.fit</i><code>#</code><i>hdu-num</i>
  * </blockquote>
- * where the <tt>#</tt> represents a literal hash sign.
+ * where the <code>#</code> represents a literal hash sign.
  * The <i>fits-url.fit</i> represents the full absolute or relative URL 
  * of a FITS file, and the <i>hdu-num</i>, if present, is the index
  * of the HDU within it.  If no HDU is given, the first HDU 
@@ -174,12 +174,12 @@ public class FitsArrayBuilder implements ArrayBuilder {
     /**
      * Makes a readable NDArray from a data input stream. 
      * It will have no URL.  Update access may be possible, but only
-     * if <tt>stream</tt> implements {@link nom.tam.util.ArrayDataOutput}.
+     * if <code>stream</code> implements {@link nom.tam.util.ArrayDataOutput}.
      *
      * @param  stream the input stream supplying the HDU at which the
      *                FITS array data can be found
      * @param  mode   read/write/update access mode
-     * @return  the NDArray constructed from <tt>stream</tt>
+     * @return  the NDArray constructed from <code>stream</code>
      * @throws IOException  if some I/O error occurs or the stream does
      *                      not contain FITS array data
      */
@@ -260,7 +260,7 @@ public class FitsArrayBuilder implements ArrayBuilder {
      * file, or leaves the HDU index unspecified, any existing FITS
      * file will be overwritten by a new single-HDU file.
      * An HDU index greater than 0 may be specified only if the 
-     * URL has the <tt>file:</tt> protocol, and if it is equal to
+     * URL has the <code>file:</code> protocol, and if it is equal to
      * the number of HDUs currently in the FITS file.
      *
      * @param  url    the URL at which the resource backing the NDArray is
@@ -268,7 +268,7 @@ public class FitsArrayBuilder implements ArrayBuilder {
      * @param  shape  the shape of the new NDArray to construct
      * @param  type   the primitive data type of the new NDArray to construct
      * @param  bh     requested bad value handling policy
-     * @return   the new NDArray, or <tt>null</tt> if the URL doesn't look
+     * @return   the new NDArray, or <code>null</code> if the URL doesn't look
      *           like a FITS file
      * @throws   IOException  if the URL is a FITS URL but the requested
      *                        NDArray cannot be constructed for some reason
