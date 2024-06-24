@@ -30,11 +30,6 @@ import uk.ac.starlink.table.ValueInfo;
  * in (perhaps multi-dimensional) arrays, which is not for our purposes
  * necessary.  Such a re-implementation would take a bit of effort
  * unfortunately.
- * <p>
- * This class should only be used for TABLE extension (that is ASCII table)
- * HDUs.
- * The {@link BintableStarTable} class is much more efficient for BINTTABLE
- * extensions (binary table) HDUs.
  *
  * @author   Mark Taylor (Starlink)
  */
