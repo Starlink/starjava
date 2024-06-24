@@ -22,7 +22,7 @@ import uk.ac.starlink.connect.Connector;
 /**
  * Connector for connecting to Storage Resource Broker filestores.
  * The default information is taken from information in the user's
- * <tt>~/.srb</tt> directory if it exists.
+ * <code>~/.srb</code> directory if it exists.
  *
  * @author   Mark Taylor (Starlink)
  * @since    7 Mar 2005
@@ -120,7 +120,7 @@ public class SRBConnector implements Connector {
 
     /**
      * Returns a map of String->String pairs read from the 
-     * file <tt>.srb/.MdasEnv</tt> in the user's home directory,
+     * file <code>.srb/.MdasEnv</code> in the user's home directory,
      * if there is one.
      *
      * @return   key-value map for .MdasEnv file
@@ -153,7 +153,7 @@ public class SRBConnector implements Connector {
     }
 
     /**
-     * Returns the string in the <tt>.srb/.MdasAuth</tt> file in the 
+     * Returns the string in the <code>.srb/.MdasAuth</code> file in the 
      * user's home directory, if there is one.
      *
      * @return   authorization string
