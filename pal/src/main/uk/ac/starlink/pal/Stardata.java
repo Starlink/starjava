@@ -16,7 +16,7 @@ public class Stardata {
  *  @param a Angle (&alpha;,&delta;)
  *  @param pm Proper motion
  *  @param p Parallax
- *  @param pm Radial velocity
+ *  @param rv Radial velocity
  */
     public Stardata ( AngleDR a, double pm[], double p, double rv ) {
         angle = a; motion = pm; parallax = p; radv = rv;
