@@ -60,10 +60,10 @@ public class StatsValues {
      * @param  nda  the array to calculate stats for
      * @param  stepper  a stepper supplying the blocks in which the 
      *         calculation is done.  Must have getTotalLength the same
-     *         as the number of pixels in <tt>nda</tt>
+     *         as the number of pixels in <code>nda</code>
      * @throws  IOException if there is trouble reading the array
      * @throws  IllegalArgumentException if 
-     *       <tt>stepper.getTotalLength()!=nda.getShape().getNumPixels()</tt>
+     *    <code>stepper.getTotalLength()!=nda.getShape().getNumPixels()</code>
      */
     public StatsValues( NDArray nda, ChunkStepper stepper ) throws IOException {
         long npix = nda.getShape().getNumPixels();
