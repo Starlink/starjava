@@ -34,7 +34,7 @@ import javax.swing.border.Border;
 
 /**
  * Utility class for displaying an error dialogue to the user.
- * Calling the static <tt>showError</tt> method pops up a modal dialogue
+ * Calling the static <code>showError</code> method pops up a modal dialogue
  * which informs the user what went wrong.  As initially displayed this
  * just contains the message or name of the exception plus optionally
  * some additional lines of text, but a button is provided which
