@@ -391,6 +391,9 @@
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="x86_64"/>
     </antcall>
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="aarch64"/>
+    </antcall>
 
     <!-- In case the current architecture is not one of those named above,
      !   make sure that gets done too. -->
