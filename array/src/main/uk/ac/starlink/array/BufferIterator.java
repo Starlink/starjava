@@ -14,13 +14,13 @@ import java.util.Iterator;
  * This class provides a thin convenience wrapper around 
  * {@link ChunkStepper}, which is itself a simple class which steps
  * from zero to a given limit in chunks.  The only additional functionality 
- * provided by a <tt>BufferIterator</tt> is that it will ensure a 
+ * provided by a <code>BufferIterator</code> is that it will ensure a 
  * suitable primitive buffer is available at each step, and (since the
- * <tt>next</tt> method actually returns something, namely the buffer),
+ * <code>next</code> method actually returns something, namely the buffer),
  * it implements the {@link java.util.Iterator} interface which
- * <tt>ChunkStepper</tt> does not.
+ * <code>ChunkStepper</code> does not.
  * <p>
- * A typical use of <tt>BufferIterator</tt> is as follows:
+ * A typical use of <code>BufferIterator</code> is as follows:
  * <pre>
  *     ArrayAccess acc = ndarray.getAccess();
  *     for ( BufferIterator bufIt = new BufferIterator( npix, Type.DOUBLE );
@@ -42,15 +42,16 @@ public class BufferIterator implements Iterator {
     private long base = -1;
 
     /**
-     * Create a new <tt>BufferIterator</tt> with a given chunk size.
+     * Create a new <code>BufferIterator</code> with a given chunk size.
      *
      * @param   length     the total number of elements to iterate over
      * @param   type       the type of the primitive buffer which the
-     *                     <tt>next</tt> method will return at each iteration
+     *                     <code>next</code> method will return
+     *                     at each iteration
      * @param   chunkSize  the size of buffer which will be used (except
      *                     perhaps for the last chunk)
-     * @throws  IllegalArgumentException  if <tt>chunkSize&lt;=0</tt>
-     *                                    or <tt>length&lt;0</tt>
+     * @throws  IllegalArgumentException  if <code>chunkSize&lt;=0</code>
+     *                                    or <code>length&lt;0</code>
      */
     public BufferIterator( long length, Type type, int chunkSize ) {
         chunkIt = new ChunkStepper( length, chunkSize );
@@ -61,7 +62,7 @@ public class BufferIterator implements Iterator {
     }
 
     /**
-     * Create a new <tt>BufferIterator</tt> with a default chunk size.
+     * Create a new <code>BufferIterator</code> with a default chunk size.
      *
      * @param   length     the total number of elements to iterate over
      */
@@ -114,13 +115,13 @@ public class BufferIterator implements Iterator {
 
     /**
      * The offset of the base of the chunk most recently returned by
-     * <tt>next</tt>.  This will be zero for the first
+     * <code>next</code>.  This will be zero for the first
      * chunk, and increasing by the size of the buffer returned by 
-     * <tt>next</tt> with each iteration after that.
+     * <code>next</code> with each iteration after that.
      *
      * @return  the base of the current chunk
      * @throws  IllegalStateException   if called before the first call of
-     *          <tt>next</tt>
+     *          <code>next</code>
      */
     public long getBase() {
         if ( base >= 0 ) {

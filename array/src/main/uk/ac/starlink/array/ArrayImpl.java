@@ -3,24 +3,26 @@ package uk.ac.starlink.array;
 import java.io.IOException;
 
 /**
- * Interface for implementation end of the <tt>NDArray</tt> Bridge pattern.
- * If you have an <tt>ArrayImpl</tt>, you can make an <tt>NDArray</tt> 
+ * Interface for implementation end of the <code>NDArray</code> Bridge pattern.
+ * If you have an <code>ArrayImpl</code>, you can make an <code>NDArray</code> 
  * out of it using {@link BridgeNDArray}.
  * This is the basic interface via which array implementations provide
- * services to the <tt>BridgeNDArray</tt> class.  The <tt>BridgeNDArray</tt>
- * class is intended to be the only client of <tt>ArrayImpl</tt> instances, 
+ * services to the <code>BridgeNDArray</code> class.
+ * The <code>BridgeNDArray</code> class is intended to be
+ * the only client of <code>ArrayImpl</code> instances, 
  * and it does the necessary validation of arguments before passing them
  * to ArrayImpl, so that implementations of this interface can in
  * general assume that the arguments they receive make sense.
- * Thus it is not necessary for an <tt>ArrayImpl</tt> implementation to check
+ * Thus it is not necessary for an <code>ArrayImpl</code>
+ * implementation to check
  * that it is writable before attempting a write, or that a
  * requested offset is within the known bounds of the array.
  * <p>
- * <tt>BridgeNDArray</tt> also makes guarantees about the order in which 
+ * <code>BridgeNDArray</code> also makes guarantees about the order in which 
  * calls will be made:
  * <ul>
  * <li>There will be a maximum of one call to {@link #open}; it will not
- *     happen after a call to <tt>close</tt>
+ *     happen after a call to <code>close</code>
  * <li>There will be a maximum of one call to {@link #close}
  * <li>Certain methods ({@link #canMap}, {@link #getMapped}, {@link #getAccess})
  *     will only be made following an open call and before any close call
@@ -28,12 +30,12 @@ import java.io.IOException;
  *     {@link #multipleAccess} returns false
  * </ul>
  * This means that the open method may be used to do any expensive setup
- * which may be required by <tt>getAccess</tt>, <tt>canMap</tt> 
- * or <tt>getMapped</tt>.
- * The <tt>close</tt> method should be used for corresponding tear-down 
+ * which may be required by <code>getAccess</code>, <code>canMap</code> 
+ * or <code>getMapped</code>.
+ * The <code>close</code> method should be used for corresponding tear-down 
  * and/or tidying up of resources allocated at construction time; however
  * it cannot be guaranteed that a careless user will cause 
- * <tt>close</tt> to be invoked, so a responsible <tt>ArrayImpl</tt> 
+ * <code>close</code> to be invoked, so a responsible <code>ArrayImpl</code> 
  * implementation 
  * may wish to do such essential tear-down in the finalizer as well as
  * in close (<i>But&nbsp;note:</i> don't just do it in the finalizer,
@@ -65,7 +67,7 @@ public interface ArrayImpl {
     /**
      * The magic bad value for data.  The returned type should be one
      * of the primitive wrapper types, Byte, Short, Integer, Float, Double
-     * as appropriate for the type of this array.  It may be <tt>null</tt>
+     * as appropriate for the type of this array.  It may be <code>null</code>
      * if there is no bad value.
      * The return value must not change over the lifetime of the object.
      *

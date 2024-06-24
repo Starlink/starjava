@@ -121,7 +121,7 @@ public class Type {
 
     /**
      * Returns the default bad value used for this type.
-     * This is never null; it is the <tt>NaN</tt> value for floating point 
+     * This is never null; it is the <code>NaN</code> value for floating point 
      * types, and the lowest (negatative) value for the integer types.
      *
      * @return   the bad value used for this Type by default
@@ -158,7 +158,7 @@ public class Type {
      * Returns the lowest (= most negative) value which 
      * can be represented by this type.
      *
-     * @return  lowest value this type can represent, as a <tt>double</tt>
+     * @return  lowest value this type can represent, as a <code>double</code>
      */
     public double minimumValue() {
         return minval;
@@ -167,7 +167,7 @@ public class Type {
     /**
      * Returns the highest value which can be represented by this type.
      *
-     * @return  highest value this type can represetn, as a <tt>double</tt>
+     * @return  highest value this type can represetn, as a <code>double</code>
      */
     public double maximumValue() {
         return maxval;
@@ -193,7 +193,7 @@ public class Type {
      * number of elements; throws an exception if not.  
      * If the given Object satisfies these 
      * requirements no action is taken; if it does not then
-     * an <tt>IllegalArgumentException</tt> is thrown.
+     * an <code>IllegalArgumentException</code> is thrown.
      * This utility method is useful for parameter checking in 
      * type-generic programming.
      * 
@@ -227,12 +227,13 @@ public class Type {
 
     /**
      * Returns the Type object corresponding to a given java class.
-     * If no corresponding type exists (<tt>cls</tt> is not one of the
-     * supported primitive numeric types) then <tt>null</tt> is returned.
+     * If no corresponding type exists (<code>cls</code> is not one of the
+     * supported primitive numeric types) then <code>null</code> is returned.
      *
      * @param   cls  a (presumably numeric primitive) class.  
-     *               May be <tt>null</tt>
-     * @return  the Type object corresponding to <tt>cls</tt>, or <tt>null</tt>
+     *               May be <code>null</code>
+     * @return  the Type object corresponding to <code>cls</code>,
+     *          or <code>null</code>
      */
     public static Type getType( Class cls ) {
         if ( byte.class.equals( cls ) ) {

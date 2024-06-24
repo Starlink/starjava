@@ -8,8 +8,8 @@ import java.net.URL;
  * {@link #makeNDArray} constructs an NDArray from an existing resource
  * and {@link #makeNewNDArray} constructs an NDArray backed by a newly
  * created resource.
- * If the URL fed to <tt>makeNewNDArray</tt> is subsequently fed to
- * <tt>makeNDArray</tt> the factory should understand it to reference the 
+ * If the URL fed to <code>makeNewNDArray</code> is subsequently fed to
+ * <code>makeNDArray</code> the factory should understand it to reference the 
  * resource which was created by the earlier call (given that 
  * it still exists).
  *
@@ -20,7 +20,7 @@ public interface ArrayBuilder {
     /**
      * Constructs an NDArray based on the existing resource at a given URL.
      * If the resource is not recognised or it is not known how to 
-     * construct such an NDArray, then <tt>null</tt> should be returned.
+     * construct such an NDArray, then <code>null</code> should be returned.
      * If the resource exists but some error occurs in processing it,
      * or if this factory knows that it understands the URL but is 
      * unable to locate such a resource then an IOException should be
@@ -36,7 +36,7 @@ public interface ArrayBuilder {
      * @param   url   the URL of the resource from which an NDArray is to
      *                be constructed
      * @param   mode  the read/update/write mode with which to create the array
-     * @return   the NDArray at <tt>url</tt>, or <tt>null</tt> if this
+     * @return   the NDArray at <code>url</code>, or <code>null</code> if this
      *           handler does not recognise the URL
      * 
      * @throws  IOException  if the URL is understood but an NDArray cannot
@@ -48,13 +48,13 @@ public interface ArrayBuilder {
      * Constructs a new NDArray with the given characteristics in a 
      * location determined by a given URL.
      * If the URL is not recognised or this factory does not feel qualified
-     * to construct an NDArray with the given URL then <tt>null</tt> 
+     * to construct an NDArray with the given URL then <code>null</code> 
      * should be returned.  If some error occurs during construction
      * then an IOException should in general be thrown; however if
      * this factory thinks that another factory might have more luck
      * then a null return is preferred.
      * <p>
-     * The <tt>bh</tt> parameter indicates a requested bad value handling
+     * The <code>bh</code> parameter indicates a requested bad value handling
      * policy.  If it is not null, this handler should attempt to create
      * a new NDArray resource with the same policy.  However, if it is 
      * not possible because of limitations in the storage format it may 
@@ -70,7 +70,7 @@ public interface ArrayBuilder {
      *                is made that the orderings will match
      * @param  type   the primitive data type of the new NDArray to construct
      * @param  bh     requested bad value handling policy - see above
-     * @return   the new NDArray, or <tt>null</tt> if this handler does not
+     * @return   the new NDArray, or <code>null</code> if this handler does not
      *           recognise the URL
      * @throws   IOException  if the URL is understood but the requested
      *                        NDArray cannot be constructed there

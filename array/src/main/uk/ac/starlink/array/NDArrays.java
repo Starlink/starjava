@@ -56,7 +56,7 @@ public class NDArrays {
      * @param  nda1  first NDArray
      * @param  nda2  second NDArray
      * @return  true if and only if the data and shape of 
-     *               <tt>nda1</tt> and <tt>nda2</tt> are equivalent
+     *               <code>nda1</code> and <code>nda2</code> are equivalent
      */
     public static boolean equals( NDArray nda1, NDArray nda2 ) 
             throws IOException {
@@ -315,8 +315,8 @@ public class NDArrays {
      *
      * @param  nda  the NDArray on which to base the result
      * @param  req  a Requirements object indicating the characteristics
-     *              required.  If <tt>null</tt>, then <tt>nda</tt> is returned
-     *              with no further action
+     *              required.  If <code>null</code>, then <code>nda</code>
+     *              is returned with no further action
      * @return   an NDArray with the same data as nda and the characteristics
      *           indicated by req
      * @throws   IOException  if a new scratch array has to be created and
@@ -400,7 +400,7 @@ public class NDArrays {
 
 
     /**
-     * Provides an independent copy of a readable <tt>NDArray</tt> 
+     * Provides an independent copy of a readable <code>NDArray</code> 
      * with data stored in a scratch array.  
      * The data is copied from the base array
      * but the returned copy will have random access, read access and
@@ -411,7 +411,7 @@ public class NDArrays {
      * on the original and vice versa.
      * <p>
      * Invoking this method is equivalent to creating an scratch array and
-     * copying the data from the base <tt>NDArray</tt> into it.
+     * copying the data from the base <code>NDArray</code> into it.
      * <p>
      * A sensible decision about the backing store to use (memory or disk)
      * is made by this class on the basis of the size of array requested.
@@ -419,10 +419,11 @@ public class NDArrays {
      * @param  nda   the NDArray whose data will be copied
      * @return   a scratch NDArray holding the same data as nda
      * @throws  IOException  if an I/O error occurs during the copying
-     * @throws  UnsupportedOperationException if <tt>nda</tt> is not
+     * @throws  UnsupportedOperationException if <code>nda</code> is not
      *          readable or it does not support multiple access and its
-     *          <tt>getAccess</tt> method has already been called
-     * @throws  IllegalStateException if close has been called on <tt>nda</tt>
+     *          <code>getAccess</code> method has already been called
+     * @throws  IllegalStateException if close has been called
+     *          on <code>nda</code>
      */
     public static NDArray scratchCopy( NDArray nda ) throws IOException {
         NDArray copy = new ScratchNDArray( nda );
@@ -432,8 +433,8 @@ public class NDArrays {
 
 
     /**
-     * Provides an independent <tt>NDArray</tt> based on a readable 
-     * <tt>ArrayImpl</tt>, with data stored in a scratch array. 
+     * Provides an independent <code>NDArray</code> based on a readable 
+     * <code>ArrayImpl</code>, with data stored in a scratch array. 
      * <p>
      * This convenience method does just the same as invoking
      * <pre>

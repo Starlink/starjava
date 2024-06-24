@@ -47,7 +47,7 @@ public class CopyNDArray extends ScratchNDArray {
      * @param   mode  the access mode with which the data needs to be
      *                accessed; this controls the copying of data.
      *                If null, read/writability is taken from the 
-     *                isReadable/isWritable flags of <tt>nda</tt>
+     *                isReadable/isWritable flags of <code>nda</code>
      * @throws  IOException  if an I/O error occurs during the copy of 
      *                       data from the base NDArray
      */

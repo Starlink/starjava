@@ -113,7 +113,7 @@ public class NDShape implements Cloneable {
     /**
      * Creates an NDShape object with the same origin and dimensions as
      * an existing one.  Note this can be used to construct an 
-     * object of class <tt>NDShape</tt> from an {@link OrderedNDShape}.
+     * object of class <code>NDShape</code> from an {@link OrderedNDShape}.
      *
      * @param   shape  existing NDShape object
      */
@@ -307,7 +307,7 @@ public class NDShape implements Cloneable {
      * origin (10,20) and dimensions (5,8).
      * <p>
      * As a special case, if any of the origin elements has the value 
-     * <tt>Long.MIN_VALUE</tt>, then a "<tt>*</tt>" is written
+     * <code>Long.MIN_VALUE</code>, then a "<code>*</code>" is written
      * in the corresponding position.
      *
      * @param  shape  the shape to describe
@@ -337,7 +337,7 @@ public class NDShape implements Cloneable {
      * value of a position vector, in a form like "(10,20,23)".
      * <p>
      * As a special case, if any of the elements has the value 
-     * <tt>Long.MIN_VALUE</tt>, then a "<tt>*</tt>" is written
+     * <code>Long.MIN_VALUE</code>, then a "<code>*</code>" is written
      * in the corresponding position.
      *
      * @param   pos  a vector of longs
@@ -380,7 +380,7 @@ public class NDShape implements Cloneable {
      *
      * @param  str  the string representing the shape.
      * @return the corresponding NDShape
-     * @throws IllegalArgumentException  if <tt>str</tt> does not match
+     * @throws IllegalArgumentException  if <code>str</code> does not match
      *         one of the understood formats for a shape
      */
     public static NDShape fromString( String str ) {
@@ -408,12 +408,12 @@ public class NDShape implements Cloneable {
     }
 
     /**
-     * Convenience method for converting an array of <tt>int</tt> values 
-     * to an array of <tt>long</tt> values.
+     * Convenience method for converting an array of <code>int</code> values 
+     * to an array of <code>long</code> values.
      *
      * @param  iarray  an array of integers
      * @return  an array of long integers with the same values as 
-     * <tt>iarray</tt>
+     * <code>iarray</code>
      */
     public static long[] intsToLongs( int[] iarray ) {
         long[] larray = new long[ iarray.length ];
@@ -424,16 +424,16 @@ public class NDShape implements Cloneable {
     }
 
     /**
-     * Convenience method for converting an array of <tt>long</tt> values
-     * to an array of <tt>int</tt> values.  Unlike a normal java typecast,
+     * Convenience method for converting an array of <code>long</code> values
+     * to an array of <code>int</code> values.  Unlike a normal java typecast,
      * if a conversion overflow occurs an IndexOutOfBoundsException 
      * will be thrown.
      *
      * @param  larray  an array of long integers
-     * @return  an array of integers with the same values as <tt>larray</tt>
+     * @return  an array of integers with the same values as <code>larray</code>
      * @throws   IndexOutOfBoundsException if any of the elements of
-     *           <tt>larray</tt> is out of the range 
-     *           <tt>Integer.MIN_VALUE..Integer.MAX_VALUE</tt>
+     *           <code>larray</code> is out of the range 
+     *           <code>Integer.MIN_VALUE..Integer.MAX_VALUE</code>
      */
     public static int[] longsToInts( long[] larray ) {
         int[] iarray = new int[ larray.length ];

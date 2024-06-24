@@ -96,10 +96,11 @@ public class DefaultArrayDescription implements ArrayDescription {
      * Constructs an ArrayDescription object with attributes copied from
      * an existing one except as overridden by the requirements of a 
      * Requirements object.  The constructed ArrayDescription will 
-     * be the same as the the <tt>desc</tt> parameter, except that the 
-     * BadHandler, Type, Window and Order attributes of the <tt>req</tt>
+     * be the same as the the <code>desc</code> parameter, except that the 
+     * BadHandler, Type, Window and Order attributes of the <code>req</code>
      * parameter if they are not null, and its Random attribute will be the 
-     * logical OR of the Random attributes of <tt>desc</tt> and <tt>req</tt>.
+     * logical OR of the Random attributes of <code>desc</code>
+     * and <code>req</code>.
      *
      * @param   desc     an existing ArrayDescription object
      * @param   req      a Requirements object

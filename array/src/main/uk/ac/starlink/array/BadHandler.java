@@ -15,7 +15,7 @@ import java.util.Arrays;
  * It is not expected to be necessary to extend this class for normal 
  * purposes, but there is a protected constructor in case this is
  * required.  Such subclassing might be useful to provided specialised
- * bad value handlers in which, for instance, floating <tt>NaN</tt>
+ * bad value handlers in which, for instance, floating <code>NaN</code>
  * values do not count as bad, or infinite values do.  Such subclassing
  * should be done and used with care.
  * 
@@ -86,11 +86,12 @@ public abstract class BadHandler {
     abstract public Number makeNumber( Object array, int pos );
 
     /**
-     * Returns an <tt>ArrayHandler</tt> object for testing/setting bad values
+     * Returns an <code>ArrayHandler</code> object for testing/setting
+     * bad values
      * in a given primitive array according to the bad value handling
-     * rules of this <tt>BadHandler</tt>.  The same functionality can
+     * rules of this <code>BadHandler</code>.  The same functionality can
      * be achieved by use of the {@link #isBad} and {@link #putBad(Object,int)}
-     * methods of this class, but using an <tt>ArrayHandler</tt> can avoid
+     * methods of this class, but using an <code>ArrayHandler</code> can avoid
      * repeated typecasts and provide better performance.
      *
      * @throws  ClassCastException  if array is not an array of primitives with
