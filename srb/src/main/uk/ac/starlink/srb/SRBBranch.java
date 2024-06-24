@@ -21,7 +21,8 @@ public class SRBBranch extends SRBNode implements Branch {
      *
      * @param   dir  SRB file object on which this branch is based - must be
      *               of type directory
-     * @param   root  the root of the filesystem in which <tt>dir</tt> lives.
+     * @param   root  the root of the filesystem in which
+     *                <code>dir</code> lives.
      */
     public SRBBranch( SRBFile dir, SRBFile root ) {
         super( dir, root );
