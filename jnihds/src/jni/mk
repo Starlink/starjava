@@ -294,11 +294,11 @@
                echo "mk: Environment variables defined for $SYSTEM system"
                ;;
 
-#  Mac OS X ppc and i386.
-#  ----------------------
+#  Mac OS X, arm64.  Slight adjustments may be required for intel (or ppc)
+#  -----------------------------------------------------------------------
             MacOSX)
                AR_IN='ar r'
-               BLD_SHR='f() { $(CC) -arch $(JAVA_SYSTEM) -framework JavaVM -dynamiclib -install_name $(STARJAVA_LIB)/`basename $$1` -single_module -flat_namespace -undefined suppress -o $$1 $$2 ;}; f'
+               BLD_SHR='f() { $(CC) -arch $(JAVA_SYSTEM) -dynamiclib -install_name $(STARJAVA_LIB)/`basename $$1` -single_module -flat_namespace -undefined suppress -o $$1 $$2 ;}; f'
                CC='gcc'
                CFLAGS='-I/System/Library/Frameworks/JavaVM.framework/Headers -arch $(JAVA_SYSTEM) -I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -g'
                LINK='ln -s'

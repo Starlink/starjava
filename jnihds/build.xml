@@ -518,19 +518,20 @@
       <arg line="${mk.action}"/>
     </exec>
 
-     <exec dir="${build.jni}" executable="${build.jni}/mk" os="Mac OS X"
-           failonerror="yes">
-       <env key="SYSTEM" value="MacOSX"/>
-       <env key="JAVA_SYSTEM" value="${os.arch}"/>
-       <env key="STARLINK" value="${stardev}"/>
-       <env key="ADDLIBS" value="-L${stardev.add}/lib"/>
-       <env key="ADDINCS" value="-I${stardev.add}/include"/>
-       <env key="JDK" value="${jdk}"/>
-       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-       <env key="TARGET_LIB" value="${build.lib.arch}"/>
-       <env key="STARJAVA_LIB" value="${star.install}/lib/${os.arch}"/>
-       <arg line="${mk.action}"/>
-     </exec>
+    <!-- Mac on ARM.  Slight adjustments may be required for Intel. -->
+    <exec dir="${build.jni}" executable="${build.jni}/mk" os="Mac OS X"
+          failonerror="yes">
+      <env key="SYSTEM" value="MacOSX"/>
+      <env key="JAVA_SYSTEM" value="arm64"/>
+      <env key="STARLINK" value="${stardev}"/>
+      <env key="ADDLIBS" value="-L${stardev.add}/lib"/>
+      <env key="ADDINCS" value="-I${stardev.add}/include"/>
+      <env key="JDK" value="${jdk}"/>
+      <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
+      <env key="TARGET_LIB" value="${build.lib.arch}"/>
+      <env key="STARJAVA_LIB" value="${star.install}/lib/${os.arch}"/>
+      <arg line="${mk.action}"/>
+    </exec>
 
     <exec dir="${build.jni}" executable="${build.jni}/mk" os="OSF1"
           failonerror="yes">
