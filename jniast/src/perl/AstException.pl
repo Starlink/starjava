@@ -209,6 +209,7 @@ print <<__EOT__;
 #include <string.h>
 #include "jni.h"
 #include "$ErrHeader"
+#include "jniast.h"
 #include "sae_par.h"
 #include "${phname}_${ClassName}.h"
 

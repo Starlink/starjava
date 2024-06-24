@@ -9,6 +9,7 @@
 #include <string.h>
 #include "jni.h"
 #include "ast.h"
+#include "jniast.h"
 #include "sae_par.h"
 #include "uk_ac_starlink_ast_AstException.h"
 
