@@ -89,3 +89,34 @@ Partial change log:
 
 11-AUG-2005:
    All features up to v4.0.
+
+25-JUN-2024:
+   Provide a MacOS ARM64 native library so that JNIAST-dependent
+   packages (mainly SPLAT) can run on an ARM Mac.
+   This was hacky; I need to build against a recent starlink version,
+   since only recent ones have ARM64 builds, but they use a much later
+   version of AST than the one that the Java source code here tracks
+   (which I think is AST 5.1).  I do not want to upgrade the whole
+   JNIAST package to track the new AST version, which would be a
+   considerable amount of work.
+
+   Do the minimum: link against the 2023A starlink release, which
+   contains (I think) AST 9.2.10.  However, don't rebuild the java
+   source files based on AST 9.2.10.  The only thing I've pulled in
+   from the current AST is an update of the ast/ast_link script,
+   which differs slightly from the previous one (it adds -lcminpack).
+   Then fiddle with the mk and build.xml files slightly to get it
+   building on an ARM Mac.  I have not rebuilt the native libraries
+   for other architectures.
+
+   This isn't guaranteed to work; backward incompatibilities between
+   AST v9.2 and v5.1 could result in runtime failures (possibly
+   coredumps).  The unit tests are somewhat comprehensive: they
+   invoke most/all of the JNIAST methods, so test whether there are
+   obvious API changes that would lead to trouble.  These unit tests
+   continue to pass with no changes.  Other than that, just cross
+   fingers that nothing breaks catastrophically at runtime.
+
+   If it is required in future to link against a different starlink
+   release, or to build on a non-ARM Mac, it may be necessary to
+   adjust some of the existing configuration.
