@@ -49,13 +49,14 @@ class NDFNdxImpl implements NdxImpl {
 
     /**
      * Present an NdxImpl view of an existing NDF specified by an 
-     * <tt>HDSReference</tt>.  The HDS file will only be closed 
+     * <code>HDSReference</code>.  The HDS file will only be closed 
      * (the last primary locator to the structure will only be annulled)
      * at such time as the object gets finalised by the garbage collector.
      *
      * @param   nref  an HDSReference pointing to the NDF
-     * @param   persistentUrl  the URL referring to the NDF; if <tt>nref</tt>
-     *          references a temporary file it should be <tt>null</tt>
+     * @param   persistentUrl  the URL referring to the NDF;
+     *          if <code>nref</code>
+     *          references a temporary file it should be <code>null</code>
      * @param   mode  the read/write/update mode for the array data access
      * @throws  HDSException  if an HDS error occurs, or this doesn't 
      *          look like an NDF
@@ -68,21 +69,22 @@ class NDFNdxImpl implements NdxImpl {
 
     /**
      * Present an NdxImpl view of an existing NDF specified by an
-     * <tt>HDSObject</tt>.
+     * <code>HDSObject</code>.
      * <p>
-     * A reference is kept to the supplied HDSObject <tt>nobj</tt>,
+     * A reference is kept to the supplied HDSObject <code>nobj</code>,
      * but no further action is taken to ensure that a primary locator
      * to the NDF structure is retained.  Calling code should therefore
-     * either set <tt>nobj</tt> itself primary (in which case it will
+     * either set <code>nobj</code> itself primary (in which case it will
      * be annulled during garbage collection when this NDFNdxImpl is no 
      * longer referenced), or retain a suitable primary locator for as
      * long as this NDFNdxImpl will be used.
      *
      * @param   nobj  the HDSObject where the NDF lives
-     * @param   persistentUrl  the URL referring to <tt>nobj</tt>, 
-     *          or <tt>null</tt> if it does not represent a permanent address
+     * @param   persistentUrl  the URL referring to <code>nobj</code>, 
+     *          or <code>null</code> if it does not represent
+     *          a permanent address
      * @param   mode    the read/write/update mode for array data access.
-     *          <tt>nobj</tt> itself must have been opened with a
+     *          <code>nobj</code> itself must have been opened with a
      *          compatible access mode
      * @throws  HDSException  if an HDS error occurs, or this doesn't 
      *          look like an NDF

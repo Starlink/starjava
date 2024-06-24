@@ -20,9 +20,9 @@ class HDSArrayImpl extends NioArrayImpl {
     /**
      * Constructs an ArrayImpl based on an existing HDS ArrayStructure
      * using its natural data type. 
-     * A clone of the HDSObject in <tt>ary</tt> will be retained
+     * A clone of the HDSObject in <code>ary</code> will be retained
      * and set primary; it is annulled when the ArrayImpl is closed.
-     * Therefore the data of <tt>ary</tt> may be primary or 
+     * Therefore the data of <code>ary</code> may be primary or 
      * secondary on input, and may be annulled afterwards.
      *
      * @param   ary    the array structure on which the ArrayImpl will be based
@@ -37,9 +37,9 @@ class HDSArrayImpl extends NioArrayImpl {
     /**
      * Constructs an ArrayImpl based on an existing HDS ArrayStructure 
      * using a specified data type.
-     * A clone of the HDSObject in <tt>ary</tt> will be retained
+     * A clone of the HDSObject in <code>ary</code> will be retained
      * and set primary; it is annulled when the ArrayImpl is closed.
-     * Therefore the data of <tt>ary</tt> may be primary or 
+     * Therefore the data of <code>ary</code> may be primary or 
      * secondary on input, and may be annulled afterwards.
      *
      * @param   ary    the array structure no which the ArrayImpl will be based

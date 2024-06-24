@@ -19,18 +19,18 @@ import uk.ac.starlink.hds.HDSPackage;
  * <p>
  * URLs are given in the format:
  * <blockquote>
- *    <i>container</i><tt>.sdf</tt>
+ *    <i>container</i><code>.sdf</code>
  * </blockquote>
  * or
  * <blockquote>
- *    <i>container</i><tt>.sdf#</tt><i>path</i>
+ *    <i>container</i><code>.sdf#</code><i>path</i>
  * </blockquote>
- * where the <i>container</i><tt>.sdf</tt> part is a full absolute or
+ * where the <i>container</i><code>.sdf</code> part is a full absolute or
  * relative URL referring
  * to the HDS container file, and the optional fragment identifier
  * gives the HDS path within that container file in the traditional
  * dot-separated format.  If there is no fragment identifier 
- * (no <tt>#</tt>), the object at the top level of the HDS container
+ * (no <code>#</code>), the object at the top level of the HDS container
  * file is understood.
  * <p>
  * This is a singleton class; use {@link #getInstance} to get an instance.
@@ -111,12 +111,12 @@ public class HDSArrayBuilder implements ArrayBuilder {
 
     /**
      * Constructs an NDArray based on an existing HDS array object.
-     * The supplied HDSObject <tt>ary</tt> may be primary or secondary
+     * The supplied HDSObject <code>ary</code> may be primary or secondary
      * and may be annulled following this call.
      *
      * @param  ary  the ArrayStructure to be viewed as an NDArray
      * @param  mode  the read/write/update mode for the NDArray
-     * @return  the new NDArray based on <tt>ary</tt>
+     * @return  the new NDArray based on <code>ary</code>
      * @throws  HDSException  if there is an error in HDS
      */
     public NDArray makeNDArray( ArrayStructure ary, AccessMode mode )
