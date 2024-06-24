@@ -59,7 +59,7 @@ import uk.ac.starlink.util.URLUtils;
  * URLs relative to the position of the XML file in question are allowed.
  * <p>
  * A URL is normally only considered suitable if it ends in '.xml'.  
- * However, the special URL "<tt>file:-</tt>" may be used to 
+ * However, the special URL "<code>file:-</code>" may be used to 
  * indicate standard input/output.
  */
 public class XMLNdxHandler implements NdxHandler {
@@ -115,7 +115,7 @@ public class XMLNdxHandler implements NdxHandler {
      *               will be used to resolve relative URLs
      * @param   mode read/write/update access mode for component arrays
      * @throws  IOException  if some error occurs in the I/O
-     * @throws  IllegalArgumentException  if <tt>xsrc</tt> does not 
+     * @throws  IllegalArgumentException  if <code>xsrc</code> does not 
      *          correspond to a document or element XML source
      */
     public Ndx makeNdx( Source xsrc, AccessMode mode ) throws IOException {
@@ -404,13 +404,13 @@ public class XMLNdxHandler implements NdxHandler {
      * needs to be output too.  Currently, for a URL 'blah.xml'
      * these are written into successive components of a new FITS file
      * 'blah-data.fits'.  If the FITS handlers are not installed,
-     * or <tt>url</tt> does not end in '.xml' an IOException will be thrown.
+     * or <code>url</code> does not end in '.xml' an IOException will be thrown.
      * This behaviour may be subject to change in future releases.
      *
      * @param  xurl the URL to which the Ndx is to be serialised in XML
      * @param  ndx  the Ndx object to serialise
      * @throws java.net.UnknownServiceException if the URL does not support
-     *         output (most protocols, apart from <tt>file</tt>, don't)
+     *         output (most protocols, apart from <code>file</code>, don't)
      * @throws IOException  if some other I/O error occurs
      */
     public boolean outputNdx( URL xurl, Ndx ndx ) throws IOException {
@@ -539,7 +539,7 @@ public class XMLNdxHandler implements NdxHandler {
      * The array components themselves reside in a new fits file; 
      * currently for a URL 'blah.xml' a new fits file called
      * 'blah-data.fits' is written.  If the FITS handlers are not installed,
-     * or <tt>url</tt> does not end in '.xml' an IOException will be thrown.
+     * or <code>url</code> does not end in '.xml' an IOException will be thrown.
      * This behaviour may be subject to change in future releases.
      *
      * @param  url  a URL at which the new NDX should be written

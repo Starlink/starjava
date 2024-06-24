@@ -12,7 +12,7 @@ import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.xml.XAstReader;
 
 /**
- * Provides a simple implementation of the <tt>MutableNdx</tt> interface,
+ * Provides a simple implementation of the <code>MutableNdx</code> interface,
  * so provides mutator methods as well as the accessor methods of Ndx.
  * This class can be used to wrap a (presumably immutable) existing Ndx 
  * object, or to construct a mutable Ndx from an NdxImpl object.
@@ -42,11 +42,11 @@ public class DefaultMutableNdx extends BridgeNdx implements MutableNdx {
 
     /**
      * Constructs a MutableNdx from a given NdxImpl. 
-     * The resulting object will behave just as a <tt>BridgeNdx</tt>
-     * constructed from <tt>impl</tt>
-     * until such time as one of the <tt>set</tt> methods is used on it,
+     * The resulting object will behave just as a <code>BridgeNdx</code>
+     * constructed from <code>impl</code>
+     * until such time as one of the <code>set</code> methods is used on it,
      * after which time the new value(s) will be returned by the 
-     * corresponding <tt>get</tt> methods.
+     * corresponding <code>get</code> methods.
      *
      * @param  impl  the implementation object on which this Ndx will be based
      */
@@ -57,9 +57,9 @@ public class DefaultMutableNdx extends BridgeNdx implements MutableNdx {
     /**
      * Constructs a MutableNdx from a given Ndx.
      * The resulting object will behave just as the original Ndx
-     * until such time as one of the <tt>set</tt> methods is used on it,
+     * until such time as one of the <code>set</code> methods is used on it,
      * after which time the new value(s) will be returned by the 
-     * corresponding <tt>get</tt> methods.
+     * corresponding <code>get</code> methods.
      *
      * @param  ndx  the underlying Ndx on which this one will be based
      */
@@ -68,13 +68,13 @@ public class DefaultMutableNdx extends BridgeNdx implements MutableNdx {
     }
 
     /**
-     * Constructs a MutableNdx from a given <tt>NDArray</tt> which
+     * Constructs a MutableNdx from a given <code>NDArray</code> which
      * will be its Image component.
      * The resulting object has no optional components (title, etc and so on),
-     * though these can be set using the various <tt>set</tt> methods.
+     * though these can be set using the various <code>set</code> methods.
      *
      * @param  image  the Image component of this Ndx
-     * @throws  NullPointerException   if <tt>image</tt> is <tt>null</tt>
+     * @throws  NullPointerException  if <code>image</code> is <code>null</code>
      */
     public DefaultMutableNdx( final NDArray image ) {
         this( new NdxImpl() {

@@ -38,8 +38,8 @@ import uk.ac.starlink.hdx.HdxResourceFactory;
 import uk.ac.starlink.hdx.PluginException;
 
 /**
- * Default <tt>Ndx</tt> implementation.
- * This class builds an <tt>Ndx</tt> from an {@link NdxImpl}.
+ * Default <code>Ndx</code> implementation.
+ * This class builds an <code>Ndx</code> from an {@link NdxImpl}.
  *
  * <p>The static initialiser for this class is also responsible
  * for creating and registering the 
@@ -240,7 +240,7 @@ public class BridgeNdx implements Ndx {
     
 
     /**
-     * Constructs an {@link Ndx} implementation from an <tt>NdxImpl</tt> 
+     * Constructs an {@link Ndx} implementation from an <code>NdxImpl</code> 
      * object.
      *
      * @param  impl  object which provides services to this BridgeNdx
@@ -455,7 +455,7 @@ public class BridgeNdx implements Ndx {
     }
 
     /**
-     * Generates an XML view of this Ndx object as a <tt>Source</tt>.
+     * Generates an XML view of this Ndx object as a <code>Source</code>.
      * The XML is built using only public methods of this Ndx rather than
      * any private values, so that this method can safely be inherited
      * by subclasses.

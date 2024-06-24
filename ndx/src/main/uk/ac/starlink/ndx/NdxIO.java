@@ -134,7 +134,7 @@ public class NdxIO {
      * construction.  Handlers earlier in the list are given a
      * chance to handle a URL before ones later in the list.
      * This list is mutable and may be modified to change the behaviour 
-     * of the <tt>NdxIO</tt>.
+     * of the <code>NdxIO</code>.
      *
      * @return   a List of {@link NdxHandler} objects used
      *           for turning URLs into Ndxs
@@ -212,7 +212,7 @@ public class NdxIO {
      *                    will be copied from it, and new blank writable
      *                    array components matching the ones in it will be
      *                    created
-     * @return  true iff a new blank Ndx was written at <tt>url</tt>
+     * @return  true iff a new blank Ndx was written at <code>url</code>
      * @throws  IOException  if there is any I/O error
      */
     public boolean makeBlankNdx( URL url, Ndx template ) throws IOException {
@@ -239,7 +239,7 @@ public class NdxIO {
      *               with some other protocol which can provide an
      *               output-capable connection
      * @param   ndx  an existing Ndx object whose data will be copied
-     *             to <tt>url</tt>
+     *             to <code>url</code>
      * @throws IOException  if an I/O error occurs
      * @throws UnsupportedOperationException  no handler exists for this URL
      */

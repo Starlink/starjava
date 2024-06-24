@@ -29,7 +29,7 @@ public interface Ndx {
     /**
      * Returns the image component of this NDX.
      * <p>
-     * <b>Note</b> that this returns the raw image <tt>NDArray</tt> object,
+     * <b>Note</b> that this returns the raw image <code>NDArray</code> object,
      * which should not in general be used directly for reading image
      * data, since it has not been masked by a quality component if present.
      * To obtain a properly masked version of the image data for read access,
@@ -49,17 +49,18 @@ public interface Ndx {
     /**
      * Returns the variance component of this NDX.
      * <p>
-     * <b>Note</b> that this returns the raw variance <tt>NDArray</tt> object,
+     * <b>Note</b> that this returns the raw variance
+     * <code>NDArray</code> object,
      * which should not in general be used directly for reading variance
      * data, since it has not been masked by a quality component if present.
      * To obtain a properly masked version of the variance data for read access,
      * use the {@link Ndxs#getMaskedVariance(Ndx)} method.
      * <p>
-     * May only be called if {@link #hasVariance} returns <tt>true</tt>.
+     * May only be called if {@link #hasVariance} returns <code>true</code>.
      *
      * @return   an NDArray representing the variance component, 
-     * @throws   UnsupportedOperationException  if <tt>hasVariance</tt>
-     *           returns <tt>false</tt>
+     * @throws   UnsupportedOperationException  if <code>hasVariance</code>
+     *           returns <code>false</code>
      */
     NDArray getVariance();
 
@@ -73,11 +74,11 @@ public interface Ndx {
     /**
      * Returns the quality component of this NDX.
      * <p>
-     * May only be called if {@link #hasQuality} returns <tt>true</tt>.
+     * May only be called if {@link #hasQuality} returns <code>true</code>.
      *
      * @return  an NDArray of integer type representing the quality component, 
-     * @throws  UnsupportedOperationException  if <tt>hasQuality</tt>
-     *          returns <tt>false</tt>
+     * @throws  UnsupportedOperationException  if <code>hasQuality</code>
+     *          returns <code>false</code>
      */
     NDArray getQuality();
 
@@ -90,11 +91,11 @@ public interface Ndx {
 
     /**
      * Returns the title of this Ndx.
-     * May only be called if {@link #hasTitle} returns <tt>true</tt>.
+     * May only be called if {@link #hasTitle} returns <code>true</code>.
      *
      * @return  the title
-     * @throws  UnsupportedOperationException  if <tt>hasTitle</tt> 
-     *          returns <tt>false</tt>
+     * @throws  UnsupportedOperationException  if <code>hasTitle</code> 
+     *          returns <code>false</code>
      */
     String getTitle();
 
@@ -108,11 +109,11 @@ public interface Ndx {
     /**
      * Returns the label string for this Ndx.
      * This describes the quantity held in the data array.
-     * May only be called if {@link #hasLabel} returns <tt>true</tt>.
+     * May only be called if {@link #hasLabel} returns <code>true</code>.
      *
      * @return  the label string
-     * @throws  UnsupportedOperationException  if <tt>hasLabel</tt>
-     *          returns <tt>false</tt>
+     * @throws  UnsupportedOperationException  if <code>hasLabel</code>
+     *          returns <code>false</code>
      */
     String getLabel();
 
@@ -126,11 +127,11 @@ public interface Ndx {
     /**
      * Returns the units string for this Ndx.  
      * This indicates the units of the values in the data array.
-     * May only be called if {@link #hasUnits} returns <tt>true</tt>.
+     * May only be called if {@link #hasUnits} returns <code>true</code>.
      *
      * @return  the units string
-     * @throws  UnsupportedOperationException  if <tt>hasUnits</tt>
-     *          returns <tt>false</tt>
+     * @throws  UnsupportedOperationException  if <code>hasUnits</code>
+     *          returns <code>false</code>
      */
     String getUnits();
 
@@ -144,12 +145,12 @@ public interface Ndx {
     /**
      * Returns the XML containing extension information for this NDX.
      * The base element of the returned Source is an element of type 
-     * <tt>&lt;etc&gt;</tt> which contains an element for each extension.
-     * May only be called if {@link #hasEtc} returns <tt>true</tt>.
+     * <code>&lt;etc&gt;</code> which contains an element for each extension.
+     * May only be called if {@link #hasEtc} returns <code>true</code>.
      *
      * @return  an XML Source containing any user-defined extension information.
-     * @throws  UnsupportedOperationException  if <tt>hasEtc</tt>
-     *          returns <tt>false</tt>
+     * @throws  UnsupportedOperationException  if <code>hasEtc</code>
+     *          returns <code>false</code>
      * @see     uk.ac.starlink.util.SourceReader
      */
     Source getEtc();
@@ -160,27 +161,28 @@ public interface Ndx {
      * If it exists, then the {@link #getAst} method may be called to
      * access it as an AST {@link uk.ac.starlink.ast.FrameSet}.
      * <p>
-     * <i>Note:</i> in due course, when the <tt>uk.ac.starlink.wcs</tt>
-     * package has been released a <tt>getWCS</tt> method will be
-     * provided to access it as a <tt>WCS</tt> object.
+     * <i>Note:</i> in due course, when the <code>uk.ac.starlink.wcs</code>
+     * package has been released a <code>getWCS</code> method will be
+     * provided to access it as a <code>WCS</code> object.
      *
-     * @return  true if {@link #getAst} (and in due course <tt>getWCS</tt>
+     * @return  true if {@link #getAst} (and in due course <code>getWCS</code>
      *          can be called
      */
     boolean hasWCS();
 
     /**
-     * Get the world coordinate system of the NDX as an AST <tt>FrameSet</tt>.
+     * Get the world coordinate system of the NDX as
+     * an AST <code>FrameSet</code>.
      * <p>
      * <i>Note:</i> This method is intended as a temporary measure 
-     * until the <tt>uk.ac.starlink.wcs</tt> package has been released.
-     * At that time a <tt>getWCS</tt> method will be provided, and 
+     * until the <code>uk.ac.starlink.wcs</code> package has been released.
+     * At that time a <code>getWCS</code> method will be provided, and 
      * this one will be deprecated.
      *
      * @return the AST FrameSet representing the world coordinate system
      *         information
-     * @throws UnsupportedOperationException  if <tt>hasWCS</tt>
-     *         returns <tt>false</tt>
+     * @throws UnsupportedOperationException  if <code>hasWCS</code>
+     *         returns <code>false</code>
      * @see    #hasWCS
      */
     FrameSet getAst();
@@ -203,7 +205,7 @@ public interface Ndx {
      * generated by the {@link #toXML} method all contain URLs referencing 
      * genuine resources.  If false, then this Ndx is in some sense 
      * virtual, and one or more of the array elements in the the XML
-     * generated by <tt>toXML</tt> will reference phantom resources.
+     * generated by <code>toXML</code> will reference phantom resources.
      *
      * @return   true if an XML representation capable of containing the 
      *           full state of this Ndx can be generated
@@ -219,10 +221,10 @@ public interface Ndx {
      * <p>
      * The XML in general may contain URLs, for instance referencing the
      * array components of the NDX.  How these are written is determined
-     * by the <tt>base</tt> parameter; URLs will be written as relative
-     * URLs relative to <tt>base</tt> if this is possible (e.g. if they
+     * by the <code>base</code> parameter; URLs will be written as relative
+     * URLs relative to <code>base</code> if this is possible (e.g. if they
      * share a part of their path).  If there is no common part of the
-     * path, including the case in which <tt>base</tt> is <tt>null</tt>,
+     * path, including the case in which <code>base</code> is <code>null</code>,
      * then an absolute reference will be written.
      * 
      * <p>Does not currently throw <code>HdxException</code> if the

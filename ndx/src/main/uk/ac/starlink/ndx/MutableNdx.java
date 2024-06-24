@@ -4,7 +4,7 @@ import org.w3c.dom.Node;
 import uk.ac.starlink.array.NDArray;
 
 /**
- * Extends the <tt>Ndx</tt> interface to provide methods for setting 
+ * Extends the <code>Ndx</code> interface to provide methods for setting 
  * the data and metadata.
  *
  * @author   Mark Taylor (Starlink)
@@ -13,17 +13,17 @@ public interface MutableNdx extends Ndx {
 
     /**
      * Sets the Image component of this Ndx.  It is an error to set it
-     * to the <tt>null</tt> value.
+     * to the <code>null</code> value.
      *
      * @param   image  the new Image component
-     * @throws  NullPointerException  if <tt>image</tt> is <tt>null</tt>
+     * @throws  NullPointerException  if <code>image</code> is <code>null</code>
      */
     void setImage( NDArray image );
 
     /**
      * Sets the Variance component of this Ndx.  
-     * If set to <tt>null</tt> the Ndx will be considered to have no Variance
-     * component.
+     * If set to <code>null</code> the Ndx will be considered
+     * to have no Variance component.
      * 
      * @param   variance  the new Variance component
      */
@@ -32,13 +32,14 @@ public interface MutableNdx extends Ndx {
     /**
      * Sets the Quality component of this Ndx.
      * The supplied NDArray must be of an integer type.
-     * If set to <tt>null</tt> the Ndx will be considered to have no Quality
-     * component.
+     * If set to <code>null</code> the Ndx will be considered to have
+     * no Quality component.
      *
      * @param   quality  the new Quality component
-     * @throws  IllegalArgumentException  if <tt>quality</tt> is an NDArray
+     * @throws  IllegalArgumentException  if <code>quality</code> is an NDArray
      *          with a {@link uk.ac.starlink.array.Type} other than
-     *          <tt>Type.BYTE</tt>, <tt>Type.SHORT</tt> or <tt>Type.INT</tt>
+     *          <code>Type.BYTE</code>, <code>Type.SHORT</code>
+     *          or <code>Type.INT</code>
      */
     void setQuality( NDArray quality );
 
@@ -46,7 +47,8 @@ public interface MutableNdx extends Ndx {
      * Sets the title component of this Ndx.
      *
      * @param   title  the new title.  
-     *          If <tt>null</tt>, this Ndx will be considered to have no title
+     *          If <code>null</code>, this Ndx will be considered to have
+     *          no title
      */
     void setTitle( String title );
 
@@ -54,7 +56,8 @@ public interface MutableNdx extends Ndx {
      * Sets the label component of this Ndx.
      *
      * @param   label  the new label.
-     *          if <tt>null</tt>, this Ndx will be considered to have no label
+     *          if <code>null</code>, this Ndx will be considered to have
+     *          no label
      */
     void setLabel( String label );
 
@@ -62,7 +65,7 @@ public interface MutableNdx extends Ndx {
      * Sets the units component of this Ndx.
      *
      * @param   units  the new units string.
-     *          if <tt>null</tt>, this Ndx will be considered to have no 
+     *          if <code>null</code>, this Ndx will be considered to have no 
      *          units component
      */
     void setUnits( String units );
@@ -83,21 +86,21 @@ public interface MutableNdx extends Ndx {
      *      an XML representation of an AST FrameSet
      * </ul>
      * @param  wcs  an object representing the new WCS component
-     *          If <tt>null</tt>, a default WCS will be used
-     * @throws IllegalArgumentException  if <tt>wcs</tt> is not one of 
+     *          If <code>null</code>, a default WCS will be used
+     * @throws IllegalArgumentException  if <code>wcs</code> is not one of 
      *         the permitted types or otherwise fails to represent a legal
      *         WCS component
      */
     void setWCS( Object wcs );
 
     /**
-     * Sets the Etc component of this Ndx.  If not <tt>null</tt>
+     * Sets the Etc component of this Ndx.  If not <code>null</code>
      * the supplied Node should be a Document or Element of type &lt;etc&gt;.
      *
      * @param  etc  the new user-defined extensions component as a DOM node.
-     *         If <tt>null</tt>, this Ndx will be considered to have no
+     *         If <code>null</code>, this Ndx will be considered to have no
      *         extensions
-     * @throws  IllegalArgumentException  if <tt>etc</tt> is not an Element
+     * @throws  IllegalArgumentException  if <code>etc</code> is not an Element
      *          or Document of type &lt;etc&gt;
      */
     void setEtc( Node etc );

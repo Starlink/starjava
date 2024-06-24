@@ -26,7 +26,7 @@ import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.WinMap;
 
 /**
- * Utility methods for <tt>Ndx</tt> manipulation.
+ * Utility methods for <code>Ndx</code> manipulation.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -42,11 +42,11 @@ public class Ndxs {
     /**
      * Returns a view of the Image array of an Ndx with any masking 
      * implied by its Quality array taken care of, and additional 
-     * constraints supplied by a <tt>Requirements</tt> object.
+     * constraints supplied by a <code>Requirements</code> object.
      *
      * @param  ndx  the NDX whose image is sought
      * @param  req  additional requirements for the returned array.
-     *              May be <tt>null</tt>
+     *              May be <code>null</code>
      * @return  an NDArray representing the masked image data
      * @throws  IOException  if an I/O error occurs
      * @see    #maskArray
@@ -79,11 +79,11 @@ public class Ndxs {
     /**
      * Returns a view of the Variance array of an Ndx with any masking 
      * implied by its Quality array taken care of, and additional 
-     * constraints supplied by an <tt>Requirements</tt> object.
+     * constraints supplied by an <code>Requirements</code> object.
      *
      * @param  ndx  the NDX whose variance is sought
      * @param  req  additional requirements for the returned array.
-     *              May be <tt>null</tt>
+     *              May be <code>null</code>
      * @return  an NDArray representing the masked variance data
      * @throws  IOException  if an I/O error occurs
      * @see    #maskArray
@@ -116,14 +116,14 @@ public class Ndxs {
     /**
      * Returns a view of the Errors of an Ndx with any masking implied
      * by its Quality array taken care of, and additional constraints
-     * supplied by a <tt>Requirements</tt> object.
+     * supplied by a <code>Requirements</code> object.
      * The resulting object has pixels which are the square roots of
      * those in the array returned by 
      * {@link #getMaskedVariance(Ndx,Requirements)}.
      *
      * @param  ndx  the NDX whose errors are sought
      * @param  req  additional requirements for the returned array.
-     *              May be <tt>null</tt>
+     *              May be <code>null</code>
      * @return  an NDArray representing the square root of the variance data
      * @throws  IOException  if an I/O error occurs
      * @see    #maskArray
@@ -177,10 +177,10 @@ public class Ndxs {
      * Applies quality masking to an NDArray based on another NDArray
      * representing quality values.
      * The pixels of the returned array are the same as those of the target,
-     * except where a bitwise AND of the <tt>badbits</tt> mask and the 
+     * except where a bitwise AND of the <code>badbits</code> mask and the 
      * corresponding pixel of the quality array is non-zero, in which
      * case they have the bad value.
-     * A <tt>Requirements</tt> object may be supplied to specify 
+     * A <code>Requirements</code> object may be supplied to specify 
      * additional required characteristics of the returned array.
      * <p>
      * This method does the work for the various Ndx array masking 
@@ -190,10 +190,10 @@ public class Ndxs {
      * @param  quality  an NDArray of an integer type 
      * @param  badbits  the quality mask
      * @param  req   additional requirements on the returned object.
-     *               May be <tt>null</tt>
-     * @return  an NDArray based on the target array <tt>target</tt> but
-     *          with bad pixels where the indicated by <tt>quality</tt>
-     *          May or may not be the same object as <tt>target</tt>
+     *               May be <code>null</code>
+     * @return  an NDArray based on the target array <code>target</code> but
+     *          with bad pixels where the indicated by <code>quality</code>
+     *          May or may not be the same object as <code>target</code>
      * @throws  IOException  if an I/O error occurs
      */
     public static NDArray maskArray( NDArray target, NDArray quality,
@@ -382,7 +382,7 @@ public class Ndxs {
     /**
      * Unconditionally returns world coordinate system information for an
      * NDX as a {@link uk.ac.starlink.ast.FrameSet}.
-     * If <tt>ndx</tt> has a WCS component it is generated from that,
+     * If <code>ndx</code> has a WCS component it is generated from that,
      * otherwise a suitable default one is returned.
      *
      * @param  ndx  the NDX for which WCS are required
@@ -397,7 +397,7 @@ public class Ndxs {
     }
 
     /**
-     * Returns a default AST <tt>FrameSet</tt> for an Ndx.
+     * Returns a default AST <code>FrameSet</code> for an Ndx.
      * This has GRID and PIXEL Frames, such that when the unit hypercube
      * (having coordinates <i>x<sub>i</sub></i> in the range
      * 0&lt;=<i>x<sub>i</sub></i>..1 in each dimension <i>i</i>) 
@@ -407,7 +407,7 @@ public class Ndxs {
      * where <i>Origin</i> is the origin of the Image array component.
      *
      * @param   ndx  the Ndx for which to find the default FrameSet
-     * @return  the default FrameSet for <tt>ndx</tt>
+     * @return  the default FrameSet for <code>ndx</code>
      */
     public static FrameSet getDefaultAst( Ndx ndx ) {
         NDArray image = ndx.getImage();
