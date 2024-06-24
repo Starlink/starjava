@@ -23,7 +23,7 @@ import uk.ac.starlink.table.ValueInfo;
  * An implementation of the StarTable interface which uses FITS TABLE
  * or BINTABLE extensions.
  * <p>
- * This implementation uses the table handling in the <tt>nom.tam.fits</tt>
+ * This implementation uses the table handling in the <code>nom.tam.fits</code>
  * package.  I think that performance could be considerably improved
  * by rewriting the table access from scratch.  The reason for this is
  * largely that the nom.tam.fits classes do a lot of wrapping of values
@@ -277,7 +277,7 @@ public class FitsStarTable extends RandomStarTable {
      * with this one.
      *
      * @param   base  the object got from the fits table
-     * @param   icol  the column from which <tt>base</tt> comes
+     * @param   icol  the column from which <code>base</code> comes
      * @return  the object representing the value of the cell
      */
     @SuppressWarnings("cast")
@@ -373,15 +373,16 @@ public class FitsStarTable extends RandomStarTable {
      * Returns the class of object which would be returned by
      * the {@link #packageValue} method for a given object in a given
      * column.
-     * This differs from calling <tt>getClass</tt> on the result of 
-     * <tt>packageValue</tt> in the case that packageValue would return
+     * This differs from calling <code>getClass</code> on the result of 
+     * <code>packageValue</code> in the case that packageValue would return
      * a null value.
      * <p>
      * This must be kept consistent with {@link #packageValue}
      *
-     * @param   base  the object got from column <tt>icol</tt> of the fits table
-     * @param   icol  the column from which <tt>base</tt> comes
-     * @return  the class that <tt>packageValue(base,icol)</tt> 
+     * @param   base  the object got from column <code>icol</code>
+     *                of the fits table
+     * @param   icol  the column from which <code>base</code> comes
+     * @return  the class that <code>packageValue(base,icol)</code> 
      *          would return an instance of
      */
     private Class<?> packagedType( Object base, int icol ) {
@@ -430,7 +431,7 @@ public class FitsStarTable extends RandomStarTable {
      * Indicates whether a given string is empty, that is all spaces.
      *
      * @param  str  string to test
-     * @return <tt>true</tt> if it contains no non-space characters
+     * @return <code>true</code> if it contains no non-space characters
      */
     private static boolean isEmpty( String str ) {
         int leng = str.length();

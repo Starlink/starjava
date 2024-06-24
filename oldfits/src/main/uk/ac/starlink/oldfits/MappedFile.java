@@ -17,10 +17,10 @@ import uk.ac.starlink.util.Loader;
  * Provides mapped access to a data buffer using a single mapped byte buffer,
  * compatible with nom.tam.util classes.
  *
- * <p>This class implements the <tt>nom.tam.util</tt>
- * <tt>ArrayDataInput</tt>, <tt>ArrayDataOutput</tt>
- * and <tt>RandomAccess</tt> interfaces
- * in the same way that <tt>nom.tam.util.BufferedFile</tt> does.
+ * <p>This class implements the <code>nom.tam.util</code>
+ * <code>ArrayDataInput</code>, <code>ArrayDataOutput</code>
+ * and <code>RandomAccess</code> interfaces
+ * in the same way that <code>nom.tam.util.BufferedFile</code> does.
  * Hence it can be used as a drop-in replacement for BufferedFile.
  * Unlike BufferedFile however, it does mapped access to files
  * (using java.nio.Buffer objects).  This may be moderately more efficient

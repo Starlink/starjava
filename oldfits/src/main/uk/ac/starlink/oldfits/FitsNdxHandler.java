@@ -319,7 +319,7 @@ public class FitsNdxHandler
      * following the write.
      *
      * @param  strm  the stream to which the NDX should be written
-     * @param  url   the URL represented by the stream; may be <tt>null</tt>
+     * @param  url   the URL represented by the stream; may be <code>null</code>
      * @param  ndx  the ndx to write
      */
     public void outputNdx( ArrayDataOutput strm, URL url, Ndx ndx ) 
