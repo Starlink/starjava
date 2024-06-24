@@ -123,15 +123,15 @@ public class HDSType {
 
     /**
      * Gets an HDSType from its HDS name.  This does the opposite of
-     * the {@link #getName} method.  Returns <tt>null</tt> if 
-     * <tt>name</tt> does not refer to a supported HDS numeric type;
+     * the {@link #getName} method.  Returns <code>null</code> if 
+     * <code>name</code> does not refer to a supported HDS numeric type;
      * note this will apply to _LOGICAL, _CHAR and structure types
      * (ones not starting with an underscore).
      *
      * @param   name  name of the HDS type, including prepended underscore.
      *                Not case sensitive.
-     * @return  the numeric HDS type corresponding to <tt>name</tt>,
-     *          or <tt>null</tt> if it is not one
+     * @return  the numeric HDS type corresponding to <code>name</code>,
+     *          or <code>null</code> if it is not one
      */
     public static HDSType fromName( String name ) {
         if ( name.equalsIgnoreCase( "_BYTE" ) ) {

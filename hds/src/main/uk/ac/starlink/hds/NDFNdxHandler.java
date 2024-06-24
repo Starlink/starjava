@@ -23,18 +23,18 @@ import org.w3c.dom.Element;
  * <p>
  * URLs are given in the format:
  * <blockquote>
- *    <i>container</i><tt>.sdf</tt>
+ *    <i>container</i><code>.sdf</code>
  * </blockquote>
  * or
  * <blockquote>
- *    <i>container</i><tt>.sdf#</tt><i>path</i>
+ *    <i>container</i><code>.sdf#</code><i>path</i>
  * </blockquote>
- * where the <i>container</i><tt>.sdf</tt> part is a full absolute or
+ * where the <i>container</i><code>.sdf</code> part is a full absolute or
  * relative URL referring
  * to the HDS container file, and the optional fragment identifier
  * gives the HDS path within that container file in the traditional
  * dot-separated format.  If there is no fragment identifier
- * (no <tt>#</tt>), the object at the top level of the HDS container
+ * (no <code>#</code>), the object at the top level of the HDS container
  * file is understood.
  * <p>
  * This is a singleton class; use {@link #getInstance} to get an instance.
@@ -135,13 +135,13 @@ public class NDFNdxHandler
      *
      * @param  hobj  the HDS object to be viewed as an Ndx
      * @param  persistentURL  the URL at which this NDX persists.
-     *         Use <tt>null</tt> if <tt>hobj</tt> resides in a temporary file
-     *         or is otherwise transient.
+     *         Use <code>null</code> if <code>hobj</code> resides
+     *         in a temporary file or is otherwise transient.
      * @param  mode  the read/write/update mode for the Ndx array data
-     * @return  the new Ndx based on <tt>hobj</tt>, or <tt>null</tt> 
+     * @return  the new Ndx based on <code>hobj</code>, or <code>null</code> 
      *          if it doesn't look like an NDF
      * @throws  HDSException  if there is an error in HDS
-     * @throws  IllegalArgumentException  if <tt>hobj</tt> doesn't look like
+     * @throws  IllegalArgumentException  if <code>hobj</code> doesn't look like
      *          and NDF structure
      */
     public Ndx makeNdx( HDSObject hobj, URL persistentURL, AccessMode mode )

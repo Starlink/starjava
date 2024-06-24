@@ -225,7 +225,7 @@ public class NdfMaker {
 
     /**
      * Does the work of copying the data of an NDX into a new NDF structure
-     * at a given location.  The supplied HDSObject <tt>ndfob</tt> is
+     * at a given location.  The supplied HDSObject <code>ndfob</code> is
      * annulled by this method when the write is complete.
      *
      * @param  ndx    the NDX to copy

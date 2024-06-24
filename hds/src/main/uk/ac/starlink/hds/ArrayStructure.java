@@ -53,7 +53,7 @@ public class ArrayStructure {
      *
      * @param   hobj   the HDSObject at which the array object is to be found.
      * @throws  HDSException   if an error occurred in traversing the HDS 
-     *          tree or <tt>hobj</tt> does not represent an array
+     *          tree or <code>hobj</code> does not represent an array
      */
     public ArrayStructure( HDSObject hobj ) throws HDSException {
         this.hobj = hobj;
@@ -196,7 +196,7 @@ public class ArrayStructure {
     /**
      * Gets the HDS object representing the data array itself.
      * This will be a primitive array with dimensions given by 
-     * <tt>getShape().getDims()</tt>.
+     * <code>getShape().getDims()</code>.
      *
      * @return   the primitive array containing the actual data
      */

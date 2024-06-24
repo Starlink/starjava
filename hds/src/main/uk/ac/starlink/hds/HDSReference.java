@@ -139,11 +139,11 @@ public class HDSReference implements Cloneable {
 
     /**
      * Constructs an HDSReference from a URL.  Only URLs using the 
-     * <tt>file:</tt> protocol are supported.
+     * <code>file:</code> protocol are supported.
      *
      * @param   url   a URL describing the location of the HDSObject
-     * @throws  UnsupportedOperationException if the protocol of <tt>url</tt>
-     *          is not <tt>file</tt>
+     * @throws  UnsupportedOperationException if the protocol
+     *          of <code>url</code> is not <code>file</code>
      */
     public HDSReference( URL url ) {
         this( getFileFromURL( url ), url.getRef() );
