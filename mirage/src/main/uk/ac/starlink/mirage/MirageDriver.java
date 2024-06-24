@@ -40,7 +40,7 @@ public class MirageDriver {
 
     /**
      * Invoke the Mirage application on a list of named StarTables.
-     * Using the <tt>-d</tt> flag this command can also be used to
+     * Using the <code>-d</code> flag this command can also be used to
      * dump the mirage-formatted version of a given table to 
      * standard output.
      *
@@ -167,9 +167,9 @@ public class MirageDriver {
      * Indicates whether the Mirage application is available in this JVM.
      * Unless the relevant class is on the classpath, it won't be.
      * The {@link #invokeMirage} method will only work if this method
-     * returns <tt>true</tt>.
+     * returns <code>true</code>.
      *
-     * @return  <tt>true</tt> iff the class MIRAGE_CLASS does not
+     * @return  <code>true</code> iff the class MIRAGE_CLASS does not
      *         exist on the path named by the property MIRAGE_CLASSPATH_PROP
      */
     public static boolean isMirageAvailable() {
@@ -191,7 +191,7 @@ public class MirageDriver {
      * @param  margs  a list of other arguments (Strings) to pass as arguments
      *         to Mirage
      * @throws ClassNotFoundException  if {@link #isMirageAvailable} 
-     *         returns <tt>false</tt>
+     *         returns <code>false</code>
      */
     public static void invokeMirage( StarTable table, List margs )
             throws ClassNotFoundException, Exception {
@@ -225,10 +225,11 @@ public class MirageDriver {
     }
 
     /**
-     * Invokes the <tt>main</tt> method of a given class with given arguments.
+     * Invokes the <code>main</code> method of a given class
+     * with given arguments.
      *
      * @param   clazz  the class containing a 
-     *                 <tt>public static main(String[])</tt> method
+     *                 <code>public static main(String[])</code> method
      * @param   args   command-line arguments for the Mirage application
      * @throws  Exception  if various other things go wrong
      */
