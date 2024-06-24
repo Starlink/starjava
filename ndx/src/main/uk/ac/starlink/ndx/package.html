@@ -3,13 +3,13 @@ Classes for manipulating N-dimensional astronomical data objects.
 
 <h3>World coordinate systems</h3>
 
-The JNIAST package, i.e. classes in <tt>uk.ac.starlink.ast</tt>
+The JNIAST package, i.e. classes in <code>uk.ac.starlink.ast</code>
 is currently used for treatment of world coordianate systems (WCS) 
 within this package.
 JNIAST is based on native compiled code, which may not be available
 on all platforms/installations.  In the absence of the JNIAST 
 package shared libraries (on unix, this typically means that 
-<tt>libjniast.so</tt> is not on the LD_LIBRARY_PATH), the NDX
+<code>libjniast.so</code> is not on the LD_LIBRARY_PATH), the NDX
 classes will still function without crashing, but will in general 
 ignore WCS information where it exists.  Cases which explicitly require
 WCS information however will generally cause a fatal error 
@@ -17,7 +17,7 @@ WCS information however will generally cause a fatal error
 
 <p>For example, if JNIAST is not installed the 
 {@link uk.ac.starlink.ndx.Ndx#hasWCS} method 
-will always return <tt>false</tt>, but the 
+will always return <code>false</code>, but the 
 {@link uk.ac.starlink.ndx.Ndxs#getAst} method
 will throw an error.
 

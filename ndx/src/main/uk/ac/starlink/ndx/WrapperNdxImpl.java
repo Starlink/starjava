@@ -4,7 +4,7 @@ import javax.xml.transform.Source;
 import uk.ac.starlink.array.NDArray;
 
 /**
- * Provides an <tt>NdxImpl</tt> based on an <tt>Ndx</tt>.
+ * Provides an <code>NdxImpl</code> based on an <code>Ndx</code>.
  *
  * @author   Mark Taylor (Starlink)
  */

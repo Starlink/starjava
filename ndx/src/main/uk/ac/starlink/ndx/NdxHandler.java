@@ -11,8 +11,8 @@ import uk.ac.starlink.array.Type;
  * {@link #makeNdx} constructs an Ndx from an existing resource
  * and {@link #outputNdx} constructs a new resource containing a copy
  * of an existing Ndx.
- * If the URL fed to <tt>outputNdx</tt> is subsequently fed to
- * <tt>makeNdx</tt> the factory should understand it to reference the
+ * If the URL fed to <code>outputNdx</code> is subsequently fed to
+ * <code>makeNdx</code> the factory should understand it to reference the
  * resource which was created by the earlier call (given that it still
  * exists).
  *
@@ -23,7 +23,7 @@ public interface NdxHandler {
     /**
      * Constructs a readable Ndx based on the existing resource at a given URL.
      * If the resource is not recognised or it is not known how to
-     * construct such an Ndx, then <tt>null</tt> should be returned.
+     * construct such an Ndx, then <code>null</code> should be returned.
      * If the resource exists but some error occurs in processing it,
      * or if this factory knows that it understands the URL but is
      * unable to locate such a resource then an IOException should be
@@ -52,11 +52,11 @@ public interface NdxHandler {
      * but they will be writable when subsequently opened.
      * <p>
      * If the URL is not recognised by this handler or it is not known
-     * how to construct such an Ndx then <tt>false</tt> should be returned.
+     * how to construct such an Ndx then <code>false</code> should be returned.
      * If the handler recognises the URL but some error occurs in 
      * creating the new Ndx, then an IOException should be thrown; 
      * however, if it is possible that a different handler could
-     * correctly construct a writable Ndx as requested then a <tt>false</tt>
+     * correctly construct a writable Ndx as requested then a <code>false</code>
      * return is preferred.
      *
      * @param  url  a URL at which the new NDX should be written
@@ -65,7 +65,7 @@ public interface NdxHandler {
      *                    will be copied from it, and new blank writable
      *                    array components matching the ones in it will be
      *                    created
-     * @return  true if the handler could create the Ndx at <tt>url</tt>,
+     * @return  true if the handler could create the Ndx at <code>url</code>,
      *          false if it doesn't understand this URL
      * @throws  IOException  if the URL is understood but an NDArray cannot
      *                       be made
@@ -91,7 +91,7 @@ public interface NdxHandler {
      * @param  url    the URL at which the resource backing the Ndx  is
      *                to be written
      * @param  original  an Ndx whose data is to be copied to the resource
-     *                   given by <tt>url</tt>
+     *                   given by <code>url</code>
      * @return  true if the copy can be made, false if this handler does 
      *               not feel qualified to create a resource with the given
      *               URL.
