@@ -2450,7 +2450,7 @@ public class Pal {
  *  <br>   the vector of n unknowns
  *  </dd>
  *  <dt>Arguments:</dt>
- *  <dd><table border="0">
+ *  <dd><table>
  *  <tr><th>symbol  </th> <th>type</th> <th>dimension</th> <th>before</th>
  *      <th>after</tr>
  *  <tr><td>   n </td> <td>  int</td>     <td> </td> <td>no. of unknowns</td>
@@ -3224,7 +3224,7 @@ public class Pal {
  *  <dd> <ol>
  *  <li>Depending on the epoch, one of three parabolic approximations
  *     is used:
- *  <dl> <dd><table border="0">
+ *  <dl> <dd><table>
  *  <tr><td>before 979 </td>
  *      <td>Stephenson &amp; Morrison's 390 BC to AD 948 model</td> </tr>
  *  <tr><td>   979 to 1708 </td>
@@ -4087,7 +4087,7 @@ public class Pal {
  *  <dt>Accuracy:</dt>
  *
  *  <dd> The maximum deviations from the JPL DE96 ephemeris are as follows:
- *  <table border="0">
+ *  <table>
  *    <tr> <td> barycentric velocity </td> <td> 42  cm/s</td> </tr>
  *    <tr> <td> barycentric position </td> <td> 6900  km</td> </tr>
  *
