@@ -57,11 +57,11 @@ public class ConnectorManager {
     /**
      * Returns a list of all the currently available ConnectorAction
      * objects.  There will be one for each of the {@link Connector}s
-     * returned by {@link #getConnectors}.  Since a <tt>ConnectorAction</tt>
+     * returned by {@link #getConnectors}.  Since a <code>ConnectorAction</code>
      * holds open a single connection at a time, this is a sensible method
      * to use if you want to get a list of the current connections to
      * various places.  If you want to be able to open guaranteed new
-     * connections, use <tt>getConnectors</tt> itself instead.
+     * connections, use <code>getConnectors</code> itself instead.
      *
      * @return   array of connector actions
      */

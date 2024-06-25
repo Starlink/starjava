@@ -59,7 +59,7 @@ public abstract class FileNode implements Node {
      * Creates a new FileNode from a File.
      *
      * @param   file   file
-     * @return  branch or leaf representing <tt>file</tt>
+     * @return  branch or leaf representing <code>file</code>
      */
     public static FileNode createNode( File file ) {
         return file.isDirectory() ? (FileNode) new FileBranch( file )

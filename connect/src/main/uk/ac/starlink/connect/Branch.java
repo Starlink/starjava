@@ -27,10 +27,11 @@ public interface Branch extends Node {
      * {@link Leaf#getOutputStream} call may do so.
      *
      * <p>The returned node will typically be a child of this branch,
-     * but need not be, for instance if <tt>name</tt> is interpreted as an 
+     * but need not be, for instance if <code>name</code> is interpreted as an 
      * absolute path.
      *
-     * <p>If the named node cannot be created, <tt>null</tt> may be returned.
+     * <p>If the named node cannot be created, <code>null</code>
+     * may be returned.
      *
      * @param   name   name of a node in the context of this branch
      * @return   node representing the location of an existing or new node

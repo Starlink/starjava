@@ -19,7 +19,7 @@ class FileLeaf extends FileNode implements Leaf {
      * Constructs a new leaf node from a normal file object.
      *
      * @param  file  file
-     * @throws  IllegalArgumentException  if <tt>file</tt> is a directory
+     * @throws  IllegalArgumentException  if <code>file</code> is a directory
      */
     public FileLeaf( File file ) {
         super( file );

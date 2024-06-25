@@ -40,12 +40,13 @@ public interface Connector {
 
     /**
      * Attempts to open a connection.
-     * The supplied <tt>authValues</tt> map contains an entry for each of
+     * The supplied <code>authValues</code> map contains an entry for each of
      * the keys returned by {@link #getKeys}, with the entry's value
      * being the value for that key.
      * Thus the values will typically be the user's name, password, etc.
-     * The values will be either <tt>String</tt> or <tt>char[]</tt> values
-     * or <tt>null</tt> (<tt>char[]</tt> may be used for hidden values for
+     * The values will be either <code>String</code> or
+     * <code>char[]</code> values or <code>null</code>
+     * (<code>char[]</code> may be used for hidden values for
      * security reasons).
      *
      * @param    authValues   AuthKey-&gt;value map containing connection

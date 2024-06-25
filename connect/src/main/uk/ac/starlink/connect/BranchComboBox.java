@@ -48,7 +48,7 @@ public class BranchComboBox extends JComboBox<Branch> {
 
     /**
      * Sets this combo box's model.  Will only accept a suitable model
-     * (one acquired from another <tt>BranchComboBox</tt>).
+     * (one acquired from another <code>BranchComboBox</code>).
      *
      * @param  model  model
      * @throws  ClassCastException  if it's the wrong type
@@ -92,7 +92,7 @@ public class BranchComboBox extends JComboBox<Branch> {
 
     /**
      * Adds a new branch to the model which represents a 
-     * <tt>Connector</tt>.
+     * <code>Connector</code>.
      *
      * @param  connAct  connector action to be represented by a new branch
      */
@@ -103,7 +103,7 @@ public class BranchComboBox extends JComboBox<Branch> {
     /**
      * Returns any connector action which is assocated with the currently
      * selected branch.  This will return null unless the current branch
-     * represents a <tt>Connector</tt>.
+     * represents a <code>Connector</code>.
      *
      * @return   connector action associated with current selection, if any
      * @see      #addConnection
