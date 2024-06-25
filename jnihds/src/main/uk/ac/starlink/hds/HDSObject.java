@@ -900,7 +900,7 @@ public class HDSObject {
         datType() throws HDSException;
 
     /**
-     * Unmap an object mapped by another <tt>HDSObject</tt> method.
+     * Unmap an object mapped by another <code>HDSObject</code> method.
      *
      * @see <a href="http://www.starlink.ac.uk/cgi-bin/htxserver/sun92.htx/?xref_DAT_UNMAP">DAT_UNMAP</a>
      */
