@@ -52,7 +52,8 @@ public abstract class Connection {
      * this connection, if known
      *
      * @param  key  authorization key
-     * @return   value for <tt>key</tt> (of type <tt>key.getValueType()</tt>),
+     * @return   value for <code>key</code>
+     *           (of type <code>key.getValueType()</code>),
      *           or null
      */
     public Object getAuthValue( AuthKey key ) {

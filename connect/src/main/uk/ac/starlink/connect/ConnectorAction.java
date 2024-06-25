@@ -390,7 +390,7 @@ public class ConnectorAction extends AbstractAction {
     /**
      * Returns the currently active connection.  May be null if no
      * connection is active.  If the connection has expired, this may
-     * result in the connection property being reset to <tt>null</tt>.
+     * result in the connection property being reset to <code>null</code>.
      * Thus it's very likely that the connection returned from this
      * method will be active, but it can't be guaranteed that it won't
      * have expired between this method returning it and the caller

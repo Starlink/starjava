@@ -51,7 +51,7 @@ import javax.swing.event.ListSelectionListener;
  * <p>Though written from scratch, this class is effectively a generalisation 
  * of {@link javax.swing.JFileChooser}. JFileChooser looks like it ought
  * to be generalisable by providing alternative 
- * <tt>FileSystemView</tt> implementations, but
+ * <code>FileSystemView</code> implementations, but
  * I've tried it, and that way lies misery.
  * 
  * @author   Mark Taylor (Starlink)
@@ -558,7 +558,7 @@ public class FilestoreChooser extends JPanel {
      * selector at the top of the window which selects the current branch.
      * Note you can't just bung any old ComboBoxModel in here; it must
      * be one obtained from a {@link #getModel} call on another
-     * <tt>FilestoreChooser</tt>.
+     * <code>FilestoreChooser</code>.
      *
      * @param  model   data model to use
      */

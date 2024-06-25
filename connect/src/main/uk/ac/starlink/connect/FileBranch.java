@@ -22,7 +22,7 @@ public class FileBranch extends FileNode implements Branch {
      * directory.
      *
      * @param  dir  directory
-     * @throws  IllegalArgumentException  if <tt>dir</tt> is not a directory
+     * @throws  IllegalArgumentException  if <code>dir</code> is not a directory
      */
     public FileBranch( File dir ) {
         super( dir );
