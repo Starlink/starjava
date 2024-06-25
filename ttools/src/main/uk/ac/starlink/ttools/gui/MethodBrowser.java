@@ -287,12 +287,13 @@ public class MethodBrowser extends JPanel {
                         docPane_.setPage( docUrl );
                     }
                     catch ( IOException e ) {
-                        logger_.info( "Trouble loading documentation at "
-                                    + docUrl );
+                        logger_.warning( "Trouble loading documentation at "
+                                       + docUrl );
                     }
                 }
                 else {
-                    logger_.info( "No documentation for " + leaf );
+                    logger_.warning( "No documentation for " + leaf );
+                    docPane_.setText( null );
                 }
             }
         }
@@ -336,6 +337,10 @@ public class MethodBrowser extends JPanel {
                     }
                     sbuf.append( " )" );
                     return sbuf.toString();
+                }
+                else if ( userObj instanceof Field ) {
+                    Field field = (Field) userObj;
+                    return field.getName();
                 }
                 else if ( userObj != null ) {
                     text = userObj.toString();
