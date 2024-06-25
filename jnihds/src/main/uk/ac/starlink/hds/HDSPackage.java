@@ -20,13 +20,13 @@ public class HDSPackage {
 
     /**
      * Indicates whether the HDSObject class is available or not.
-     * This will return <tt>true</tt> if the JNIHDS classes can be used,
-     * buf <tt>false</tt> if the requisite native code is not
-     * available (the shared library is not on <tt>java.library.path</tt>).
+     * This will return <code>true</code> if the JNIHDS classes can be used,
+     * buf <code>false</code> if the requisite native code is not
+     * available (the shared library is not on <code>java.library.path</code>).
      * If the classes are not available, then the first time it is invoked
      * it will write a warning to that effect via the logger.
      *
-     * @return  <tt>true</tt> iff the HDSObject class is available
+     * @return  <code>true</code> iff the HDSObject class is available
      */
     public static boolean isAvailable() {
         if ( loaded == null ) {
