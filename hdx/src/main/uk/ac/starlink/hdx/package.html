@@ -42,7 +42,7 @@ During processing, the object will generally be manipulated using some
 interface defined as part of the resulting Java object's
 specification.</p>
 
-<h2 name="hdxtypes">HDX types</h2>
+<h2 id="hdxtypes">HDX types</h2>
 
 <p>All important elements in the HDX DOM correspond to types
 registered with the HDX system.  Only those elements which correspond
@@ -138,7 +138,7 @@ wants to use Hdx objects.  The two factory interfaces are <em>not</em>
 used by client code, but exist in order to be implemented by those
 extending the system.</p>
 
-<h2 a name="namespaces">Namespaces</h2>
+<h2 id="namespaces">Namespaces</h2>
 
 <p>Hdx objects may be synthesized from binary data files such as HDS
 or FITS files, or else they may be extracted from the DOMs constructed from
@@ -167,23 +167,23 @@ not have to worry about the occasionally subtle details of namespace
 processing.  Thus the XML file</p>
 
 <pre>
-    &lt;rubbish xmlns:x="http://www.starlink.ac.uk/HDX">
-      &lt;x:hdx>
-        &lt;x:ndx>
-          &lt;x:data uri="file:/tmp/mydata.sdf"/>
-        &lt;/x:ndx>
-      &lt;/x:hdx>
-    &lt;/rubbish>
+    &lt;rubbish xmlns:x="http://www.starlink.ac.uk/HDX"&gt;
+      &lt;x:hdx&gt;
+        &lt;x:ndx&gt;
+          &lt;x:data uri="file:/tmp/mydata.sdf"/&gt;
+        &lt;/x:ndx&gt;
+      &lt;/x:hdx&gt;
+    &lt;/rubbish&gt;
 </pre>
 
 <p>is transformed into the simpler DOM</p>
 
 <pre>
-    &lt;hdx>
-      &lt;ndx>
-        &lt;data uri="file:/tmp/mydata.sdf"/>
-      &lt;/ndx>
-    &lt;/hdx>
+    &lt;hdx&gt;
+      &lt;ndx&gt;
+        &lt;data uri="file:/tmp/mydata.sdf"/&gt;
+      &lt;/ndx&gt;
+    &lt;/hdx&gt;
 </pre>
 
 <p>Changes made to the attributes in this transformed DOM are
@@ -202,19 +202,19 @@ element, but instead an element which is a valid child of
 <code>&lt;hdx&gt;</code> element.  Thus</p>
 
 <pre>
-    &lt;mystructure>
-      &lt;mypointer x:name="ndx" xmlns:x="http://www.starlink.ac.uk/HDX">
+    &lt;mystructure&gt;
+      &lt;mypointer x:name="ndx" xmlns:x="http://www.starlink.ac.uk/HDX"&gt;
         mydata.sdf
-      &lt;/mypointer>
-    &lt;/mystructure>
+      &lt;/mypointer&gt;
+    &lt;/mystructure&gt;
 </pre>
 
 <p>is transformed into</p>
 
 <pre>
-    &lt;hdx>
-      &lt;ndx uri="mydata.sdf"/>
-    &lt;/hdx>
+    &lt;hdx&gt;
+      &lt;ndx uri="mydata.sdf"/&gt;
+    &lt;/hdx&gt;
 </pre>
 
 <p>and processed accordingly.</p>
@@ -238,7 +238,7 @@ method
 to extract Hdx objects from DOMs, using the namespace mechanism
 described <a href="#namespaces">above</a>.</p>
 
-<h2 name="newtypes">Usage: defining new types</h2>
+<h2 id="newtypes">Usage: defining new types</h2>
 
 <p>To define a new type, you must create a new
 {@link uk.ac.starlink.hdx.HdxResourceType}, using method
@@ -254,7 +254,7 @@ example, the (very simple) definition of the
          public boolean validateElement(Element el) {
              // A TITLE element is valid if it has an attribute "value"
              return HdxResourceType.match(el) == TITLE
-                 && el.hasAttribute(TITLE.getHoistAttribute());
+                 &amp;&amp; el.hasAttribute(TITLE.getHoistAttribute());
          }
      });
 </pre>
