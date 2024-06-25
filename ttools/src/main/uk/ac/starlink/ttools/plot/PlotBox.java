@@ -277,7 +277,7 @@ it can only be viewed by a browser that supports JDK 1.2, or a plugin.
 @version $Id$
 @since Ptolemy II 0.2
 */
-@SuppressWarnings({"unchecked","rawtypes","dep-ann","static",})
+@SuppressWarnings({"unchecked","rawtypes","dep-ann","static","deprecation",})
 class PlotBox extends JPanel implements Printable {
 
     ///////////////////////////////////////////////////////////////////
