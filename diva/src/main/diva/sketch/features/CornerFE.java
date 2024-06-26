@@ -107,7 +107,7 @@ public class CornerFE implements FeatureExtractor {
         Integer num = (Integer)s.getProperty(PROPERTY_KEY);
         if(num == null){
             int val = numCorners(s,_threshDot,_threshMagRatio,_threshRelaxedDot);
-            s.setProperty(PROPERTY_KEY, new Integer(val));
+            s.setProperty(PROPERTY_KEY, Integer.valueOf(val));
             return (double)val;
         }
         else {
@@ -172,7 +172,7 @@ public class CornerFE implements FeatureExtractor {
                     double angle = Math.acos(dot);
                     angle = Math.toDegrees(angle);
                     int j = i+1;
-                    cornerIndices.add(new Integer(j));
+                    cornerIndices.add(Integer.valueOf(j));
                     //                        numCorners++;
                 }
                 else if(dot < threshRelaxedDot) {
@@ -186,7 +186,7 @@ public class CornerFE implements FeatureExtractor {
                         angle = Math.toDegrees(angle);
                         //                            numCorners++;
                         int j = i+1;
-                        cornerIndices.add(new Integer(j));
+                        cornerIndices.add(Integer.valueOf(j));
                     }
                 }
             }

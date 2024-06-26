@@ -30,7 +30,7 @@ public class WhiteboardState {
     public final static String HIGHLIGHT_MODE = "HIGHLIGHT";
     
     ArrayList _listeners = new ArrayList();
-    Float _penWidth = new Float(SketchController.DEFAULT_LINE_WIDTH);
+    Float _penWidth = Float.valueOf(SketchController.DEFAULT_LINE_WIDTH);
     Color _penColor = SketchController.DEFAULT_PEN_COLOR;
     Color _fillColor = SketchController.DEFAULT_FILL_COLOR;
     String _mode = SKETCH_MODE;
@@ -74,7 +74,7 @@ public class WhiteboardState {
     }
     
     public void setPenWidth(float w){
-        Float newWidth = new Float(w);
+        Float newWidth = Float.valueOf(w);
         PropertyChangeEvent evt = new PropertyChangeEvent(this, PEN_WIDTH, _penWidth, newWidth);
         dispatch(evt);
         _penWidth = newWidth;

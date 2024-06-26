@@ -152,7 +152,7 @@ public class PropertyIndexSet {
 		else {
             Integer index = getFree();
             if(index == null) {
-                index = new Integer(_numattr++);
+                index = Integer.valueOf(_numattr++);
             }
             _hash.put(slotName, index);
 

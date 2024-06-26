@@ -192,7 +192,7 @@ public class SchematicGraphController extends AbstractGraphController {
         // Create the interactor that drags new edges.
 	_edgeCreator = new EdgeCreator(this) {
 	    public Object createEdge() {	
-		Object semanticObject = new Integer(_globalCount++);
+		Object semanticObject = Integer.valueOf(_globalCount++);
 		BasicGraphModel bgm = (BasicGraphModel)getGraphModel();
 	        return bgm.createEdge(semanticObject);
 	    }

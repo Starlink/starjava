@@ -577,7 +577,7 @@ public class BasicScene implements Scene {
             _confidences = new ArrayList(1);
             _choices.add(child);
             _choiceNames.add(name);
-            _confidences.add(new Double(confidence));
+            _confidences.add(Double.valueOf(confidence));
             
             setWhich(0);
             //FIXME - assertions about type and makeup
@@ -599,7 +599,7 @@ public class BasicScene implements Scene {
             }
             _choices.add(i, choice);
             _choiceNames.add(i, name);
-            _confidences.add(i, new Double(confidence));
+            _confidences.add(i, Double.valueOf(confidence));
             setWhich(0);
         }
         public void removeChoice(CompositeElement choice) {
