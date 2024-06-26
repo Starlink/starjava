@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat;
+package uk.ac.starlink.topcat.fx;
 
 import java.awt.BorderLayout;
 import java.net.MalformedURLException;
@@ -10,6 +10,7 @@ import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import uk.ac.starlink.topcat.AbstractHtmlPanel;
 
 /**
  * AbstractHtmlPanel implementation based on the JavaFX WebView class.
