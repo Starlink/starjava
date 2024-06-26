@@ -5,6 +5,7 @@ import java.net.URL;
 import javax.swing.JPanel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.topcat.fx.FxHtmlPanel;
 
 /**
  * Skeleton implementation for a panel that can display navigable HTML.
