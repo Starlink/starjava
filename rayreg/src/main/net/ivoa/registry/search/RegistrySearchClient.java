@@ -299,7 +299,7 @@ public class RegistrySearchClient {
      * Note that all of the checked exceptions thrown by this 
      * method inherit from a common base class, RegistryAccessException.  
      *
-     * @param String   the XQuery stored as a string.
+     * @param xquery   the XQuery stored as a string.
      * @exception RegistryServiceException  if the service encounters an error 
      *                           (i.e. on the server side).
      * @exception RegistryFormatException   if the XML response is non-compliant

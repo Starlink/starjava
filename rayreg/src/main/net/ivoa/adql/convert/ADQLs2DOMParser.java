@@ -68,7 +68,7 @@ public abstract class ADQLs2DOMParser {
     
     /**
      * set the desired pretty-fying indent amount.  If indent = 0, only 
-     * carriage returns are inserted between each element.  If indent < 0,
+     * carriage returns are inserted between each element.  If indent &lt; 0,
      * no indentation or carriage returns will be inserted.  
      * @param indent  the amount of indentation per depth level
      */
@@ -77,9 +77,9 @@ public abstract class ADQLs2DOMParser {
     /**
      * return the pretty-fying indent amount that will be inserted.  
      * If indent = 0, only carriage returns are inserted between each
-     * element.  If indent < 0, no indentation or carriage returns will 
+     * element.  If indent &lt; 0, no indentation or carriage returns will 
      * be inserted.  
-     * @param indent  the amount of indentation per depth level
+     * @return  the amount of indentation per depth level
      */
     public int getIndent() { return indent; }
 

@@ -64,7 +64,7 @@ import java.util.*;
  * You can configure your CmdLine object to support this line in this way:
  * 
  * <pre>
- *     CmdLine cl = new CmdLine("f:puqx-", (CmdLine.RELAX & CmdLine.USRWARN));
+ *   CmdLine cl = new CmdLine("f:puqx-", (CmdLine.RELAX &amp; CmdLine.USRWARN));
  * </pre>
  *
  * Note that it doesn't matter what order the options are list in the 

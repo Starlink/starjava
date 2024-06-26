@@ -279,7 +279,7 @@ public class Validate extends DefaultHandler {
      * prepend a directory to the schema search path.  No check is done 
      * to determine if the directory exists until it is actually used, at 
      * which time, if it doesn't exist, it will be silently ignored.  
-     * @directory   a directory to add to the path
+     * @param directory   a directory to add to the path
      */
     public void prependSchemaPath(String directory) {
         if (directory != null) schemaPath.addFirst(directory);
@@ -289,7 +289,7 @@ public class Validate extends DefaultHandler {
      * append a directory to the schema search path.  No check is done 
      * to determine if the directory exists until it is actually used, at 
      * which time, if it doesn't exist, it will be silently ignored.  
-     * @directory   a directory to add to the path
+     * @param directory   a directory to add to the path
      */
     public void appendSchemaPath(String directory) {
         if (directory != null) schemaPath.addLast(directory);
@@ -334,9 +334,8 @@ public class Validate extends DefaultHandler {
      * The locations can be URLs or pathnames on a local filesystem.
      * If there is an odd number of names in the list (i.e. ends a namespace 
      * without a location), the last name is silently ignored.  
-     * @param nsuri     the namespace URI
-     * @param location  either a URL or a file path pointing the XML schema
-     *                    document defining that namespace.
+     * @param schemaLocation  either a URL or a file path pointing the
+     *                        XML schema document defining that namespace.
      */
     public void addSchemaLocation(String schemaLocation) {
         String ns = null, loc = null;
