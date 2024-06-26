@@ -79,7 +79,7 @@ public class MessagePrintingServiceCaller extends DefaultServiceCaller {
      * SOAP response.  This assumes a <em>wrapped document<em> message
      * style in which the body contains a single child element.  
      * @param msg     the input SOAP message to send
-     * @param action  the SOAP action URI to use
+     * @param actionURI  the SOAP action URI to use
      * @exception SOAPException  if an error occurs while handling the SOAP.
      * @exception RegistryServiceException   if any errors occurs while 
      *                communicating with the service.

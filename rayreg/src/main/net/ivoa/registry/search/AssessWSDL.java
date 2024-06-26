@@ -65,7 +65,6 @@ public class AssessWSDL {
     /**
      * create an instance for a given WSDL document URL
      * @param wsdl              the URL of the WSDL document
-     * @param targetNamespace   the expected targetNamespace.  
      */
     public AssessWSDL(String wsdl) throws MalformedURLException {
         this(new URL(wsdl), defaultSearchTargetNamespace);
@@ -74,7 +73,6 @@ public class AssessWSDL {
     /**
      * create an instance for a given WSDL document URL
      * @param wsdl              the URL of the WSDL document
-     * @param targetNamespace   the expected targetNamespace.  
      */
     public AssessWSDL(File wsdl) throws MalformedURLException {
         this("file:" + wsdl.toString());
@@ -83,7 +81,6 @@ public class AssessWSDL {
     /**
      * create an instance for a given WSDL document URL
      * @param wsdl              the URL of the WSDL document
-     * @param targetNamespace   the expected targetNamespace.  
      */
     public AssessWSDL(URL wsdl) {
         this(wsdl, defaultSearchTargetNamespace);
@@ -187,7 +184,7 @@ public class AssessWSDL {
      *  @exception RegistryAccessException   if an IO error occurs while reading
      *     document from the URL
      *  @exception RegistryFormatException   if an XML parsing error occurs
-     *  @see {@link #recacheWSDLDoc() recacheWSDLDoc}
+     *  @see  #recacheWSDLDoc()
      */
     public void cacheWSDLDoc() throws RegistryAccessException {
         if (wsdl == null) {

@@ -268,7 +268,6 @@ public class SOAPSearchClient {
     /**
      * return the Resource description for a given identifier
      * @param ivoid   the IVOA Identifier to resolve
-     * @param query   the search constraints as a SearchQuery object.
      * @exception IDNotFoundException  if the service cannot match the given
      *                           ID to a description
      * @exception RegistryServiceException  if the service encounters an error 
