@@ -221,10 +221,10 @@ public class GraphicsEdgesControls extends JPanel
     {
         edges.removeChangeListener( this );
         clip.setSelected( edges.isClipped() );
-        xLeftModel.setValue( new Double( edges.getXLeft() ) );
-        xRightModel.setValue( new Double( edges.getXRight() ) );
-        yTopModel.setValue( new Double( edges.getYTop() ) );
-        yBottomModel.setValue( new Double( edges.getYBottom() ) );
+        xLeftModel.setValue( Double.valueOf( edges.getXLeft() ) );
+        xRightModel.setValue( Double.valueOf( edges.getXRight() ) );
+        yTopModel.setValue( Double.valueOf( edges.getYTop() ) );
+        yBottomModel.setValue( Double.valueOf( edges.getYBottom() ) );
         edges.addChangeListener( this );
     }
 

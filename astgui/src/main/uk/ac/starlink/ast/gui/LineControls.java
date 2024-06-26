@@ -105,7 +105,7 @@ public class LineControls
 
         //  Set the possible line thicknesses.
         for ( int i = 1; i < 21; i++ ) {
-            thickBox.addItem( new Integer( i ) );
+            thickBox.addItem( Integer.valueOf( i ) );
         }
 
         //  Finally set all action responses (after setting possible values).
@@ -149,7 +149,7 @@ public class LineControls
      */
     public void setThick( int thick ) 
     {
-        thickBox.setSelectedItem( new Integer( thick ) );
+        thickBox.setSelectedItem( Integer.valueOf( thick ) );
     }
 
     /**

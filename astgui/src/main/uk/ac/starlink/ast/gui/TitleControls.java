@@ -200,7 +200,7 @@ public class TitleControls extends JPanel
         colourIcon.setMainColour( astTitle.getColour() );
         colourButton.repaint();
 
-        spinnerModel.setValue( new Double( astTitle.getGap() ) );
+        spinnerModel.setValue( Double.valueOf( astTitle.getGap() ) );
 
         //astTitle.setState( true );
 

@@ -229,7 +229,7 @@ public class AstDouble extends Number implements Comparable
     {
         // Not optimal solution, use Double.compareTo.
         AstDouble d =  (AstDouble) o;
-        Double newO = new Double( d.doubleValue() );
-        return ( new Double( value ) ).compareTo( newO );
+        Double newO = Double.valueOf( d.doubleValue() );
+        return Double.valueOf( value ).compareTo( newO );
     }
 }

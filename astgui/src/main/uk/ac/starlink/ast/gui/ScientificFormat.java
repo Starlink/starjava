@@ -243,7 +243,7 @@ public class ScientificFormat extends NumberFormat {
 	    nl += al;
 	    ostr.append(text.substring(ppos, bp-ppos));
 	    qstrs.addElement(text.substring(bp, 1+ppos-bp));
-	    qpos.addElement(new Integer(nl));
+	    qpos.addElement(Integer.valueOf(nl));
 	}
 
 	ostr.append(text.substring(ppos));
@@ -610,9 +610,9 @@ public class ScientificFormat extends NumberFormat {
 	double val = mantissa.doubleValue() * 
 	    Math.pow(10, expo.doubleValue());
 	if (mantissa instanceof Long && expo instanceof Long) 
-	    out = new Long(Math.round(val));
+	    out = Long.valueOf(Math.round(val));
 	else 
-	    out = new Double(val);
+	    out = Double.valueOf(val);
 
 	return out;
     }

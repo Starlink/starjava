@@ -97,7 +97,7 @@ public class FontControls
         currentSize = 12;
         currentStyle = Font.PLAIN;
         fontBox.setSelectedItem( currentFont );
-        sizeBox.setSelectedItem( new Integer( currentSize ) );
+        sizeBox.setSelectedItem( Integer.valueOf( currentSize ) );
         styleBox.setSelectedItem( styleStrings[styleInts[currentStyle]] );
     }
 
@@ -128,7 +128,7 @@ public class FontControls
 
         //  And a quick set of sizes.
         for ( int i = 8; i <= 32; i++ ) {
-            sizeBox.addItem( new Integer( i ) );
+            sizeBox.addItem( Integer.valueOf( i ) );
         }
 
         //  Set the initial font selection.
@@ -195,7 +195,7 @@ public class FontControls
             currentSize = ((Integer) sizeObj).intValue();
         } else {
             //  Not an Integer so get string and convert.
-            currentSize = (new Integer( sizeObj.toString() )).intValue();
+            currentSize = Integer.parseInt( sizeObj.toString() );
         }
         fireChanged();
     }
@@ -235,7 +235,7 @@ public class FontControls
             currentStyle = font.getStyle();
             styleBox.setSelectedItem( styleStrings[styleInts[currentStyle]] );
             currentSize = font.getSize();
-            sizeBox.setSelectedItem( new Integer ( currentSize ) );
+            sizeBox.setSelectedItem( Integer.valueOf( currentSize ) );
         }
         else {
             setDefaults();
