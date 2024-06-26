@@ -353,8 +353,8 @@ public class AxisLabelControls extends JPanel
         colourIcon.setMainColour( astAxisLabels.getColour() );
         colourButton.repaint();
 
-        xSpinnerModel.setValue( new Double( astAxisLabels.getXGap() ) );
-        ySpinnerModel.setValue( new Double( astAxisLabels.getYGap() ) );
+        xSpinnerModel.setValue( Double.valueOf( astAxisLabels.getXGap() ) );
+        ySpinnerModel.setValue( Double.valueOf( astAxisLabels.getYGap() ) );
 
         if ( astAxisLabels.getXEdge() == AstAxisLabels.BOTTOM ) {
             xEdge.setSelectedItem( "BOTTOM" );

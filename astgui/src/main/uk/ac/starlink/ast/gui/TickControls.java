@@ -302,7 +302,7 @@ public class TickControls extends JPanel
         //  Number of divisions between major ticks.
         xMinorDivisions.addItem( "Default" );
         for ( int i = 1; i < 21; i++ ) {
-            xMinorDivisions.addItem( new Integer( i ) );
+            xMinorDivisions.addItem( Integer.valueOf( i ) );
         }
         xMinorDivisions.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
@@ -312,7 +312,7 @@ public class TickControls extends JPanel
 
         yMinorDivisions.addItem( "Default" );
         for ( int i = 1; i < 21; i++ ) {
-            yMinorDivisions.addItem( new Integer( i ) );
+            yMinorDivisions.addItem( Integer.valueOf( i ) );
         }
         yMinorDivisions.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
@@ -438,8 +438,8 @@ public class TickControls extends JPanel
         yLogSpacing.setSelected( astTicks.getYLogSpacing() );
         matchLogSpacingSet();
 
-        xLogGap.setValue( new Integer( astTicks.getXLogGap() ) );
-        yLogGap.setValue( new Integer( astTicks.getYLogGap() ) );
+        xLogGap.setValue( Integer.valueOf( astTicks.getXLogGap() ) );
+        yLogGap.setValue( Integer.valueOf( astTicks.getYLogGap() ) );
 
         inhibitLineChangeListener = true;
         lineControls.setThick( (int) astTicks.getWidth() );
@@ -450,22 +450,26 @@ public class TickControls extends JPanel
         xMajorGap.setDoubleValue( astTicks.getXGap() );
         yMajorGap.setDoubleValue( astTicks.getYGap() );
 
-        xMajorLengthModel.setValue(new Double(astTicks.getMajorXTicklength()));
-        yMajorLengthModel.setValue(new Double(astTicks.getMajorYTicklength()));
-        xMinorLengthModel.setValue(new Double(astTicks.getMinorXTicklength()));
-        yMinorLengthModel.setValue(new Double(astTicks.getMinorYTicklength()));
+        xMajorLengthModel.setValue(Double
+                                  .valueOf(astTicks.getMajorXTicklength()));
+        yMajorLengthModel.setValue(Double
+                                  .valueOf(astTicks.getMajorYTicklength()));
+        xMinorLengthModel.setValue(Double
+                                  .valueOf(astTicks.getMinorXTicklength()));
+        yMinorLengthModel.setValue(Double
+                                  .valueOf(astTicks.getMinorYTicklength()));
 
         int div = astTicks.getMinorXDivisions();
         if ( div == 0 ) {
             xMinorDivisions.setSelectedItem( "Default" );
         } else {
-            xMinorDivisions.setSelectedItem( new Integer( div ) );
+            xMinorDivisions.setSelectedItem( Integer.valueOf( div ) );
         }
         div = astTicks.getMinorYDivisions();
         if ( div == 0 ) {
             yMinorDivisions.setSelectedItem( "Default" );
         } else {
-            yMinorDivisions.setSelectedItem( new Integer( div ) );
+            yMinorDivisions.setSelectedItem( Integer.valueOf( div ) );
         }
 
         tickAll.setSelected( astTicks.getTickAll() );

@@ -231,7 +231,7 @@ public class AxisNumLabControls extends JPanel
         //  Number of digits used in label precision.
         digitsField.addItem( "Default" );
         for ( int i = 0; i < 18; i++ ) {
-            digitsField.addItem( new Integer( i ) );
+            digitsField.addItem( Integer.valueOf( i ) );
         }
         digitsField.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
@@ -342,12 +342,12 @@ public class AxisNumLabControls extends JPanel
         colourButton.repaint();
         display.setForeground( astNumberLabels.getColour() );
 
-        xSpinnerModel.setValue( new Double( astNumberLabels.getXGap() ) );
-        ySpinnerModel.setValue( new Double( astNumberLabels.getYGap() ) );
+        xSpinnerModel.setValue( Double.valueOf( astNumberLabels.getXGap() ) );
+        ySpinnerModel.setValue( Double.valueOf( astNumberLabels.getYGap() ) );
 
         int digits = astNumberLabels.getDigits();
         if ( digits != -1 ) {
-            digitsField.setSelectedItem( new Integer( digits ) );
+            digitsField.setSelectedItem( Integer.valueOf( digits ) );
         } else {
             digitsField.setSelectedItem( "Default" );
         }
