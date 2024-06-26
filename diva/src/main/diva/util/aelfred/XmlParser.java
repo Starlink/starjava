@@ -334,15 +334,15 @@ public class XmlParser {
   private static Hashtable attributeTypeHash;
   static {
     attributeTypeHash = new Hashtable();
-    attributeTypeHash.put("CDATA", new Integer(ATTRIBUTE_CDATA));
-    attributeTypeHash.put("ID", new Integer(ATTRIBUTE_ID));
-    attributeTypeHash.put("IDREF", new Integer(ATTRIBUTE_IDREF));
-    attributeTypeHash.put("IDREFS", new Integer(ATTRIBUTE_IDREFS));
-    attributeTypeHash.put("ENTITY", new Integer(ATTRIBUTE_ENTITY));
-    attributeTypeHash.put("ENTITIES", new Integer(ATTRIBUTE_ENTITIES));
-    attributeTypeHash.put("NMTOKEN", new Integer(ATTRIBUTE_NMTOKEN));
-    attributeTypeHash.put("NMTOKENS", new Integer(ATTRIBUTE_NMTOKENS));
-    attributeTypeHash.put("NOTATION", new Integer(ATTRIBUTE_NOTATION));
+    attributeTypeHash.put("CDATA", Integer.valueOf(ATTRIBUTE_CDATA));
+    attributeTypeHash.put("ID", Integer.valueOf(ATTRIBUTE_ID));
+    attributeTypeHash.put("IDREF", Integer.valueOf(ATTRIBUTE_IDREF));
+    attributeTypeHash.put("IDREFS", Integer.valueOf(ATTRIBUTE_IDREFS));
+    attributeTypeHash.put("ENTITY", Integer.valueOf(ATTRIBUTE_ENTITY));
+    attributeTypeHash.put("ENTITIES", Integer.valueOf(ATTRIBUTE_ENTITIES));
+    attributeTypeHash.put("NMTOKEN", Integer.valueOf(ATTRIBUTE_NMTOKEN));
+    attributeTypeHash.put("NMTOKENS", Integer.valueOf(ATTRIBUTE_NMTOKENS));
+    attributeTypeHash.put("NOTATION", Integer.valueOf(ATTRIBUTE_NOTATION));
   }
 
 
@@ -467,7 +467,7 @@ public class XmlParser {
   void error (String message, char textFound, String textExpected)
     throws java.lang.Exception
   {
-    error(message, new Character(textFound).toString(), textExpected);
+    error(message, Character.toString(textFound), textExpected);
   }
 
 
@@ -1573,7 +1573,7 @@ public class XmlParser {
 	case 'f':
 	case 'F':
 	  value *= 16;
-	  value += Integer.parseInt(new Character(c).toString(), 16);
+	  value += Integer.parseInt(Character.toString(c), 16);
 	  break;
 	case ';':
 	  break loop1;
@@ -1597,7 +1597,7 @@ public class XmlParser {
 	case '8':
 	case '9':
 	  value *= 10;
-	  value += Integer.parseInt(new Character(c).toString(), 10);
+	  value += Integer.parseInt(Character.toString(c), 10);
 	  break;
 	case ';':
 	  break loop2;
@@ -1620,7 +1620,7 @@ public class XmlParser {
     } else {
 				// too big for surrogate
       error("character reference " + value + " is too large for UTF-16",
-	    new Integer(value).toString(), null);
+	    Integer.toString(value), null);
     }
   }
 
@@ -2101,7 +2101,7 @@ public class XmlParser {
     }
     } catch (EOFException e) {
       error("end of input while looking for delimiter (started on line "
-	    + startLine + ')', null, new Character(delim).toString());
+	    + startLine + ')', null, Character.toString(delim));
     }
 
 				// Normalise whitespace if necessary.
@@ -2317,7 +2317,7 @@ public class XmlParser {
     char c = readCh();
 
     if (c != delim) {
-      error("expected character", c, new Character(delim).toString());
+      error("expected character", c, Character.toString(delim));
     }
   }
 
@@ -2531,7 +2531,7 @@ public class XmlParser {
 				// Make a new one if necessary.
     if (element == null) {
       element = new Object[3];
-      element[0] = new Integer(CONTENT_UNDECLARED);
+      element[0] = Integer.valueOf(CONTENT_UNDECLARED);
       element[1] = null;
       element[2] = null;
     } else if (contentType != CONTENT_UNDECLARED &&
@@ -2542,7 +2542,7 @@ public class XmlParser {
 
 				// Insert the content type, if any.
     if (contentType != CONTENT_UNDECLARED) {
-      element[0] = new Integer(contentType);
+      element[0] = Integer.valueOf(contentType);
     }
 
 				// Insert the content model, if any.
@@ -2741,9 +2741,9 @@ public class XmlParser {
       return;
     } else {
       attribute = new Object[5];
-      attribute[0] = new Integer(type);
+      attribute[0] = Integer.valueOf(type);
       attribute[1] = value;
-      attribute[2] = new Integer(valueType);
+      attribute[2] = Integer.valueOf(valueType);
       attribute[3] = enumeration;
       attribute[4] = null;
       attlist.put(name.intern(), attribute);
@@ -2929,7 +2929,7 @@ public class XmlParser {
 
     if (entityInfo.get(eName) == null) {
       entity = new Object[5];
-      entity[0] = new Integer(eClass);
+      entity[0] = Integer.valueOf(eClass);
       entity[1] = pubid;
       entity[2] = sysid;
       entity[3] = value;
@@ -3167,7 +3167,7 @@ public class XmlParser {
       }
     else
       {
-      pushString(null, new Character(c).toString());
+      pushString(null, Character.toString(c));
       }
     }
 
@@ -3558,17 +3558,17 @@ public class XmlParser {
 
 				// Set up a snapshot of the current
 				// input source.
-    input[0] = new Integer(sourceType);
+    input[0] = Integer.valueOf(sourceType);
     input[1] = externalEntity;
     input[2] = readBuffer;
-    input[3] = new Integer(readBufferPos);
-    input[4] = new Integer(readBufferLength);
-    input[5] = new Integer(line);
-    input[6] = new Integer(encoding);
-    input[7] = new Integer(readBufferOverflow);
+    input[3] = Integer.valueOf(readBufferPos);
+    input[4] = Integer.valueOf(readBufferLength);
+    input[5] = Integer.valueOf(line);
+    input[6] = Integer.valueOf(encoding);
+    input[7] = Integer.valueOf(readBufferOverflow);
     input[8] = is;
-    input[9] = new Integer(currentByteCount);
-    input[10] = new Integer(column);
+    input[9] = Integer.valueOf(currentByteCount);
+    input[10] = Integer.valueOf(column);
     input[11] = reader;
 
 				// Push it onto the stack.

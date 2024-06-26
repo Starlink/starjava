@@ -240,12 +240,12 @@ public class RootPane extends GraphicsPane {
         Object a = model.createNode("a");
         model.setProperty(a, "label", "Bubble me over");
         model.setProperty(a, "stateType", 
-			  new Integer(StateBubble.FINAL_STATE));
+			  Integer.valueOf(StateBubble.FINAL_STATE));
 
         Object b = model.createNode("b");
         model.setProperty(b, "label", "Rub a dub bubble");
         model.setProperty(b, "stateType", 
-			  new Integer(StateBubble.INITIAL_STATE));
+			  Integer.valueOf(StateBubble.INITIAL_STATE));
 
 	Object root = model.getRoot();
         model.addNode(this,a, root);

@@ -114,7 +114,7 @@ public class BasicGraphController extends SimpleGraphController {
         // Create the interactor that drags new edges.
 	_edgeCreator = new EdgeCreator(this) {
 	    public Object createEdge() {	
-		Object semanticObject = new Integer(_globalCount++);
+		Object semanticObject = Integer.valueOf(_globalCount++);
 		BasicGraphModel bgm = (BasicGraphModel)getGraphModel();
 		return bgm.createEdge(semanticObject);
 	    }
@@ -132,7 +132,7 @@ public class BasicGraphController extends SimpleGraphController {
      */
     protected class NodeCreator extends AbstractInteractor {
         public void mousePressed(LayerEvent e) {
-            Object semanticObject = new Integer(_globalCount++);
+            Object semanticObject = Integer.valueOf(_globalCount++);
             BasicGraphModel bgm = (BasicGraphModel)getGraphModel();
             Object node = bgm.createNode(semanticObject);
 	    addNode(node,  e.getLayerX(), e.getLayerY());
