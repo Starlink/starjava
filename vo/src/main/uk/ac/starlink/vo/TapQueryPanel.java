@@ -1579,7 +1579,15 @@ public class TapQueryPanel extends JPanel {
                                             .getElement( iline - 1 );
                 int pos = line.getStartOffset() + ( icol - 1 );
                 try {
-                    return modelToView( pos );
+
+                    /* This method is deprecated at Java 9, but there is
+                     * no replacement at Java 8, so as long as Java 8 is
+                     * a target platform, suppress the warning to avoid noise.
+                     * There doesn't seem to be a particularly compelling
+                     * reason for the deprecation in any case. */
+                    @SuppressWarnings("deprecation")
+                    Rectangle rect = modelToView( pos );
+                    return rect;
                 }
                 catch ( BadLocationException e ) {
                     return null;
