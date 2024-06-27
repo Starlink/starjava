@@ -33563,6 +33563,9 @@ introduced since the last version:
     <li>The SoG internal <ref id="imageViewers">image viewer</ref>
         has been withdrawn, since the required JAI classes are
         now unlikely to be available.</li>
+    <li>Widespread changes to the build system to make it easier to
+        build TOPCAT from source.  Most people do not need to do this.
+        Should result in few or no user-visible changes.</li>
     </ul>
     </p></dd>
 
