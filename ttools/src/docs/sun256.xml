@@ -15332,6 +15332,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         are now written with comment parts, space permitting.</li>
     <li><ref id="votlint"><code>votlint</code></ref> now includes
         column/param name and row index with reports in more cases.</li>
+    <li>Widespread changes to the build system to make it easier to
+        build STILTS from source.  Most people do not need to do this.
+        Should result in few or no user-visible changes.</li>
     </ul>
     </p></dd>
 
