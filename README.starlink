@@ -1,6 +1,17 @@
-
             Quick Start for the Starlink JAVA build system
             ==============================================
+
+   Context
+   -------
+
+This file contains details of how the build system is set up and
+how it relates to the Starlink classic (non-java) packages,
+including how to build the native packages and the build system
+itself from source.  Some of the details may be out of date.
+
+For more up to date and more straightforward instructions on how
+to build the starjava packages, see the README.md file.
+(Mark Taylor, Jun 2024)
 
    Prerequisites
    -------------
