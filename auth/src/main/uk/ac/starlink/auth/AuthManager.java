@@ -9,11 +9,9 @@ import java.util.AbstractSequentialList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
@@ -736,8 +734,6 @@ public class AuthManager {
                                                       Redirector redirector )
             throws IOException {
         AuthContext context = tcontext == null ? null : tcontext.context_;
-        Set<String> urlSet = new HashSet<String>();
-        urlSet.add( url.toString() );
         URL url0 = url;
         logger_.config( ( context == null
                               ? "Unauthenticated"
@@ -774,8 +770,6 @@ public class AuthManager {
                                                       TestedContext tcontext )
             throws IOException {
         AuthContext context = tcontext == null ? null : tcontext.context_;
-        Set<String> urlSet = new HashSet<String>();
-        urlSet.add( url.toString() );
         URLConnection conn = url.openConnection();
         HttpURLConnection hconn = conn instanceof HttpURLConnection
                                 ? (HttpURLConnection) conn
