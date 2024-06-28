@@ -719,6 +719,8 @@ public class AuthManager {
      * Opens a connection for communication
      * with a given URL using a given authentication context
      * and configurable handling of 3xx redirects.
+     * In case of redirection, different authentication contexts
+     * may be set up and used as required.
      *
      * @param  url  target URL
      * @param  connector   performs default HTTP connection;
@@ -728,35 +730,36 @@ public class AuthManager {
      * @return   URL connection that is appropriately configured
      *           on which connect() has been called
      */
-    private static AuthConnection connectWithContext( URL url,
-                                                      UrlConnector connector,
-                                                      TestedContext tcontext,
-                                                      Redirector redirector )
+    private AuthConnection connectWithContext( URL url, UrlConnector connector,
+                                               TestedContext tcontext,
+                                               Redirector redirector )
             throws IOException {
         AuthContext context = tcontext == null ? null : tcontext.context_;
-        URL url0 = url;
         logger_.config( ( context == null
                               ? "Unauthenticated"
                               : context.hasCredentials() ? "Authenticated"
                                                          : "Anonymous" )
                       + " connection to " + url );
-        while ( true ) {
-            AuthConnection aconn0 =
-                connectWithContext( url0, connector, tcontext );
-            URL url1 = redirector.getRedirectUrl( aconn0.getConnection() );
-            if ( url1 == null ) {
-                return aconn0;
-            }
-            else {
-                url0 = url1;
-            }
+        AuthConnection aconn = simpleConnect( url, connector, tcontext );
+        URLConnection conn = aconn.getConnection();
+        URL url1 = redirector.getRedirectUrl( conn );
+        if ( url1 == null ) {
+            return aconn;
+        }
+        else {
+            int hcode = conn instanceof HttpURLConnection
+                      ? ((HttpURLConnection) conn).getResponseCode()
+                      : -1;
+            logger_.config( "HTTP " + hcode + " redirect to " + url1 );
+            return makeConnection( url1, connector, redirector );
         }
     }
 
     /**
      * Opens a connection for communication
-     * with a given URL using a given authentication context;
-     * 3xx redirections are not handled.
+     * with a given URL using a given fixed authentication context.
+     * 3xx redirections are not handled and no context manipulation
+     * or negotiation will occur.
      *
      * @param  url  target URL
      * @param  connector   performs default HTTP connection;
@@ -765,9 +768,9 @@ public class AuthManager {
      * @return   URL connection that is appropriately configured
      *           on which connect() has been called
      */
-    private static AuthConnection connectWithContext( URL url,
-                                                      UrlConnector connector,
-                                                      TestedContext tcontext )
+    private static AuthConnection simpleConnect( URL url,
+                                                 UrlConnector connector,
+                                                 TestedContext tcontext )
             throws IOException {
         AuthContext context = tcontext == null ? null : tcontext.context_;
         URLConnection conn = url.openConnection();
