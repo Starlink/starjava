@@ -15335,6 +15335,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Widespread changes to the build system to make it easier to
         build STILTS from source.  Most people do not need to do this.
         Should result in few or no user-visible changes.</li>
+    <li>Fix authentication bug to do with redirects.</li>
     </ul>
     </p></dd>
 
