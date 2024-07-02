@@ -183,8 +183,7 @@ public class RowEvaluator {
     private static Decoder DATE_DECODER = new StringDecoder() {
         public ColumnInfo createColumnInfo( String name ) {
             ColumnInfo info = super.createColumnInfo( name );
-            info.setUnitString( "iso-8601" );
-            info.setUCD( "TIME" );
+            info.setXtype( "timestamp" );
             info.setDomainMappers( new DomainMapper[] { TimeMapper.ISO_8601 } );
             return info;
         }
