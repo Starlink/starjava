@@ -72,7 +72,7 @@ public class Iso8601ToJulian extends Iso8601Converter {
     private static ValueInfo getJulianInfo( ValueInfo isoInfo ) {
         DefaultValueInfo numInfo = new DefaultValueInfo( isoInfo );
         numInfo.setContentClass( Double.class );
-        numInfo.setUnitString( "year" );
+        numInfo.setUnitString( "yr" );
         numInfo.setDescription( "Julian Year" );
         numInfo.setNullable( true );
         return numInfo;

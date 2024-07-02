@@ -84,7 +84,7 @@ public class Iso8601ToDecimalYear extends Iso8601Converter {
     private static ValueInfo getDecimalYearInfo( ValueInfo isoInfo ) {
         DefaultValueInfo numInfo = new DefaultValueInfo( isoInfo );
         numInfo.setContentClass( Double.class );
-        numInfo.setUnitString( "year" );
+        numInfo.setUnitString( "yr" );
         numInfo.setDescription( "Decimal Year" );
         numInfo.setNullable( true );
         return numInfo;
