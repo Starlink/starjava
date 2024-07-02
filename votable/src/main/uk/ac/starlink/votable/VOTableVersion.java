@@ -207,6 +207,15 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
     public abstract boolean isVOUnitSyntax();
 
     /**
+     * Indicates whether this version of VOTable deprecates/forbids
+     * the use of the arraysize attribute on FIELD/PARAM elements
+     * with a value of "1".  See VOTable 1.3 Erratum #3.
+     *
+     * @return  true if arraysize="1" should be suppressed
+     */
+    public abstract boolean forbidArraysize1();
+
+    /**
      * Returns a number-&gt;version map for all known versions.
      * The map keys are version number strings like "1.1".
      * The order of entries in this map is in ascending order
@@ -305,6 +314,9 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
             return false;
         }
         public boolean isVOUnitSyntax() {
+            return false;
+        }
+        public boolean forbidArraysize1() {
             return false;
         }
         public Schema getSchema() {
@@ -427,6 +439,10 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
         }
         @Override
         public boolean allowBinary2() {
+            return true;
+        }
+        @Override
+        public boolean forbidArraysize1() {
             return true;
         }
     }
