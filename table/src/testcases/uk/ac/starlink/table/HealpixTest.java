@@ -24,6 +24,7 @@ public class HealpixTest extends TestCase {
 
     public HealpixTest() {
         LogUtils.getLogger( "uk.ac.starlink.fits" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.WARNING);
     }
 
     public void testIO() throws IOException {
