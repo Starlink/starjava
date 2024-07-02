@@ -218,7 +218,8 @@ public class HumanMatchEngine implements MatchEngine {
 
         /* If the units are radians, change them to something more
          * comprehensible. */
-        if ( ( "radians".equals( units ) || "radian".equals( units ) ) &&
+        if ( ( "radians".equals( units ) || "radian".equals( units ) ||
+               "rad".equals( units ) ) &&
              ( clazz == Double.class || clazz == Number.class ) ) {
 
             /* For small angles, use arcseconds. */

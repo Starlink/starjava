@@ -117,7 +117,7 @@ public class SkyMatchTest extends TableTestCase {
         dec2col.setName( "DEC" );
         assertEquals( 550, skyCount( ta, null, null, tb, "", "", 5 ) );
 
-        ra2col.setUnitString( "radians" );
+        ra2col.setUnitString( "rad" );
         assertEquals( 0, skyCount( ta, "ra1", "dec1",
                                    tb, "", "", 5 ) );
     }
@@ -360,10 +360,10 @@ public class SkyMatchTest extends TableTestCase {
         DefaultValueInfo errInfo =
             new DefaultValueInfo( "KNOWN_ERROR", Double.class );
 
-        ra1Info.setUnitString( "degrees" );
-        dec1Info.setUnitString( "degrees" );
-        ra2Info.setUnitString( "degrees" );
-        dec2Info.setUnitString( "degrees" );
+        ra1Info.setUnitString( "deg" );
+        dec1Info.setUnitString( "deg" );
+        ra2Info.setUnitString( "deg" );
+        dec2Info.setUnitString( "deg" );
         errInfo.setUnitString( "arcsec" );
 
         final ColumnData idcol = new ColumnData( idInfo ) {
