@@ -196,7 +196,7 @@ public class DoubleValueField {
     public static DoubleValueField makeRADegreesField() {
         DefaultValueInfo info = new DefaultValueInfo( "RA", Double.class, 
                                                       "Right Ascension" );
-        info.setUnitString( "Degrees" );
+        info.setUnitString( "deg" );
         return new DoubleValueField( info, new ValueConverter[] {
             new ValueConverter.UnitValueConverter( "degrees", 1. ),
             new ValueConverter.HMSDegreesValueConverter(),
@@ -213,7 +213,7 @@ public class DoubleValueField {
     public static DoubleValueField makeDecDegreesField() {
         DefaultValueInfo info = new DefaultValueInfo( "Dec", Double.class,
                                                       "Declination" );
-        info.setUnitString( "Degrees" );
+        info.setUnitString( "deg" );
         return new DoubleValueField( info, new ValueConverter[] {
             new ValueConverter.UnitValueConverter( "degrees", 1. ),
             new ValueConverter.DMSDegreesValueConverter(),
@@ -230,7 +230,7 @@ public class DoubleValueField {
      */
     public static DoubleValueField makeSizeDegreesField( ValueInfo info ) {
         if ( info instanceof DefaultValueInfo ) {
-            ((DefaultValueInfo) info).setUnitString( "Degrees" );
+            ((DefaultValueInfo) info).setUnitString( "deg" );
         }
         return new DoubleValueField( info, new ValueConverter[] {
             new ValueConverter.UnitValueConverter( "degrees", 1. ),
