@@ -1737,7 +1737,8 @@ public abstract class VOSerializer {
                                 Map<MetaEl,String> timesysMap ) {
 
         /* Query encoder for basic items. */
-        Map<String,String> map = encoder.getFieldAttributes();
+        Map<String,String> map =
+            new LinkedHashMap<>( encoder.getFieldAttributes() );
 
         /* Add a ref attribute pointing to a COOSYS or TIMESYS element if one
          * that matches the requirements of the element in question
@@ -1753,6 +1754,12 @@ public abstract class VOSerializer {
         }
         else if ( tsId != null ) {
             map.put( "ref", tsId );
+        }
+
+        /* Treat arraysize="1" specially. */
+        if ( version.forbidArraysize1() &&
+             "1".equals( map.get( "arraysize" ) ) ) {
+            map.remove( "arraysize" );
         }
         return map;
     }
