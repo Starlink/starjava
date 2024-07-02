@@ -35,9 +35,9 @@ public class SearcherTest extends TestCase {
         assertEquals( 0, cs.getRaIndex( table ) );
         assertEquals( 1, cs.getDecIndex( table ) );
 
-        infos[ 0 ].setUnitString( "radians" );
+        infos[ 0 ].setUnitString( "rad" );
         assertEquals( -1, cs.getRaIndex( table ) );
-        infos[ 0 ].setUnitString( "degrees" );
+        infos[ 0 ].setUnitString( "deg" );
         assertEquals( 0, cs.getRaIndex( table ) );
 
         infos[ 0 ].setContentClass( String.class );

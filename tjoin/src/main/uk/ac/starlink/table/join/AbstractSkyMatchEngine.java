@@ -145,7 +145,7 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
      */
     static ValueInfo inDegreeInfo( ValueInfo info ) {
         DefaultValueInfo dinfo1 = new DefaultValueInfo( info );
-        dinfo1.setUnitString( "degrees" );
+        dinfo1.setUnitString( "deg" );
         return dinfo1;
     }
 

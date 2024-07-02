@@ -33571,6 +33571,7 @@ introduced since the last version:
         in <code>FIELD</code>/<code>PARAM</code> elements 
         of VOTables with version &gt;=1.3, 
         in accordance with VOTable 1.3 Erratum #3.</li>
+    <li>Avoid non-VOUnit units in output VOTables in some cases.</li>
     </ul>
     </p></dd>
 
