@@ -44,7 +44,8 @@ public abstract class ColumnConverter {
         /* Does the column represent a right ascension? */
         if ( matches( info, Tables.RA_INFO ) &&
              Number.class.isAssignableFrom( clazz ) &&
-             "radians".equalsIgnoreCase( units ) ) {
+             ( "radians".equalsIgnoreCase( units ) ||
+               "rad".equalsIgnoreCase( units ) ) ) {
             return new ColumnConverter[] {
                 new FactorConverter( "degrees", CoordsRadians.DEGREE_RADIANS ),
                 new FactorConverter( "hours", CoordsRadians.HOUR_RADIANS ),
@@ -55,7 +56,8 @@ public abstract class ColumnConverter {
         /* Does the column represent a declination? */
         else if ( matches( info, Tables.DEC_INFO ) &&
                   Number.class.isAssignableFrom( clazz ) &&
-                  "radians".equalsIgnoreCase( units ) ) {
+                  ( "radians".equalsIgnoreCase( units ) ||
+                    "rad".equalsIgnoreCase( units ) ) ) {
             return new ColumnConverter[] {
                 new FactorConverter( "degrees", CoordsRadians.DEGREE_RADIANS ),
                 new UnitConverter( "radians" ),
@@ -65,7 +67,8 @@ public abstract class ColumnConverter {
         /* Does the column represent some other kind of angle?  If so, 
          * it's likely an error of some kind, so make small units available. */
         else if ( Number.class.isAssignableFrom( clazz ) &&
-                  "radians".equalsIgnoreCase( units ) ) {
+                  ( "radians".equalsIgnoreCase( units ) ||
+                    "rad".equalsIgnoreCase( units ) ) ) {
             return new ColumnConverter[] {
                 new FactorConverter( "arcsec",
                                      CoordsRadians.ARC_SECOND_RADIANS ),

@@ -264,7 +264,8 @@ public class ColumnSelectorModel {
             units = units.toLowerCase();
             cunits = cunits.toLowerCase();
             int nconv = convChooser_.getSize();
-            if ( units.equals( "radian" ) || units.equals( "radians" ) ) {
+            if ( units.equals( "radian" ) || units.equals( "radians" ) ||
+                 units.equals( "rad" ) ) {
                 if ( cunits.startsWith( "rad" ) ) {
                     for ( int i = 0; i < nconv; i++ ) {
                         ColumnConverter conv = convChooser_.getElementAt( i );
