@@ -538,16 +538,32 @@ public abstract class VotLintTapRunner extends TapRunner {
      * @param  doChecks   true for detailed VOTable checking
      * @return  new TapRunner
      */
-    public static VotLintTapRunner createPostSyncRunner( boolean doChecks ) {
-        return new VotLintTapRunner( "sync POST", doChecks ) {
+    public static VotLintTapRunner createPostSyncRunner(boolean doChecks) {
+        return new VotLintTapRunner("sync POST", doChecks) {
             @Override
-            protected URLConnection getResultConnection( Reporter reporter,
-                                                         TapQuery tq )
+            protected URLConnection getResultConnection(Reporter reporter, TapQuery tq)
                     throws IOException {
-                return UwsJob.postForm( tq.getTapService().getSyncEndpoint(),
-                                        ContentCoding.NONE,
-                                        tq.getStringParams(),
-                                        tq.getStreamParams() );
+
+                HttpURLConnection hconn = UwsJob.postForm(
+                        tq.getTapService().getSyncEndpoint(),
+                        ContentCoding.NONE,
+                        tq.getStringParams(),
+                        tq.getStreamParams()
+                );
+
+                int code = hconn.getResponseCode();
+
+                if (code == 303) {
+                    String location = hconn.getHeaderField("Location");
+                    if (location == null) {
+                        throw new IOException("No Location field in 303 response");
+                    }
+                    return AuthManager.getInstance().connect(new URL(location));
+                }
+
+                return hconn;
+                
+                );
             }
         };
     }
