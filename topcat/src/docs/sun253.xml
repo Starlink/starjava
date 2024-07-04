@@ -7047,11 +7047,21 @@ listed resource.  The parts of this panel are:
         into this TOPCAT application
         (like the <ref id="LoadTableActivationType">Load Table</ref> action)
         </li>
-    <li><strong>Plot Table:</strong>
-        pops up a plane plot window that allows to perform plots using
+    <li><strong>Plane Plot Table:</strong>
+        pops up a <ref id="PlanePlotWindow">plane plot window</ref>
+        that allows to perform plots using 
         the table referenced by the linked resource,
         without actually loading the table into the TOPCAT application
-        (like the <ref id="PlotTableActivationType">Plot Table</ref> action)
+        (like the <ref id="PlotTableActivationType">Plot Table</ref> action
+        with Plot Type = Plane)
+        </li>
+    <li><strong>&Matrix; Plot Table:</strong>
+        pops up a <ref id="MatrixPlotWindow">&matrix; plot window</ref>
+        that allows to perform plots using
+        the table referenced by the linked resource,
+        without actually loading the table into the TOPCAT application
+        (like the <ref id="PlotTableActivationType">Plot Table</ref> action
+        with Plot Type = Corner)
         </li>
     <li><strong>View DataLink Table:</strong>
         displays the linked resource (a DataLink table)
@@ -33573,6 +33583,9 @@ introduced since the last version:
         of VOTables with version &gt;=1.3, 
         in accordance with VOTable 1.3 Erratum #3.</li>
     <li>Avoid non-VOUnit units in output VOTables in some cases.</li>
+    <li>Add &Matrix; Plot Table option
+        to <ref id="DatalinkWindow">DataLink Window</ref>
+        Action selector.</li>
     </ul>
     </p></dd>
 
