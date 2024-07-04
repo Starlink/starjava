@@ -49,7 +49,7 @@ fi
 #  The SPLAT interface with JNIAST requires that the comma is
 #  not used as part of the number system (to support attribute lists)
 #  so we need to use the POSIX locale.
-LC_ALL="C"
+LC_ALL="C.UTF-8"
 export LC_ALL
 
 #  Locate this script or SPLAT_DIR to find our jar files etc.
