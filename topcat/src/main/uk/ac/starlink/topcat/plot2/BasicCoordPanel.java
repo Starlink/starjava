@@ -300,8 +300,6 @@ public class BasicCoordPanel implements CoordPanel {
                     ColumnDataComboBoxModel model =
                         new ColumnDataComboBoxModel( tcModel, filter, true,
                                                      false );
-                    cs.setModel( model );
-                    cs.setEnabled( true );
 
                     /* If there was a previous value for the column,
                      * and if it can be used with the new table, re-use it. */
@@ -320,6 +318,9 @@ public class BasicCoordPanel implements CoordPanel {
                             }
                         }
                     }
+
+                    cs.setModel( model );
+                    cs.setEnabled( true );
                 }
             }
         }
