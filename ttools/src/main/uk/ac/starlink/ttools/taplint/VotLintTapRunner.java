@@ -126,6 +126,7 @@ public abstract class VotLintTapRunner extends TapRunner {
     public InputStream readResultInputStream( Reporter reporter, TapQuery tq )
             throws IOException, SAXException {
         URLConnection conn = getResultConnection( reporter, tq );
+        conn = TapQuery.followRedirects( conn );
         conn.connect();
         String ctype = conn.getContentType();
         if ( doChecks_ ) {
