@@ -65,7 +65,12 @@ public class UrlOptions {
         UrlInvoker reportUrl = createReportInvoker();
         UrlInvoker viewImage = createViewImageInvoker();
         UrlInvoker loadTable = createLoadTableInvoker( controlWin );
-        UrlInvoker plotTable = createPlotTableInvoker( controlWin );
+        UrlInvoker planePlotTable =
+            createPlotTableInvoker( controlWin, PlotWindowType.PLANE,
+                                    "Plane Plot Table" );
+        UrlInvoker matrixPlotTable =
+            createPlotTableInvoker( controlWin, PlotWindowType.MATRIX,
+                                    "Corner Plot Table" );
         UrlInvoker browser = createBrowserInvoker();
         UrlInvoker download = createDownloadInvoker( dlPanel );
         UrlInvoker viewDatalink = createDatalinkInvoker( dlPanel, contextTitle);
@@ -82,7 +87,8 @@ public class UrlOptions {
             reportUrl,
             viewImage,
             loadTable,
-            plotTable,
+            planePlotTable,
+            matrixPlotTable,
             viewDatalink,
             viewFitsImage,
             sendFitsImage,
@@ -167,15 +173,18 @@ public class UrlOptions {
      * Returns an invoker for plotting a table directly without loading it.
      *
      * @param  controlWin  application control window
+     * @param  plotType  plot type
+     * @param  invokerName  invocation option name
      * @return  new invoker
      */
     private static UrlInvoker
-            createPlotTableInvoker( final ControlWindow controlWin ) {
+            createPlotTableInvoker( final ControlWindow controlWin,
+                                    PlotWindowType plotType,
+                                    String invokerName ) {
         final StarTableFactory tfact = controlWin.getTableFactory();
         final TablePlotDisplay plotDisplay =
-            new TablePlotDisplay( controlWin, PlotWindowType.PLANE,
-                                  "Downloaded", false );
-        return new AbstractUrlInvoker( "Plot Table",
+            new TablePlotDisplay( controlWin, plotType, "Downloaded", false );
+        return new AbstractUrlInvoker( invokerName,
                                        allowSystem_ ? Safety.UNSAFE
                                                     : Safety.SAFE ) {
             public Outcome invokeUrl( URL url ) {
