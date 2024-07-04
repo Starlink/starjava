@@ -103,7 +103,9 @@ public abstract class FormLayerControl
         posCoordPanel_.addActionListener( forwarder );
         tableSelector_.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
+                posCoordPanel_.removeActionListener( forwarder );
                 tableChanged();
+                posCoordPanel_.addActionListener( forwarder );
                 forwarder.actionPerformed( new ActionEvent( this, 0,
                                                             "Table" ) );
             }
