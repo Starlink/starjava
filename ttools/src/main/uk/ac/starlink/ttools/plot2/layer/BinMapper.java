@@ -95,7 +95,7 @@ public abstract class BinMapper {
             width1_ = 1.0 / width;
             double f0 = Math.floor( point / width );
             floor_ = ( f0 + phase ) * width;
-            assert Math.abs( floor_ - point ) <= width;
+            assert (float) Math.abs( floor_ - point ) <= (float) width;
         }
 
         public int getBinIndex( double value ) {
@@ -152,7 +152,7 @@ public abstract class BinMapper {
             double f0 = Math.floor( log( point ) / log( width ) );
             floor_ = Math.pow( width, f0 + phase );
             logFloor_ = log( floor_ );
-            assert Math.abs( logFloor_ - log( point ) ) <= width;
+            assert (float) Math.abs(logFloor_ - log( point )) <= (float) width;
             logWidth1_ = 1. / log( width );
         }
 
