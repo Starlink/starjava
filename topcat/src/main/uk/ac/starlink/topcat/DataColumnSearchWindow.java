@@ -230,12 +230,12 @@ public class DataColumnSearchWindow extends ColumnSearchWindow {
             SwingUtilities.invokeLater( () -> {
                 updateActions();
                 progModel.setValue( 0 );
-                if ( nfind0 == 1 ) {
-                    tcModel_.highlightRow( irow00 );
-                }
-                else if ( nfind0 > 0 ) {
+                if ( nfind0 > 0 ) {
                     viewWindow_.setSelection( foundSet.createRowSubset() );
                     viewWindow_.scrollToRow( viewModel.getViewRow( irow00 ) );
+                }
+                if ( nfind0 == 1 ) {
+                    tcModel_.highlightRow( irow00 );
                 }
                 searchCompleted( nfind0 > 0 );
             } );
