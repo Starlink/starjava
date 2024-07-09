@@ -27380,7 +27380,7 @@ Some of the notable contributers are these:
 <li>Luke Davies (Bristol)</li>
 <li>Christoph Deil (MPI Heidelberg)</li>
 <li>Markus Demleitner (ARI Heidelberg)</li>
-<li>Sebastien Derriere (CDS)</li>
+<li>S&#x00e9;bastien Derriere (CDS)</li>
 <li>Emilio Donoso (ICATE)</li>
 <li>Peter Draper (Starlink, Durham)</li>
 <li>Heinz-Bernd Eggenstein (AEI, Hannover)</li>
@@ -33586,6 +33586,7 @@ introduced since the last version:
     <li>Add &Matrix; Plot Table option
         to <ref id="DatalinkWindow">DataLink Window</ref>
         Action selector.</li>
+    <li>Fix column search bug.</li>
     </ul>
     </p></dd>
 
