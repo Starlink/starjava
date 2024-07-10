@@ -15343,6 +15343,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Avoid non-VOUnit units in output VOTables in some cases.</li>
     <li>Decrease size of parquet output files in most cases
         when writing NaNs and empty strings/arrays.</li>
+    <li>Add dictionary use configuration option to
+        <ref id="outParquet">Parquet output handler</ref>.</li>
     </ul>
     </p></dd>
 
