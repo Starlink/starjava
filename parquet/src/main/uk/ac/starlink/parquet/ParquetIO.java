@@ -192,6 +192,10 @@ class ParquetIO {
         if ( codec != null ) {
             builder.withCompressionCodec( codec );
         }
+        Boolean useDict = writer.isDictionaryEncoding();
+        if ( useDict != null ) {
+            builder.withDictionaryEncoding( useDict.booleanValue() );
+        }
     }
 
     /**

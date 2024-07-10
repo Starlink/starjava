@@ -20,6 +20,7 @@ public class ParquetTableWriter
 
     private boolean groupArray_;
     private CompressionCodecName codec_;
+    private Boolean useDict_;
 
     public ParquetTableWriter() {
     }
@@ -152,5 +153,39 @@ public class ParquetTableWriter
      */
     public CompressionCodecName getCompressionCodec() {
         return codec_;
+    }
+
+    /**
+     * Sets the dictionary encoding flag.
+     * If null, the library default is used.
+     *
+     * @param  useDict  true to use dictionary encoding,
+     *                  false to use other methods
+     */
+    @ConfigMethod(
+        property = "usedict",
+        example = "false",
+        doc = "<p>Determines whether dictionary encoding is used for output.\n"
+            + "This will work well to compress the output\n"
+            + "for columns with a small number of distinct values.\n"
+            + "Even when this setting is true,\n"
+            + "dictionary encoding is abandoned once many values\n"
+            + "have been encountered (the dictionary gets too big).\n"
+            + "If no value is specified, the parquet-mr library default\n"
+            + "is used, which is probably <code>true</code>.\n"
+            + "</p>"
+    )
+    public void setDictionaryEncoding( Boolean useDict ) {
+        useDict_ = useDict;
+    }
+
+    /**
+     * Returns the dictionary encoding flag.
+     *
+     * @return  true to use dictionary encoding,
+     *          false for other methods
+     */
+    public Boolean isDictionaryEncoding() {
+        return useDict_;
     }
 }
