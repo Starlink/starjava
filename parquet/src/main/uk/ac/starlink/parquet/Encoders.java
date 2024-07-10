@@ -2,6 +2,8 @@ package uk.ac.starlink.parquet;
 
 import java.lang.reflect.Array;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.RecordConsumer;
 import org.apache.parquet.schema.GroupType;
@@ -33,13 +35,15 @@ public class Encoders {
      *                       false for repeated primitives
      * @return   value encoder
      */
-    public static Encoder createEncoder( ColumnInfo info, boolean groupArray ) {
+    public static Encoder<?> createEncoder( ColumnInfo info,
+                                            boolean groupArray ) {
         final Class<?> clazz = info.getContentClass();
         final String cname = info.getName();
         if ( clazz.equals( Boolean.class ) ) {
             return createScalarEncoder(
                        Boolean.class, cname,
                        PrimitiveType.PrimitiveTypeName.BOOLEAN, null,
+                       val -> false,
                        (val, cns) -> cns.addBoolean( val.booleanValue() ) );
         }
         else if ( clazz.equals( Byte.class ) ) {
@@ -47,6 +51,7 @@ public class Encoders {
                        Byte.class, cname,
                        PrimitiveType.PrimitiveTypeName.INT32,
                        LogicalTypeAnnotation.intType( 8, true ),
+                       val -> false,
                        (val, cns) -> cns.addInteger( val.intValue() ) );
         }
         else if ( clazz.equals( Short.class ) ) {
@@ -54,30 +59,35 @@ public class Encoders {
                        Short.class, cname,
                        PrimitiveType.PrimitiveTypeName.INT32,
                        LogicalTypeAnnotation.intType( 16, true ),
+                       val -> false,
                        (val, cns) -> cns.addInteger( val.intValue() ) );
         }
         else if ( clazz.equals( Integer.class ) ) {
             return createScalarEncoder(
                        Integer.class, cname,
                        PrimitiveType.PrimitiveTypeName.INT32, null,
+                       val -> false,
                        (val, cns) -> cns.addInteger( val.intValue() ) );
         }
         else if ( clazz.equals( Long.class ) ) {
             return createScalarEncoder(
                        Long.class, cname,
                        PrimitiveType.PrimitiveTypeName.INT64, null,
+                       val -> false,
                        (val, cns) -> cns.addLong( val.longValue() ) );
         }
         else if ( clazz.equals( Float.class ) ) {
             return createScalarEncoder(
                        Float.class, cname,
                        PrimitiveType.PrimitiveTypeName.FLOAT, null,
+                       val -> val.isNaN(),
                        (val, cns) -> cns.addFloat( val.floatValue() ) );
         }
         else if ( clazz.equals( Double.class ) ) {
             return createScalarEncoder(
                        Double.class, cname,
                        PrimitiveType.PrimitiveTypeName.DOUBLE, null,
+                       val -> val.isNaN(),
                        (val, cns) -> cns.addDouble( val.doubleValue() ) );
         }
         else if ( clazz.equals( String.class ) ) {
@@ -85,6 +95,7 @@ public class Encoders {
                        String.class, cname,
                        PrimitiveType.PrimitiveTypeName.BINARY,
                        LogicalTypeAnnotation.stringType(),
+                       val -> val.length() == 0,
                        (val, cns) -> cns.addBinary( Binary.fromString( val ) ));
         }
         else if ( clazz.equals( byte[].class ) ) {
@@ -152,21 +163,33 @@ public class Encoders {
      * @param   cname    parquet column name
      * @param   primType  primitive output type
      * @param   logType   logical type annotation
+     * @param   isBlank   whether a non-null instance value is to be
+     *                    considered equivalent to null
      * @param   consume   passes a typed input value to a record consumer
      * @return   new encoder
      */
-    private static <T> Encoder
+    private static <T> Encoder<T>
             createScalarEncoder( Class<T> clazz, String cname,
                                  PrimitiveType.PrimitiveTypeName primType,
                                  LogicalTypeAnnotation logType,
+                                 Predicate<T> isBlank,
                                  BiConsumer<T,RecordConsumer> consume ) {
         Types.PrimitiveBuilder<PrimitiveType> builder =
             Types.optional( primType );
         if ( logType != null ) {
             builder = builder.as( logType );
         }
+        Function<Object,T> toTyped = value -> {
+            if ( clazz.isInstance( value ) ) {
+                T tval = clazz.cast( value ); 
+                return isBlank.test( tval ) ? null : tval;
+            }
+            else {
+                return null;
+            }
+        };
         PrimitiveType type = builder.named( cname );
-        return new DefaultEncoder<T>( cname, type, consume );
+        return new DefaultEncoder<T>( cname, type, toTyped, consume );
     }
 
     /**
@@ -181,12 +204,16 @@ public class Encoders {
      *                       false for repeated primitives
      * @return   new encoder
      */
-    private static <T> Encoder
+    private static <T> Encoder<T>
             createArrayEncoder( Class<T> clazz, String cname,
                                 PrimitiveType.PrimitiveTypeName primType,
                                 LogicalTypeAnnotation logType,
                                 ArrayReader<T> arrayReader,
                                 boolean groupArray ) {
+        Function<Object,T> toTyped =
+            value -> clazz.isInstance( value ) && Array.getLength( value ) > 0
+                   ? clazz.cast( value )
+                   : null;
         if ( groupArray ) {
             Types.PrimitiveBuilder<PrimitiveType> elBuilder =
                 Types.optional( primType );
@@ -214,7 +241,7 @@ public class Encoders {
                 cns.endField( listName, 0 );
                 cns.endGroup();
             };
-            return new DefaultEncoder<T>( cname, listType, consume );
+            return new DefaultEncoder<T>( cname, listType, toTyped, consume );
         }
         else {
             Types.PrimitiveBuilder<PrimitiveType> elBuilder =
@@ -229,7 +256,7 @@ public class Encoders {
                     arrayReader.consume( val, i, cns );
                 }
             };
-            return new DefaultEncoder<T>( cname, elType, consume );
+            return new DefaultEncoder<T>( cname, elType, toTyped, consume );
         }
     }
 
@@ -237,9 +264,10 @@ public class Encoders {
      * Typed encoder implementation.  Instances have to supply an object
      * that can actually pass typed values to a record consumer.
      */
-    private static class DefaultEncoder<T> implements Encoder {
+    private static class DefaultEncoder<T> implements Encoder<T> {
         final String cname_;
         final Type type_;
+        final Function<Object,T> toTyped_;
         final BiConsumer<T,RecordConsumer> consumeValue_;
 
         /**
@@ -247,12 +275,18 @@ public class Encoders {
          *
          * @param  cname  parquet column name, must observe parquet syntax rules
          * @param  type   type of column, group or primitive
+         * @param  toTyped  converts an untyped object that should be of
+         *                  the right class to a typed object that is of
+         *                  the right class, or to null
+         *                  if it's effectively blank
          * @param  consumeValue  passes a typed value to a record consumer
          */
         DefaultEncoder( String cname, Type type,
+                        Function<Object,T> toTyped,
                         BiConsumer<T,RecordConsumer> consumeValue ) {
             cname_ = cname;
             type_ = type;
+            toTyped_ = toTyped;
             consumeValue_ = consumeValue;
         }
         public String getColumnName() {
@@ -261,9 +295,10 @@ public class Encoders {
         public Type getColumnType() {
             return type_;
         }
-        public void addValue( Object value, RecordConsumer consumer ) {
-            @SuppressWarnings("unchecked")
-            T tValue = (T) value;
+        public T typedValue( Object obj ) {
+            return toTyped_.apply( obj );
+        }
+        public void addValue( T tValue, RecordConsumer consumer ) {
             consumeValue_.accept( tValue, consumer );
         }
     }

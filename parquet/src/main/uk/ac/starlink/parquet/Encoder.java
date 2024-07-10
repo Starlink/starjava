@@ -10,7 +10,7 @@ import org.apache.parquet.schema.Type;
  * @author   Mark Taylor
  * @since    25 Feb 2021
  */
-public interface Encoder {
+public interface Encoder<T> {
 
     /**
      * Returns the name of the column that will be written to the parquet file.
@@ -35,14 +35,28 @@ public interface Encoder {
     Type getColumnType();
 
     /**
-     * Passes a supplied value representing a cell of this encoder's column
-     * to a record consumer.  This is called between
-     * RecordConsumer <code>startField</code> and <code>endField</code>
-     * calls, but if additional structuring calls are required they
-     * must be done by this method.
+     * Converts an object presented for record consumption
+     * to an object of this encoder's parameterised class.
+     * The presented object ought to be of the right class anyway,
+     * so this may just be a cast.
+     * However, if the object is of an unexpected type,
+     * or if its value corresponds to a blank value, null should be returned.
      *
-     * @param   value   typed value to write
+     * @param   obj  object for encoding, expected to be of this encoder's type
+     * @return   typed object for record consumption,
+     *           or null if it does not correspond to a definite typed value
+     */
+    T typedValue( Object obj );
+
+    /**
+     * Passes a supplied non-null value representing a cell
+     * of this encoder's column to a record consumer.
+     * This is invoked between RecordConsumer <code>startField</code>
+     * and <code>endField</code> calls, but if additional structuring calls
+     * are required they must be done by this method.
+     *
+     * @param   value   non-null typed value to write
      * @param   consumer  value consumer
      */
-    void addValue( Object value, RecordConsumer consumer );
+    void addValue( T value, RecordConsumer consumer );
 }

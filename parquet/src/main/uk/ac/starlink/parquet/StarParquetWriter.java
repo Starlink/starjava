@@ -112,7 +112,7 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
     private static class StarWriteSupport extends WriteSupport<Object[]> {
 
         private final int ncol_;
-        private final OutCol[] outcols_;
+        private final OutCol<?>[] outcols_;
         private final MessageType schema_;
         private final Map<String,String> metaMap_;
         private RecordConsumer consumer_;
@@ -125,15 +125,16 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
          *                       false for repeated primitives
          */
         StarWriteSupport( StarTable table, boolean groupArray ) {
-            List<OutCol> outcols = new ArrayList<>();
+            List<OutCol<?>> outcols = new ArrayList<>();
             metaMap_ = new HashMap<String,String>();
             Types.MessageTypeBuilder schemaBuilder = Types.buildMessage();
             int jc = 0;
             for ( int ic = 0; ic < table.getColumnCount(); ic++ ) {
                 ColumnInfo cinfo = table.getColumnInfo( ic );
-                Encoder encoder = Encoders.createEncoder( cinfo, groupArray );
+                Encoder<?> encoder =
+                    Encoders.createEncoder( cinfo, groupArray );
                 if ( encoder != null ) {
-                    outcols.add( new OutCol( encoder, ic, jc++ ) );
+                    outcols.add( OutCol.create( encoder, ic, jc++ ) );
                     schemaBuilder.addField( encoder.getColumnType() );
                 }
                 else {
@@ -142,7 +143,7 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
                 }
             }
             schema_ = schemaBuilder.named( "table" );
-            outcols_ = outcols.toArray( new OutCol[ 0 ] );
+            outcols_ = outcols.toArray( new OutCol<?>[ 0 ] );
             ncol_ = outcols_.length;
         }
 
@@ -164,7 +165,7 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
 
         public void write( Object[] record ) {
             consumer_.startMessage();
-            for ( OutCol outcol : outcols_ ) {
+            for ( OutCol<?> outcol : outcols_ ) {
                 outcol.write( record[ outcol.icIn_ ], consumer_ );
             }
             consumer_.endMessage();
@@ -174,9 +175,9 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
     /**
      * Aggregates information required about a table column to write.
      */
-    private static class OutCol {
+    private static class OutCol<T> {
 
-        final Encoder encoder_;
+        final Encoder<T> encoder_;
         final int icIn_;
         final int icOut_;
         final String cname_;
@@ -188,7 +189,7 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
          * @param  icIn   index of column in input table
          * @param  icOut  index of column in output table
          */
-        OutCol( Encoder encoder, int icIn, int icOut ) {
+        OutCol( Encoder<T> encoder, int icIn, int icOut ) {
             encoder_ = encoder;
             icIn_ = icIn;
             icOut_ = icOut;
@@ -203,11 +204,26 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
          * @param  consumer   value destination
          */
         void write( Object value, RecordConsumer consumer ) {
-            if ( value != null ) {
+            T typedValue = encoder_.typedValue( value );
+            if ( typedValue != null ) {
                 consumer.startField( cname_, icOut_ );
-                encoder_.addValue( value, consumer );
+                encoder_.addValue( typedValue, consumer );
                 consumer.endField( cname_, icOut_ );
             }
+        }
+
+        /**
+         * Creates a new Encoder instance.
+         *
+         * <p>Does the same thing as the constructor, but can be called
+         * without knowledge of parameterised type.
+         *
+         * @param  encoder  typed value encoder
+         * @param  icIn   index of column in input table
+         * @param  icOut  index of column in output table
+         */
+        static <T> OutCol<T> create( Encoder<T> encoder, int icIn, int icOut ) {
+            return new OutCol<T>( encoder, icIn, icOut );
         }
     }
 }
