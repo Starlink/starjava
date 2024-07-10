@@ -33587,6 +33587,8 @@ introduced since the last version:
         to <ref id="DatalinkWindow">DataLink Window</ref>
         Action selector.</li>
     <li>Fix column search bug.</li>
+    <li>Decrease size of parquet output files in most cases 
+        when writing NaNs and empty strings/arrays.</li>
     </ul>
     </p></dd>
 
