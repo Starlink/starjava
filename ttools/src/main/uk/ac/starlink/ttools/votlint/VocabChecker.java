@@ -75,13 +75,20 @@ public class VocabChecker {
                           } );
 
     /** Instance for vocabulary at http://www.ivoa.net/rdf/product-type. */
-    /* Term list is from https://www.ivoa.net/rdf/product-type/2021-11-18/;
-     * at time of writing all terms are marked Preliminary. */
+    /* Term list is from https://www.ivoa.net/rdf/product-type/2024-03-22/
+     * as amended by VEP-014. */
     public static final VocabChecker PRODUCT_TYPE =
         new VocabChecker( "http://www.ivoa.net/rdf/product-type",
                           new String[] {
-                              "cube", "dynamic-spectrum", "event", "image",
-                              "measurements", "sed", "spectrum", "timeseries",
+                              "cube", "dynamic-spectrum", "event-list",
+                              "image", "light-curve", "measurements",
+                              "polarization-cube",
+                              "polarization-resolved-dataset",
+                              "polarized-spectrum", "sed", "slit-spectrum",
+                              "spatially-resolved-dataset", "spatial-profile",
+                              "spectral-cube", "spectrally-resolved-dataset",
+                              "spectrum", "temporally-resolved-dataset",
+                              "time-cube", "timeseries", "velocity-curve",
                               "visibility",
                           } );
 
