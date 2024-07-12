@@ -9,6 +9,7 @@
 package uk.ac.starlink.splat.data;
 
 import java.util.ArrayList;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import uk.ac.starlink.table.ColumnInfo;
@@ -34,18 +35,29 @@ public class TableColumnChooser
 
     /** Patterns for the utypes of column containing the coordinates */
     private static ArrayList coordUtypePatterns = null;
+    
+    /** Patterns for the ucd of column containing the coordinates */
+    private static ArrayList coordUcdPatterns = null;
 
     /** Patterns for the names of column containing the data values */
     private static ArrayList dataNamePatterns = null;
 
     /** Patterns for the utypes of column containing the data values */
     private static ArrayList dataUtypePatterns = null;
+    
+    /** Patterns for the ucds of column containing the data values */
+    private static ArrayList dataUcdPatterns = null;
+
 
     /** Patterns for the names of column containing the data errors */
     private static ArrayList errorNamePatterns = null;
 
     /** Patterns for the utypes of column containing the data errors */
     private static ArrayList errorUtypePatterns = null;
+    
+    /** Patterns for the ucds of column containing the data errors */
+    private static ArrayList errorUcdPatterns = null;
+
 
     /** Patterns for the names of column containing the line identifier labels */
     private static ArrayList labelNamePatterns = null;
@@ -55,10 +67,15 @@ public class TableColumnChooser
 
     /** Flags used for any pattern matching */
     private static final int flags = Pattern.CASE_INSENSITIVE;
+    
+	private  static Logger logger =
+	        Logger.getLogger( "uk.ac.starlink.splat.data.SpecDataFactory" );
 
     /** Singleton class */
     private TableColumnChooser()
     {
+    	
+    
         //  Default patterns for column names and utypes.
         coordNamePatterns = new ArrayList();
         addCoordNamePattern( "wave.*" );
@@ -70,6 +87,7 @@ public class TableColumnChooser
         addCoordNamePattern( "loglam" ); // SDSS spectra
         addCoordNamePattern( "linewave"); // SDSS Lines
         addCoordNamePattern( "time*." );
+        addCoordNamePattern( "time" );
         addCoordNamePattern( "jd" );
         addCoordNamePattern( ".*jd" );
 
@@ -77,25 +95,41 @@ public class TableColumnChooser
         addCoordUtypePattern( ".*spectralaxis.*" );       // SSAP
         addCoordUtypePattern( ".*timeaxis.*" );       // LightCurves
         addCoordUtypePattern( ".*line.wavelength*" );     // SLAP
-
+        
+        coordUcdPatterns = new ArrayList();
+        addCoordUcdPattern( "em.*" );
+        addCoordUcdPattern( "time.*" );
+ 
         dataNamePatterns = new ArrayList();
         addDataNamePattern( "flux.*" );
         addDataNamePattern( "inten.*" );
         addDataNamePattern( "temp.*" );
+        addDataNamePattern( "phot.*" );
+        addDataNamePattern( "phot" );
         addDataNamePattern( "mag.*" );
         addDataNamePattern( "energy.*" );
         addDataNamePattern( "y.*" );
 
         dataUtypePatterns = new ArrayList();
-        addDataUtypePattern( ".*fluxaxis.*" );           // SSAP
+        addDataUtypePattern( ".*fluxaxis.*" ); // SSAP
+        
+        dataUcdPatterns = new ArrayList();
+        addDataUcdPattern( "phot.*" );
+       
+
 
         errorNamePatterns = new ArrayList();
         addErrorNamePattern( "error.*" );
+        addErrorNamePattern("error");
         addErrorNamePattern( "sigma.*" );
         addErrorNamePattern( "stddev.*" );
 
         errorUtypePatterns = new ArrayList();
         addErrorUtypePattern( ".*fluxaxis\\.accuracy.*" ); // SSAP
+        
+        errorUcdPatterns = new ArrayList();
+        addErrorUcdPattern( "stat.error" );
+
 
         labelNamePatterns = new ArrayList();
         addLabelNamePattern( "identifiers.*" );
@@ -114,7 +148,13 @@ public class TableColumnChooser
     public static TableColumnChooser getInstance()
     {
         if ( instance == null ) {
-            instance = new TableColumnChooser();
+        	try {
+                instance = new TableColumnChooser();
+        	}
+        	catch (Exception e) {
+        		logger.info("error"+e.getMessage());
+        		throw e;
+        	}
         }
         return instance;
     }
@@ -127,8 +167,11 @@ public class TableColumnChooser
      */
     public int getCoordMatch( ColumnInfo[] infos, String[] names )
     {
-        //  Check for utypes then column names.
-        int column = matchInfo( infos, coordUtypePatterns, null );
+        //  Check for ucds, utypes then column names.
+    	int column = matchInfo( infos, coordUcdPatterns, null );
+    	if (column == -1) {
+    		column = matchInfo( infos, coordUtypePatterns, null );
+    	}
         if ( column == -1 ) {
             column = matchName( coordNamePatterns, names );
         }
@@ -143,8 +186,11 @@ public class TableColumnChooser
      */
     public int getDataMatch( ColumnInfo[] infos, String[] names )
     {
-        //  Check for utypes then column names.
-        int column = matchInfo( infos, dataUtypePatterns, errorUtypePatterns );
+        //  Check for ucds, utypes then column names.
+    	int column = matchInfo( infos, dataUcdPatterns, null );
+    	if (column == -1) {
+    		column = matchInfo( infos, dataUtypePatterns, errorUtypePatterns );
+    	}
         if ( column == -1 ) {
             column = matchName( dataNamePatterns, names );
         }
@@ -159,8 +205,11 @@ public class TableColumnChooser
      */
     public int getErrorMatch( ColumnInfo[] infos, String[] names )
     {
-        //  Check for utypes then column names.
-        int column = matchInfo( infos, errorUtypePatterns, null );
+        //  Check for ucds, utypes then column names.
+    	int column = matchInfo( infos, errorUcdPatterns, null );
+    	if (column == -1) {
+    		column = matchInfo( infos, errorUtypePatterns, null );
+    	}
         if ( column == -1 ) {
             column = matchName( errorNamePatterns, names );
         }
@@ -264,6 +313,12 @@ public class TableColumnChooser
     {
        coordUtypePatterns.add( Pattern.compile( pattern, flags ) );
     }
+    
+    public void addCoordUcdPattern( String pattern )
+    {
+        coordUcdPatterns.add( Pattern.compile( pattern, flags ) );
+    }
+
 
     public void addDataNamePattern( String pattern )
     {
@@ -275,6 +330,11 @@ public class TableColumnChooser
        dataUtypePatterns.add( Pattern.compile( pattern, flags ) );
     }
 
+    public void addDataUcdPattern( String pattern )
+    {
+        dataUcdPatterns.add( Pattern.compile( pattern, flags ) );
+    }
+
     public void addErrorNamePattern( String pattern )
     {
         errorNamePatterns.add( Pattern.compile( pattern, flags ) );
@@ -283,6 +343,11 @@ public class TableColumnChooser
     public void addErrorUtypePattern( String pattern )
     {
         errorUtypePatterns.add( Pattern.compile( pattern, flags ) );
+    }
+    
+    public void addErrorUcdPattern( String pattern )
+    {
+        errorUcdPatterns.add( Pattern.compile( pattern, flags ) );
     }
 
     public void addLabelNamePattern( String pattern )
