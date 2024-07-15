@@ -1206,6 +1206,8 @@ public class PlotControl
             throw e;
         }
     }
+    
+    
 
     /**
      * Add a list of SpecData references to the list of displayed spectra.

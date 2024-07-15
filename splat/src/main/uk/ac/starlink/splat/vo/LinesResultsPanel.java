@@ -327,16 +327,7 @@ public class LinesResultsPanel extends ResultsPanel implements ItemListener, Pro
                 return;
             }
          
-/*            if (e.getSource() == hoverModeBox) {
-            	
-            	if (hoverModeBox.isSelected()) 
-            		hoverModeBox.setSelected(false);            	
-            	else
-                    hoverModeBox.   setSelected(true);
-                hovermode = hoverModeBox.isSelected();
-                return;
-            }
-  */          
+          
             // popup menu actions
             JMenuItem jmi  = (JMenuItem) e.getSource();
             JPopupMenu jpm = (JPopupMenu) jmi.getParent();
