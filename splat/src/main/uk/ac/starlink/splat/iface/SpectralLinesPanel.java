@@ -41,9 +41,11 @@ import javax.swing.KeyStroke;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
+import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.ast.AstException;
+import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.splat.data.LineIDTableSpecDataImpl;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
@@ -428,10 +430,12 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
         ArrayList<double []> lambdas=new ArrayList<double[]>();
         ArrayList<int []> ranges=new ArrayList<int[]>();
         SpecDataComp spectra = plot.getSpecDataComp();
-        //     if (spectra.count() >1) {// more than one spectrum in the plot
         
-        for (int i=0;i<spectra.count();i++) {
-            
+        //  for (int i=0;i<spectra.count();i++) {
+        //     if (spectra.count() >1) {// more than one spectrum in the plot
+     
+        // all spectra in same plot = same ranges -> get first
+            int i=0;
             SpecData spectrum = spectra.get(i);
             if (spectrum.getSpecDataImpl().getClass()!=LineIDTableSpecDataImpl.class) { //ignore existing lines 
 
@@ -439,17 +443,21 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
                 boolean ok=true;
                 double [] lambda = spectrum.getXData();
                 // create a copy of the spectrum, so coordinate conversions won't affect the plot
-                double[] fullrange = new double[2];      
-                fullrange[0]=lambda[0]; fullrange[1]=lambda[lambda.length-1];
-                SpecData sd=spectrum.getSect("copy", fullrange);
-                // convert X axis to meters
+                //double[] fullrange = new double[2];      
+                //fullrange[0]=lambda[0]; fullrange[1]=lambda[lambda.length-1];
+               // SpecData sd=spectrum.getSect("copy", fullrange);
+                SpecData sd=spectrum.getCopy("copy");
+                // convert X axis to angstrom
                 int msa = sd.getMostSignificantAxis();
                 try {
                     FrameSet frameSet = sd.getFrameSet();
+                    String unit = frameSet.getUnit(msa);
+                    
                     String sys = frameSet.getC("System");
-                    logger.info("system=WAVE,unit("+msa+")=m  "+ sys );
-                    frameSet.set( "system=WAVE,unit("+msa+")=m" );
+                    logger.info("system=WAVE,unit("+msa+")=angstrom  "+ sys );
+                    frameSet.set( "system=WAVE,unit("+msa+")=angstrom" );
                     sd.initialiseAst();
+                    
 
                 } catch (SplatException e) {
                     // TODO Auto-generated catch block
@@ -461,18 +469,29 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
                     ok=false;
                     return;
                 }
-
+                
                 double[] lambda2 = sd.getXData();
+                double[] ranges1 = rangeList.getRanges(true);
+                FrameSet frameset = sd.getFrameSet();
+                Frame frame = frameset.getFrame(msa);
+                Mapping mapping = frameset.getMapping(i, msa);
+                double[] ranges4 = mapping.tran1(ranges1.length, ranges1, true);
+                double[] ranges3 = mapping.tran1(ranges1.length, ranges1, false);
+                
+                
                 int[] ranges2 = rangeList.extractRanges( true, true, lambda);
                 if ( ok && ranges2 != null && ranges2.length > 0 && ranges2[0]!=ranges2[1]) {
+                	
                     if (ranges2[1]>=lambda2.length) // avoids exception in case the unit conversion changed the size of the lambda vector
                         ranges2[1]=lambda2.length-1;
+                    
                     lambdas.add(lambda2);
+                    
                     ranges.add(ranges2);
                 }
             }
             
-        }
+//        }
    
         browser.makeQuery(ranges, lambdas, getSpecies(), getCharge(), getInChiKey());       
     }

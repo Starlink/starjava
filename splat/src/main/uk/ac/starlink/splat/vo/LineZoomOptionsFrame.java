@@ -94,7 +94,7 @@ public class LineZoomOptionsFrame extends JFrame implements ActionListener, Docu
 
 		        
 		          tempPanel.add(tempField);
-		          
+		          tempPanel.add(new JLabel(" K"));		          
 		          // submit and feedback panel
 		          JPanel submitPanel = new JPanel();
 		          submitButton = new JButton("Set parameters");
