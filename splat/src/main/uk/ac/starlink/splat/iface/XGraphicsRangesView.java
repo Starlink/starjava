@@ -777,4 +777,29 @@ public class XGraphicsRangesView
             }
         }
     }
+
+	public int[] extractRanges(boolean selected, boolean merge, double[] specCoords, double[] ranges4) {
+	       double[] worldRanges = ranges4;
+	        if ( worldRanges != null && worldRanges.length != 0 ) {
+	            if ( merge ) {
+	                worldRanges = Sort.sortAndMerge( worldRanges );
+	            }
+	            int[] arrayRanges = new int[worldRanges.length];
+	            int temp;
+	            for ( int i = 0; i < arrayRanges.length; i+=2 ) {
+	                arrayRanges[i] = Sort.lookup( specCoords, worldRanges[i] );
+	                arrayRanges[i+1] = Sort.lookup( specCoords, worldRanges[i+1] );
+
+	                //  Check ordering, these can be reversed.
+	                if ( arrayRanges[i] > arrayRanges[i+1] ) {
+	                    temp = arrayRanges[i];
+	                    arrayRanges[i] = arrayRanges[i+1];
+	                    arrayRanges[i+1] = temp;
+	                }
+	            }
+	            return arrayRanges;
+	        }
+// TODO Auto-generated method stub
+		return null;
+	}
 }

@@ -19,6 +19,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import nom.tam.fits.Header;
@@ -974,6 +975,39 @@ public class SpecData
                 System.arraycopy( yErr, lower[j], newErrors, k, length );
                 k += length;
             }
+        }
+
+        //  And create the memory spectrum.
+        return createNewSpectrum( name, newCoords, newData, newErrors );
+    }
+
+    
+    /**
+     * Create a new spectrum by copying this spectrum. T
+     *
+     * The spectrum created here is not added to any lists or created with any
+     * configuration other than the default values (i.e. you must do this part
+     * yourself) and is only kept in memory.
+     *
+     * @param name short name for the spectrum.
+     * @return a spectrum that is a copy of this one May
+     *      be null if no values can be located.
+     */
+    public SpecData getCopy( String name )
+    {
+    	int nvals = xPos.length;
+       
+    //  Copy extracted values.
+        double[] newCoords = null; //new double[nvals];
+        double[] newData = null; // new double[nvals];
+        
+        newCoords = Arrays.copyOf(xPos, xPos.length);
+        newData = Arrays.copyOf(yPos, yPos.length);
+        
+        //  Same for errors, if have any.
+        double[] newErrors = null;
+        if ( haveYDataErrors() ) {
+            newErrors = Arrays.copyOf(yPos, yPos.length);
         }
 
         //  And create the memory spectrum.
