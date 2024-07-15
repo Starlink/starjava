@@ -24,31 +24,14 @@ public class LinetapServerList extends AbstractServerList {
 		return configFile;
 	}
 	
-	 /**
-     * Add a server resource to the known list, saving after adding.
-     *
-     * @param server an instance of RegResource.
-     *
-    public void addServer( SSAPRegResource server )
-    {
-    //	SSAPRegCapability[] caps = server.getCapabilities();
-    	
-    //	for (int i=0;i<caps.length;i++) {
-    //		String accessUrl=caps[i].getAccessUrl();
-    //		String table = server.getTableName(); 
-    		
-    //		
-    //	}
-    	
-        addServer( server, true );
-    }
-    */
+
     /**
      * Add a server resource to the known list.
      *
      * @param server an instance of RegResource.
      * @param save if true then the backing store of servers should be updated.
      */
+	@Override
     protected void addServer( SSAPRegResource server, boolean save )
     {
 

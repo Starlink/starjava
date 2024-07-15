@@ -48,6 +48,8 @@ import javax.swing.table.TableRowSorter;
 
 import jsky.util.Logger;
 import jsky.util.SwingWorker;
+import uk.ac.starlink.ast.AstException;
+import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.LineIDTableSpecDataImpl;
 import uk.ac.starlink.splat.data.SpecData;
@@ -76,6 +78,7 @@ import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.PhysicalConstants;
+import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.votable.VOTableBuilder;
 
 public class LineBrowser extends JFrame implements  MouseListener, PlotListener , PropertyChangeListener  {
@@ -314,7 +317,7 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
         // = linesQuery.getLineTapQuery(  currentTable.getTableName(row) );
 
           queryString = makeLinetapQuery(  currentTable.getTableName(row), ranges, lambdas, species, charge, inChiKey, accessURL);
-        	   Logger.info(this, "Linetap Query:"+queryString);
+        	 //  Logger.info(this, "Linetap Query:"+queryString);
                }
            else
                queryString= makeVamdcQuery(ranges, lambdas, species, charge, inChiKey, currentTable.getAccessURL(row));
@@ -379,9 +382,9 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
        for (int spec =0;spec<ranges.size();spec++) { 
     	   int[] range=ranges.get(spec);
     	   
-           for (int i=0;i<range.length;i+=2) {// have to convert from meters to angstrom
+           for (int i=0;i<range.length;i+=2) {
         	   double rangeval []  = getRanges(i, range, lambdas, spec);        	
-        		   wlist+=" between "+ rangeval[0]*1E10+" and "+rangeval[1]*1E10;
+        		   wlist+=" between "+ rangeval[0]+" and "+rangeval[1];
         	
                if (i+1<rangeval.length-1)
                    wlist+=" OR vacuum_wavelength ";
@@ -440,7 +443,7 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
     	   
            for (int i=0;i<range.length;i+=2) {// have to convert from meters to angstrom
         	   double [] rangeval = getRanges(i, range, lambdas, spec);      
-        	   wlist+="(RadTransWaveLength >= "+rangeval[0]*1E10+" AND RadTransWavelength <= "+rangeval[1]*1E10+")";
+        	   wlist+="(RadTransWaveLength >= "+rangeval[0]+" AND RadTransWavelength <= "+rangeval[1]+")";
         	  // wlist+=" between "+ rangeval[0]*1E10+" and "+rangeval[1]*1E10;        	
                if (i+1<range.length-1)
                    wlist+=" OR ";
@@ -738,10 +741,14 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
         }
         try {
         	LineIDTableSpecDataImpl impl = null;
-        	if (linesQuery.isLinetapSelected()) 
+        	if (linesQuery.isLinetapSelected()) {
         		impl = new LineIDTableSpecDataImpl(table, "vacuum_wavelength", null, "title");
+        		
+        	}
+        
         	else 
         		impl = new LineIDTableSpecDataImpl(table);
+      
         	
 
         	DescribedValue xval= table.getParameterByName("xlabel");
@@ -751,7 +758,41 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
         		String unitstring = (String) xval.getValue();
         		impl.setXparams( xlabel, unitstring );
         	}
-        	LineIDSpecData data = new LineIDSpecData(impl);    
+        	LineIDSpecData data = new LineIDSpecData(impl);
+        	
+        	SpecData baseSpectrum = plot.getSpecDataComp().get(0);
+        	
+        	 // convert X axis to basespectrum units
+             int msa = baseSpectrum.getMostSignificantAxis();
+             try {
+                 FrameSet frameSet = baseSpectrum.getFrameSet();
+                 FrameSet lineFrameSet = data.getFrameSet();
+                 String unit = frameSet.getUnit(msa);
+                 if (isFrequency(unit)) {
+                	 
+                	 // set system from eavelemgth to freq
+                	 lineFrameSet.set("System=freq");
+                	 
+                 }
+               
+          
+                 msa = data.getMostSignificantAxis();
+                 lineFrameSet.set( "unit("+msa+")="+unit);
+                 	
+                 data.initialiseAst();
+                 
+
+             } catch (SplatException e) {
+                 // TODO Auto-generated catch block
+                 ErrorDialog.showError(this, "Error", e, "Invalid wavelength units");
+              
+                 return;
+             } catch (AstException a ) {
+             	ErrorDialog.showError(this, "Error", a, "Invalid wavelength units");               	
+            
+                 return;
+             }
+           
 
         	currentLines=data;          
         	globalList.addSpectrum(plot, data);     
@@ -766,7 +807,15 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
     
    
 
-  protected void displayOneLine(StarJTable table, int row) {
+  private boolean isFrequency(String unit) {
+		
+	  if (unit.toLowerCase().endsWith("hz"))
+		return true;
+	  return false;
+	  
+	}
+
+protected void displayOneLine(StarJTable table, int row) {
     	
     	boolean hovermode = true;
     	
