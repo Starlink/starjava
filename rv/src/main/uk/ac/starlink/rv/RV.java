@@ -2,7 +2,7 @@
  *
  * @author Roy Platon
  * @version 1.00 26 MArch 2002
- * Provides front end to run RV either as an Applet or Application
+ * Provides front end to run RV as an Application.
  **/
 
 package uk.ac.starlink.rv;
@@ -15,7 +15,7 @@ import uk.ac.starlink.rv.*;
 /**
  * The main application for running RV as an Application or an Applet.
  */
-public class RV extends JApplet {
+public class RV extends JPanel {
     private static RVPanel pane;
     private static String task = null;
     private static Container contentPane;
@@ -24,9 +24,8 @@ public class RV extends JApplet {
  * Initialise the GUI and create the Panel
  */
     public void init( ) {
-        contentPane = getContentPane();
-        pane = new RVPanel( contentPane );
-        contentPane.add( pane );
+        pane = new RVPanel( this );
+        add( pane );
         pane.setup( task );
     }
     
@@ -56,6 +55,5 @@ class RVFrame extends JFrame {
         contentPane.add( a );
         a.init();
         setVisible( true );
-        a.start();       
     }
 }
