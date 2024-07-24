@@ -36,7 +36,6 @@ public class FieldElement extends VOElement {
      * @return   array giving dimensions of data in this field.
      */
     public long[] getArraysize() {
-        int sliceSize = 1;
         String as = hasAttribute( "datatype" ) 
                   ? getAttribute( "arraysize" )
                   : "*";
@@ -65,7 +64,6 @@ public class FieldElement extends VOElement {
                                        + " - assuming 1" );
                     }
                     arraysize[ i ] = dim;
-                    sliceSize *= arraysize[ i ];
                 }
             }
             return arraysize;
