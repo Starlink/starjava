@@ -23,6 +23,8 @@ public interface FitsTableSerializer {
 
     /**
      * Writes the HDU data for the table to an output stream.
+     * This is only intended to be called once following creation
+     * of this object.  Subsequent calls result in undefined behaviour.
      *
      * @param  out  destination stream
      */
