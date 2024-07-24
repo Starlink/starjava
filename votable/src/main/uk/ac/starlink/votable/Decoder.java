@@ -235,7 +235,7 @@ abstract class Decoder {
             isScalar = true;
         }
         else if ( arraysize[ ndim - 1 ] > 0 ) {
-            int nel = 1;
+            long nel = 1;
             for ( int i = 0; i < ndim; i++ ) {
                 nel *= arraysize[ i ];
             }
