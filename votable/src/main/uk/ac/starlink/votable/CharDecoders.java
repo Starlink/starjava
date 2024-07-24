@@ -2,6 +2,7 @@ package uk.ac.starlink.votable;
 
 import java.io.DataInput;
 import java.io.IOException;
+import uk.ac.starlink.table.Tables;
 
 /**
  * Utility class with methods that can supply Decoders for reading
@@ -242,7 +243,7 @@ abstract class CharDecoders {
         final CharReader cread;
         final long[] decodedShape;
         final boolean isVariable;
-        int fixedSize;
+        final int fixedSize;
 
         StringDecoder( long[] arraysize, CharReader cread ) {
             super( String[].class, arraysize );
@@ -252,10 +253,14 @@ abstract class CharDecoders {
             System.arraycopy( arraysize, 1, decodedShape, 0, ndim - 1 );
             isVariable = arraysize[ ndim - 1 ] < 0;
             if ( ! isVariable ) {
-                fixedSize = 1;
-                for ( int i = 0; i < arraysize.length; i++ ) {
-                    fixedSize *= arraysize[ i ];
+                long size = 1;
+                for ( long dim : arraysize ) {
+                    size *= dim;
                 }
+                fixedSize = Tables.checkedLongToInt( size );
+            }
+            else {
+                fixedSize = -1;
             }
         }
 
