@@ -86,7 +86,8 @@ public class DataBufferedInputStream extends FilterInputStream
     public long skip( long n ) throws IOException {
         int has = count_ - pos_;
         if ( has > n ) {
-            pos_ += n;
+            assert n == (int) n;
+            pos_ += (int) n;
             return n;
         }
         else if ( has > 0 ) {
