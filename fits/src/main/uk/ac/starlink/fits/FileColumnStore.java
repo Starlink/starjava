@@ -218,18 +218,17 @@ abstract class FileColumnStore implements ColumnStore {
         return cards;
     }
 
-    public void dispose() throws IOException {
+    /**
+     * Cleans up by deleting the temporary file into which data has been
+     * stored.  It should be called when this object is no longer needed,
+     * but if not the file should get removed on JVM exit anyway.
+     * Calling it multiple times is harmless.
+     */
+    public void dispose() {
         if ( file_.exists() ) {
-            file_.delete();
-        }
-    }
-
-    protected void finalize() throws Throwable {
-        try {
-            dispose();
-        }
-        finally {
-            super.finalize();
+            boolean success = file_.delete();
+            logger_.config( "Deleting file " + file_
+                          + ": " + ( success ? "success" : "failed" ) );
         }
     }
 
