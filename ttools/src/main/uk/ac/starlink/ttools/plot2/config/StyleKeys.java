@@ -906,7 +906,7 @@ public class StyleKeys {
                                        ConfigKey<Color> colorKey,
                                        ConfigKey<Double> transparencyKey ) {
         Color baseColor = config.get( colorKey );
-        double alpha = 1 - config.get( transparencyKey );
+        float alpha = 1f - config.get( transparencyKey ).floatValue();
         float[] rgba = baseColor.getRGBComponents( new float[ 4 ] );
         rgba[ 3 ] *= alpha;
         return new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
