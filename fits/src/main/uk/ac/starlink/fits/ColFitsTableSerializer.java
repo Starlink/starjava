@@ -195,13 +195,20 @@ public class ColFitsTableSerializer implements FitsTableSerializer {
 
         /* Write the cell provided by each serializer in turn. */
         long size = 0L;
-        for ( int icol = 0; icol < ncol_; icol++ ) {
-            if ( colStores_[ icol ] != null ) {
-                logger_.info( "Writing column " + ( icol + 1 ) + "/" + ncol_ 
-                            + ": " + colids_[ icol ] );
-                ColumnStore colStore = colStores_[ icol ];
-                colStore.streamData( out );
-                size += colStore.getDataLength();
+        try {
+            for ( int icol = 0; icol < ncol_; icol++ ) {
+                if ( colStores_[ icol ] != null ) {
+                    logger_.info( "Writing column " + ( icol + 1 ) + "/" + ncol_ 
+                                + ": " + colids_[ icol ] );
+                    ColumnStore colStore = colStores_[ icol ];
+                    colStore.streamData( out );
+                    size += colStore.getDataLength();
+                    colStore.dispose();
+                }
+            }
+        }
+        finally {
+            for ( ColumnStore colStore : colStores_ ) {
                 colStore.dispose();
             }
         }
