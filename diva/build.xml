@@ -817,6 +817,7 @@
              source="${source.version}"
              classpathref="classpath">
       <arg value="-Xdoclint:none"/>
+      <arg value="-quiet"/>
       <arg value="-tag"/>
       <arg value="rating"/>
 

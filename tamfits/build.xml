@@ -813,6 +813,7 @@
              source="${source.version}"
              classpathref="classpath">
       <arg value="-Xdoclint:none"/>
+      <arg value="-quiet"/>
 
       <!-- Get a list of directories that name all the potential
        !   java packages -->

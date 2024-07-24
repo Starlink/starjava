@@ -1375,6 +1375,7 @@
              doctitle="${Name}"
              classpathref="classpath">
       <arg value="-Xdoclint:all,-missing,-html"/>
+      <arg value="-quiet"/>
 
       <!-- Exclude broken and test files etc. from the document -->
       <packageset dir="${java.dir}" defaultexcludes="yes">
