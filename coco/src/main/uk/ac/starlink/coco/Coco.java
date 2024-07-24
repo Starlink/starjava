@@ -2,7 +2,7 @@
  *
  * @author Roy Platon
  * @version 1.00 25 October 2002
- * Provides front end to run Coco either as an Applet or Application
+ * Provides front end to run Coco as an application.
  **/
 
 package uk.ac.starlink.coco;
@@ -15,7 +15,7 @@ import uk.ac.starlink.coco.*;
 /**
  * Creates a dialogue box to enter Details.
  */
-public class Coco extends JApplet {
+public class Coco extends JPanel {
     static CocoPanel pane;
     static String task = null;
     static Container contentPane;
@@ -24,9 +24,8 @@ public class Coco extends JApplet {
  *  This is the entry point for an Applet
  */
     public void init( ) {
-        contentPane = getContentPane( );
-        pane = new CocoPanel( contentPane );
-        contentPane.add( pane );
+        pane = new CocoPanel( this );
+        add( pane );
         pane.setup( task );
     }
 
@@ -57,7 +56,5 @@ class CocoFrame extends JFrame {
         contentPane.add( c );
         c.init();
         setVisible( true );
-        c.start();
-       
     }
 }
