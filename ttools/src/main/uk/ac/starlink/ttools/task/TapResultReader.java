@@ -208,12 +208,17 @@ public class TapResultReader {
                 }
                 else {
                     return new WrapperStarTable( table ) {
-                        protected void finalize() throws Throwable {
+                        boolean isClosed_;
+                        @Override
+                        public void close() throws IOException {
                             try {
-                                considerDeletionEarly( tapJob );
+                                if ( !isClosed_ ) {
+                                    isClosed_ = true;
+                                    considerDeletionEarly( tapJob );
+                                }
                             }
                             finally {
-                                super.finalize();
+                                super.close();
                             }
                         }
                     };
