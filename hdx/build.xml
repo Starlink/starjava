@@ -848,6 +848,7 @@
              doctitle="${Name}"
       	     source="1.8">
       <arg value="-Xdoclint:all,-missing"/>
+      <arg value="-quiet"/>
 
       <!-- Get a list of directories that name all the potential
        !   java packages -->

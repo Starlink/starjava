@@ -1298,6 +1298,7 @@ JNI libraries not built (NDF library not installed in ${stardev})"
              source="${source.version}"
              classpathref="classpath">
       <arg value="-Xdoclint:all,-missing"/>
+      <arg value="-quiet"/>
 
       <doclet name="com.sun.tools.doclets.standard.Standard">
         <param name="-breakiterator"/>
