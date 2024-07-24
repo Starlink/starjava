@@ -126,7 +126,7 @@ public class SequentialParquetStarTable extends ParquetStarTable {
         }
 
         public long splittableSize() {
-            int nr = 0;
+            long nr = 0;
             for ( int ib = iblock_ + 1; ib < iblockEnd_; ib++ ) {
                 nr += blockSizes_[ ib ];
             }
