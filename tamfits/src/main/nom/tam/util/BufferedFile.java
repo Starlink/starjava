@@ -743,19 +743,6 @@ public class BufferedFile
         }
     }
 
-    /** Clear up any pending output at cleanup.
-     */
-    protected void finalize() {
-	try {
-	    if (getFD().valid()) {
-	        flush();
-	        close();
-	    }
-	} catch (Exception e) {
-	}
-    }
-
-
     /** Write a boolean value
       * @param b  The value to be written.  Externally true is represented as
       *           a byte of 1 and false as a byte value of 0.
@@ -1101,5 +1088,4 @@ public class BufferedFile
 	}
 
     }
-
 }
