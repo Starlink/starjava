@@ -5,12 +5,6 @@ import java.io.IOException;
 
 /**
  * Implementation of RowStore which stores data on disk.
- * The temporary file is deleted by the finalizer (if it runs) or failing
- * that at JVM exit.  Since there's no guarantee when or if the finalizer
- * will run even after this object is a candidate for garbage collection,
- * this does raise the possibility that large numbers of potentially large
- * temporary files will accumulate during JVM operation.
- * It depends on your GC.
  *
  * @author   Mark Taylor (Starlink)
  * @since    3 Aug 2004
@@ -38,7 +32,7 @@ public class DiskRowStore extends ByteStoreRowStore {
      * backing store.
      * The temporary file will be written to the default temporary
      * directory, given by the value of the <code>java.io.tmpdir</code>
-     * system property.
+     * system property, and deleted on JVM exit.
      *
      * @throws IOException  if there is some I/O-related problem with
      *         opening the file
