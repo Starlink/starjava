@@ -13,14 +13,12 @@ import java.net.URL;
  * used to represent data which is only available to read once from an
  * intput stream.  The stream is read when this source is constructed,
  * and cached in a temporary file.  The temporary file is removed
- * when this object is finalized or when the VM is terminated normally.
+ * when this object becomes unreachable or when the VM is terminated normally.
  *
  * @author   Mark Taylor (Starlink)
  * @author   Peter W. Draper (Starlink)
  */
 public class TemporaryFileDataSource extends FileDataSource {
-
-    private File tempFile;
 
     /**
      * Constructs a new DataSource by reading the contents of an
@@ -35,6 +33,7 @@ public class TemporaryFileDataSource extends FileDataSource {
             throws IOException {
         super( makeTempFile( baseStream, "StreamDataSource", null, null ) );
         setName( name );
+        Cleaner.getInstance().register( this, new Deleter( getFile() ) );
     }
 
     /**
@@ -72,13 +71,6 @@ public class TemporaryFileDataSource extends FileDataSource {
     }
 
     /**
-     * Deletes the temporary data file.
-     */
-    public void finalize() {
-        tempFile.delete();
-    }
-
-    /**
      * Creates a temporary file and fills it with the contents of a stream.
      *
      * @param   strm  the input stream, which will be read and closed
@@ -108,6 +100,19 @@ public class TemporaryFileDataSource extends FileDataSource {
         catch ( IOException e ) {
             file.delete();
             throw e;
+        }
+    }
+
+    /**
+     * Used to delete the temporary file.
+     */
+    private static class Deleter implements Runnable {
+        private final File file_;
+        Deleter( File file ) {
+            file_ = file;
+        }
+        public void run() {
+            file_.delete();
         }
     }
 }
