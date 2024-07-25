@@ -14,6 +14,7 @@ import uk.ac.starlink.ndx.BridgeNdx;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.NdxHandler;
 import uk.ac.starlink.ndx.NdxImpl;
+import uk.ac.starlink.util.Cleaner;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -102,20 +103,12 @@ public class NDFNdxHandler
         final boolean isTemp = lobj.isTemporary();
 
         try {
-            /* Construct an NdxImpl which will remove any temporary file
-             * when it is finalized. */
-            NdxImpl impl = new NDFNdxImpl( href, url, mode ) {
-                public void finalize() throws Throwable {
-                    try {
-                        super.finalize();
-                    }
-                    finally {
-                        if ( isTemp ) {
-                            file.delete();
-                        }
-                    }
-                }
-            };
+            /* Return an NdxImpl which will remove any temporary file
+             * when it becomes unreachable. */
+            NdxImpl impl = new NDFNdxImpl( href, url, mode );
+            if ( isTemp ) {
+                Cleaner.getInstance().register( impl, new Deleter( file ) );
+            }
 
            /* Return an Ndx. */
            return new BridgeNdx( impl );
@@ -219,5 +212,18 @@ public class NDFNdxHandler
     public javax.xml.transform.Source makeHdxSource( java.net.URL url )
             throws HdxException {
         return new javax.xml.transform.dom.DOMSource( makeHdxDocument( url ) );
+    }
+
+    /**
+     * Deletes a file.
+     */
+    private static class Deleter implements Runnable {
+        private final File file;
+        Deleter( File file ) {
+            this.file = file;
+        }
+        public void run() {
+            file.delete();
+        }
     }
 }
