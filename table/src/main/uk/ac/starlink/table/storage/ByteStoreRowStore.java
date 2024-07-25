@@ -13,6 +13,7 @@ import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.WrapperStarTable;
+import uk.ac.starlink.util.Cleaner;
 import uk.ac.starlink.util.DataBufferedOutputStream;
 import uk.ac.starlink.util.IntList;
 
@@ -50,6 +51,7 @@ public class ByteStoreRowStore implements RowStore {
     public ByteStoreRowStore( ByteStore byteStore ) {
         byteStore_ = byteStore;
         out_ = new DataBufferedOutputStream( byteStore.getOutputStream() );
+        Cleaner.getInstance().register( this, new CleanAction( byteStore ) );
     }
 
     /**
@@ -152,15 +154,6 @@ public class ByteStoreRowStore implements RowStore {
             throw new IllegalStateException( "endRows not called" );
         }
         return storedTable_;
-    }
-
-    protected void finalize() throws Throwable {
-        try {
-            byteStore_.close();
-        }
-        finally {
-            super.finalize();
-        }
     }
 
     /**
@@ -303,6 +296,19 @@ public class ByteStoreRowStore implements RowStore {
         private ByteStoreAccess createAccess() {
             return NioByteStoreAccess
                   .createAccess( NioByteStoreAccess.copyBuffers( bbufs_ ) );
+        }
+    }
+
+    /**
+     * Runnable that cleans up when this row store becomes unreachable.
+     */
+    private static class CleanAction implements Runnable {
+        private final ByteStore bstore_;
+        CleanAction( ByteStore bstore ) {
+            bstore_ = bstore;
+        }
+        public void run() {
+            bstore_.close();
         }
     }
 }

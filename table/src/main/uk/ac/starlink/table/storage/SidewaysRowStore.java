@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -13,6 +14,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableFormatException;
+import uk.ac.starlink.util.Cleaner;
 
 /**
  * RowStore implementation which stores data cell data in a column-oriented
@@ -26,6 +28,7 @@ public class SidewaysRowStore implements RowStore {
 
     private final File file_;
     private final Set<File> tempFiles_;
+    private final Cleaner.Cleanable tidier_;
     private int ncol_;
     private StarTable template_;
     private long lrow_;
@@ -43,6 +46,8 @@ public class SidewaysRowStore implements RowStore {
     public SidewaysRowStore( File file ) throws IOException {
         file_ = file;
         tempFiles_ = new HashSet<File>();
+        tidier_ = Cleaner.getInstance()
+                 .register( this, new TidyAction( tempFiles_ ) );
     }
 
     /**
@@ -59,11 +64,11 @@ public class SidewaysRowStore implements RowStore {
             doAcceptMetadata( meta );
         }
         catch ( TableFormatException e ) {
-            tidy();
+            tidier_.clean();
             throw e;
         }
         catch ( IOException e ) {
-            tidy();
+            tidier_.clean();
             throw new TableFormatException( "I/O trouble during RowStore setup",
                                             e );
         }
@@ -204,34 +209,27 @@ public class SidewaysRowStore implements RowStore {
     }
 
     /**
-     * Tidies up resources associated with this store (which may be 
-     * substantial).  This object may no longer be used following a 
-     * call to this method.
+     * Callback to delete temporary files when this object is no longer needed.
      */
-    private void tidy() {
-
-        /* Deletes any temporary files we have created to store data. */
-        for ( Iterator<File> it = tempFiles_.iterator(); it.hasNext(); ) {
-            File file = it.next();
-            if ( file.exists() ) {
-                if ( file.delete() ) {
-                    logger_.info( "Deleted temporary file " + file );
-                    it.remove();
-                }
-                else {
-                    logger_.warning( "Failed to delete temporary file "
-                                   + file );
+    private static class TidyAction implements Runnable {
+        final Collection<File> files_;
+        TidyAction( Collection<File> files ) {
+            files_ = files;
+        }
+        public void run() {
+            for ( Iterator<File> it = files_.iterator(); it.hasNext(); ) {
+                File file = it.next();
+                if ( file.exists() ) {
+                    if ( file.delete() ) {
+                        logger_.info( "Deleted temporary file " + file );
+                        it.remove();
+                    }
+                    else {
+                        logger_.warning( "Failed to delete temporary file "
+                                       + file );
+                    }
                 }
             }
-        }
-    }
-
-    protected void finalize() throws Throwable {
-        try {
-            tidy();
-        }
-        finally {
-            super.finalize();
         }
     }
 }
