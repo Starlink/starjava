@@ -141,14 +141,6 @@ class FastPipedInputStream extends InputStream
 
 
 
-  protected void
-  finalize() throws Throwable
-  {
-    close();
-  }
-
-
-
   public void
   mark(int readLimit)
   {

@@ -113,14 +113,6 @@ class FastPipedOutputStream extends OutputStream
 
 
 
-  protected void
-  finalize() throws Throwable
-  {
-    close();
-  }
-
-
-
   public void
   flush() throws IOException
   {
