@@ -107,6 +107,7 @@ public class SelectCharacters
      * be displayed, a parent frame and whether the dialog is modal or
      * not.
      */
+    @SuppressWarnings("this-escape")
     public SelectCharacters( Frame owner, String title, boolean modal,
                              Font displayFont )
     {

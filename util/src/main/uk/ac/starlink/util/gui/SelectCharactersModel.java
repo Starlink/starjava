@@ -40,6 +40,7 @@ public class SelectCharactersModel
     /**
      * Create an instance of this class.
      */
+    @SuppressWarnings("this-escape")
     public SelectCharactersModel( Font font ) 
     {
         setFont( font );

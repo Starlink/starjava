@@ -66,6 +66,7 @@ public abstract class DataSource {
      *
      * @param  introLimit  the maximum number of bytes in the intro buffer
      */
+    @SuppressWarnings("this-escape")
     public DataSource( int introLimit ) {
         setIntroLimit( introLimit );
     }

@@ -28,6 +28,7 @@ public class FileDataSource extends DataSource {
      * @throws  IOException  if <code>file</code> does not exist,
      *                       cannot be read, or is a directory
      */
+    @SuppressWarnings("this-escape")
     public FileDataSource( File file, String position ) throws IOException {
         if ( ! file.exists() ) {
             throw new FileNotFoundException( "No such file " + file );

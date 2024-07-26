@@ -85,6 +85,7 @@ public class AsciiFileParser
      *
      * @param fixed whether fixed format is required.
      */
+    @SuppressWarnings("this-escape")
     public AsciiFileParser( boolean fixed )
     {
         setFixed( fixed );
@@ -95,6 +96,7 @@ public class AsciiFileParser
      *
      * @param file reference a File that describes the input file.
      */
+    @SuppressWarnings("this-escape")
     public AsciiFileParser( File file )
     {
         parse( file );
@@ -106,6 +108,7 @@ public class AsciiFileParser
      * @param file reference a File that describes the input file.
      * @param fixed whether fixed format is required.
      */
+    @SuppressWarnings("this-escape")
     public AsciiFileParser( File file, boolean fixed )
     {
         setFixed( fixed );

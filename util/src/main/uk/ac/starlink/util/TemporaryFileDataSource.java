@@ -52,6 +52,7 @@ public class TemporaryFileDataSource extends FileDataSource {
      * @param directory the directory in which the file is to be created, or
      *        null if the default temporary-file directory is to be used
      */
+    @SuppressWarnings("this-escape")
     public TemporaryFileDataSource( InputStream baseStream, String name,
                                     String prefix, String suffix,
                                     File directory )

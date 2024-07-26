@@ -84,6 +84,7 @@ public class BasicFileFilter
      *
      * @see #addExtension
      */
+    @SuppressWarnings("this-escape")
     public BasicFileFilter( String extension, String description )
     {
         this();
@@ -113,6 +114,7 @@ public class BasicFileFilter
      *
      * @see #addExtension
      */
+    @SuppressWarnings("this-escape")
     public BasicFileFilter( String[] filters, String description )
     {
         this();

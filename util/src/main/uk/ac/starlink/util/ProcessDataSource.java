@@ -26,6 +26,7 @@ public class ProcessDataSource extends DataSource {
      *
      * @param   pbuilder   process builder
      */
+    @SuppressWarnings("this-escape")
     public ProcessDataSource( ProcessBuilder pbuilder ) {
         pbuilder_ = pbuilder;
         StringBuffer sbuf = new StringBuffer();

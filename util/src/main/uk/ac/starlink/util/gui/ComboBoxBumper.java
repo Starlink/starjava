@@ -41,6 +41,7 @@ public class ComboBoxBumper extends JPanel {
      *
      * @param   comboBox  the combo box this will operate on
      */
+    @SuppressWarnings("this-escape")
     public ComboBoxBumper( JComboBox<?> comboBox ) {
         comboBox_ = comboBox;
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );

@@ -30,6 +30,7 @@ public class RenderingComboBox<E> extends JComboBox<E>
      *
      * @param  model   data model
      */
+    @SuppressWarnings("this-escape")
     protected RenderingComboBox( ComboBoxModel<E> model ) {
         super( model );
         basicRenderer_ = new BasicComboBoxRenderer();

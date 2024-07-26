@@ -59,6 +59,7 @@ public class ErrorDialog extends JDialog {
      * @param   title  dialogue window title
      * @param   message  additional text, one line per element
      */
+    @SuppressWarnings("this-escape")
     public ErrorDialog( Frame frame, Throwable error, String title,
                         String[] message ) {
         super( frame, title == null ? "Error" : title, true );

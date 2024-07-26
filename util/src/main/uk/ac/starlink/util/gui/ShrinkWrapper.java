@@ -25,6 +25,7 @@ public class ShrinkWrapper extends JPanel {
      *
      * @param  component  the component to be wrapped
      */
+    @SuppressWarnings("this-escape")
     public ShrinkWrapper( Component component ) {
         super( new FlowLayout( FlowLayout.CENTER, 0, 0 ) );
         component_ = component;

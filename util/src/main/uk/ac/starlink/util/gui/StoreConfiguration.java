@@ -100,6 +100,7 @@ public class StoreConfiguration
      * @param storeName name of the file that contains the
      *                  configuration
      */
+    @SuppressWarnings("this-escape")
     public StoreConfiguration( String applicationName, String storeName )
     {
         this.applicationName = applicationName;
@@ -118,6 +119,7 @@ public class StoreConfiguration
      *               store file).
      *
      */
+    @SuppressWarnings("this-escape")
     public StoreConfiguration( InputStream inputStream )
     {
         initFromBackingStore( inputStream );

@@ -132,6 +132,7 @@ public class NodeDescendants {
      * @param whatToShow code indicating which node types should be
      * included in the set
      */
+    @SuppressWarnings("this-escape")
     public NodeDescendants(Node node, int whatToShow) {
         initialNode = node;
         this.whatToShow = whatToShow;

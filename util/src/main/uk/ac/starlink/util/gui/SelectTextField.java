@@ -50,6 +50,7 @@ public class SelectTextField
     /**
      * Create an instance.
      */
+    @SuppressWarnings("this-escape")
     public SelectTextField() 
     {
         initUI();
@@ -60,6 +61,7 @@ public class SelectTextField
      *
      * @param text default text for the text field.
      */
+    @SuppressWarnings("this-escape")
     public SelectTextField( String text ) 
     {
         initUI();
@@ -72,6 +74,7 @@ public class SelectTextField
      *
      * @param text default text for the text field.
      */
+    @SuppressWarnings("this-escape")
     public SelectTextField( String text, SelectCharacters charChooser ) 
     {
         initUI();

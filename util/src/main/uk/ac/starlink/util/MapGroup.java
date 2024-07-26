@@ -34,6 +34,7 @@ public class MapGroup<K,V> {
     /**
      * Constructs a new <code>MapGroup</code>.
      */
+    @SuppressWarnings("this-escape")
     public MapGroup() {
         setKeyOrder( new ArrayList<K>() );
     }
