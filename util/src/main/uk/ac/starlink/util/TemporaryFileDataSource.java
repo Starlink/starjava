@@ -31,9 +31,7 @@ public class TemporaryFileDataSource extends FileDataSource {
      */
     public TemporaryFileDataSource( InputStream baseStream, String name )
             throws IOException {
-        super( makeTempFile( baseStream, "StreamDataSource", null, null ) );
-        setName( name );
-        Cleaner.getInstance().register( this, new Deleter( getFile() ) );
+        this( baseStream, name, "StreamDataSource", null, null );
     }
 
     /**
@@ -60,6 +58,7 @@ public class TemporaryFileDataSource extends FileDataSource {
             throws IOException {
         super( makeTempFile( baseStream, prefix, suffix, directory ) );
         setName( name );
+        Cleaner.getInstance().register( this, new Deleter( getFile() ) );
     }
 
     /**
