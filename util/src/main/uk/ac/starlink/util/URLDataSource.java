@@ -58,6 +58,7 @@ public class URLDataSource extends DataSource {
      *                 if inapplicable or security concerns apply
      * @param  authManager   authentication manager
      */
+    @SuppressWarnings("this-escape")
     public URLDataSource( URL url, ContentCoding coding,
                           AuthManager authManager ) {
         url_ = url;

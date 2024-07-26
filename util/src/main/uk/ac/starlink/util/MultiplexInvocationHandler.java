@@ -26,6 +26,7 @@ public class MultiplexInvocationHandler<T> implements InvocationHandler {
      *
      * @param  targets  target instances
      */
+    @SuppressWarnings("this-escape")
     public MultiplexInvocationHandler( T[] targets ) {
         setTargets( targets );
     }

@@ -26,6 +26,7 @@ public class ResourceDataSource extends DataSource {
      * @param resource  the path of the resource represented by this DataSource
      * @param introLimit  the intro buffer size
      */
+    @SuppressWarnings("this-escape")
     public ResourceDataSource( String resource, int introLimit ) {
         super( introLimit );
         this.resource = resource;

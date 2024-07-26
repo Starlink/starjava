@@ -98,6 +98,7 @@ public class StoreControlFrame
     /**
      * Create an instance.
      */
+    @SuppressWarnings("this-escape")
     public StoreControlFrame( StoreSource storeSource )
     {
         this.storeSource = storeSource;
