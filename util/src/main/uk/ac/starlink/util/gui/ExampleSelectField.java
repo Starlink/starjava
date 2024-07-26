@@ -34,6 +34,7 @@ public class ExampleSelectField extends JPanel {
      *
      * @param   exampleText  text for display before use; may be null
      */
+    @SuppressWarnings("this-escape")
     public ExampleSelectField( String exampleText ) {
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
         exampleText_ = exampleText;

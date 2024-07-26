@@ -23,6 +23,7 @@ public class TallWrapper extends JPanel {
      *
      * @param   comp  the component to be wrapped
      */
+    @SuppressWarnings("this-escape")
     public TallWrapper( Component comp ) {
         super( new BorderLayout() );
         comp_ = comp;

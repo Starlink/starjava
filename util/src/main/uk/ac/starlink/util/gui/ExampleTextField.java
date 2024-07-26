@@ -26,6 +26,7 @@ public class ExampleTextField extends JTextField {
      *
      * @param   exampleText   initial text for field
      */
+    @SuppressWarnings("this-escape")
     public ExampleTextField( String exampleText ) {
         exampleText_ = exampleText;
         super.setText( exampleText );

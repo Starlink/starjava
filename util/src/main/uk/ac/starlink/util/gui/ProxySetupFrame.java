@@ -96,6 +96,7 @@ public class ProxySetupFrame
     /**
      * Create an instance.
      */
+    @SuppressWarnings("this-escape")
     public ProxySetupFrame()
     {
         // Restore any existing values.

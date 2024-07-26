@@ -132,6 +132,7 @@ public class BasicFontChooser
      * Construct an instance, setting the parent, window title and
      * whether the dialog is modal.
      */
+    @SuppressWarnings("this-escape")
     public BasicFontChooser( Frame owner, String title, boolean modal )
     {
         super( owner, title, modal );

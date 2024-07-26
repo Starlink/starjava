@@ -38,6 +38,7 @@ public class MemoryMonitor extends JComponent {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public MemoryMonitor() {
         maxColor_ = new Color( 0xc0f0ff );
         totalColor_ = new Color( 0x30c0ff );
