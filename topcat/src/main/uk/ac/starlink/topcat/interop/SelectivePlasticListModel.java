@@ -51,6 +51,7 @@ public class SelectivePlasticListModel
      *          excluded from the list (typically represents the 
      *          sender application)
      */
+    @SuppressWarnings("this-escape")
     public SelectivePlasticListModel( ListModel<ApplicationItem> base,
                                       URI messageId, boolean includeAll,
                                       HubManager excludeApp ) {

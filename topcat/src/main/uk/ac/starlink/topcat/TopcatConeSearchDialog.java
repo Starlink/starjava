@@ -11,6 +11,7 @@ import uk.ac.starlink.vo.ConeSearchDialog;
  */
 public class TopcatConeSearchDialog extends ConeSearchDialog {
     private final RegistryDialogAdjuster adjuster_;
+    @SuppressWarnings("this-escape")
     public TopcatConeSearchDialog() {
         adjuster_ = new RegistryDialogAdjuster( this, "cone", true );
     }

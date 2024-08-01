@@ -53,6 +53,7 @@ public class ReportPanel extends JPanel {
      * @param  plotterSupplier   object that can supply the Plotter
      *                           currently associated with this report panel
      */
+    @SuppressWarnings("this-escape")
     public ReportPanel( Supplier<Plotter<?>> plotterSupplier ) {
         super( new BorderLayout() );
         plotterSupplier_ = plotterSupplier;

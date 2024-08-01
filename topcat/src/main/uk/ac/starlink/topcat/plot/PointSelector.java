@@ -82,6 +82,7 @@ public class PointSelector extends JPanel {
     /** ActionEvent command string indicating a change of table. */
     public static final String TABLE_CHANGED = "TABLE_CHANGED";
 
+    @SuppressWarnings("this-escape")
     public PointSelector( AxesSelector axesSelector, MutableStyleSet styles ) {
         super( new BorderLayout() );
         axesSelector_ = axesSelector;

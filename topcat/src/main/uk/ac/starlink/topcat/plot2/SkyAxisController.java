@@ -46,6 +46,7 @@ public class SkyAxisController
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public SkyAxisController() {
         super( new SkySurfaceFactory() );
         SurfaceFactory<SkySurfaceFactory.Profile,SkyAspect> surfFact =

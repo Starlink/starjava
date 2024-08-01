@@ -32,6 +32,7 @@ public class DisjointAxesController<P,A> extends AbstractAxesController<P,A> {
      * @param  zoneFact  zone factory
      * @param  acSupplier  supplier for per-zone AxisController instances
      */
+    @SuppressWarnings("this-escape")
     public DisjointAxesController( ZoneFactory zoneFact,
                                    Supplier<AxisController<P,A>> acSupplier ) {
         zoneFact_ = zoneFact;

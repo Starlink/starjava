@@ -50,6 +50,7 @@ public class ImageWindow extends AuxWindow {
      *
      * @param  parent window
      */
+    @SuppressWarnings("this-escape")
     public ImageWindow( Component parent ) {
         super( "Image Viewer", parent );
         setAutoRequestFocus( false );

@@ -49,6 +49,7 @@ public class ColumnComboBoxModel extends AbstractListModel<TableColumn>
      * @param  hasNone  true iff an additional null entry at the head of
      *                  the list is required
      */
+    @SuppressWarnings("this-escape")
     public ColumnComboBoxModel( TableColumnModel colModel, boolean hasNone ) {
         colModel_ = colModel;
         setHasNone( hasNone );

@@ -200,6 +200,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @param  auxLockModel  model to determine whether aux range auto-rescaling
      *                       should be inhibited
      */
+    @SuppressWarnings("this-escape")
     public PlotPanel( PlotType<P,A> plotType, DataStoreFactory storeFact,
                       SurfaceFactory<P,A> surfFact,
                       Supplier<PlotContent<P,A>> contentSupplier,

@@ -51,6 +51,7 @@ public class TablesListComboBox extends JComboBox<TopcatModel> {
      * @param  maxWidth  absolute maximum of component size in pixels;
      *                   if non-positive, there is no maximum
      */
+    @SuppressWarnings("this-escape")
     public TablesListComboBox( ListModel<TopcatModel> tablesList,
                                int maxWidth ) {
         tablesList_ = tablesList;

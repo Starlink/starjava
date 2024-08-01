@@ -46,6 +46,7 @@ public class SubsetConsumerDialog extends JPanel {
      * @param   tcModel   table for which table was generated
      * @param   communicator   interop abstraction object
      */
+    @SuppressWarnings("this-escape")
     public SubsetConsumerDialog( TopcatModel tcModel,
                                  final TopcatCommunicator communicator ) {
         super( new BorderLayout() );

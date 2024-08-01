@@ -59,6 +59,7 @@ public class InterMatchSpec extends MatchSpec {
      * @param  runnerFact  supplier for RowRunner
      * @param  nTable   number of tables on which this InterMatch will operate
      */
+    @SuppressWarnings("this-escape")
     public InterMatchSpec( MatchEngine engine, Supplier<RowRunner> runnerFact,
                            int nTable ) {
         this.nTable = nTable;

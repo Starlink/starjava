@@ -43,6 +43,7 @@ public class SmallColumnSearchWindow extends ColumnSearchWindow {
      * @param  scroller  scroll pane containing jtab, may be null
      * @param  columnSelectorLabel  label for column selector
      */
+    @SuppressWarnings("this-escape")
     public SmallColumnSearchWindow( String title, Window owner,
                                     JTable jtab, JScrollPane scroller,
                                     String columnSelectorLabel ) {

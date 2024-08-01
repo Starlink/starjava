@@ -33,6 +33,7 @@ public class LoadWorkerStack extends JPanel implements Scrollable {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public LoadWorkerStack() {
         setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
         panelMap_ = new HashMap<TableLoadWorker,JComponent>();

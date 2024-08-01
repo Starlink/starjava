@@ -40,6 +40,7 @@ public class FixedJComboBox<E> extends JComboBox<E> {
     /**
      * Creates a JComboBox with a default data model.
      */
+    @SuppressWarnings("this-escape")
     public FixedJComboBox() {
         super();
         oldSelection_ = getModel().getSelectedItem();
@@ -50,6 +51,7 @@ public class FixedJComboBox<E> extends JComboBox<E> {
      *
      * @param  model  model
      */
+    @SuppressWarnings("this-escape")
     public FixedJComboBox( ComboBoxModel<E> model ) {
         super( model );
         oldSelection_ = getModel().getSelectedItem();
@@ -60,6 +62,7 @@ public class FixedJComboBox<E> extends JComboBox<E> {
      *
      * @param  items  array populating default combo box model
      */
+    @SuppressWarnings("this-escape")
     public FixedJComboBox( E[] items ) {
         super( items );
         oldSelection_ = getModel().getSelectedItem();

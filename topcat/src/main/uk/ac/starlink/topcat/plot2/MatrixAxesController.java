@@ -66,6 +66,7 @@ public class MatrixAxesController
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public MatrixAxesController() {
         mainControl_ = new ConfigControl( "Axes", ResourceIcon.AXIS_CONFIG );
         controllerMap_ =

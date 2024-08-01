@@ -26,6 +26,7 @@ public class ServiceParamPanel extends JPanel {
      *
      * @param  params  list of parameters for the GUI
      */
+    @SuppressWarnings("this-escape")
     public ServiceParamPanel( ServiceParam[] params ) {
         super( new BorderLayout() );
         fieldMap_ = new LinkedHashMap<ServiceParam,JTextField>();

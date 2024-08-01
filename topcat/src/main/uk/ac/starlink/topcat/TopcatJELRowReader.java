@@ -68,6 +68,7 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
      *
      * @param   tcModel   topcat model
      */
+    @SuppressWarnings("this-escape")
     protected TopcatJELRowReader( TopcatModel tcModel ) {
         super( tcModel.getDataModel() );
         assert getTable().isRandom();

@@ -22,6 +22,7 @@ public class SwingHtmlPanel extends AbstractHtmlPanel {
     private final JEditorPane textPane_;
     private URL lastUrl_;
 
+    @SuppressWarnings("this-escape")
     public SwingHtmlPanel() {
         textPane_ = new JEditorPane();
         textPane_.setEditable( false );

@@ -50,6 +50,7 @@ public class ErrorModeSelectionModel
      * @param  iaxis  index of the axis for which this model selects ErrorModes
      * @param  axisName  name of the axis
      */
+    @SuppressWarnings("this-escape")
     public ErrorModeSelectionModel( int iaxis, String axisName ) {
         iaxis_ = iaxis;
         axisName_ = axisName;

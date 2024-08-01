@@ -27,6 +27,7 @@ public abstract class XYZoomRegion extends ZoomRegion {
      * @param  display   rectangle defining the region for both dragging
      *         and visual feedback
      */
+    @SuppressWarnings("this-escape")
     public XYZoomRegion( Rectangle display ) {
         setDisplay( display );
         setTarget( display );

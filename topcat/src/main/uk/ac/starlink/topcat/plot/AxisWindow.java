@@ -44,6 +44,7 @@ public class AxisWindow extends JDialog {
      *
      * @param  parent  owner frame
      */
+    @SuppressWarnings("this-escape")
     public AxisWindow( Frame parent ) {
         super( parent );
         parent_ = parent;

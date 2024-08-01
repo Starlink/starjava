@@ -27,6 +27,7 @@ public class PairModeSelector extends Box {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public PairModeSelector() {
         super( BoxLayout.X_AXIS );
         comboBox_ = new JComboBox<PairMode>( PairMode.values() );

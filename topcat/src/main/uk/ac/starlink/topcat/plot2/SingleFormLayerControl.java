@@ -39,6 +39,7 @@ public class SingleFormLayerControl extends FormLayerControl {
      * @param  baseConfigger  configuration source for some global config
      *                        options
      */
+    @SuppressWarnings("this-escape")
     public SingleFormLayerControl( PlotTypeGui<?,?> plotTypeGui,
                                    PositionCoordPanel posCoordPanel,
                                    ListModel<TopcatModel> tablesModel,

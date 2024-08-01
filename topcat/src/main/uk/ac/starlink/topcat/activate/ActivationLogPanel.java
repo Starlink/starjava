@@ -44,6 +44,7 @@ public class ActivationLogPanel extends JPanel {
      *                   if more are submitted, the oldest ones will be
      *                   removed
      */
+    @SuppressWarnings("this-escape")
     public ActivationLogPanel( int maxItems ) {
         super( new BorderLayout() );
         maxItems_ = maxItems;

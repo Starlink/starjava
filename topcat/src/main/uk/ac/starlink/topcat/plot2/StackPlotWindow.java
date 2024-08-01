@@ -186,6 +186,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      *                      for plot type
      * @param  tablesModel  list of available tables
      */
+    @SuppressWarnings("this-escape")
     public StackPlotWindow( String name, Component parent,
                             PlotType<P,A> plotType,
                             PlotTypeGui<P,A> plotTypeGui,

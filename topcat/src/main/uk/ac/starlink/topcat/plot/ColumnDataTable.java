@@ -23,6 +23,7 @@ public class ColumnDataTable extends ColumnStarTable {
      * @param   tcModel  topcat model that the columns come from
      * @param   cols     column data objects
      */
+    @SuppressWarnings("this-escape")
     public ColumnDataTable( TopcatModel tcModel, ColumnData[] cols ) {
         tcModel_ = tcModel;
         for ( int i = 0; i < cols.length; i++ ) {

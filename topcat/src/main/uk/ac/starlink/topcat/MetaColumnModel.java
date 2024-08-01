@@ -41,6 +41,7 @@ public class MetaColumnModel extends DefaultTableColumnModel {
      *         for the columns this object describes; must refer to the
      *         same data as baseColumnModel
      */
+    @SuppressWarnings("this-escape")
     public MetaColumnModel( TableColumnModel baseColumnModel,
                             TableModel tableModel ) {
         tableModel_ = tableModel;

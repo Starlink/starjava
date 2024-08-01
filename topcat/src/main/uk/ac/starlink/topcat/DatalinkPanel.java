@@ -70,6 +70,7 @@ public class DatalinkPanel extends JPanel {
      * @param  hasAutoInvoke      true if URL panel should feature an
      *                            auto-invoke button
      */
+    @SuppressWarnings("this-escape")
     public DatalinkPanel( boolean canReplaceContents,
                           boolean hasAutoInvoke ) {
         super( new BorderLayout() );

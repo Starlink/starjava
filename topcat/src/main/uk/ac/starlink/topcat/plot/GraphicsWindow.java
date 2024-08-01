@@ -247,6 +247,7 @@ public abstract class GraphicsWindow extends AuxWindow {
      * @param   errorModeModels   array of selecction models for error modes
      * @param   parent   parent window - may be used for positioning
      */
+    @SuppressWarnings("this-escape")
     public GraphicsWindow( String viewName, TablePlot plot, String[] axisNames,
                            int naux, boolean hasLabels,
                            ErrorModeSelectionModel[] errorModeModels,

@@ -35,6 +35,7 @@ public class CubeAxisController
      *
      * @param  isIso   true for isotropic, false for anisotropic
      */
+    @SuppressWarnings("this-escape")
     public CubeAxisController( boolean isIso ) {
         super( new CubeSurfaceFactory( isIso ), createAxisLabelKeys() );
         isIso_ = isIso;

@@ -25,6 +25,7 @@ public class PlaneAxisController
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public PlaneAxisController() {
         super( new PlaneSurfaceFactory(), createAxisLabelKeys() );
         SurfaceFactory<PlaneSurfaceFactory.Profile,PlaneAspect> surfFact =

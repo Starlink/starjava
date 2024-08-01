@@ -52,6 +52,7 @@ public class DalMultiWindow extends AuxWindow {
      * @param   autoQuery  whether to populate the service table with a
      *          full registry query on initial display
      */
+    @SuppressWarnings("this-escape")
     public DalMultiWindow( Component parent, DalMultiService service,
                            boolean autoQuery ) {
         super( "Multiple " + service.getName(), parent );

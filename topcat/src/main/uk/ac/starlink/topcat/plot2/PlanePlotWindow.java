@@ -44,6 +44,7 @@ public class PlanePlotWindow
      * @param  parent  parent component
      * @param  tablesModel  list of available tables
      */
+    @SuppressWarnings("this-escape")
     public PlanePlotWindow( Component parent,
                             ListModel<TopcatModel> tablesModel ) {
         super( "Plane Plot", parent, PLOT_TYPE, PLOT_GUI, tablesModel );

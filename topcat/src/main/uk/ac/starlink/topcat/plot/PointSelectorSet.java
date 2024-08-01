@@ -61,6 +61,7 @@ public abstract class PointSelectorSet extends JPanel {
     /**
      * Constructs a new set.
      */
+    @SuppressWarnings("this-escape")
     public PointSelectorSet() {
         super( new BorderLayout() );
         tabber_ = new JTabbedPane();

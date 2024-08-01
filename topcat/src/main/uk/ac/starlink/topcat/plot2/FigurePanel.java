@@ -75,6 +75,7 @@ public abstract class FigurePanel extends JComponent {
      * @param  figureModes   available modes
      * @param  isDisplayExpr  true to display current expression on screen
      */
+    @SuppressWarnings("this-escape")
     public FigurePanel( PlotPanel<?,?> plotPanel, FigureMode[] figureModes,
                         boolean isDisplayExpr ) {
         plotPanel_ = plotPanel;

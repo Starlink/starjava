@@ -82,6 +82,7 @@ public class HistogramPlotWindow
      * @param  parent  parent component
      * @param  tablesModel  list of available tables
      */
+    @SuppressWarnings("this-escape")
     public HistogramPlotWindow( Component parent,
                                 ListModel<TopcatModel> tablesModel ) {
         super( "Histogram Plot", parent, PLOT_TYPE, PLOT_GUI, tablesModel );

@@ -80,6 +80,7 @@ public class FormStylePanel extends JPanel {
      * @param  subStack    controls/display per-subset visibility
      * @param  tcModel   topcat model whose subsets are being configured
      */
+    @SuppressWarnings("this-escape")
     public FormStylePanel( ConfigKey<?>[] keys, Configger plotConfigger,
                            Supplier<Plotter<?>> plotterSupplier,
                            SubsetConfigManager subManager,

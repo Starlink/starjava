@@ -33,6 +33,7 @@ public abstract class RowSubset {
      *
      * @param   name  subset name
      */
+    @SuppressWarnings("this-escape")
     public RowSubset( String name ) {
         name_ = name;
         key_ = new Key( TopcatUtils.identityString( this ) );

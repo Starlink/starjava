@@ -23,6 +23,7 @@ public class CountsLabel extends JLabel {
      *
      * @param  titles  count headings
      */
+    @SuppressWarnings("this-escape")
     public CountsLabel( String[] titles ) {
         titles_ = titles;
 

@@ -20,6 +20,7 @@ public class RoundingSpinner extends JSpinner {
     /**
      * Constructs a new spinner with default (linear) rounding.
      */
+    @SuppressWarnings("this-escape")
     public RoundingSpinner() {
         setModel( new RoundingSpinnerModel( this ) );
         setEditor( new NumberEditor( this ) );

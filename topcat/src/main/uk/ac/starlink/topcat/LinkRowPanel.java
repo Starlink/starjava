@@ -55,6 +55,7 @@ public class LinkRowPanel extends JPanel {
      * @param  hasAutoInvoke  whether the URL panel should feature an
      *                        auto-invoke button
      */
+    @SuppressWarnings("this-escape")
     public LinkRowPanel( UrlOptions urlopts, boolean hasAutoInvoke ) {
         super( new BorderLayout() );
         urlopts_ = urlopts;

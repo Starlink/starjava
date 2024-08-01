@@ -24,6 +24,7 @@ public abstract class RestrictedColumnComboBoxModel
     private List<TableColumn> activeColumns;
     private List<TableColumn> modelColumns;
 
+    @SuppressWarnings("this-escape")
     public RestrictedColumnComboBoxModel( TableColumnModel colModel,
                                           boolean hasNone ) {
         super( colModel, hasNone );

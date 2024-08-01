@@ -26,6 +26,7 @@ public class LoadingList extends JList<LoadingToken> {
      *
      * @param   model  list model
      */
+    @SuppressWarnings("this-escape")
     public LoadingList( ListModel<LoadingToken> model ) {
         super( model );
         setCellRenderer( new LoadingRenderer() );

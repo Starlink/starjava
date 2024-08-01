@@ -57,6 +57,7 @@ public abstract class QueryWindow extends AuxWindow {
      * @param   ok      whether to include an OK button
      * @param   cancel  whether to include a Cancel button
      */
+    @SuppressWarnings("this-escape")
     public QueryWindow( String title, Component parent, boolean ok,
                         boolean cancel ) {
         super( title, parent );

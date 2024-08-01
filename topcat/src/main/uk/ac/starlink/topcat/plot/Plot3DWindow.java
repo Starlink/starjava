@@ -93,6 +93,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
      * @param   errorModeModels   array of selecction models for error modes
      * @param   plot   the Plot3D object on which plotting is done
      */
+    @SuppressWarnings("this-escape")
     public Plot3DWindow( String viewName, String[] axisNames, int naux,
                          Component parent,
                          ErrorModeSelectionModel[] errorModeModels,

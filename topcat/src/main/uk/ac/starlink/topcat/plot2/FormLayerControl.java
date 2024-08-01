@@ -81,6 +81,7 @@ public abstract class FormLayerControl
      *                     selected TopcatModel
      * @param  controlIcon  icon for control stack
      */
+    @SuppressWarnings("this-escape")
     protected FormLayerControl( PlotTypeGui<?,?> plotTypeGui,
                                 PositionCoordPanel posCoordPanel,
                                 ListModel<TopcatModel> tablesModel,

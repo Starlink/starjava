@@ -46,6 +46,7 @@ public class BarStyleEditor extends StyleEditor {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public BarStyleEditor() {
         super();
 

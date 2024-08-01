@@ -30,6 +30,7 @@ public class MenuSelector<T> {
      * @param  dflt    initial default value;
      *                 should be one of <code>options</code>
      */
+    @SuppressWarnings("this-escape")
     public MenuSelector( String name, T[] options, T dflt ) {
         menu_ = new JMenu( name );
         listeners_ = new ArrayList<ActionListener>(); 

@@ -47,6 +47,7 @@ public class BlobPanel extends JComponent
     /**
      * Creates a new BlobPanel.
      */
+    @SuppressWarnings("this-escape")
     public BlobPanel() {
         addMouseListener( this );
         addMouseMotionListener( this );

@@ -45,6 +45,7 @@ public abstract class StyleEditor extends JPanel
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public StyleEditor() {
         super();
         setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );

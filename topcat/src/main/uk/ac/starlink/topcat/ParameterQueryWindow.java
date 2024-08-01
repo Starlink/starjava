@@ -33,6 +33,7 @@ public class ParameterQueryWindow extends QueryWindow {
      * @param  tcModel  topcat model describing the table this relates to
      * @param  parent   parent window, may be used for positioning
      */
+    @SuppressWarnings("this-escape")
     public ParameterQueryWindow( TopcatModel tcModel, Component parent ) {
         super( "Add New Parameter", parent );
         tcModel_ = tcModel;

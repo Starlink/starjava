@@ -86,6 +86,7 @@ public class HistogramWindow extends GraphicsWindow {
      *
      * @param  parent  parent component (may be used for positioning)
      */
+    @SuppressWarnings("this-escape")
     public HistogramWindow( Component parent ) {
         super( "Histogram (old)", new Histogram( new PtPlotSurface() ), 
                new String[] { "X" }, 0, false, new ErrorModeSelectionModel[ 0 ],

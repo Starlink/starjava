@@ -11,6 +11,7 @@ import uk.ac.starlink.vo.SiapTableLoadDialog;
  */
 public class TopcatSiapTableLoadDialog extends SiapTableLoadDialog {
     private final RegistryDialogAdjuster adjuster_;
+    @SuppressWarnings("this-escape")
     public TopcatSiapTableLoadDialog() {
         adjuster_ = new RegistryDialogAdjuster( this, "siap", true );
     }

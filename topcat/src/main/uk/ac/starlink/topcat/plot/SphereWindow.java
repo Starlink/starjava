@@ -49,6 +49,7 @@ public class SphereWindow extends Plot3DWindow {
      *
      * @param   parent  parent component (may be used for positioning)
      */
+    @SuppressWarnings("this-escape")
     public SphereWindow( Component parent ) {
         super( "Spherical Plot (old)",
                new String[] { "Longitude", "Latitude", "Radius" }, 3, parent, 

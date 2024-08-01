@@ -109,6 +109,7 @@ public class GavoCSVTableParser  {
      * @param parent  component controlling this parser (may be null)
      * @param delimiter the character delimiter ('separator')
      */
+    @SuppressWarnings("this-escape")
     public GavoCSVTableParser(StoragePolicy storage, Component parent, String delimiter) {
         this.storage = storage;
         this.parent = parent;
@@ -336,6 +337,7 @@ public class GavoCSVTableParser  {
          *
          * @param line the line to parse
          */
+        @SuppressWarnings("this-escape")
         public RecursiveDescentParser(String line) {
             setLine(line);
         }

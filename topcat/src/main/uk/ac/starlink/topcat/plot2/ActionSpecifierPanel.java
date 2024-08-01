@@ -31,6 +31,7 @@ public class ActionSpecifierPanel extends SpecifierPanel<ConfigMap> {
      *
      * @param   baseSpecifier  specifier on which this is based
      */
+    @SuppressWarnings("this-escape")
     public ActionSpecifierPanel( Specifier<ConfigMap> baseSpecifier ) {
         super( true );
         baseSpecifier_ = baseSpecifier;

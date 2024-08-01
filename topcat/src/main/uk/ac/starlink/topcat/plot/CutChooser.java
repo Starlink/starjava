@@ -32,6 +32,7 @@ public class CutChooser extends JPanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public CutChooser() {
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
 

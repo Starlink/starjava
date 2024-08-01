@@ -27,6 +27,7 @@ public class TimeAxisController
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public TimeAxisController() {
         super( new TimeSurfaceFactory(), createAxisLabelKeys() );
         SurfaceFactory<TimeSurfaceFactory.Profile,TimeAspect> surfFact =

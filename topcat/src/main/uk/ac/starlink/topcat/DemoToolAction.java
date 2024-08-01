@@ -36,6 +36,7 @@ public class DemoToolAction extends AbstractAction implements TopcatToolAction {
      * No-arg constructor.
      * This signature is essential for use as an extension tool action.
      */
+    @SuppressWarnings("this-escape")
     public DemoToolAction() {
         putValue( NAME, "Demo Sum" );
         putValue( SMALL_ICON, ResourceIcon.DO_WHAT );  // 24x24 icon

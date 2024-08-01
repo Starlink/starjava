@@ -33,6 +33,7 @@ public abstract class BasicAction extends AbstractAction {
      * @param  descrip   action description (SHORT_DESCRIPTION property),
      *                   used as tooltip text
      */
+    @SuppressWarnings("this-escape")
     public BasicAction( String name, Icon icon, String descrip ) {
         super( name, icon );
         putValue( SHORT_DESCRIPTION, descrip );

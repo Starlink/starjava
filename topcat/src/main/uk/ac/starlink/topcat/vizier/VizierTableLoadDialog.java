@@ -119,6 +119,7 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public VizierTableLoadDialog() {
         super( "VizieR Catalogue Service",
                "Access the VizieR library"

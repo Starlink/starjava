@@ -41,6 +41,7 @@ public class ColumnSelectorModel {
      * @param  tcModel  table model
      * @param  info   description of the kind of column which is required
      */
+    @SuppressWarnings("this-escape")
     public ColumnSelectorModel( TopcatModel tcModel, ValueInfo info ) {
         info_ = info;
         selectionListener_ = new SelectionListener();

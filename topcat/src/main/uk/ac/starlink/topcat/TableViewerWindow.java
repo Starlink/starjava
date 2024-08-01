@@ -84,6 +84,7 @@ public class TableViewerWindow extends AuxWindow {
      * @param  tcModel  topcat model
      * @param  parent  parent component for positioning; may be null
      */
+    @SuppressWarnings("this-escape")
     public TableViewerWindow( TopcatModel tcModel, Component parent ) {
         super( tcModel, "Table Browser", parent );
         tcModel_ = tcModel;
