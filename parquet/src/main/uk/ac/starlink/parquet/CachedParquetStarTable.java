@@ -61,6 +61,7 @@ public class CachedParquetStarTable extends ParquetStarTable {
      *                   if &lt;=0, a value is chosen based on the number
      *                   of available processors
      */
+    @SuppressWarnings("this-escape")
     public CachedParquetStarTable( IOSupplier<ParquetFileReader> pfrSupplier,
                                    int nthread )
             throws IOException {
