@@ -92,6 +92,7 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
      * @param  delimiter  field delimiter character; should be a space or comma
      * @param  nameSuffix  string to append to "ECSV" to provide the format name
      */
+    @SuppressWarnings("this-escape")
     public EcsvTableWriter( char delimiter, String nameSuffix ) {
         super( new String[] { "ecsv" } );
         setDelimiter( Character.toString( delimiter ) );
