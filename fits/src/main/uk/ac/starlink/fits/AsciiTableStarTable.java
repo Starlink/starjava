@@ -49,6 +49,7 @@ public abstract class AsciiTableStarTable extends AbstractStarTable {
      *
      * @param  hdr  ASCII TABLE extension header
      */
+    @SuppressWarnings("this-escape")
     public AsciiTableStarTable( FitsHeader hdr ) throws IOException {
 
         /* Check we have a TABLE extension. */

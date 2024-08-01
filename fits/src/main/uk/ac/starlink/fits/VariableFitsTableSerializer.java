@@ -33,6 +33,7 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
      * @param  storagePolicy  policy for acquiring byte array scratch buffers
      * @throws IOException if it won't be possible to write the given table
      */
+    @SuppressWarnings("this-escape")
     public VariableFitsTableSerializer( FitsTableSerializerConfig config,
                                         StarTable table,
                                         StoragePolicy storagePolicy )

@@ -67,6 +67,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
      *
      * @param  formatName  format name
      */
+    @SuppressWarnings("this-escape")
     protected AbstractFitsTableWriter( String formatName ) {
         setFormatName( formatName );
         allowSignedByte_ = true;
