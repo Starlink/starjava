@@ -161,6 +161,7 @@ public class VOStarTable extends AbstractStarTable {
      * @param  tableEl  Table VOElement, which supplies the table's metadata
      * @param  tdata   object supplying the table's data
      */
+    @SuppressWarnings("this-escape")
     VOStarTable( TableElement tableEl, TabularData tdata ) {
         tableEl_ = tableEl;
         tdata_ = tdata;

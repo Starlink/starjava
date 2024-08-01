@@ -49,6 +49,7 @@ public abstract class VOTableFitsTableWriter extends AbstractFitsTableWriter {
      *
      * @param  formatName  handler format name
      */
+    @SuppressWarnings("this-escape")
     protected VOTableFitsTableWriter( String formatName ) {
         super( formatName );
         setAllowSignedByte( false );

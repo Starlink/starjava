@@ -61,6 +61,7 @@ public class UnifiedFitsTableWriter extends FitsTableWriter
     /**
      * No-arg constructor.
      */
+    @SuppressWarnings("this-escape")
     public UnifiedFitsTableWriter() {
         setFormatName( "fits" );
         setPrimaryType( VOTABLE_PRIMARY_TYPE );
@@ -210,6 +211,7 @@ public class UnifiedFitsTableWriter extends FitsTableWriter
      * Subclass with default configuration but colfits set true.
      */
     public static class Col extends UnifiedFitsTableWriter {
+        @SuppressWarnings("this-escape")
         public Col() {
             setColfits( true );
             setFormatName( "colfits" );

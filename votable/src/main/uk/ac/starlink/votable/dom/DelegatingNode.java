@@ -22,6 +22,7 @@ public class DelegatingNode implements Node {
     // Constructors.
     //
 
+    @SuppressWarnings("this-escape")
     protected DelegatingNode( Node base, DelegatingDocument doc ) {
         base_ = base;
         setDocument( doc );
