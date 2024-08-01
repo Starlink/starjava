@@ -44,14 +44,16 @@ class ParquetIO {
      * @param  datsrc  data source
      * @param  builder   handler providing configuration
      * @param  useCache  true for column caching, false for sequential
+     * @param  tryUrl    whether to attempt opening non-file URLs
      * @return  loaded table
      */
     public StarTable readParquet( DataSource datsrc,
                                   ParquetTableBuilder builder,
-                                  boolean useCache )
+                                  boolean useCache, boolean tryUrl )
             throws IOException {
         IOSupplier<ParquetFileReader> pfrSupplier =
-            readerSupplier( createInputFile( datsrc ), datsrc.getName() );
+            readerSupplier( createInputFile( datsrc, tryUrl ),
+                            datsrc.getName() );
         if ( useCache ) {
             int nThread = builder.getReadThreadCount();
             if ( nThread <= 0 ) {
@@ -133,10 +135,13 @@ class ParquetIO {
     /**
      * Tries to turn a datasource into a Hadoop input file.
      *
+     * @param  datsrc  data source
+     * @param  tryUrl   whether to attempt opening non-file URLs
      * @return   input file, not null
      * @throws   IOException  if it can't be done
      */
-    private static InputFile createInputFile( DataSource datsrc )
+    private static InputFile createInputFile( DataSource datsrc,
+                                              boolean tryUrl )
             throws IOException {
         Path path = null;
 
@@ -149,7 +154,15 @@ class ParquetIO {
 
         /* A URL might work, who knows? */
         else if ( url != null ) {
-            path = new Path( url.toString() );
+            if ( tryUrl ) {
+                logger_.warning( datsrc + " doesn't look like a local file: "
+                               + "try as URL but may not work" );
+                path = new Path( url.toString() );
+            }
+            else {
+                throw new TableFormatException( "Parquet files must be local, "
+                                              + "can't use URL " + url );
+            }
         }
         else {
             throw new IOException( "Can't turn " + datsrc.getClass().getName()
