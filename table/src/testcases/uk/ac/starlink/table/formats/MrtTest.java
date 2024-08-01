@@ -25,7 +25,8 @@ public class MrtTest extends TestCase {
             "apjsab530at1-sub.mrt",
             "datafileB1-sub.mrt",
         };
-        MrtTableBuilder builder = new MrtTableBuilder( ErrorMode.FAIL, true );
+        MrtTableBuilder builder =
+            new MrtTableBuilder( ErrorMode.FAIL, true, true );
         int nt = fnames.length;
         Map<String,StarTable> tmap = new LinkedHashMap<>();
         StarTable[] tables = new StarTable[ nt ];

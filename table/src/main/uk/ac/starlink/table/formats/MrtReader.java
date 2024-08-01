@@ -66,8 +66,11 @@ class MrtReader implements RowSequence {
      *
      * @param   in  input stream containing complete MRT file
      * @param  errorMode  defines how parsing errors are treated
+     * @param  useFloat   true to attempt use of single-precision floating
+     *                    point values where it looks like they should be
+     *                    appropriate
      */
-    public MrtReader( InputStream in, ErrorMode errorMode )
+    public MrtReader( InputStream in, ErrorMode errorMode, boolean useFloat )
             throws IOException {
         in_ = in;
         errorMode_ = errorMode;
@@ -134,7 +137,8 @@ class MrtReader implements RowSequence {
 
             /* We now have enough information to make an object that knows
              * how to read the column in question. */
-            rdrList.add( createColumnReader( pfl, extraTxt.toString() ) );
+            rdrList.add( createColumnReader( pfl, extraTxt.toString(),
+                                             useFloat ) );
         }
         colReaders_ = rdrList.toArray( new ColumnReader<?>[ 0 ] );
         lineRegex_ = createLinePattern( colReaders_, errorMode_ );
@@ -284,9 +288,13 @@ class MrtReader implements RowSequence {
      * @param   fmt   parsed information from column format definition line
      * @param   extraExplanation  appended explanation text that overran
      *             onto the next line from the format definition
+     * @param  useFloat   true to attempt use of single-precision floating
+     *                    point values where it looks like they should be
+     *                    appropriate
      */
     private static ColumnReader<?> createColumnReader( ParsedFormatLine fmt,
-                                                       String extraExplanation )
+                                                       String extraExplanation,
+                                                       boolean useFloat )
             throws TableFormatException {
 
         /* The most important information is what kind of data is found
@@ -345,8 +353,17 @@ class MrtReader implements RowSequence {
             }
         }
         else if ( 'E' == fmtChar || 'F' == fmtChar ) {
-            return new ColumnReader<Double>( Double.class, info, iStart0, iEnd0,
-                                             blankTxt, Double::valueOf );
+            int nsf = 'E' == fmtChar ? nchr - 2 : nchr;
+            if ( useFloat && nsf <= 6 ) {
+                return new ColumnReader<Float>( Float.class, info,
+                                                iStart0, iEnd0, blankTxt,
+                                                MrtReader::readFloat );
+            }
+            else {
+                return new ColumnReader<Double>( Double.class, info,
+                                                 iStart0, iEnd0, blankTxt,
+                                                 Double::valueOf );
+            }
         }
         else {
             throw new AssertionError( "Bad format char '" + fmtChar + "'??" );
@@ -433,6 +450,26 @@ class MrtReader implements RowSequence {
         }
         sbuf.append( "\\s*" );
         return Pattern.compile( sbuf.toString() );
+    }
+
+    /**
+     * Reads a 32-bit floating point value, with error if it's out of range.
+     *
+     * @param  txt  textual representation
+     * @return  float value
+     * @throws  RuntimeException  if absolute value is too large for 32-bit IEEE
+     */
+    private static float readFloat( String txt ) {
+        float f = Float.valueOf( txt );
+        if ( Float.isInfinite( f ) ) {
+            double d = Double.valueOf( txt );
+            if ( !Double.isInfinite( d ) ) {
+                throw new RuntimeException( "Large value " + d
+                                          + "can't be represented "
+                                          + "in float column" );
+            }
+        }
+        return f;
     }
 
     /**
