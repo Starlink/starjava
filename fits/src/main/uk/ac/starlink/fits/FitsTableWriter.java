@@ -65,6 +65,7 @@ public class FitsTableWriter extends AbstractFitsTableWriter {
      *              use no-arg constructor and configuration methods instead
      */
     @Deprecated
+    @SuppressWarnings("this-escape")
     public FitsTableWriter( String name, boolean allowSignedByte,
                             WideFits wide ) {
         this();

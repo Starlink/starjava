@@ -57,6 +57,7 @@ public class ColFitsStarTable extends AbstractStarTable {
      * @param   wide  convention for representing extended columns;
      *                use null to avoid use of extended columns
      */
+    @SuppressWarnings("this-escape")
     public ColFitsStarTable( DataSource datsrc, FitsHeader hdr, long dataPos,
                              boolean force, WideFits wide )
             throws IOException {

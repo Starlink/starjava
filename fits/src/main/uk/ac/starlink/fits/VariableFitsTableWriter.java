@@ -47,6 +47,7 @@ public class VariableFitsTableWriter extends AbstractFitsTableWriter {
      *              use no-arg constructor and configuration methods instead
      */
     @Deprecated
+    @SuppressWarnings("this-escape")
     public VariableFitsTableWriter( Boolean longIndexing,
                                     boolean allowSignedByte, WideFits wide ) {
         this();

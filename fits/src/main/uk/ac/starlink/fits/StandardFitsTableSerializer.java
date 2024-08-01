@@ -64,6 +64,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
      * @param  table   table to serialize
      * @throws IOException if it won't be possible to write the given table
      */
+    @SuppressWarnings("this-escape")
     public StandardFitsTableSerializer( FitsTableSerializerConfig config,
                                         StarTable table )
             throws IOException {
