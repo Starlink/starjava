@@ -17,6 +17,7 @@ public class DoubleParameter extends Parameter<Double> {
      *
      * @param   name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public DoubleParameter( String name ) {
         super( name, Double.class, false );
         setUsage( "<float-value>" );
