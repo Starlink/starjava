@@ -32,6 +32,7 @@ public class LatexTableWriter extends DocumentedStreamStarTableWriter {
      * Constructs a new writer indicating whether it will produce complete
      * or partial LaTeX documents.
      */
+    @SuppressWarnings("this-escape")
     public LatexTableWriter( boolean standalone ) {
         super( new String[] { "tex" } );
         setStandalone( standalone );

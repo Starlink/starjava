@@ -107,6 +107,7 @@ public class StarTableOutput {
     /**
      * Constructs a StarTableOutput with a default list of handlers.
      */
+    @SuppressWarnings("this-escape")
     public StarTableOutput() {
         handlers_ = new ArrayList<StarTableWriter>();
 

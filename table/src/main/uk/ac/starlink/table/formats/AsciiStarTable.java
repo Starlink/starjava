@@ -105,6 +105,7 @@ public class AsciiStarTable extends StreamStarTable {
      *         form a ASCII-format table
      * @throws IOException if some I/O error occurs
      */
+    @SuppressWarnings("this-escape")
     public AsciiStarTable( DataSource datsrc, int maxSample )
             throws TableFormatException, IOException {
         super();

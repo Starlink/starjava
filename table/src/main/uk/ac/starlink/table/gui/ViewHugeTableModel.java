@@ -88,6 +88,7 @@ public class ViewHugeTableModel implements TableModel {
      * @param   vbar   scrollbar used to control vertical scrolling of
      *                 table view
      */
+    @SuppressWarnings("this-escape")
     public ViewHugeTableModel( TableModel hugeModel, JScrollBar vbar ) {
         this();
         configureModel( hugeModel, vbar );

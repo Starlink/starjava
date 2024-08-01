@@ -25,6 +25,7 @@ public class ObjectArrayColumn extends ArrayColumn {
      *          <code>base.getContentClass()</code> is incompatible with
      *          <code>data</code>
      */
+    @SuppressWarnings("this-escape")
     public ObjectArrayColumn( ColumnInfo base, Object[] data ) {
         super( base, data );
         this.data = data;

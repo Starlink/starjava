@@ -75,6 +75,7 @@ public abstract class TableSaveChooser extends JPanel {
      * @param  sto  output marshaller
      * @param  saveDialogs  array of save dialogues to use
      */
+    @SuppressWarnings("this-escape")
     public TableSaveChooser( StarTableOutput sto,
                              TableSaveDialog[] saveDialogs ) {
         super( new BorderLayout() );

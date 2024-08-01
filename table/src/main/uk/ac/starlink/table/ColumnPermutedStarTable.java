@@ -65,6 +65,7 @@ public class ColumnPermutedStarTable extends WrapperStarTable {
      * @param  columnMap  array describing where each column of this table
      *         comes from in <code>baseTable</code>
      */
+    @SuppressWarnings("this-escape")
     public ColumnPermutedStarTable( StarTable baseTable, int[] columnMap ) {
         super( baseTable );
         setColumnMap( columnMap );
@@ -216,6 +217,7 @@ public class ColumnPermutedStarTable extends WrapperStarTable {
      * @param  data  base RowData
      * @return   output RowData
      */
+    @SuppressWarnings("this-escape")
     private RowData permuteMapper( final RowData data ) {
         return readRow_
              ? new RowData() {

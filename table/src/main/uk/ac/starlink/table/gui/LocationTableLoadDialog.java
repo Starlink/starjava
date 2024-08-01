@@ -27,6 +27,7 @@ public class LocationTableLoadDialog extends AbstractTableLoadDialog {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public LocationTableLoadDialog() {
         super( "Location", "Loads from a filename or URL entered as text" );
         setIconUrl( StarTable.class.getResource( "gui/loctext.png" ) );

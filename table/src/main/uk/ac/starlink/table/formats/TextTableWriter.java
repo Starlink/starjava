@@ -21,6 +21,7 @@ import uk.ac.starlink.table.ValueInfo;
 public class TextTableWriter extends AbstractTextTableWriter
                              implements MultiStarTableWriter {
 
+    @SuppressWarnings("this-escape")
     public TextTableWriter() {
         super( new String[ 0 ], true );
         setMaxWidth( 40 );

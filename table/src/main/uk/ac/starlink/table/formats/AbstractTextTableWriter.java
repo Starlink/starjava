@@ -36,6 +36,7 @@ public abstract class AbstractTextTableWriter
      *                     excluding the '.' character
      * @param  writeParams  whether parameters will be written by default
      */
+    @SuppressWarnings("this-escape")
     protected AbstractTextTableWriter( String[] extensions,
                                        boolean writeParams ) {
         super( extensions );

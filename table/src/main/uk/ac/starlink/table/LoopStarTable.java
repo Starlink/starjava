@@ -25,6 +25,7 @@ public class LoopStarTable extends ColumnStarTable {
      * @param  end      value which variable will not exceed
      * @param  step     per-row increment of variable
      */
+    @SuppressWarnings("this-escape")
     public LoopStarTable( final String colName, final double start,
                           final double end, final double step,
                           Boolean isInteger ) {
