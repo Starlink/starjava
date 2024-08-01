@@ -73,6 +73,7 @@ public class FeatureTreeModel implements TreeModel {
      *
      * @param  treeScroller   scroll pane containing tree
      */
+    @SuppressWarnings("this-escape")
     public FeatureTreeModel( JScrollPane treeScroller ) {
         listeners_ = new ArrayList<TreeModelListener>();
 

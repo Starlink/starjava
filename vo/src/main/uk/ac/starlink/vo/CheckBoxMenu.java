@@ -23,6 +23,7 @@ public class CheckBoxMenu extends JMenu implements ListSelectionListener {
     /**
      * Constructs a new CheckBoxMenu.
      */
+    @SuppressWarnings("this-escape")
     public CheckBoxMenu() {
         super();
         setSelectionModel( new DefaultListSelectionModel() );
@@ -33,6 +34,7 @@ public class CheckBoxMenu extends JMenu implements ListSelectionListener {
      *
      * @param  name  the menu name
      */
+    @SuppressWarnings("this-escape")
     public CheckBoxMenu( String name ) {
         this(); 
         setText( name );

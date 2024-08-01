@@ -20,6 +20,7 @@ public class ValueFieldPanel extends JPanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public ValueFieldPanel() {
         layer_ = new GridBagLayout();
         setLayout( layer_ );

@@ -49,6 +49,7 @@ public abstract class RemoteTreeBrowser extends JPanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public RemoteTreeBrowser() {
         super( new BorderLayout() );
         Border gapBorder = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );

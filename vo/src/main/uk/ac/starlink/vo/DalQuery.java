@@ -68,6 +68,7 @@ public class DalQuery {
      * @param  size      size in degrees
      * @param  coding    controls HTTP-level byte-stream compression
      */
+    @SuppressWarnings("this-escape")
     public DalQuery( String baseURL, String serviceType,
                      double raPos, double decPos, double size,
                      ContentCoding coding ) {

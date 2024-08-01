@@ -40,6 +40,7 @@ public class HintPanel extends JPanel {
      *
      * @param   urlHandler   handler for link click actions
      */
+    @SuppressWarnings("this-escape")
     public HintPanel( final Consumer<URL> urlHandler ) {
         super( new BorderLayout() );
         urlHandler_ = urlHandler;

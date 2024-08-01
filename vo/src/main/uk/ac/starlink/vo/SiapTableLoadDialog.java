@@ -46,6 +46,7 @@ public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public SiapTableLoadDialog() {
         super( "Simple Image Access (SIA) Query", "SIA",
                "Get results of a Simple Image Access Protocol query",

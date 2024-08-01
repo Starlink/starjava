@@ -58,6 +58,7 @@ public class UwsJobListPanel extends JPanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public UwsJobListPanel() {
         super( new BorderLayout() );
         listModel_ = new DefaultListModel<UwsJob>();

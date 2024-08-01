@@ -79,6 +79,7 @@ public class RegistryPanel extends JPanel {
      *         {@link RegCapabilityInterface}s below the table of
      *         {@link RegResource}s
      */
+    @SuppressWarnings("this-escape")
     public RegistryPanel( RegistryQueryFactory queryFactory,
                           boolean showCapabilities ) {
         super( new BorderLayout() );

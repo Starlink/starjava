@@ -45,6 +45,7 @@ public class Ri1RegistryTableLoadDialog extends AbstractTableLoadDialog {
     /**
      * Constructor. 
      */
+    @SuppressWarnings("this-escape")
     public Ri1RegistryTableLoadDialog() {
         super( "RI1.0 Registry Query", 
                "Imports a table describing the result of querying a registry"

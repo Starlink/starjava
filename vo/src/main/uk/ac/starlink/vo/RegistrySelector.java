@@ -58,6 +58,7 @@ public class RegistrySelector extends JPanel {
      *
      * @param  model  selection model
      */
+    @SuppressWarnings("this-escape")
     public RegistrySelector( RegistrySelectorModel model ) {
 
         /* Set up a selector box. */

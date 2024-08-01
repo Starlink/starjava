@@ -89,6 +89,7 @@ public class RegistryStarTable extends ColumnStarTable {
      *
      * @param   query   the query whose results are to be represented
      */
+    @SuppressWarnings("this-escape")
     public RegistryStarTable( RegistryQuery query ) throws IOException {
         records_ = getRecords( query );
         setParameters( new ArrayList<DescribedValue>

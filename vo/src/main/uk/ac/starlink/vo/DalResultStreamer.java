@@ -53,6 +53,7 @@ public class DalResultStreamer extends TableContentHandler
      *
      * @param  sink  table destination
      */
+    @SuppressWarnings("this-escape")
     public DalResultStreamer( TableSink sink ) {
         super( STRICT );
         setTableHandler( null );
