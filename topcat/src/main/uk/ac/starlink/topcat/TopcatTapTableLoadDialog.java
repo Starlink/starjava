@@ -64,6 +64,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public TopcatTapTableLoadDialog() {
         adjuster_ = new RegistryDialogAdjuster( this, "tap", false );
     }

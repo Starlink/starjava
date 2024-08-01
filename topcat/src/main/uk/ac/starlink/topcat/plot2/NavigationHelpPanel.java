@@ -33,6 +33,7 @@ public class NavigationHelpPanel extends JPanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public NavigationHelpPanel() {
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
         helpBox_ = Box.createHorizontalBox();

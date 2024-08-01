@@ -25,6 +25,7 @@ public class DatalinkWindow extends AuxWindow {
      * @param  tcModel  model containing the data for the table concerned
      * @param  parent   component used for window positioning
      */
+    @SuppressWarnings("this-escape")
     public DatalinkWindow( final TopcatModel tcModel, Component parent ) {
         super( tcModel, "DataLink View", parent );
         DatalinkPanel dlPanel = new DatalinkPanel( false, false ) {

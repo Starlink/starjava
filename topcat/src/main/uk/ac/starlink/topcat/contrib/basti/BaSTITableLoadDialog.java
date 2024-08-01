@@ -30,6 +30,7 @@ public class BaSTITableLoadDialog extends AbstractTableLoadDialog {
     /* POST Message container and handler */
     static BaSTIPOSTMessage POSTQuery = new BaSTIPOSTMessage();
 
+    @SuppressWarnings("this-escape")
     public BaSTITableLoadDialog() {
         super("BaSTI Data Loader",
               "a Bag of Stellar Tracks and Isochrones");

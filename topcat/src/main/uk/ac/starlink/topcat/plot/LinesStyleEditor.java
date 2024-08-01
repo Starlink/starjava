@@ -54,6 +54,7 @@ public class LinesStyleEditor extends StyleEditor {
      *          is known
      * @param  errorModeModels  error mode selection models
      */
+    @SuppressWarnings("this-escape")
     public LinesStyleEditor( ErrorRenderer[] errorRenderers,
                              ErrorRenderer defaultRenderer,
                              ErrorModeSelectionModel[] errorModeModels ) {

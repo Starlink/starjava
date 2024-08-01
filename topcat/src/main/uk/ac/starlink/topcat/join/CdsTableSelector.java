@@ -61,6 +61,7 @@ public class CdsTableSelector extends JPanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public CdsTableSelector() {
         setLayout( new BorderLayout() );
 

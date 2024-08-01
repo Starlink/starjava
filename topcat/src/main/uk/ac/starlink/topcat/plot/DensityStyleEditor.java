@@ -31,6 +31,7 @@ public class DensityStyleEditor extends StyleEditor {
      * @param   rgbModel  toggler selected for RGB mode and unselected for
      *                    indexed mode
      */
+    @SuppressWarnings("this-escape")
     public DensityStyleEditor( DensityStyle[] styles,
                                final ToggleButtonModel rgbModel ) {
 

@@ -30,6 +30,7 @@ public class SpherePlotWindow
      * @param  parent  parent component
      * @param  tablesModel  list of available tables
      */
+    @SuppressWarnings("this-escape")
     public SpherePlotWindow( Component parent,
                              ListModel<TopcatModel> tablesModel ) {
         super( "Sphere Plot", parent, PLOT_TYPE, PLOT_GUI, tablesModel );

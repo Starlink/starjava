@@ -56,6 +56,7 @@ public class ConcatWindow extends AuxWindow {
      *
      * @param  parent  parent window, may be used for window positioning
      */
+    @SuppressWarnings("this-escape")
     public ConcatWindow( Component parent ) {
         super( "Concatenate Tables", parent );
 

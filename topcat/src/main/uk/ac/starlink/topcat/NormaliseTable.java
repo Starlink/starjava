@@ -30,6 +30,7 @@ public class NormaliseTable extends WrapperStarTable {
      *
      * @param   base  base table
      */
+    @SuppressWarnings("this-escape")
     public NormaliseTable( StarTable base ) {
         super( base );
         int ncol = base.getColumnCount();

@@ -46,6 +46,7 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
      *
      * @param  domain   required value domain
      */
+    @SuppressWarnings("this-escape")
     public ColumnDataComboBox( Domain<?> domain ) {
         domain_ = domain;
         mapperSelector_ = domain == null

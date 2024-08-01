@@ -36,6 +36,7 @@ public class TupleSelector extends JPanel {
      *
      * @param  infos   metadata descriptors for each value required
      */
+    @SuppressWarnings("this-escape")
     public TupleSelector( ValueInfo[] infos ) {
         super( new BorderLayout() );
         infos_ = infos;

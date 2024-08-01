@@ -65,6 +65,7 @@ public abstract class CheckBoxList<T> extends JList<T> {
      * @param   entryRendering   rendering for list entry contents
      *                           (excluding drag and checkbox decorations)
      */
+    @SuppressWarnings("this-escape")
     public CheckBoxList( ListModel<T> model, boolean canSelect,
                          Rendering<T,?> entryRendering ) {
         super( model );

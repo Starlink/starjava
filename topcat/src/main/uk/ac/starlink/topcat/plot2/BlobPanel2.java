@@ -51,6 +51,7 @@ public abstract class BlobPanel2 extends JComponent {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public BlobPanel2() {
         blobListener_ = new BlobListener();
         addComponentListener( new ComponentAdapter() {

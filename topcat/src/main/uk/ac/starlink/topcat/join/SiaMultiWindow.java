@@ -39,6 +39,7 @@ public class SiaMultiWindow extends DalMultiWindow {
      *
      * @param  parent  parent component
      */
+    @SuppressWarnings("this-escape")
     public SiaMultiWindow( Component parent ) {
         super( parent, new SiaMultiService(), true );
         addHelp( "SiaMultiWindow" );

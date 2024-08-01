@@ -114,6 +114,7 @@ public class DensityWindow extends GraphicsWindow {
      *
      * @param   parent   parent component (may be used for positioning)
      */
+    @SuppressWarnings("this-escape")
     public DensityWindow( Component parent ) {
         super( "Density Map (old)", new DensityPlot( new PtPlotSurface() ),
                AXIS_NAMES, 0, false, new ErrorModeSelectionModel[ 0 ], parent );

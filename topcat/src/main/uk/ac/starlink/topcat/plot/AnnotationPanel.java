@@ -37,6 +37,7 @@ public class AnnotationPanel extends JComponent implements ActionListener {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public AnnotationPanel() {
         setOpaque( false );
         activePoints_ = new int[ 0 ];

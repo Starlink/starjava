@@ -92,6 +92,7 @@ public class AuxWindow extends JFrame {
      * @param  parent   the parent component of the new window - may be
      *         used for positioning
      */
+    @SuppressWarnings("this-escape")
     public AuxWindow( String title, Component parent ) {
         setTitle( title );
         setDefaultCloseOperation( DISPOSE_ON_CLOSE );

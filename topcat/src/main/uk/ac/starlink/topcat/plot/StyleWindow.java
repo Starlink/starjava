@@ -43,6 +43,7 @@ public class StyleWindow extends JDialog {
      * @param   parent  owner frame
      * @param   editor  style editor component
      */
+    @SuppressWarnings("this-escape")
     public StyleWindow( Frame parent, StyleEditor editor ) {
         super( parent );
         parent_ = parent;

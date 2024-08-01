@@ -41,6 +41,7 @@ public class HtmlWindow extends AuxWindow {
      * @param  parent  parent component
      * @param  htmlPanel  HTML rendering panel
      */
+    @SuppressWarnings("this-escape")
     public HtmlWindow( Component parent, AbstractHtmlPanel htmlPanel ) {
         super( "Html Browser", parent );
         htmlPanel_ = htmlPanel;

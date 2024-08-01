@@ -63,6 +63,7 @@ public class PairMatchSpec extends MatchSpec {
      * @param  engine  match algorithm object
      * @param  runnerFact  supplier for RowRunner
      */
+    @SuppressWarnings("this-escape")
     public PairMatchSpec( MatchEngine engine, Supplier<RowRunner> runnerFact ) {
         engine_ = engine;
         runnerFact_ = runnerFact;

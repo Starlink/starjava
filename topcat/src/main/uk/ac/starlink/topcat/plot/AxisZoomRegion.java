@@ -27,6 +27,7 @@ public abstract class AxisZoomRegion extends ZoomRegion {
      *
      * @param  isX  true for X axis zooming, false for Y axis zooming
      */
+    @SuppressWarnings("this-escape")
     public AxisZoomRegion( boolean isX ) {
         isX_ = isX;
         setCursor( Cursor.getPredefinedCursor( isX ? Cursor.W_RESIZE_CURSOR
@@ -41,6 +42,7 @@ public abstract class AxisZoomRegion extends ZoomRegion {
      * @param  target   target region (region in which cursor is dragged)
      * @param  display  display region (region in which zoom box is shown)
      */
+    @SuppressWarnings("this-escape")
     public AxisZoomRegion( boolean isX, Rectangle target, Rectangle display ) {
         this( isX );
         setTarget( target );

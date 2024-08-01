@@ -33,6 +33,7 @@ public class ColumnList implements TableColumnModelListener {
      *
      * @param  columnModel  table column model to track
      */
+    @SuppressWarnings("this-escape")
     public ColumnList( TableColumnModel columnModel ) {
         this.columnModel = columnModel;
         this.columnList = Collections.list( columnModel.getColumns() );

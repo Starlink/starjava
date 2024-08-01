@@ -60,6 +60,7 @@ public class ColumnSearchWindow extends AuxDialog {
      * @param  colselLabel  label for selector of the column to use
      * @param  colSelectorModel  model for selector of the column to use
      */
+    @SuppressWarnings("this-escape")
     public ColumnSearchWindow( String title, Window owner,
                                String colselLabel,
                                ComboBoxModel<TableColumn> colSelectorModel ) {

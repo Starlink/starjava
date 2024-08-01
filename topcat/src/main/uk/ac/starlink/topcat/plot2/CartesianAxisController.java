@@ -24,6 +24,7 @@ public abstract class CartesianAxisController<P,A> extends AxisController<P,A> {
      * @param  surfFact  plot surface factory
      * @param  axisLabelKeys  config keys for axis labels
      */
+    @SuppressWarnings("this-escape")
     public CartesianAxisController( SurfaceFactory<P,A> surfFact,
                                     ConfigKey<String>[] axisLabelKeys ) {
         super( surfFact );

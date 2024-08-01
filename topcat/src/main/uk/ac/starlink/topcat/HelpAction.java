@@ -34,6 +34,7 @@ public class HelpAction extends AbstractAction {
      * @param  helpID  help id string
      * @param  parent  parent window - may be used for positioning
      */
+    @SuppressWarnings("this-escape")
     public HelpAction( String helpID, Component parent ) {
         helpID_ = helpID;
         parent_ = parent;

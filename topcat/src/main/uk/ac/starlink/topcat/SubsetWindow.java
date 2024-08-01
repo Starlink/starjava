@@ -77,6 +77,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
      * @param  tcModel  model containing the data for the table concerned
      * @param  parent   component used for window positioning
      */
+    @SuppressWarnings("this-escape")
     public SubsetWindow( final TopcatModel tcModel, Component parent ) {
         super( tcModel, "Row Subsets", parent );
         this.tcModel = tcModel;

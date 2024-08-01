@@ -79,6 +79,7 @@ public class ModeFormControl extends FormControl {
      *                        are taken care of elsewhere, and so should not
      *                        be presented in this control
      */
+    @SuppressWarnings("this-escape")
     public ModeFormControl( Configger baseConfigger, ModePlotter<?>[] plotters,
                             ConfigKey<?>[] subsetKeys, Coord[] excludeCoords ) {
         super( baseConfigger );

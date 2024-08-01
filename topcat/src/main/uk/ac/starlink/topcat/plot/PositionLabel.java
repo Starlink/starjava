@@ -19,6 +19,7 @@ public class PositionLabel extends JLabel {
      *
      * @param  surface  plot surface to report on
      */
+    @SuppressWarnings("this-escape")
     public PositionLabel( PlotSurface surface ) {
 
         /* Make some cosmetic changes.  A monospaced font is suitable so

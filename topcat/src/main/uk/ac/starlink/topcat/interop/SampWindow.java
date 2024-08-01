@@ -37,6 +37,7 @@ public class SampWindow extends AuxWindow {
      * @param   parent   parent component
      * @param   hubConnector  hub connector
      */
+    @SuppressWarnings("this-escape")
     public SampWindow( Component parent, GuiHubConnector hubConnector ) {
         super( "SAMP Control", parent );
         connector_ = hubConnector;

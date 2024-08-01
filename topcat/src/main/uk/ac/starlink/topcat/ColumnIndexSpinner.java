@@ -32,6 +32,7 @@ public class ColumnIndexSpinner extends JSpinner {
      * @param  add1  if true, the maximum can be one larger than the
      *               current size of the model
      */
+    @SuppressWarnings("this-escape")
     public ColumnIndexSpinner( TableColumnModel columnModel, boolean add1 ) {
         super( new ColumnSpinnerModel( columnModel, add1 ) );
         columnModel_ = columnModel;

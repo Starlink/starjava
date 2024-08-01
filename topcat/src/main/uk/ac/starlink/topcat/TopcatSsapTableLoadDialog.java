@@ -11,6 +11,7 @@ import uk.ac.starlink.vo.SsapTableLoadDialog;
  */
 public class TopcatSsapTableLoadDialog extends SsapTableLoadDialog {
     private final RegistryDialogAdjuster adjuster_;
+    @SuppressWarnings("this-escape")
     public TopcatSsapTableLoadDialog() {
         adjuster_ = new RegistryDialogAdjuster( this, "ssap", true );
     }

@@ -48,6 +48,7 @@ public class DomainMapperComboBox extends JComboBox<DomainMapper> {
      * @param  columnSelector   column selector with which this selector
      *                          is associated
      */
+    @SuppressWarnings("this-escape")
     public DomainMapperComboBox( Domain<?> domain,
                                  JComboBox<ColumnData> columnSelector ) {
         domain_ = domain;

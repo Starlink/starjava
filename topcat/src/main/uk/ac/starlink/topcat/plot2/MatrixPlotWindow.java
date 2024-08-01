@@ -26,6 +26,7 @@ public class MatrixPlotWindow
      * @param  parent  parent component
      * @param  tablesModel  list of available tables
      */
+    @SuppressWarnings("this-escape")
     public MatrixPlotWindow( Component parent,
                              ListModel<TopcatModel> tablesModel ) {
         super( "Corner Plot", parent, PLOT_TYPE, PLOT_GUI, tablesModel );

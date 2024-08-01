@@ -42,6 +42,7 @@ public class ColumnSelector extends JComponent {
      * @param  showLabel  true iff you want the axis label to be displayed
      *         with the selectors
      */
+    @SuppressWarnings("this-escape")
     public ColumnSelector( ValueInfo info, boolean showLabel ) {
         info_ = info;
         String units = info_.getUnitString();
@@ -99,6 +100,7 @@ public class ColumnSelector extends JComponent {
      * @param  showLabel  true iff you want the axis label to be displayed
      *         with the selectors
      */
+    @SuppressWarnings("this-escape")
     public ColumnSelector( ColumnSelectorModel model, boolean showLabel ) {
         this( model.getValueInfo(), showLabel );
         setModel( model );

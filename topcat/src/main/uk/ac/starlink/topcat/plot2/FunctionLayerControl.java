@@ -47,6 +47,7 @@ public class FunctionLayerControl extends ConfigControl
      * @param   plotter  function plotter
      * @param   zsel    zone id specifier, may be null for single-zone plots
      */
+    @SuppressWarnings("this-escape")
     public FunctionLayerControl( FunctionPlotter plotter,
                                  Specifier<ZoneId> zsel ) {
         super( plotter.getPlotterName(), plotter.getPlotterIcon() );

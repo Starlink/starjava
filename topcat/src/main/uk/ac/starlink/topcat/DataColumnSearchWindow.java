@@ -51,6 +51,7 @@ public class DataColumnSearchWindow extends ColumnSearchWindow {
      * @param  viewWindow  the table view window on behalf of which
      *                     searches will be carried out
      */
+    @SuppressWarnings("this-escape")
     public DataColumnSearchWindow( TableViewerWindow viewWindow ) {
         super( "Search Column", viewWindow, "Column",
                createColumnSelectorModel( viewWindow.getTopcatModel() ) );

@@ -125,6 +125,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
      *
      * @param   parent  parent component
      */
+    @SuppressWarnings("this-escape")
     public LinesWindow( Component parent ) {
         super( "Stacked Line Plot (old)", new LinesPlot(), AXIS_NAMES, 0, true,
                createErrorModeModels( AXIS_NAMES ), parent );

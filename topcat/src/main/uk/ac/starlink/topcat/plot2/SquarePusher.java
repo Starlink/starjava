@@ -37,6 +37,7 @@ public class SquarePusher extends JComponent {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public SquarePusher() {
         listenerList_ = new ArrayList<ActionListener>();
         MouseInputListener mousey = new DragListener();

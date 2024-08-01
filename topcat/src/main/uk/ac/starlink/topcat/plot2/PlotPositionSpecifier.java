@@ -42,6 +42,7 @@ public class PlotPositionSpecifier extends SpecifierPanel<PlotPosition> {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public PlotPositionSpecifier() {
         super( false );
         List<ConfigKey<?>> keyList = new ArrayList<ConfigKey<?>>();

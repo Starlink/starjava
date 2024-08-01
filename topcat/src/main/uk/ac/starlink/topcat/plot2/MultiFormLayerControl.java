@@ -77,6 +77,7 @@ public class MultiFormLayerControl extends FormLayerControl {
      * @param  baseConfigger  configuration source for some global config
      *                        options
      */
+    @SuppressWarnings("this-escape")
     public MultiFormLayerControl( PlotTypeGui<?,?> plotTypeGui,
                                   PositionCoordPanel posCoordPanel,
                                   ListModel<TopcatModel> tablesModel,

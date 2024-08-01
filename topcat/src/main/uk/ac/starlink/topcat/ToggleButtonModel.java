@@ -33,6 +33,7 @@ public class ToggleButtonModel extends JToggleButton.ToggleButtonModel {
      * @param   icon  icon to be used on buttons etc
      * @param   shortdesc  short description to be used for tool tips etc
      */
+    @SuppressWarnings("this-escape")
     public ToggleButtonModel( String text, Icon icon, String shortdesc ) {
         setText( text );
         setIcon( icon );

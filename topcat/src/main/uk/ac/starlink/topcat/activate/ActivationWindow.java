@@ -128,7 +128,7 @@ public class ActivationWindow extends AuxWindow {
      * @param  tcModel  topcat model
      * @param  parent  parent window, may be used for positioning
      */
-    @SuppressWarnings("fallthrough")
+    @SuppressWarnings({"fallthrough","this-escape"})
     public ActivationWindow( final TopcatModel tcModel, Component parent ) {
         super( tcModel, "Activation Actions", parent );
         tcModel_ = tcModel;

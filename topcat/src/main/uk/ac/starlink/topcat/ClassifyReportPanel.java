@@ -43,6 +43,7 @@ public class ClassifyReportPanel extends JPanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public ClassifyReportPanel() {
         gridder_ = new GridBagLayout();
         setLayout( gridder_ );

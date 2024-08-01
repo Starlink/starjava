@@ -90,6 +90,7 @@ public class AxisDataSelector extends JPanel {
      * @param  toggleModels toggle button models to be displayed in this
      *                      component (same length as <code>toggleNames</code>)
      */
+    @SuppressWarnings("this-escape")
     public AxisDataSelector( String axisName, String[] toggleNames,
                              ToggleButtonModel[] toggleModels ) {
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );

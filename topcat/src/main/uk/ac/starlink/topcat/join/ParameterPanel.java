@@ -31,6 +31,7 @@ public class ParameterPanel extends JPanel {
      *
      * @param  engine  the match engine this will work on
      */
+    @SuppressWarnings("this-escape")
     public ParameterPanel( MatchEngine engine ) {
         super( new BorderLayout() );
 

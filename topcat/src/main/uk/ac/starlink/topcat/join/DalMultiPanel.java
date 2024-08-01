@@ -122,6 +122,7 @@ public class DalMultiPanel extends JPanel {
      * @param  service  defines type of service that queries will be 
      *                  carried out on
      */
+    @SuppressWarnings("this-escape")
     public DalMultiPanel( DalMultiService service, JProgressBar progBar ) {
         super( new BorderLayout() );
         service_ = service;

@@ -67,6 +67,7 @@ public class MatrixPositionCoordPanel extends SimplePositionCoordPanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public MatrixPositionCoordPanel() {
         super( COORDS.clone(), new ConfigKey<?>[ 0 ],
                new VariableCoordStack(), PlaneDataGeom.INSTANCE );

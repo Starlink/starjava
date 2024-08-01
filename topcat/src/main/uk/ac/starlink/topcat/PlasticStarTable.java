@@ -29,6 +29,7 @@ public class PlasticStarTable extends ColumnStarTable {
      *
      * @param  baseTable  the table to initialise this one from
      */
+    @SuppressWarnings("this-escape")
     public PlasticStarTable( final StarTable baseTable ) {
         super( baseTable );
         this.baseTable = baseTable;

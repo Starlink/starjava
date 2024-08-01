@@ -34,6 +34,7 @@ public class TimePlotWindow
      * @param  parent  parent component
      * @param  tablesModel  list of available tables
      */
+    @SuppressWarnings("this-escape")
     public TimePlotWindow( Component parent,
                            ListModel<TopcatModel> tablesModel ) {
         super( "Time Plot", parent, PLOT_TYPE, PLOT_GUI, tablesModel );

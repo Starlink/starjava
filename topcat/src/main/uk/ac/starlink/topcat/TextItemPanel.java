@@ -23,6 +23,7 @@ public class TextItemPanel extends JPanel {
     private final GridBagLayout layer_;
     private int iline_;
 
+    @SuppressWarnings("this-escape")
     public TextItemPanel() {
         layer_ = new GridBagLayout();
         setLayout( layer_ );

@@ -35,6 +35,7 @@ public class MultiSavePanel extends SavePanel {
      *
      * @param  sto  output marshaller
      */
+    @SuppressWarnings("this-escape")
     public MultiSavePanel( StarTableOutput sto ) {
         super( "Multiple Tables",
                TableSaveChooser.makeFormatBoxModel( sto, true ) );

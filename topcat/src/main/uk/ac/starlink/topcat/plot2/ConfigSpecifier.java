@@ -61,6 +61,7 @@ public class ConfigSpecifier extends SpecifierPanel<ConfigMap> {
      * @param   gui   specifier generation factory that can provide
      *                customised specifiers for different keys
      */
+    @SuppressWarnings("this-escape")
     public ConfigSpecifier( ConfigKey<?>[] keys, ComponentGui gui ) {
         super( true );
         ActionListener forwarder = getActionForwarder();

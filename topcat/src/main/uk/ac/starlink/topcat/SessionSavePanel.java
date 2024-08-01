@@ -37,6 +37,7 @@ public class SessionSavePanel extends SavePanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public SessionSavePanel() {
         super( "Session",
                new DefaultComboBoxModel<String>( createFormatList() ) );

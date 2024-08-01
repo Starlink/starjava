@@ -30,6 +30,7 @@ public class SyntheticRowSubset extends RowSubset {
      * @param  tcModel   context for JEL expression evaluation
      * @param  expression   the algebraic expression
      */
+    @SuppressWarnings("this-escape")
     public SyntheticRowSubset( String name, TopcatModel tcModel,
                                String expression )
             throws CompilationException {

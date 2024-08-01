@@ -18,6 +18,7 @@ public class SizeWrapper extends JPanel {
      *
      * @param  comp  component to wrap
      */
+    @SuppressWarnings("this-escape")
     public SizeWrapper( Component comp ) {
         SpringLayout layer = new SpringLayout();
         setLayout( layer );

@@ -20,6 +20,7 @@ public class LogSlider extends JSlider {
      *
      * @param   max   maximum value
      */
+    @SuppressWarnings("this-escape")
     public LogSlider( int max ) {
         setMaximum1( max );
     }

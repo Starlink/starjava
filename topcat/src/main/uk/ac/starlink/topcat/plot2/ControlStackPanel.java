@@ -43,6 +43,7 @@ public class ControlStackPanel extends JPanel {
      * @param  stack   stack in which controls can be added and moved around
      * @param  stackToolbar  toolbar for stack controls, or null
      */
+    @SuppressWarnings("this-escape")
     public ControlStackPanel( ControlStack stack, JToolBar stackToolbar ) {
         super( new BorderLayout() );
         JComponent detailHolder = new JPanel( new BorderLayout() );

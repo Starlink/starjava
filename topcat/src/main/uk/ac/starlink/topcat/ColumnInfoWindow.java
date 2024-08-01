@@ -95,6 +95,7 @@ public class ColumnInfoWindow extends AuxWindow {
      * @param  tcModel  model containing the data for the table concerned
      * @param  parent   component used for window positioning
      */
+    @SuppressWarnings("this-escape")
     public ColumnInfoWindow( final TopcatModel tcModel, Component parent ) {
         super( tcModel, "Table Columns", parent );
         tcModel_ = tcModel;

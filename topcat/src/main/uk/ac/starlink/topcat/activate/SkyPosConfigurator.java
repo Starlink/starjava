@@ -33,6 +33,7 @@ public abstract class SkyPosConfigurator extends AbstractActivatorConfigurator {
      *
      * @param  tinfo  topcat model information
      */
+    @SuppressWarnings("this-escape")
     protected SkyPosConfigurator( TopcatModelInfo tinfo ) {
         super( new JPanel( new BorderLayout() ) );
         TopcatModel tcModel = tinfo.getTopcatModel();

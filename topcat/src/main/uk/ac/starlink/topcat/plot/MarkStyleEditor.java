@@ -84,6 +84,7 @@ public class MarkStyleEditor extends StyleEditor {
      * @param   errorModeModels  array of error mode selectors,
      *          one per dimension of the error bars
      */
+    @SuppressWarnings("this-escape")
     public MarkStyleEditor( boolean withLines, boolean withTransparency,
                             ErrorRenderer[] errorRenderers,
                             ErrorRenderer defaultRenderer,

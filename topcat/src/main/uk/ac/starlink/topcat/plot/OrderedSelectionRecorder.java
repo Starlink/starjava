@@ -32,6 +32,7 @@ public abstract class OrderedSelectionRecorder
      *
      * @param  state   mask of flags, one true for each selected item
      */
+    @SuppressWarnings("this-escape")
     public OrderedSelectionRecorder( boolean[] state ) {
         this();
         updateState( state );
