@@ -47,6 +47,7 @@ public class ColFitsPlusTableWriter extends VOTableFitsTableWriter
      *              use no-arg constructor and configuration methods instead
      */
     @Deprecated
+    @SuppressWarnings("this-escape")
     public ColFitsPlusTableWriter( String name, WideFits wide ) {
         this();
         setFormatName( name );
