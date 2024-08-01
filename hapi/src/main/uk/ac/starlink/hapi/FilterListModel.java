@@ -45,6 +45,7 @@ public class FilterListModel<T> extends AbstractListModel<T> {
      * @param  matcher  indicates whether a list element is to be included
      *                  given string content of this model's text field
      */
+    @SuppressWarnings("this-escape")
     public FilterListModel( String title,
                             BiPredicate<T,String> matcher ) {
         matcher_ = matcher;
