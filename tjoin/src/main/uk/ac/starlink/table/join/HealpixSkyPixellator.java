@@ -28,6 +28,7 @@ public abstract class HealpixSkyPixellator implements SkyPixellator {
      *
      * @param  maxK  the maximum K value permitted by this implementation
      */
+    @SuppressWarnings("this-escape")
     protected HealpixSkyPixellator( int maxK ) {
         maxK_ = maxK;
         String kdesc = "Controls sky pixel size. "

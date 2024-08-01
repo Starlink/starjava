@@ -34,6 +34,7 @@ public class AnisotropicCartesianMatchEngine
      *
      * @param   errs  initial axis lengths of the error ellipse
      */
+    @SuppressWarnings("this-escape")
     public AnisotropicCartesianMatchEngine( double[] errs ) {
         super( errs.length );
         ndim_ = errs.length;

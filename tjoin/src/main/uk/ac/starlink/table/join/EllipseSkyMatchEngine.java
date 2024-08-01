@@ -109,6 +109,7 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
      * @param  pixellator  handles sky pixellisation
      * @param  scale       initial value for length scale, in radians
      */
+    @SuppressWarnings("this-escape")
     public EllipseSkyMatchEngine( SkyPixellator pixellator, double scale ) {
         super( pixellator, scale );
         matchParams_ =
@@ -510,6 +511,7 @@ public class EllipseSkyMatchEngine extends AbstractSkyMatchEngine {
          * @param  pixellator  handles sky pixellisation
          * @param  scaleRadians    initial value for length scale, in radians
          */
+        @SuppressWarnings("this-escape")
         public InDegrees( SkyPixellator pixellator, double scaleRadians ) {
             super( pixellator, scaleRadians );
             ValueInfo[] infos0 = super.getTupleInfos();

@@ -223,6 +223,7 @@ public class FixedSkyMatchEngine extends AbstractSkyMatchEngine {
          * @param   sepRadians  initial value for maximum match separation,
          *                      in radians
          */
+        @SuppressWarnings("this-escape")
         public InDegrees( SkyPixellator pixellator, double sepRadians ) {
             super( pixellator, sepRadians );
             ValueInfo[] infos0 = super.getTupleInfos();

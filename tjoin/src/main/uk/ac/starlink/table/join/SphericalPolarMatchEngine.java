@@ -40,6 +40,7 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
      *
      * @param   err  maximum separation for a match
      */
+    @SuppressWarnings("this-escape")
     public SphericalPolarMatchEngine( double err ) {
         super( 3 );
         matchParams_ = new DescribedValue[] {
@@ -221,6 +222,7 @@ public class SphericalPolarMatchEngine extends AbstractCartesianMatchEngine {
          *
          * @param   err  maximum separation for a match
          */
+        @SuppressWarnings("this-escape")
         public InDegrees( double err ) {
             super( err );
             ValueInfo[] infos0 = super.getTupleInfos();
