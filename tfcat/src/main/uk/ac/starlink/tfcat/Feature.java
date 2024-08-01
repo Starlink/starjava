@@ -24,6 +24,7 @@ public class Feature extends TfcatObject {
      * @param  id    identifier string, may be null
      * @param  properties   properties object, may be null
      */
+    @SuppressWarnings("this-escape")
     public Feature( JSONObject json, Crs crs, Bbox bbox, Geometry<?> geometry,
                     String id, JSONObject properties ) {
         super( json, "Feature", crs, bbox );
