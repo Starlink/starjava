@@ -52,6 +52,7 @@ public abstract class ParquetStarTable extends AbstractStarTable {
      *
      * @param  pfrSupplier  access to parquet data file
      */
+    @SuppressWarnings("this-escape")
     public ParquetStarTable( IOSupplier<ParquetFileReader> pfrSupplier )
             throws IOException {
         pfrSupplier_ = pfrSupplier;
