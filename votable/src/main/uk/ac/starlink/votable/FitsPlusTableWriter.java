@@ -55,6 +55,7 @@ public class FitsPlusTableWriter extends VOTableFitsTableWriter
      *              use no-arg constructor and configuration methods instead
      */
     @Deprecated
+    @SuppressWarnings("this-escape")
     public FitsPlusTableWriter( String name, WideFits wide ) {
         this();
         setWide( wide );

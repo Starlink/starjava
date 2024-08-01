@@ -92,6 +92,7 @@ public class VOElementFactory {
      *
      * @param  policy  storage policy
      */
+    @SuppressWarnings("this-escape")
     public VOElementFactory( StoragePolicy policy ) {
         setStoragePolicy( policy );
     }

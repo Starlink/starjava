@@ -49,6 +49,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
      * @param   base  delegate document node
      * @param   documentURI   location of the document, or <code>null</code>
      */
+    @SuppressWarnings("this-escape")
     public DelegatingDocument( Document base, String documentURI ) {
         super( base );
         setDocument( this );
