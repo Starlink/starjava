@@ -21,6 +21,7 @@ import uk.ac.starlink.util.ObjectFactory;
 public class FilterParameter extends Parameter<ProcessingStep[]>
         implements ExtraParameter, MultiParameter {
 
+    @SuppressWarnings("this-escape")
     public FilterParameter( String name ) {
         super( name, ProcessingStep[].class, true );
         setUsage( "<cmds>" );

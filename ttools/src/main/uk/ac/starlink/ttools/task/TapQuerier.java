@@ -9,6 +9,7 @@ import uk.ac.starlink.task.IntegerParameter;
  * @since    21 Feb 2011
  */
 public class TapQuerier extends MapperTask {
+    @SuppressWarnings("this-escape")
     public TapQuerier() {
         super( "Queries a Table Access Protocol server", new ChoiceMode(),
                true, new TapMapper(),

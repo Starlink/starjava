@@ -46,6 +46,7 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
      * @param   suffix  layer-specific part of this parameter's name
      * @param   context  plot context
      */
+    @SuppressWarnings("this-escape")
     public LayerTypeParameter( String prefix, String suffix,
                                PlotContext<?,?> context ) {
         super( prefix + suffix,

@@ -37,6 +37,7 @@ public class Range {
      * @param  lo  lower bound
      * @param  hi  upper bound
      */
+    @SuppressWarnings("this-escape")
     public Range( double lo, double hi ) {
         this();
         setBounds( lo, hi );

@@ -29,6 +29,7 @@ public abstract class SingleMapperTask extends ConsumerTask {
      * @param   useOutFilter allow specification of filters for output table
      * @param   useInFilter  allow specification of filters for input table
      */
+    @SuppressWarnings("this-escape")
     public SingleMapperTask( String purpose, ProcessingMode outMode, 
                              boolean useOutFilter, boolean useInFilter ) {
         super( purpose, outMode, useOutFilter );

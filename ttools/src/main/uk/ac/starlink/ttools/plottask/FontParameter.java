@@ -27,6 +27,7 @@ public class FontParameter extends StyleParameter<String> {
      *
      * @param  name  parameter base name
      */
+    @SuppressWarnings("this-escape")
     public FontParameter( String name ) {
         super( name,
                GraphicsEnvironment.getLocalGraphicsEnvironment()

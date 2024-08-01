@@ -34,6 +34,7 @@ public class TableFactoryParameter extends Parameter<StarTableFactory> {
      *
      * @param   name   parameter name
      */
+    @SuppressWarnings("this-escape")
     public TableFactoryParameter( String name ) {
         super( name, StarTableFactory.class, true );
         setUsage( FILE_OPTION +

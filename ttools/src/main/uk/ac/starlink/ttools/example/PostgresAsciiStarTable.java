@@ -172,6 +172,7 @@ public class PostgresAsciiStarTable extends StreamStarTable {
      * @param   schemaUrl  URL for 'schema' document which describes data
      *          types (like twomass_psc_schema)
      */
+    @SuppressWarnings("this-escape")
     public PostgresAsciiStarTable( DataSource datsrc, URL schemaUrl )
             throws IOException {
         super();

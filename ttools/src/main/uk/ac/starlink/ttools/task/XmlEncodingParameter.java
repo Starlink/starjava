@@ -23,6 +23,7 @@ public class XmlEncodingParameter extends Parameter<Charset>
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
+    @SuppressWarnings("this-escape")
     public XmlEncodingParameter( String name ) {
         super( name, Charset.class, true );
         setUsage( "<xml-encoding>" );

@@ -35,6 +35,7 @@ public class TableMatch1 extends SingleMapperTask {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public TableMatch1() {
         super( "Performs a crossmatch internal to a single table",
                new ChoiceMode(), true, true );

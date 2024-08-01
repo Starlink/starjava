@@ -123,6 +123,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
      *                   this component plots
      * @param  table    table containing input data to plot
      */
+    @SuppressWarnings("this-escape")
     public BasicPlotGui( PlotType<P,A> plotType, Plotter<S> plotter,
                          StarTable table ) {
         super( new BorderLayout() );
@@ -186,6 +187,7 @@ public class BasicPlotGui<P,A,S extends Style> extends JPanel {
      *
      * @return   new plot display component
      */
+    @SuppressWarnings("this-escape")
     private PlotDisplay<P,A> createPlotDisplay()
             throws ConfigException, IOException, InterruptedException {
 

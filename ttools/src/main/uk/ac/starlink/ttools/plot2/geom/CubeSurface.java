@@ -93,6 +93,7 @@ public class CubeSurface implements Surface {
      * @param  frame  whether to draw wire frame
      * @param  antialias  whether to antialias grid lines
      */
+    @SuppressWarnings("this-escape")
     public CubeSurface( int gxlo, int gxhi, int gylo, int gyhi,
                         double[] dlos, double[] dhis,
                         boolean[] logFlags, boolean[] flipFlags,

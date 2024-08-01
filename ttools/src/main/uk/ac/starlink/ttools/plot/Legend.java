@@ -31,6 +31,7 @@ public class Legend extends JComponent {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public Legend() {
         setOpaque( false );
         labelledStyles_ = new LabelledStyle[ 0 ];

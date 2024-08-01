@@ -144,6 +144,7 @@ public class BarStyle extends DefaultStyle implements Icon {
      * @param   form    bar form
      * @param   placement  bar placement
      */
+    @SuppressWarnings("this-escape")
     public BarStyle( Color color, Form form, Placement placement ) {
         super( color, Arrays.asList( new Object[] { form, placement } ) );
         setLineWidth( 2 );

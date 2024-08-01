@@ -42,6 +42,7 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
      *                    method is allowed to set any value; otherwise,
      *                    it is restricted to the options in the combo box
      */
+    @SuppressWarnings("this-escape")
     public ComboBoxSpecifier( Class<V> clazz, JComboBox<V> comboBox,
                               boolean customStringify, boolean allowAny ) {
         super( comboBox.isEditable() );

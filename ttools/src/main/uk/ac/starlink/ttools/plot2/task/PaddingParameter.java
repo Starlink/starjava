@@ -23,6 +23,7 @@ public class PaddingParameter extends Parameter<Padding> {
      *
      * @param  name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public PaddingParameter( String name ) {
         super( name, Padding.class, true );
         setUsage( "<top>,<left>,<bottom>,<right>" );

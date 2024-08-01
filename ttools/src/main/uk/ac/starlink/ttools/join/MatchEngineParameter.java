@@ -55,6 +55,7 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.join" );
 
+    @SuppressWarnings("this-escape")
     public MatchEngineParameter( String name ) {
         super( name, MatchEngine.class, true );
 

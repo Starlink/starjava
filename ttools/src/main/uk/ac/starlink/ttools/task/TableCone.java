@@ -42,6 +42,7 @@ public class TableCone extends ConsumerTask {
     private final ChoiceParameter<SkySystem> sysParam_;
     private final StringParameter formatParam_;
 
+    @SuppressWarnings("this-escape")
     public TableCone() {
         super( "Executes a Cone Search-like query", new ChoiceMode(), true );
         List<Parameter<?>> coneParams = new ArrayList<>();

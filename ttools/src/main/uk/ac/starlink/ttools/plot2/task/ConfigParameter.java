@@ -30,6 +30,7 @@ public class ConfigParameter<T> extends Parameter<T> {
      *                          suffixes are used
      * @param  exampleSuffix  suffix string to use in example documentation
      */
+    @SuppressWarnings("this-escape")
     private ConfigParameter( ConfigKey<T> key, String baseName, String suffix,
                              String suffixType, boolean hasSuffixDetail,
                              String exampleSuffix ) {

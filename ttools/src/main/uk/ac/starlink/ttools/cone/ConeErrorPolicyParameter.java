@@ -26,6 +26,7 @@ public class ConeErrorPolicyParameter extends Parameter<ConeErrorPolicy> {
      *
      * @param   name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public ConeErrorPolicyParameter( String name ) {
         super( name, ConeErrorPolicy.class, true );
         StringBuffer ubuf = new StringBuffer();

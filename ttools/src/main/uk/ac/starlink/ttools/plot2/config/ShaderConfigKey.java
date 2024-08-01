@@ -23,6 +23,7 @@ public class ShaderConfigKey extends ChoiceConfigKey<Shader> {
      * @param  shaders  list of options
      * @param  dflt  default value
      */
+    @SuppressWarnings("this-escape")
     public ShaderConfigKey( ConfigMeta meta, Shader[] shaders, Shader dflt ) {
         super( meta, Shader.class, dflt, false );
         shaders_ = shaders;

@@ -14,6 +14,7 @@ public class OutputTableParameter extends Parameter<TableConsumer>
 
     private final OutputFormatParameter formatParam_;
 
+    @SuppressWarnings("this-escape")
     public OutputTableParameter( String name ) {
         super( name, TableConsumer.class, true );
         formatParam_ = new OutputFormatParameter( "ofmt" );

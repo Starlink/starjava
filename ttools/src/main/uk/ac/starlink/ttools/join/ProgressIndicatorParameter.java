@@ -33,6 +33,7 @@ public class ProgressIndicatorParameter extends ChoiceParameter<String> {
      *
      * @param   name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public ProgressIndicatorParameter( String name ) {
         super( name, OPTIONS );
         setPrompt( "How to report progress to screen" );

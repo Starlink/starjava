@@ -84,6 +84,7 @@ public class PlotDisplay<P,A> extends JComponent {
      *                    or null for a non-interactive plot
      * @param  dataStore  data storage object
      */
+    @SuppressWarnings("this-escape")
     public PlotDisplay( final PlotScene<P,A> scene, Navigator<A> navigator,
                         DataStore dataStore ) {
         scene_ = scene;

@@ -17,6 +17,7 @@ import uk.ac.starlink.task.TaskException;
 public class InputFormatParameter extends StringParameter
                                   implements ExtraParameter {
 
+    @SuppressWarnings("this-escape")
     public InputFormatParameter( String name ) {
         super( name );
         setNullPermitted( false );

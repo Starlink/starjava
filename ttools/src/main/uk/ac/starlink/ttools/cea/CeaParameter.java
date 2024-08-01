@@ -45,6 +45,7 @@ public class CeaParameter {
      *
      * @param   taskParam   parameter within the ttools/task parameter system
      */
+    @SuppressWarnings("this-escape")
     public CeaParameter( Parameter<?> taskParam ) {
         name_ = taskParam.getName();
         description_ = taskParam.getDescription();

@@ -42,6 +42,7 @@ public class JdbcConer implements Coner {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public JdbcConer() {
         String sys = getSkySystem();
         sys = ( sys == null ) ? ""

@@ -32,6 +32,7 @@ public abstract class DefaultStyle implements Style {
      * @param  color  initial colour
      * @param  otherAtts  object distinguishing this instance
      */
+    @SuppressWarnings("this-escape")
     protected DefaultStyle( Color color, Object otherAtts ) {
         otherAtts_ = otherAtts == null ? DUMMY_ATTS : otherAtts;
         setColor( color );

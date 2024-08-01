@@ -14,6 +14,7 @@ import uk.ac.starlink.task.UsageException;
  */
 public class JoinTypeParameter extends ChoiceParameter<JoinType> {
 
+    @SuppressWarnings("this-escape")
     public JoinTypeParameter( String name ) {
         super( name, JoinType.getPairTypes() );
 

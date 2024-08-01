@@ -21,6 +21,7 @@ public class DashConfigKey extends ChoiceConfigKey<float[]> {
      *
      * @param  meta  key metadata
      */
+    @SuppressWarnings("this-escape")
     public DashConfigKey( ConfigMeta meta ) {
         super( meta, float[].class, null, true );
         getOptionMap().putAll( FIXED_MAP );

@@ -61,6 +61,7 @@ public class GridDensityMap extends SingleMapperTask {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public GridDensityMap() {
         super( "Calculates N-dimensional density maps", new ChoiceMode(),
                true, true );

@@ -55,6 +55,7 @@ public class ZBufferPlotVolume extends PlotVolume {
      * @param   tweaker  colour adjuster for using auxiliary axis coords
      * @param   ws  workspace object 
      */
+    @SuppressWarnings("this-escape")
     public ZBufferPlotVolume( Component c, Graphics g, MarkStyle[] styles,
                               double padFactor, int[] padBorders,
                               double fogginess, boolean hasLabels,

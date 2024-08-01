@@ -13,6 +13,7 @@ import uk.ac.starlink.table.StarTableWriter;
 public class MultiOutputFormatParameter extends OutputFormatParameter
                                         implements ExtraParameter {
 
+    @SuppressWarnings("this-escape")
     public MultiOutputFormatParameter( String name ) {
         super( name );
         setPrompt( "Format name for output tables" );

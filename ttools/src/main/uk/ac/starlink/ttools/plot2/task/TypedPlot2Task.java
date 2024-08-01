@@ -45,6 +45,7 @@ public class TypedPlot2Task<P,A> extends AbstractPlot2Task {
      *                     common data input coordinates, or null
      * @param  context   fixed plot context
      */
+    @SuppressWarnings("this-escape")
     public TypedPlot2Task( PlotType<P,A> plotType,
                            Map<ConfigKey<String>,Input> axlabelMap,
                            PlotContext<P,A> context ) {

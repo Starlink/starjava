@@ -27,6 +27,7 @@ public class TableLoop extends ConsumerTask {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public TableLoop() {
         super( "Generates a single-column table from a loop variable",
                new ChoiceMode(), true );

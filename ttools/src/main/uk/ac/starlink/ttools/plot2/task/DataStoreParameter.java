@@ -73,6 +73,7 @@ public class DataStoreParameter extends ChoiceParameter<DataStoreFactory> {
      *
      * @param   name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public DataStoreParameter( String name ) {
         super( name, DataStoreFactory.class );
         addOption( SIMPLE, "simple" );

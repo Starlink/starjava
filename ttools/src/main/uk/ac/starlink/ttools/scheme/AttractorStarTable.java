@@ -41,6 +41,7 @@ public class AttractorStarTable extends AbstractStarTable {
      * @param   att  attractor
      * @param   nrow   row count
      */
+    @SuppressWarnings("this-escape")
     public AttractorStarTable( AttractorFamily.Attractor att, long nrow ) {
         att_ = att;
         nrow_ = nrow;

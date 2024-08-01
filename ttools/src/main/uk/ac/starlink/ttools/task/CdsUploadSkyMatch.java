@@ -60,6 +60,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public CdsUploadSkyMatch() {
         super( "Crossmatches table on sky position against VizieR/SIMBAD table",
                new ChoiceMode(), true, true );

@@ -17,6 +17,7 @@ public class DashParameter extends NamedObjectParameter<float[]> {
      *
      * @param   name   parameter name
      */
+    @SuppressWarnings("this-escape")
     public DashParameter( String name ) {
         super( name, float[].class );
         addOption( "dot", new float[] { 1f, 2f, } );

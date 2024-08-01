@@ -77,6 +77,7 @@ public class MethodBrowser extends JPanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public MethodBrowser() {
         super( new BorderLayout() );
         tree_ = new JTree( new DefaultMutableTreeNode() );

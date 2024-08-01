@@ -59,6 +59,7 @@ public class TapUploadSkyMatch extends SingleMapperTask {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public TapUploadSkyMatch() {
         super( "Crossmatches table on sky position against TAP table",
                new ChoiceMode(), true, true );

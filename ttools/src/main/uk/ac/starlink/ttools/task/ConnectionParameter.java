@@ -26,6 +26,7 @@ public class ConnectionParameter extends Parameter<Connection> {
      *
      * @param   name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public ConnectionParameter( String name ) {
         super( name, Connection.class, true );
 
