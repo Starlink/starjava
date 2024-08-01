@@ -33,6 +33,7 @@ public abstract class GbinStarTable extends AbstractStarTable {
      * @param  profile  configures how GBIN files will be mapped to a table
      * @param  gobjClazz   class of all objects in GBIN file
      */
+    @SuppressWarnings("this-escape")
     protected GbinStarTable( GbinTableProfile profile, Class<?> gobjClazz ) {
         gobjClazz_ = gobjClazz;
 
