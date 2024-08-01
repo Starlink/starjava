@@ -36,6 +36,7 @@ public abstract class EcsvStarTable extends AbstractStarTable {
      *
      * @param  meta  ECSV metadata object
      */
+    @SuppressWarnings("this-escape")
     protected EcsvStarTable( EcsvMeta meta ) {
         EcsvColumn<?>[] ecols = meta.getColumns();
         int ncol = ecols.length;
