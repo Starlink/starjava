@@ -48,6 +48,7 @@ public class ByteStoreRowStore implements RowStore {
      *
      * @param  byteStore  storage container used by this row store
      */
+    @SuppressWarnings("this-escape")
     public ByteStoreRowStore( ByteStore byteStore ) {
         byteStore_ = byteStore;
         out_ = new DataBufferedOutputStream( byteStore.getOutputStream() );

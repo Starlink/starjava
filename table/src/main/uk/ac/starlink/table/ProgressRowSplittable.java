@@ -39,6 +39,7 @@ public class ProgressRowSplittable implements RowSplittable {
      * @param  base   splittable which this one is to monitor
      * @param  tracker  internal object to which progress events are reported
      */
+    @SuppressWarnings("this-escape")
     private ProgressRowSplittable( RowSplittable base, Tracker tracker ) {
         base_ = base;
         tracker_ = tracker;

@@ -32,6 +32,7 @@ public class LabelledComponentStack extends JPanel {
     /**
      * Constructs a new stack of input fields.
      */
+    @SuppressWarnings("this-escape")
     public LabelledComponentStack() {
         inputFont_ = new JTextField().getFont();
         layer_ = new GridBagLayout();

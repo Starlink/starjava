@@ -16,11 +16,13 @@ public class TableFormatException extends IOException {
         super();
     }
 
+    @SuppressWarnings("this-escape")
     public TableFormatException( String message, Throwable cause ) {
         super( message );
         initCause( cause );
     }
 
+    @SuppressWarnings("this-escape")
     public TableFormatException( Throwable cause ) {
         super();
         initCause( cause );

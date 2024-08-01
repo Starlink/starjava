@@ -52,6 +52,7 @@ public class MultilineJTable extends JTable {
      * @param  baseModel   a TableModel describing the data this table
      *                     will display
      */
+    @SuppressWarnings("this-escape")
     public MultilineJTable( TableModel baseModel ) {
         this();
         setModel( baseModel );
@@ -61,6 +62,7 @@ public class MultilineJTable extends JTable {
      * Constructs a MultilineJTable without any data. 
      * Its TableModel is initialised to <code>null</code>.
      */
+    @SuppressWarnings("this-escape")
     public MultilineJTable() {
         setModel( getModel() );
         setGridColor( UIManager.getColor( "Table.gridColor" ) );

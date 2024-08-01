@@ -50,6 +50,7 @@ public class JoinStarTable extends AbstractStarTable {
      * @param  fixCols actions to be taken in modifying column names from
      *         the originals (may be null for no action)
      */
+    @SuppressWarnings("this-escape")
     public JoinStarTable( StarTable[] tables, JoinFixAction[] fixCols ) {
         nTab_ = tables.length;
         tables_ = tables.clone();

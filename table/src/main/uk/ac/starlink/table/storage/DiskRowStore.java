@@ -39,6 +39,7 @@ public class DiskRowStore extends ByteStoreRowStore {
      * @throws SecurityException  if the current security context does not
      *         allow writing to a temporary file
      */
+    @SuppressWarnings("this-escape")
     public DiskRowStore() throws IOException {
         this( File.createTempFile( "DiskRowStore", ".bin" ) );
         ((FileByteStore) getByteStore()).getFile().deleteOnExit();

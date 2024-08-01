@@ -29,6 +29,7 @@ public class FileChooserTableLoadDialog extends AbstractTableLoadDialog {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public FileChooserTableLoadDialog() {
         super( "File Browser",
                "Load tables from files on the local filesystem" );

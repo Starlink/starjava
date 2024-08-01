@@ -68,6 +68,7 @@ public class ProgressBarStarTable extends WrapperStarTable {
      *                      this table will (probably, at some point)
      *                      throw IOExceptions
      */
+    @SuppressWarnings("this-escape")
     public ProgressBarStarTable( StarTable baseTable, JProgressBar progBar,
                                  BooleanSupplier isCancelled ) {
         super( baseTable );

@@ -51,6 +51,7 @@ public class JDBCFormatter {
      * @param  conn  JDBC connection
      * @param  table   input table
      */
+    @SuppressWarnings("this-escape")
     public JDBCFormatter( Connection conn, StarTable table )
             throws SQLException, IOException {
         conn_ = conn;

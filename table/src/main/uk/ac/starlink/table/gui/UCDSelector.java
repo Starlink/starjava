@@ -28,6 +28,7 @@ public class UCDSelector extends JPanel implements ItemListener {
     /**
      * Constructs a new UCDSelector.
      */
+    @SuppressWarnings("this-escape")
     public UCDSelector() {
 
         /* Construct the label used for showing descriptions. */

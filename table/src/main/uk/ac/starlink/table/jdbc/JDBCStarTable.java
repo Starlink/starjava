@@ -48,6 +48,7 @@ public class JDBCStarTable extends AbstractStarTable {
      * @param  connx object which can supply JDBC connections
      * @param  sql   text of the SQL query
      */
+    @SuppressWarnings("this-escape")
     public JDBCStarTable( Connector connx, String sql ) throws SQLException {
         this( connx, sql, false );
         getParameters().add( new DescribedValue( SQL_INFO, sql ) );
@@ -68,6 +69,7 @@ public class JDBCStarTable extends AbstractStarTable {
      * @param  isRandom  whether this table needs to provide random access or
      *         not (there are costs associated with this)
      */
+    @SuppressWarnings("this-escape")
     public JDBCStarTable( Connector connx, String sql, boolean isRandom ) 
             throws SQLException {
         connx_ = connx;

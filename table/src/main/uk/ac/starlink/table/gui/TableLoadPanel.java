@@ -57,6 +57,7 @@ public abstract class TableLoadPanel extends JPanel {
      * @param  tfact  representative table factory
      *         (not necessarily the one used to create tables)
      */
+    @SuppressWarnings("this-escape")
     public TableLoadPanel( TableLoadDialog tld, StarTableFactory tfact ) {
         super( new BorderLayout() );
         tld_ = tld;

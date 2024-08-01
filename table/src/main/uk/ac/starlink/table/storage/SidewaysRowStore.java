@@ -43,6 +43,7 @@ public class SidewaysRowStore implements RowStore {
      *
      * @param   file  base scratch file name
      */
+    @SuppressWarnings("this-escape")
     public SidewaysRowStore( File file ) throws IOException {
         file_ = file;
         tempFiles_ = new HashSet<File>();
