@@ -33591,8 +33591,10 @@ introduced since the last version:
         when writing NaNs and empty strings/arrays.</li>
     <li>Add dictionary use configuration option to
         <ref id="outParquet">Parquet output handler</ref>.</li>
-    <li>Avoid 32-bit floats in <ref id="inMrt">MRT input handler</ref>, 
-        to avoid rare bug reading large values as infinite.</li>
+    <li>New config option <code>useFloat</code> 
+        in <ref id="inMrt">MRT input handler</ref>;
+        this is set false by default to avoid a rare bug
+        that read large values as infinite.</li>
     </ul>
     </p></dd>
 
