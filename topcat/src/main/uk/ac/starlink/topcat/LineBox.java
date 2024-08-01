@@ -27,6 +27,7 @@ public class LineBox extends JPanel {
      * @param  comp    arbitrary component
      * @param  postGap  true for trailing vertical pad
      */
+    @SuppressWarnings("this-escape")
     public LineBox( String label, JComponent comp, boolean postGap ) {
         comp_ = comp;
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );

@@ -26,6 +26,7 @@ public abstract class CentreZoomRegion extends ZoomRegion {
      * @param   isX  true if the target region is horizontal, 
      *               false for vertical
      */
+    @SuppressWarnings("this-escape")
     public CentreZoomRegion( boolean isX ) {
         isX_ = isX;
         setCursor( Cursor.getPredefinedCursor( isX ? Cursor.W_RESIZE_CURSOR

@@ -77,6 +77,7 @@ public class HipsSurvey {
      *
      * @param   map  HiPS properties as a map
      */
+    @SuppressWarnings("this-escape")
     public HipsSurvey( Map<String,String> map ) {
         creatorDid_ = map.get( KEY_CREATOR_DID );
         obsTitle_ = map.get( KEY_OBS_TITLE );

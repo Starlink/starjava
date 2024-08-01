@@ -42,6 +42,7 @@ public class MethodWindow extends AuxWindow {
      * @param  parent  a parent component which may be used for positioning
      *         purposes
      */
+    @SuppressWarnings("this-escape")
     public MethodWindow( Component parent ) {
         super( "Available Functions", parent );
         browser_ = new MethodBrowser();

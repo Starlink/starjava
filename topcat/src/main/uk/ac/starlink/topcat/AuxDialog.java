@@ -42,6 +42,7 @@ public class AuxDialog extends JDialog {
      * @param  title  dialog title
      * @param  owner  dialog owner window
      */
+    @SuppressWarnings("this-escape")
     public AuxDialog( String title, Window owner ) {
         super( owner, title );
         setDefaultCloseOperation( DISPOSE_ON_CLOSE );

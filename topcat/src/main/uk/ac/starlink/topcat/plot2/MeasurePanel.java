@@ -45,6 +45,7 @@ public class MeasurePanel extends JPanel {
      *                   this panel will be presented with
      * @param   plotPanel   factory for surfaces
      */
+    @SuppressWarnings("this-escape")
     public MeasurePanel( PlotMetric metric, PlotPanel<?,?> plotPanel ) {
         metric_ = metric;
         plotPanel_ = plotPanel;

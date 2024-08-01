@@ -51,6 +51,7 @@ public class StiltsDialog extends AuxDialog {
      * @param  isMultiZone   true if the possibility of multiple zones
      *                       should be accounted for in the command
      */
+    @SuppressWarnings("this-escape")
     public StiltsDialog( Window parent, PlotPanel<?,?> plotPanel,
                          boolean isMultiZone ) {
         super( "STILTS Export", parent );

@@ -43,6 +43,7 @@ public class SyntheticColumn extends ColumnData {
      *         primitive wrapper types or String.class.  If <code>null</code>
      *         a suitable class is chosen automatically.
      */
+    @SuppressWarnings("this-escape")
     public SyntheticColumn( TopcatModel tcModel, ColumnInfo cinfo,
                             String expression, Class<?> resultType )
             throws CompilationException {

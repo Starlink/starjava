@@ -34,6 +34,7 @@ public class SaveTableQueryWindow extends QueryWindow {
      * @param  sto    table output handler
      * @param  progress  true iff you want a save progress bar
      */
+    @SuppressWarnings("this-escape")
     public SaveTableQueryWindow( String title, Component parent,
                                  StarTableOutput sto, boolean progress ) {
         super( title, parent, false, true );

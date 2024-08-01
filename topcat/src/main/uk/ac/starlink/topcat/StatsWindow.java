@@ -93,6 +93,7 @@ public class StatsWindow extends AuxWindow {
      * @param  tcModel  model containing the data for the table concerned
      * @param  parent   component used for window positioning
      */
+    @SuppressWarnings("this-escape")
     public StatsWindow( TopcatModel tcModel, Component parent ) {
         super( tcModel, "Row Statistics", parent );
         tcModel_ = tcModel;

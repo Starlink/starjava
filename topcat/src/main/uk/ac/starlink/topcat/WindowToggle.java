@@ -25,6 +25,7 @@ public abstract class WindowToggle extends ToggleButtonModel {
      * @param  icon  toggle button icon
      * @param  descrip   toggle button description
      */
+    @SuppressWarnings("this-escape")
     public WindowToggle( String name, Icon icon, String descrip ) {
         super( name, icon, descrip );
         addChangeListener( new ChangeListener() {

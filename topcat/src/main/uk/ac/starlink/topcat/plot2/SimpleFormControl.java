@@ -27,6 +27,7 @@ public class SimpleFormControl extends FormControl {
      * @param  extraCoords  any coordinates which are to be solicited from
      *                      the form control
      */
+    @SuppressWarnings("this-escape")
     public SimpleFormControl( Configger baseConfigger, Plotter<?> plotter,
                               Coord[] extraCoords ) {
         super( baseConfigger );

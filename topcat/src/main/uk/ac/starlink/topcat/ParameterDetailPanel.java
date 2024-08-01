@@ -60,6 +60,7 @@ public class ParameterDetailPanel extends JPanel {
      *
      * @param  model   table model representing parameter attributes
      */
+    @SuppressWarnings("this-escape")
     public ParameterDetailPanel( TableModel model ) {
         model_ = model;
         irow_ = -1;

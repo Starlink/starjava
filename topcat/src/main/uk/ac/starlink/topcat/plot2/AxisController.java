@@ -61,6 +61,7 @@ public abstract class AxisController<P,A> implements Configger {
      *
      * @param  surfFact  plot surface factory
      */
+    @SuppressWarnings("this-escape")
     protected AxisController( SurfaceFactory<P,A> surfFact ) {
         surfFact_ = surfFact;
         mainControl_ = new ConfigControl( "Axes", ResourceIcon.AXIS_CONFIG );

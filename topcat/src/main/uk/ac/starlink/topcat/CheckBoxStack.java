@@ -54,6 +54,7 @@ public class CheckBoxStack<T> extends JPanel
      * @param  listModel the model
      * @param  annotator  object to generate annotations for each check box
      */
+    @SuppressWarnings("this-escape")
     public CheckBoxStack( ListModel<T> listModel, Annotator annotator ) {
         super( new GridBagLayout() );
         annotator_ = annotator;
@@ -73,6 +74,7 @@ public class CheckBoxStack<T> extends JPanel
     /**
      * Constructs a new CheckBoxStack from a default list model.
      */
+    @SuppressWarnings("this-escape")
     public CheckBoxStack() {
         this( new DefaultListModel<T>() );
         revalidate();

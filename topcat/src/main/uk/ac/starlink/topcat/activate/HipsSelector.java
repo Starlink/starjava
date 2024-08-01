@@ -56,6 +56,7 @@ public class HipsSelector extends JPanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public HipsSelector() {
         super( new BorderLayout() );
         field_ = new JTextField();

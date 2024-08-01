@@ -29,6 +29,7 @@ public class FrameControl extends ConfigControl {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public FrameControl() {
         super( "Frame", ResourceIcon.FRAME_CONFIG );
 

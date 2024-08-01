@@ -60,6 +60,7 @@ public abstract class Hips2fitsConfigurator extends SkyPosConfigurator {
      * @param  tinfo   topcat model information
      * @param  filter   indicates which Hips image surveys are suitable
      */
+    @SuppressWarnings("this-escape")
     protected Hips2fitsConfigurator( TopcatModelInfo tinfo,
                                      final Predicate<HipsSurvey> filter ) {
         super( tinfo );

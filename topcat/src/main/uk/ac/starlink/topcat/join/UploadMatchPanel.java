@@ -98,6 +98,7 @@ public class UploadMatchPanel extends JPanel {
      * @param   progBar  progress bar that this component may use to indicate
      *                   progress of matches
      */
+    @SuppressWarnings("this-escape")
     public UploadMatchPanel( JProgressBar progBar ) {
         super( new BorderLayout() );
         coding_ = ContentCoding.GZIP;

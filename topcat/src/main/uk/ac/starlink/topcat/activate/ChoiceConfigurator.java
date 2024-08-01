@@ -41,6 +41,7 @@ public class ChoiceConfigurator extends AbstractActivatorConfigurator {
      * 
      * @param  configurators  configurator options
      */
+    @SuppressWarnings("this-escape")
     public ChoiceConfigurator( ActivatorConfigurator[] configurators ) {
         super( new JPanel( new BorderLayout() ) );
         configurators_ = configurators;

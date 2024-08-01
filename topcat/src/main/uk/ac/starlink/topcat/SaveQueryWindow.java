@@ -44,6 +44,7 @@ public class SaveQueryWindow extends QueryWindow {
      *                      (for instance directory)
      * @param  parent   parent component
      */
+    @SuppressWarnings("this-escape")
     public SaveQueryWindow( StarTableOutput sto, LoadWindow loadWindow,
                             Component parent ) {
         super( "Save Table(s) or Session", parent, false, true );

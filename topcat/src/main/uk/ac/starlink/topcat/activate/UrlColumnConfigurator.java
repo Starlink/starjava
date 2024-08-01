@@ -48,6 +48,7 @@ public abstract class UrlColumnConfigurator
      *                    as default values for the URL column selector;
      *                    earlier entries are preferred over later ones
      */
+    @SuppressWarnings("this-escape")
     protected UrlColumnConfigurator( TopcatModelInfo tinfo, String urlWord,
                                      ColFlag[] urlFlags ) {
         super( new JPanel( new BorderLayout() ) );

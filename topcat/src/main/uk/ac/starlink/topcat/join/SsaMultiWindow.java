@@ -34,6 +34,7 @@ public class SsaMultiWindow extends DalMultiWindow {
      *
      * @param  parent  parent component
      */
+    @SuppressWarnings("this-escape")
     public SsaMultiWindow( Component parent ) {
         super( parent, new SsaMultiService(), true );
         addHelp( "SsaMultiWindow" );

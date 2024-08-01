@@ -45,6 +45,7 @@ public class Match1TypeSelector extends JPanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public Match1TypeSelector() {
         setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
 

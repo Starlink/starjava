@@ -28,6 +28,7 @@ public class IntSelector extends JPanel implements ItemListener {
      *
      * @param options initial selections
      */
+    @SuppressWarnings("this-escape")
     public IntSelector( int[] options ) {
         super( new BorderLayout() );
         if ( options != null ) {

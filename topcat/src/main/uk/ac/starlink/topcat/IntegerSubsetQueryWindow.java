@@ -27,6 +27,7 @@ public abstract class IntegerSubsetQueryWindow extends SubsetQueryWindow {
      * @param   title   window title
      * @param   numLabel  label for the integer entry text component
      */
+    @SuppressWarnings("this-escape")
     public IntegerSubsetQueryWindow( TopcatModel tcModel, Component parent,
                                      String title, String numLabel ) {
         super( tcModel, parent, title );

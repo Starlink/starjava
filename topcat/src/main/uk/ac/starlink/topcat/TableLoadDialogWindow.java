@@ -36,6 +36,7 @@ public class TableLoadDialogWindow extends AuxWindow {
      * @param  loadWin  load window
      * @param  tfact  sample table factory
      */
+    @SuppressWarnings("this-escape")
     public TableLoadDialogWindow( Component parent, TableLoadDialog tld,
                                   LoadWindow loadWin, StarTableFactory tfact ) {
         super( tld.getName(), parent );

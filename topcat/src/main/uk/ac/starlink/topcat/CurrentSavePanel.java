@@ -37,6 +37,7 @@ public class CurrentSavePanel extends SavePanel {
      *
      * @param  sto   output marshaller
      */
+    @SuppressWarnings("this-escape")
     public CurrentSavePanel( StarTableOutput sto ) {
         super( "Current Table",
                TableSaveChooser.makeFormatBoxModel( sto, false ) );

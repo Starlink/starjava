@@ -89,6 +89,7 @@ public class GavoTableLoadDialog extends AbstractTableLoadDialog {
      * Constructor.  A public no-arg constructor is required by STIL's
      * pluggable load dialogue mechanism.
      */
+    @SuppressWarnings("this-escape")
     public GavoTableLoadDialog() {
         super( "Virgo-Millennium Simulation Query",
                "Uses GAVO-like services to query databases of " +

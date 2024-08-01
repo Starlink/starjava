@@ -42,6 +42,7 @@ public class LegendControl extends TabberControl {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public LegendControl() {
         super( "Legend", ResourceIcon.LEGEND );
         final ActionListener forwarder = getActionForwarder();

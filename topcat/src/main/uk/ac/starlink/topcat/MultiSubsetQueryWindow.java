@@ -49,6 +49,7 @@ public class MultiSubsetQueryWindow extends QueryWindow {
      * @param   jelExpr  JEL expression giving generic description of subset
      * @param   adqlExpr  ADQL expression giving generic description of subset
      */
+    @SuppressWarnings("this-escape")
     public MultiSubsetQueryWindow( String title, Component parent,
                                    Entry[] entries, String jelExpr,
                                    String adqlExpr ) {

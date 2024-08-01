@@ -65,6 +65,7 @@ public class ColumnDataComboBoxModel
      * @param   hasIndex  true iff you want an index column entry in the
      *                    selector model
      */
+    @SuppressWarnings("this-escape")
     public ColumnDataComboBoxModel( TopcatModel tcModel, Filter filter,
                                     boolean hasNone, boolean hasIndex ) {
         tcModel_ = tcModel;

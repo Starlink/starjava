@@ -47,6 +47,7 @@ public class IntraMatchSpec extends MatchSpec {
      * @param  engine the match engine defining the match type
      * @param  runnerFact   supplier for RowRunner
      */
+    @SuppressWarnings("this-escape")
     public IntraMatchSpec( MatchEngine engine,
                            Supplier<RowRunner> runnerFact ) {
         engine_ = engine;

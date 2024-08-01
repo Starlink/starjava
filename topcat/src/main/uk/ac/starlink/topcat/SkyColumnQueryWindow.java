@@ -46,6 +46,7 @@ public class SkyColumnQueryWindow extends QueryWindow {
      * @param   tcModel  topcat model
      * @param   parent   parent component
      */
+    @SuppressWarnings("this-escape")
     public SkyColumnQueryWindow( TopcatModel tcModel, Component parent ) {
         super( "Sky Coordinate Columns", parent );
         tcModel_ = tcModel;

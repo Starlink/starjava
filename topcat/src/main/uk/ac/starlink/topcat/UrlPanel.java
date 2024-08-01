@@ -62,6 +62,7 @@ public class UrlPanel extends JPanel {
      * @param  hasAutoInvoke      true iff an auto-invoke toggle button
      *                            should be displayed
      */
+    @SuppressWarnings("this-escape")
     public UrlPanel( UrlOptions urlopts, boolean hasAutoInvoke ) {
         super( new BorderLayout() );
         urlopts_ = urlopts;

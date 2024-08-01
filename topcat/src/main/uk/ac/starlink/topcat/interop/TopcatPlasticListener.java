@@ -77,6 +77,7 @@ public class TopcatPlasticListener extends HubManager {
      * @param   controlWindow   control window into which accepted tables
      *          will be loaded etc
      */
+    @SuppressWarnings("this-escape")
     public TopcatPlasticListener( ControlWindow controlWindow ) {
         super( "topcat", SUPPORTED_MESSAGES );
         controlWindow_ = controlWindow;

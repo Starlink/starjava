@@ -63,6 +63,7 @@ public class ShaderControl extends ConfigControl {
      *                         updated dynamically or held fixed;
      *                         may be null
      */
+    @SuppressWarnings("this-escape")
     public ShaderControl( MultiConfigger configger,
                           final ToggleButtonModel auxLockModel ) {
         super( SCALE.getName() + " Axis", ResourceIcon.COLORS );

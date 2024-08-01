@@ -61,6 +61,7 @@ public class PointSelection implements PlotData {
      * @param  subsetNames     labels to be used for the subsets in 
      *                         <code>subsetPointers</code>
      */
+    @SuppressWarnings("this-escape")
     public PointSelection( PointSelector[] selectors, int[][] subsetPointers,
                            String[] subsetNames ) {
         nTable_ = selectors.length;

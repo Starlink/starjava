@@ -30,6 +30,7 @@ public class ControlStackModel extends AbstractListModel<Control> {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public ControlStackModel() {
         list_ = new ArrayList<Control>();
         activeMap_ = new HashMap<Control,ToggleButtonModel>();

@@ -33,6 +33,7 @@ public class DatalessLayerControl extends SingleZoneLayerControl {
      * @param   zsel    zone id specifier, may be null for single-zone case
      * @param   baseConfigger   provides global configuration info
      */
+    @SuppressWarnings("this-escape")
     public DatalessLayerControl( Plotter<?> plotter, Specifier<ZoneId> zsel,
                                  Configger baseConfigger ) {
         super( plotter.getPlotterName(), plotter.getPlotterIcon(), zsel );

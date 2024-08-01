@@ -36,6 +36,7 @@ public class ConeMultiWindow extends DalMultiWindow {
      *
      * @param  parent  parent component
      */
+    @SuppressWarnings("this-escape")
     public ConeMultiWindow( Component parent ) {
         super( parent, new ConeMultiService(), false );
         addHelp( "ConeMultiWindow" );

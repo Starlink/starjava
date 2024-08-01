@@ -41,6 +41,7 @@ public class SkyPlotWindow
      * @param  parent   parent component
      * @param  tablesModel  list of available tables
      */
+    @SuppressWarnings("this-escape")
     public SkyPlotWindow( Component parent,
                           ListModel<TopcatModel> tablesModel ) {
         super( "Sky Plot", parent, PLOT_TYPE, new SkyPlotTypeGui(),

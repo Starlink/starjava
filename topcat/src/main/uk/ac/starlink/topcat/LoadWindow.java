@@ -86,6 +86,7 @@ public class LoadWindow extends AuxWindow {
      * @param   parent  parent component
      * @param   tfact  table factory
      */
+    @SuppressWarnings("this-escape")
     public LoadWindow( Component parent, final StarTableFactory tfact ) {
         super( "Load New Table", parent );
 

@@ -38,6 +38,7 @@ public class ParameterEditor extends JComponent {
      *
      * @param  dval  the DescribedValue that this object will edit
      */
+    @SuppressWarnings("this-escape")
     public ParameterEditor( DescribedValue dval ) {
         dval_ = dval;
         listenerList_ = new ArrayList<ChangeListener>();

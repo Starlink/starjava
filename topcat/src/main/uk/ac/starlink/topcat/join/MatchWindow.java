@@ -81,6 +81,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      * @param  parent  parent window, may be used for window positioning
      * @param  nTable  number of tables to participate in match
      */
+    @SuppressWarnings("this-escape")
     public MatchWindow( Component parent, int nTable ) {
         super( "Match Tables", parent );
         this.nTable = nTable;

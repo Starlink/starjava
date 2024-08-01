@@ -60,6 +60,7 @@ public class BasicCoordLayerControl extends SingleZoneLayerControl {
      *                       will be made to initialise the coordinate fields
      *                       with some suitable values
      */
+    @SuppressWarnings("this-escape")
     public BasicCoordLayerControl( Plotter<?> plotter, Specifier<ZoneId> zsel,
                                    PositionCoordPanel coordPanel,
                                    ListModel<TopcatModel> tablesModel,

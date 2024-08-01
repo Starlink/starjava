@@ -58,6 +58,7 @@ public class ClassifyWindow extends AuxWindow {
      * @param  tcModel   topcat model
      * @param  parent   parent component
      */
+    @SuppressWarnings("this-escape")
     public ClassifyWindow( TopcatModel tcModel, Component parent ) {
         super( "Column Classification", parent );
         tcModel_ = tcModel;

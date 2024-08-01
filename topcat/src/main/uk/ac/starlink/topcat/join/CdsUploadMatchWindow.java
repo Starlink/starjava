@@ -20,6 +20,7 @@ public class CdsUploadMatchWindow extends AuxWindow {
      *
      * @param  parent  parent window
      */
+    @SuppressWarnings("this-escape")
     public CdsUploadMatchWindow( Component parent ) {
         super( "CDS Upload X-Match", parent );
         JComponent main = getMainArea();

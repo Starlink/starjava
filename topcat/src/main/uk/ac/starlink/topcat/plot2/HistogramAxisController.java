@@ -56,6 +56,7 @@ public class HistogramAxisController
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public HistogramAxisController() {
         super( HISTOGRAM_SURFACE_FACTORY,
                PlaneAxisController.createAxisLabelKeys() );

@@ -30,6 +30,7 @@ public class SubsetQueryWindow extends QueryWindow {
      *                       window positioning)
      * @param   title        window title
      */
+    @SuppressWarnings("this-escape")
     protected SubsetQueryWindow( TopcatModel tcModel, Component parent,
                                  String title ) {
         super( title, parent );
