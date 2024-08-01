@@ -10,6 +10,7 @@ public class IntegerParameter extends Parameter<Integer> {
     private int min = Integer.MIN_VALUE;
     private int max = Integer.MAX_VALUE;
 
+    @SuppressWarnings("this-escape")
     public IntegerParameter( String name ) {
         super( name, Integer.class, false );
         setUsage( "<int-value>" );

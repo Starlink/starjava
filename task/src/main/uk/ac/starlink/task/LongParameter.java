@@ -13,6 +13,7 @@ public class LongParameter extends Parameter<Long> {
      *
      * @param  name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public LongParameter( String name ) {
         super( name, Long.class, false );
         min_ = Long.MIN_VALUE;

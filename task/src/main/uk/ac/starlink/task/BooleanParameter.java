@@ -14,6 +14,7 @@ public class BooleanParameter extends Parameter<Boolean> {
      *
      * @param  name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public BooleanParameter( String name ) {
         super( name, Boolean.class, false );
         setUsage( "true|false" );

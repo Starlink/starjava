@@ -30,6 +30,7 @@ public abstract class AbstractChoiceParameter<T,C> extends Parameter<T> {
      * @param   optClazz   class of typed option
      * @param   options   initial list of typed options available
      */
+    @SuppressWarnings("this-escape")
     protected AbstractChoiceParameter( String name, Class<T> paramClazz,
                                        Class<C> optClazz, C[] options ) {
         super( name, paramClazz, true );

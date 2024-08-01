@@ -20,6 +20,7 @@ public class InputStreamParameter extends Parameter<InputStream> {
 
     private final boolean allowSystem_;
 
+    @SuppressWarnings("this-escape")
     public InputStreamParameter( String name ) {
         super( name, InputStream.class, true );
         allowSystem_ = true;
