@@ -58,6 +58,7 @@ public class DistanceEstimator {
 		this(EstimationType.HS_UNIFORM, null);
 	}
 	
+        @SuppressWarnings("this-escape")
 	public DistanceEstimator(EstimationType type, Map<String,String> parameters){
 		this.logger = Logger.getLogger(this.getClass().getName());
 		

@@ -31,6 +31,7 @@ public class Edsd {
      * @param   eplx   error in parallax
      * @param   l     distance scale 
      */
+    @SuppressWarnings("this-escape")
     public Edsd( double plx, double eplx, double l ) {
         plx_ = plx;
         eplx_ = eplx;
