@@ -113,6 +113,7 @@ public class HelpFrame
      *
      * @throws  HelpSetException  in case of error
      */
+    @SuppressWarnings("this-escape")
     protected HelpFrame()
         throws HelpSetException
     {
