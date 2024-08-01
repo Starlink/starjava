@@ -14,6 +14,7 @@ public abstract class CsvSchema<T> {
 	/**
 	 * Constructor
 	 */
+        @SuppressWarnings("this-escape")
 	public CsvSchema(){
 		columnIndexes=setupColumnIndexes();
 		separators=setupSeparators();
