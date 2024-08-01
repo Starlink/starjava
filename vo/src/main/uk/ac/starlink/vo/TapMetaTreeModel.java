@@ -28,6 +28,7 @@ public class TapMetaTreeModel implements TreeModel {
      *                  represented
      * @param  order  initial ordering policy for contents
      */
+    @SuppressWarnings("this-escape")
     public TapMetaTreeModel( SchemaMeta[] schemas, TapMetaOrder order ) {
         listeners_ = new ArrayList<TreeModelListener>();
         order_ = order;

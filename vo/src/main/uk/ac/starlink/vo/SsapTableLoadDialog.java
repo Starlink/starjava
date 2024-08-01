@@ -42,6 +42,7 @@ public class SsapTableLoadDialog extends SkyDalTableLoadDialog {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public SsapTableLoadDialog() {
         super( "Simple Spectral Access (SSA) Query", "SSA",
                "Get results of a Simple Spectrum Access Protocol query",

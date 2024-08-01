@@ -47,6 +47,7 @@ public class DoubleValueField {
      * @param  info  field metadata
      * @param  convs  list of converter objects
      */
+    @SuppressWarnings("this-escape")
     public DoubleValueField( ValueInfo info, ValueConverter[] convs ) {
         info_ = new DefaultValueInfo( info );
         label_ = new JLabel( info_.getName() + ": " );

@@ -42,6 +42,7 @@ public class UwsJobPanel extends JPanel {
      *
      * @param  includeUrl   true to include the job URL field in the display
      */
+    @SuppressWarnings("this-escape")
     public UwsJobPanel( boolean includeUrl ) {
         super( new BorderLayout() );
         JComponent main = Box.createVerticalBox();

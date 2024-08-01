@@ -54,6 +54,7 @@ public class MetaPanel extends JPanel implements Scrollable {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public MetaPanel() {
         setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
         setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );

@@ -121,6 +121,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public TapTableLoadDialog() {
         super( "Table Access Protocol (TAP) Query",
                "Query remote databases using SQL-like language" );

@@ -49,6 +49,7 @@ public class TapCapabilityPanel extends JPanel {
      *                     in this component for GUI organisation reasons,
      *                     it's not managed as part of capabilities
      */
+    @SuppressWarnings("this-escape")
     public TapCapabilityPanel( Action authAction ) {
         super( new BorderLayout() );
         langSelector_ = new JComboBox<>();
