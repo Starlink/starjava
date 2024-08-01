@@ -25,6 +25,7 @@ public class FeatureCollection extends TfcatObject {
      * @param   features   features in this collection;
      *                     may be empty but not null
      */
+    @SuppressWarnings("this-escape")
     public FeatureCollection( JSONObject json, Crs crs, Bbox bbox,
                               Map<String,Field> fieldMap, Feature[] features ) {
         super( json, "FeatureCollection", crs, bbox );
