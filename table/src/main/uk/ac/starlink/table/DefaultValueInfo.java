@@ -77,6 +77,7 @@ public class DefaultValueInfo implements ValueInfo {
      *         instances
      * @param  description  a textual description of the described values
      */
+    @SuppressWarnings("this-escape")
     public DefaultValueInfo( String name, Class<?> contentClass,
                              String description ) {
         name_ = name;

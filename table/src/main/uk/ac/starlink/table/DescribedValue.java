@@ -32,6 +32,7 @@ public class DescribedValue {
      * @throws  IllegalArgumentException  if <code>value.getClass()</code>
      *          is not compatible with <code>vinfo.getContentClass()</code>
      */
+    @SuppressWarnings("this-escape")
     public DescribedValue( ValueInfo vinfo, Object value ) {
         this( vinfo );
         setValue( value );

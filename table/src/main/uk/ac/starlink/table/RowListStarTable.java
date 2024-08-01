@@ -41,6 +41,7 @@ public class RowListStarTable extends RandomStarTable {
      *
      * @param  template  template table supplying column and table metadata
      */
+    @SuppressWarnings("this-escape")
     public RowListStarTable( StarTable template ) {
         this( Tables.getColumnInfos( template ) );
         setName( template.getName() );

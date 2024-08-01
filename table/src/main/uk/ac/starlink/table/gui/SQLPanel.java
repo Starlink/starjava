@@ -53,6 +53,7 @@ public class SQLPanel extends JPanel {
      * @param   refArea  true to use a multi-line text area for the ref field,
      *                   false for a one-line field
      */
+    @SuppressWarnings("this-escape")
     public SQLPanel( String refString, boolean refArea ) {
         super( new BorderLayout() );
         stack = new LabelledComponentStack();

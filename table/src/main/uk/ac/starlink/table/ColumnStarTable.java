@@ -37,6 +37,7 @@ public abstract class ColumnStarTable extends RandomStarTable {
      *
      * @param   template  the template StarTable
      */
+    @SuppressWarnings("this-escape")
     public ColumnStarTable( StarTable template ) {
         setName( template.getName() );
         setParameters( new ArrayList<DescribedValue>( template

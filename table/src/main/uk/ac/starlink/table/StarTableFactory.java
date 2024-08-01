@@ -237,6 +237,7 @@ public class StarTableFactory {
      *
      * @param   requireRandom  whether random-access tables will be constructed
      */
+    @SuppressWarnings("this-escape")
     public StarTableFactory( boolean requireRandom ) {
         requireRandom_ = requireRandom;
 

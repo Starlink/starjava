@@ -16,6 +16,7 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class AsciiTableWriter extends AbstractTextTableWriter {
 
+    @SuppressWarnings("this-escape")
     public AsciiTableWriter() {
         super( new String[] { "txt" }, false );
         setMaxWidth( 158 );

@@ -40,6 +40,7 @@ public class FilestoreTableLoadDialog extends AbstractTableLoadDialog {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public FilestoreTableLoadDialog() {
         super( "Filestore Browser",
                "Loader for files from local or remote filespace" );

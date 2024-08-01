@@ -59,6 +59,7 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
      *
      * @param  clazz  the type of object it will expect to render on the whole
      */
+    @SuppressWarnings("this-escape")
     public NumericCellRenderer( Class<?> clazz ) {
         this.clazz = clazz;
 

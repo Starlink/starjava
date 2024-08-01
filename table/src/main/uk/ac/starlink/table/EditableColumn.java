@@ -23,6 +23,7 @@ public class EditableColumn extends WrapperColumn {
     /**
      * Constructs a new EditableColumn based on an existing column.
      */
+    @SuppressWarnings("this-escape")
     public EditableColumn( ColumnData base ) {
         super( base );
         base_ = base;

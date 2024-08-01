@@ -46,6 +46,7 @@ public class HTMLTableWriter extends DocumentedStreamStarTableWriter
      * Constructs a new writer indicating whether it will produce complete
      * or partial HTML documents.
      */
+    @SuppressWarnings("this-escape")
     public HTMLTableWriter( boolean standalone, boolean useRowGroups ) {
         super( new String[] { "html", "htm" } );
         setStandalone( standalone );

@@ -66,6 +66,7 @@ public class StarJTable extends JTable {
      *          returns <code>false</code>
      * @see     uk.ac.starlink.table.Tables#randomTable
      */
+    @SuppressWarnings("this-escape")
     public StarJTable( StarTable startable, boolean rowHeader ) {
         this( rowHeader );
         setStarTable( startable, rowHeader );

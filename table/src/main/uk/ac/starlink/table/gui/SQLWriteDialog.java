@@ -31,6 +31,7 @@ public class SQLWriteDialog extends JPanel implements TableSaveDialog {
     /**
      * Constructs a new SQLWriteDialog.
      */
+    @SuppressWarnings("this-escape")
     public SQLWriteDialog() {
         super( new BorderLayout() );
         sqlPanel_ = new SQLPanel( "Write New SQL Table", false );

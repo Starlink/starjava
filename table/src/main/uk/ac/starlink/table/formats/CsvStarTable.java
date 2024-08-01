@@ -62,6 +62,7 @@ public class CsvStarTable extends StreamStarTable {
      * @param  maxSample  maximum number of rows sampled to determine
      *                    column data types; if &lt;=0, all rows are sampled
      */
+    @SuppressWarnings("this-escape")
     public CsvStarTable( DataSource datsrc, Boolean fixHasHeaderLine,
                          int maxSample )
             throws TableFormatException, IOException {

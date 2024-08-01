@@ -228,6 +228,7 @@ public class SqlSyntax {
      *                    at start and end, doubled if this character is
      *                    embedded
      */
+    @SuppressWarnings("this-escape")
     public SqlSyntax( String[] reservedWords, Pattern identifierRegex,
                       char quoteChar ) {
         TreeSet<String> words = new TreeSet<String>();

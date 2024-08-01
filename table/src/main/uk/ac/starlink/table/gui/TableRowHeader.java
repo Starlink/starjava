@@ -53,6 +53,7 @@ public class TableRowHeader extends JTable {
     /**
      * Construct a new TableRowHeader.
      */
+    @SuppressWarnings("this-escape")
     public TableRowHeader( JTable table ) {
         this.masterTable = table;
         this.masterModel = masterTable.getModel();

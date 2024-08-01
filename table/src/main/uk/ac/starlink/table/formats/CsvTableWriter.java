@@ -36,6 +36,7 @@ public class CsvTableWriter extends DocumentedStreamStarTableWriter {
      * @param  writeHeader  true iff you want the first output line to contain
      *         column names
      */
+    @SuppressWarnings("this-escape")
     public CsvTableWriter( boolean writeHeader ) {
         super( new String[] { "csv" } );
         setWriteHeader( writeHeader );

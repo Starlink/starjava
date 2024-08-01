@@ -26,6 +26,7 @@ public class SQLTableLoadDialog extends AbstractTableLoadDialog {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public SQLTableLoadDialog() {
         super( "SQL Query",
                "Get table as result of an SQL query on a relational database" );

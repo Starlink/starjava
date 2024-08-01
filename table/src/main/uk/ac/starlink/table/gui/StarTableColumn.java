@@ -31,6 +31,7 @@ public class StarTableColumn extends TableColumn {
      * @param   modelIndex the index of the column in the
      *          <code>TableModel</code> which will be displayed by this column
      */
+    @SuppressWarnings("this-escape")
     public StarTableColumn( ColumnInfo colinfo, int modelIndex ) {
         super( modelIndex );
         this.colinfo = colinfo;

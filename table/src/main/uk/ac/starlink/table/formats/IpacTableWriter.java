@@ -25,6 +25,7 @@ public class IpacTableWriter extends AbstractTextTableWriter {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public IpacTableWriter() {
         super( new String[] { "tbl", "ipac" }, true );
         setMaxWidth( 1000 );
