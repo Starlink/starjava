@@ -26,6 +26,7 @@ public class AssertException extends IOException {
      * @param   msg  message
      * @param   e    cause
      */
+    @SuppressWarnings("this-escape")
     public AssertException( String msg, Throwable e ) {
         super( msg );
         initCause( e );

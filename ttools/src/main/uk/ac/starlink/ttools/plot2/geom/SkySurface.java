@@ -101,6 +101,7 @@ public class SkySurface implements Surface {
      * @param  captioner  text rendering object
      * @param  antialias  whether to antialias grid lines
      */
+    @SuppressWarnings("this-escape")
     public SkySurface( Rectangle plotBounds, Projection projection,
                        double[] rotmat, double zoom, double xoff, double yoff,
                        SkySys viewSystem, SkyAxisLabeller axLabeller,

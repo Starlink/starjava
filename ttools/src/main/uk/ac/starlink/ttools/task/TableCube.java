@@ -17,6 +17,7 @@ public class TableCube extends SingleMapperTask {
 
     private final WordsParameter<String> colsParam_;
 
+    @SuppressWarnings("this-escape")
     public TableCube() {
         super( "Calculates N-dimensional histograms", new CubeMode(),
                false, true );

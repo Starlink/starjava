@@ -175,6 +175,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  hasZoneSuffixes  true iff zone content can be controlled
      *                          explicitly by use of parameter suffixes
      */
+    @SuppressWarnings("this-escape")
     protected AbstractPlot2Task( boolean allowAnimate,
                                  boolean hasZoneSuffixes ) {
         allowAnimate_ = allowAnimate;

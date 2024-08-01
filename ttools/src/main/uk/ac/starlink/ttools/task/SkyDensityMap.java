@@ -66,6 +66,7 @@ public class SkyDensityMap extends SingleMapperTask {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public SkyDensityMap() {
         super( "Calculates sky density maps", new ChoiceMode(), true, true );
         final String quantName = "cols";

@@ -25,6 +25,7 @@ public class Histogram extends SurfacePlot {
      *
      * @param  surface  the surface on which plotting will take place
      */
+    @SuppressWarnings("this-escape")
     public Histogram( PlotSurface surface ) {
         super();
         add( new HistogramDataPanel() );

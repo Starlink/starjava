@@ -28,6 +28,7 @@ public class OutputModeParameter
      *
      * @param  name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public OutputModeParameter( String name ) {
         super( name, Stilts.getModeFactory() );
         setPrompt( "Output mode" );

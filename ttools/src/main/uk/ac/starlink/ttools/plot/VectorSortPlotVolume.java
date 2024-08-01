@@ -52,6 +52,7 @@ public class VectorSortPlotVolume extends PlotVolume {
      * @param   fogginess  thickness of fog for depth shading
      * @param   tweaker  colour adjuster for using auxiliary axis coords
      */
+    @SuppressWarnings("this-escape")
     public VectorSortPlotVolume( Component c, Graphics g, MarkStyle[] styles,
                                  double padFactor, int[] padBorders,
                                  double fogginess, DataColorTweaker tweaker ) {

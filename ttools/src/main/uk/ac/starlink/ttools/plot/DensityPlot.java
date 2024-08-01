@@ -51,6 +51,7 @@ public class DensityPlot extends SurfacePlot {
      *
      * @param  surface  plotting surface to receive pixels
      */
+    @SuppressWarnings("this-escape")
     public DensityPlot( PlotSurface surface ) {
         super();
         setPreferredSize( new Dimension( 400, 400 ) );

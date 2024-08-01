@@ -33,6 +33,7 @@ public class RegQuery extends ConsumerTask {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public RegQuery() {
         super( "Queries the VO registry", new ChoiceMode(), true );
         List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();

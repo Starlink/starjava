@@ -31,6 +31,7 @@ public class InputTablesParameter
      *
      * @param   name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public InputTablesParameter( String name ) {
         super( name, TableProducer[].class );
         setUsage( "<table> ..." );

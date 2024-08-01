@@ -19,6 +19,7 @@ public class InputTableParameter
      *
      * @param  name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public InputTableParameter( String name ) {
         super( name, StarTable.class );
         setUsage( "<table>" );

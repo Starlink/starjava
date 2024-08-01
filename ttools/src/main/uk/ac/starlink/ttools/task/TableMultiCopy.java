@@ -23,6 +23,7 @@ public class TableMultiCopy extends MultiOutputTask {
      * @param   purpose  task purpose
      * @param   tablesInput  input parameter object for tables
      */
+    @SuppressWarnings("this-escape")
     public TableMultiCopy( String purpose, TablesInput tablesInput ) {
         super( purpose );
         tablesInput_ = tablesInput;

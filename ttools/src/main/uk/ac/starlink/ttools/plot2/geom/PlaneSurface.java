@@ -87,6 +87,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
      * @param  islabelposition  whether formatted positions should include
      *                          axis labels
      */
+    @SuppressWarnings("this-escape")
     public PlaneSurface( int gxlo, int gxhi, int gylo, int gyhi,
                          double dxlo, double dxhi, double dylo, double dyhi,
                          boolean xlog, boolean ylog,

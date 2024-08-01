@@ -26,6 +26,7 @@ public class Match1TypeParameter extends Parameter<Match1Type> {
      *
      * @param   name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public Match1TypeParameter( String name ) {
         super( name, Match1Type.class, true );
         setStringDefault( IDENTIFY );

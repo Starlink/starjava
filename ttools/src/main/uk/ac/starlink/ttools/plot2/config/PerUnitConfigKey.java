@@ -33,6 +33,7 @@ public class PerUnitConfigKey<U extends Unit> extends OptionConfigKey<U> {
      * @param   options  array of possible values for this key
      * @param   dflt   default option, should be one of <code>options</code>
      */
+    @SuppressWarnings("this-escape")
     public PerUnitConfigKey( ConfigMeta meta, Class<U> clazz, U[] options,
                              U dflt ) {
         super( meta, clazz, options, dflt, false );

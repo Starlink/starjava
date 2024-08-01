@@ -46,6 +46,7 @@ public abstract class Plot3D extends TablePlot {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public Plot3D() {
         setLayout( new BorderLayout() );
         plotArea_ = new Plot3DDataPanel();

@@ -32,6 +32,7 @@ public class SkyPlot2Task
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public SkyPlot2Task() {
         super( SkyPlotType.getInstance(), null, new SkyPlotContext() );
         skyContext_ = (SkyPlotContext) getPlotContext();

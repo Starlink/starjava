@@ -54,6 +54,7 @@ public class TableGroup extends SingleMapperTask {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public TableGroup() {
         super( "Calculates aggregate functions on groups of rows",
                new ChoiceMode(), true, true );

@@ -16,6 +16,7 @@ public class ContentCodingParameter extends BooleanParameter {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public ContentCodingParameter() {
         super( "compress" );
         setPrompt( "Use HTTP-level compression?" );

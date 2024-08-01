@@ -20,6 +20,7 @@ public class CompositorParameter extends Parameter<Compositor> {
      *
      * @param  name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public CompositorParameter( String name ) {
         super( name, Compositor.class, true );
         setUsage( "0..1" );

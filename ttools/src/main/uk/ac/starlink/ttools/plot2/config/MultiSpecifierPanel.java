@@ -29,6 +29,7 @@ public class MultiSpecifierPanel<T> extends SpecifierPanel<T> {
      * @param  dflt   default value
      * @param  specifiers   list of alternative specifier instances
      */
+    @SuppressWarnings("this-escape")
     public MultiSpecifierPanel( boolean isXFill, T dflt,
                                 List<Specifier<T>> specifiers ) {
         super( isXFill );

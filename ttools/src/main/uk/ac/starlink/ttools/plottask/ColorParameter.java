@@ -11,6 +11,7 @@ public class ColorParameter extends NamedObjectParameter<Color> {
      *
      * @param  name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public ColorParameter( String name ) {
         super( name, Color.class );
         setUsage( "<rrggbb>|red|blue|..." );

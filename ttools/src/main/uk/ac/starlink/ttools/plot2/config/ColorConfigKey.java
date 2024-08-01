@@ -96,6 +96,7 @@ public class ColorConfigKey extends ChoiceConfigKey<Color> {
      *                    value, is a legal option
      * @param  colorOpts  name-&gt; colour map
      */
+    @SuppressWarnings("this-escape")
     public ColorConfigKey( ConfigMeta meta, String dfltName,
                            boolean allowHide, Map<String,Color> colorOpts ) {
         super( meta, Color.class, getColorByName( colorOpts, dfltName ),

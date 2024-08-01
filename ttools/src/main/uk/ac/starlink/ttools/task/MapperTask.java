@@ -34,6 +34,7 @@ public abstract class MapperTask extends ConsumerTask {
      * @param   tablesInput  object which can acquire multiple input tables
      *          from the environment
      */
+    @SuppressWarnings("this-escape")
     public MapperTask( String purpose, ProcessingMode outMode,
                        boolean useOutFilter, TableMapper mapper,
                        TablesInput tablesInput ) {

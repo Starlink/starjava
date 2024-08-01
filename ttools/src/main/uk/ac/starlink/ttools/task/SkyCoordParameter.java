@@ -31,6 +31,7 @@ public class SkyCoordParameter extends StringParameter {
      * @param  tableDescrip  text denoting table to which the coordinate refers,
      *                       for instance "the input table"
      */
+    @SuppressWarnings("this-escape")
     public SkyCoordParameter( String name, String coordName, String coordSys,
                               String tableDescrip ) {
         super( name );

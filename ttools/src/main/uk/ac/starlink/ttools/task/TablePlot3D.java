@@ -11,6 +11,7 @@ import uk.ac.starlink.ttools.plottask.Plot3DStateFactory;
  * @since    20 Oct 2008
  */
 public class TablePlot3D extends PlotTask {
+    @SuppressWarnings("this-escape")
     public TablePlot3D() {
         super( "Old-style 3D Scatter Plot",
                new Plot3DStateFactory( new String[] { "X", "Y", "Z" },

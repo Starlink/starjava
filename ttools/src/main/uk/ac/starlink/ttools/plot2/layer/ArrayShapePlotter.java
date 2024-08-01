@@ -48,6 +48,7 @@ public class ArrayShapePlotter extends ShapePlotter {
      * @param   form  multiple shape determiner
      * @param   mode  colour determiner
      */
+    @SuppressWarnings("this-escape")
     public ArrayShapePlotter( String name, ShapeForm form, ShapeMode mode ) {
         super( name, form, mode, createArrayCoordGroup( form, mode ) );
         form_ = form;

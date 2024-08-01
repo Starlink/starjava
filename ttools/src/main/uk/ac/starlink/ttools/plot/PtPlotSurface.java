@@ -24,6 +24,7 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
     /**
      * Constructs a new surface.
      */
+    @SuppressWarnings("this-escape")
     public PtPlotSurface() {
         setColor( false );
         _setPadding( 0.0 );

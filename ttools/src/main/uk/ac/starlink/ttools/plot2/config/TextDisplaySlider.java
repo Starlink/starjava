@@ -28,6 +28,7 @@ public class TextDisplaySlider extends JSlider {
      * @param  min   minimum value
      * @param  max   maximum value
      */
+    @SuppressWarnings("this-escape")
     public TextDisplaySlider( int min, int max ) {
         super( min, max );
         addMouseMotionListener( new MouseMotionAdapter() {

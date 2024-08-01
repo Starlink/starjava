@@ -96,6 +96,7 @@ public class VotCopyHandler
      * @param  cache   whether tables will be cached prior to writing
      * @param  policy  storage policy for cached tables
      */
+    @SuppressWarnings("this-escape")
     public VotCopyHandler( boolean strict, DataFormat format,
                            VOTableVersion version, boolean inline,
                            boolean squashMagic,

@@ -21,6 +21,7 @@ public class CombinerParameter extends ChoiceParameter<Combiner> {
      *
      * @param   name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public CombinerParameter( String name ) {
         super( name, Combiner.getKnownCombiners() );
         setPrompt( "Combination method" );
