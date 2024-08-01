@@ -35,6 +35,7 @@ public class MrtTableBuilder extends DocumentedTableBuilder {
 
     private ErrorMode errorMode_;
     private boolean checkMagic_;
+    private boolean useFloat_;
 
     /** Should be present at the start of all MRT files. */
     public static final String MAGIC_TXT = "Title: ";
@@ -43,7 +44,7 @@ public class MrtTableBuilder extends DocumentedTableBuilder {
      * Default constructor.
      */
     public MrtTableBuilder() {
-        this( ErrorMode.WARN, true );
+        this( ErrorMode.WARN, true, false );
     }
 
     /**
@@ -52,11 +53,16 @@ public class MrtTableBuilder extends DocumentedTableBuilder {
      * @param  errorMode  error handling mode
      * @param  checkMagic  whether to require finding the magic number
      *                     before attempting to parse
+     * @param  useFloat   true to attempt use of single-precision floating
+     *                    point values where it looks like they should be
+     *                    appropriate
      */
-    public MrtTableBuilder( ErrorMode errorMode, boolean checkMagic ) {
+    public MrtTableBuilder( ErrorMode errorMode, boolean checkMagic,
+                            boolean useFloat ) {
         super( new String[] { "mrt", "cds", } );
         errorMode_ = errorMode;
         checkMagic_ = checkMagic;
+        useFloat_ = useFloat;
     }
 
     /**
@@ -132,6 +138,55 @@ public class MrtTableBuilder extends DocumentedTableBuilder {
         return checkMagic_;
     }
 
+    /**
+     * Sets whether this handler will use a 32-bit float type for reading
+     * sufficiently narrow floating point fields.  This is usually a good
+     * idea since it reduces storage requirements when only a few significant
+     * figures are provided, but can fail if the column contains any
+     * very large absolute values (&gt;~1e38), which cannot be represented
+     * in a float.  So it's safer to set it false.
+     *
+     * <p>If it is set true, then encountering values outside the
+     * representable range will be reported in accordance with the current
+     * ErrorMode.
+     *
+     * @param useFloat  true to sometimes use 32-bit floats where it looks
+     *                  like a good idea,
+     *                  false to always use 64-bit doubles
+     */
+    @ConfigMethod(
+        property = "usefloat",
+        doc = "<p>Sets whether this handler will use a 32-bit float type\n"
+            + "for reading sufficiently narrow floating point fields.\n"
+            + "This is usually a good idea\n"
+            + "since it reduces storage requirements\n"
+            + "when only a few significant figures are provided,\n"
+            + "but can fail if the column contains any\n"
+            + "very large absolute values (&gt;~1e38),\n"
+            + "which cannot be represented in a 32-bit IEEE float.\n"
+            + "So it's safer to set it false.\n"
+            + "</p>\n"
+            + "<p>If it is set true,\n"
+            + "then encountering values outside the representable range\n"
+            + "will be reported in accordance with the current ErrorMode.\n"
+            + "</p>",
+        example = "true"
+    )
+    public void setUseFloat( boolean useFloat ) {
+        useFloat_ = useFloat;
+    }
+
+    /**
+     * Indicates whether this handler will attempt to use 32-bit float
+     * columns for narrow floating point fields.
+     *
+     * @return  true to sometimes use 32-bit floats,
+     *          false to always use 64-bit doubles
+     */
+    public boolean getUseFloat() {
+        return useFloat_;
+    }
+
     public StarTable makeStarTable( final DataSource datsrc, boolean wantRandom,
                                     StoragePolicy storage )
             throws IOException {
@@ -144,7 +199,7 @@ public class MrtTableBuilder extends DocumentedTableBuilder {
         }
         IOSupplier<MrtReader> rdrFact = () ->
             new MrtReader( new BufferedInputStream( datsrc.getInputStream() ),
-                           errorMode_ );
+                           errorMode_, useFloat_ );
         MrtReader rdr = rdrFact.get();
         rdr.close();
         return createStarTable( rdr, rdrFact );
@@ -152,7 +207,7 @@ public class MrtTableBuilder extends DocumentedTableBuilder {
 
     public void streamStarTable( InputStream in, TableSink sink, String pos )
             throws IOException {
-        try ( MrtReader rdr = new MrtReader( in, errorMode_ ) ) {
+        try ( MrtReader rdr = new MrtReader( in, errorMode_, useFloat_ ) ) {
             sink.acceptMetadata( createStarTable( rdr, () -> {
                 throw new UnsupportedOperationException();
             } ) );
