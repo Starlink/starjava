@@ -24,6 +24,7 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
 
     private Boolean cacheCols_;
     private int nThread_;
+    private boolean tryUrl_;
 
     /**
      * Constructor.
@@ -88,7 +89,7 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
         else {
             ParquetIO io = ParquetUtil.getIO();
             boolean useCache = useCache( datsrc, wantRandom, storage );
-            return io.readParquet( datsrc, this, useCache );
+            return io.readParquet( datsrc, this, useCache, tryUrl_ );
         }
     }
 
@@ -169,6 +170,36 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
      */
     public int getReadThreadCount() {
         return nThread_;
+    }
+
+    /**
+     * Configures whether an attempt is made to open parquet files from
+     * non-file URLs.
+     *
+     * @param  tryUrl  true to attempt opening non-file URLs
+     */
+    @ConfigMethod(
+        property = "tryUrl",
+        doc = "<p>Whether to attempt to open non-file URLs as parquet files.\n"
+            + "This usually seems to fail with a cryptic error message,\n"
+            + "so it is not attempted by default, but it's possible that with\n"
+            + "suitable library support on the classpath it might work,\n"
+            + "so this option exists to make the attempt.\n"
+            + "</p>",
+        example = "true"
+    ) 
+    public void setTryUrl( boolean tryUrl ) {
+        tryUrl_ = tryUrl;
+    }
+
+    /**
+     * Indicates whether an attempt is made to open parquet files from
+     * non-file URLs.
+     *
+     * @return  true to attempt non-file URLs, false to just give up
+     */
+    public boolean getTryUrl() {
+        return tryUrl_;
     }
 
     /**
