@@ -16,6 +16,7 @@ public class URLParameter extends Parameter<URL> {
      *
      * @param  name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public URLParameter( String name ) {
         super( name, URL.class, false );
         setUsage( "<url-value>" );

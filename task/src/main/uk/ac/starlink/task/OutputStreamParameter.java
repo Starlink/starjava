@@ -20,6 +20,7 @@ public class OutputStreamParameter extends Parameter<Destination> {
      *
      * @param   name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public OutputStreamParameter( String name ) {
         super( name, Destination.class, true );
         setUsage( "<out-file>" );

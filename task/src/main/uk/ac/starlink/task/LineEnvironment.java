@@ -57,6 +57,7 @@ public class LineEnvironment implements Environment {
      * @param    args  command-line arguments
      * @param   params  parameters that <code>args</code> provide values for
      */
+    @SuppressWarnings("this-escape")
     public LineEnvironment( String[] args, Parameter<?>[] params )
             throws UsageException {
         this();
