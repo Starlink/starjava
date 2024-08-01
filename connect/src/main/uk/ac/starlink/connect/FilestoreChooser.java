@@ -93,6 +93,7 @@ public class FilestoreChooser extends JPanel {
      * @param  includeButtons  whether to include navigation buttons in
      *         the component
      */
+    @SuppressWarnings("this-escape")
     public FilestoreChooser( boolean includeButtons ) {
         super( new BorderLayout() );
 
@@ -286,6 +287,7 @@ public class FilestoreChooser extends JPanel {
      *
      * @param  branch  initial branch
      */
+    @SuppressWarnings("this-escape")
     public FilestoreChooser( Branch branch ) {
         this();
         setBranch( branch );
