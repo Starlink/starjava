@@ -40,6 +40,7 @@ public class BranchComboBox extends JComboBox<Branch> {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public BranchComboBox() {
         super( new BranchComboBoxModel() );
         assert model_ instanceof BranchComboBoxModel;
