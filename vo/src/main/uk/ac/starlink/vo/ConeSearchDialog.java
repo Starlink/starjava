@@ -40,6 +40,7 @@ public class ConeSearchDialog extends SkyDalTableLoadDialog {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public ConeSearchDialog() {
         super( "Cone Search", "Cone",
                "Obtain source catalogues using cone search web services",

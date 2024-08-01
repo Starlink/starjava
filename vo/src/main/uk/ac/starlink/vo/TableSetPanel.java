@@ -145,6 +145,7 @@ public class TableSetPanel extends JPanel {
      *
      * @param   tld  table load dialog configuring this panel
      */
+    @SuppressWarnings("this-escape")
     public TableSetPanel( TapTableLoadDialog tld ) {
         super( new BorderLayout() );
         tld_ = tld;

@@ -54,6 +54,7 @@ public class QuickLookWindow extends JFrame {
      * @param   tfact   table factory
      * @param   coding  configures HTTP compression
      */
+    @SuppressWarnings("this-escape")
     public QuickLookWindow( TapQuery tq, StarTableFactory tfact,
                             ContentCoding coding ) {
         setTitle( "TAP Quick Look" );

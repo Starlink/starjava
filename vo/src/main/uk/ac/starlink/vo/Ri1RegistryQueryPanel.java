@@ -35,6 +35,7 @@ public class Ri1RegistryQueryPanel extends JPanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public Ri1RegistryQueryPanel() {
         super( new BorderLayout() );
         JComponent qBox = Box.createVerticalBox();

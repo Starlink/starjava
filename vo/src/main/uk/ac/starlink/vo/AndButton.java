@@ -32,6 +32,7 @@ public class AndButton extends JButton {
      *
      * @param  isAnd  initial state
      */
+    @SuppressWarnings("this-escape")
     public AndButton( boolean isAnd ) {
         act_ = new AbstractAction() {
             public void actionPerformed( ActionEvent evt ) {

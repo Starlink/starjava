@@ -48,6 +48,7 @@ public class SkyPositionEntry extends JPanel {
      *                         system for additional info to the user;
      *                         may be null
      */
+    @SuppressWarnings("this-escape")
     public SkyPositionEntry( String coordSysLabel ) {
         super( new BorderLayout() );
         Box box = Box.createVerticalBox();

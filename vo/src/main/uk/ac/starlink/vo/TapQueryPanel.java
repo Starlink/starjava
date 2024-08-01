@@ -132,6 +132,7 @@ public class TapQueryPanel extends JPanel {
      *
      * @param   tld  load dialogue configuring this panel
      */
+    @SuppressWarnings("this-escape")
     public TapQueryPanel( TapTableLoadDialog tld ) {
         super( new BorderLayout() );
         Consumer<URL> urlHandler = url -> tld.getUrlHandler().accept( url );

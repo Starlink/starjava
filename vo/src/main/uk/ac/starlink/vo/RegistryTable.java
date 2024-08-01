@@ -53,6 +53,7 @@ public class RegistryTable extends JTable {
      *
      * @param  tModel  table model for display of registry resources
      */
+    @SuppressWarnings("this-escape")
     public RegistryTable( ResourceTableModel tModel ) {
         tModel_ = tModel;
         setModel( tModel_ );

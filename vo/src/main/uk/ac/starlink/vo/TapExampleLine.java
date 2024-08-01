@@ -34,6 +34,7 @@ public class TapExampleLine extends JPanel {
      *
      * @param  urlHandler  handles URL clicks
      */
+    @SuppressWarnings("this-escape")
     public TapExampleLine( Consumer<URL> urlHandler ) {
         urlHandler_ = urlHandler;
         titleLabel_ = new JLabel();

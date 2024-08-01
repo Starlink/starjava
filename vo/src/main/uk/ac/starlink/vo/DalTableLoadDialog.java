@@ -59,6 +59,7 @@ public abstract class DalTableLoadDialog
      * @param  autoQuery  populate service table with full registry query
      *         on initial display
      */
+    @SuppressWarnings("this-escape")
     protected DalTableLoadDialog( String name, String protoName,
                                   String description, Capability capability,
                                   boolean showCapabilities,

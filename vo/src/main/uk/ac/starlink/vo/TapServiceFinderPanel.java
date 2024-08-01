@@ -70,6 +70,7 @@ public class TapServiceFinderPanel extends JPanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public TapServiceFinderPanel() {
         super( new BorderLayout() );
         listeners_ = new ArrayList<ActionListener>();
