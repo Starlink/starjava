@@ -49,6 +49,7 @@ public class ErrorCartesianMatchEngine extends AbstractCartesianMatchEngine {
      * @param  errorSummation  how to combine errors; if null, simple is used
      * @param   scale   rough scale of errors
      */
+    @SuppressWarnings("this-escape")
     public ErrorCartesianMatchEngine( int ndim, ErrorSummation errorSummation,
                                       double scale ) {
         super( ndim );

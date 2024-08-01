@@ -64,6 +64,7 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
      *
      * @param  scale  rough scale of ellipse dimensions
      */
+    @SuppressWarnings("this-escape")
     public EllipseCartesianMatchEngine( double scale ) {
         super( 2 );
         matchParams_ = new DescribedValue[] {
@@ -523,6 +524,7 @@ public class EllipseCartesianMatchEngine extends AbstractCartesianMatchEngine {
          *
          * @param  scale  rough scale of ellipse dimensions
          */
+        @SuppressWarnings("this-escape")
         public InDegrees( double scale) {
             super( scale );
             ValueInfo[] infos0 = super.getTupleInfos();
