@@ -58,6 +58,7 @@ public class CdfStarTable extends AbstractStarTable {
      *                   into StarTables
      * @throws  IOException  in case of error
      */
+    @SuppressWarnings("this-escape")
     public CdfStarTable( CdfContent content, CdfTableProfile profile )
             throws IOException {
 
