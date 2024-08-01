@@ -34,6 +34,7 @@ public class CuboidCartesianMatchEngine extends AbstractCartesianMatchEngine {
      *
      * @param   errs  initial axis lengths of the error ellipse
      */
+    @SuppressWarnings("this-escape")
     public CuboidCartesianMatchEngine( double[] errs ) {
         super( errs.length );
         ndim_ = errs.length;

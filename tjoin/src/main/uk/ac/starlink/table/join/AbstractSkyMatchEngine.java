@@ -28,6 +28,7 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
      * @param  pixellator   handles sky pixellisation
      * @param  scale   initial length scale for pixels, in radians
      */
+    @SuppressWarnings("this-escape")
     protected AbstractSkyMatchEngine( SkyPixellator pixellator, double scale ) {
         pixellator_ = pixellator;
         setScale( scale );

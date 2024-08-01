@@ -291,6 +291,7 @@ public class ErrorSkyMatchEngine extends AbstractSkyMatchEngine {
          * @param  errorSummation  error combination method
          * @param  scaleRadians  initial value for length scale, in radians
          */
+        @SuppressWarnings("this-escape")
         public InDegrees( SkyPixellator pixellator,
                           ErrorSummation errorSummation,
                           double scaleRadians ) {

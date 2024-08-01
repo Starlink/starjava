@@ -37,6 +37,7 @@ public class IsotropicCartesianMatchEngine
      * @param   normaliseScores  <code>true</code> iff you want match scores
      *                           to be normalised
      */
+    @SuppressWarnings("this-escape")
     public IsotropicCartesianMatchEngine( int ndim, double err, 
                                           boolean normaliseScores ) {
         super( ndim );

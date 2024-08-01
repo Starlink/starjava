@@ -49,6 +49,7 @@ public class HumanMatchEngine implements MatchEngine {
      * @param   baseEngine  the match engine supplying the base behaviour
      *          for this one
      */
+    @SuppressWarnings("this-escape")
     public HumanMatchEngine( MatchEngine baseEngine ) {
         baseEngine_ = baseEngine;
         boolean isIdentity = true;

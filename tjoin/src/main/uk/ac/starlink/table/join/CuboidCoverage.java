@@ -24,6 +24,7 @@ public abstract class CuboidCoverage implements Coverage {
      *
      * @param  ndim   dimensionality of region
      */
+    @SuppressWarnings("this-escape")
     protected CuboidCoverage( int ndim ) {
         ndim_ = ndim;
         mins_ = new double[ ndim ];

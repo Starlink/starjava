@@ -61,6 +61,7 @@ public class EllipseToy extends JComponent {
          * @param  recogniseCircles  whether to take short cuts in the
          *                           calculations for circular ellipses
          */
+        @SuppressWarnings("this-escape")
         public CartesianEllipseToy( boolean recogniseCircles ) {
             recogniseCircles_ = recogniseCircles;
             setPreferredSize( new Dimension( 400, 400 ) );
@@ -156,6 +157,7 @@ public class EllipseToy extends JComponent {
          * @param  recogniseCircles  whether to take short cuts in the
          *                           calculations for circular ellipses
          */
+        @SuppressWarnings("this-escape")
         public SkyEllipseToy( boolean recogniseCircles ) {
             recogniseCircles_ = recogniseCircles;
             int qp = 180;
