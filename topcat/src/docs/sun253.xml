@@ -33595,6 +33595,10 @@ introduced since the last version:
         in <ref id="inMrt">MRT input handler</ref>;
         this is set false by default to avoid a rare bug
         that read large values as infinite.</li>
+    <li>New config option <code>tryUrl</code>
+        in <ref id="inParquet">parquet input handler</ref>;
+        this is set false by default to avoid cryptic error messsages
+        when trying to open remote parquet files.</li>
     </ul>
     </p></dd>
 
