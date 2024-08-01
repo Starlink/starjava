@@ -36,6 +36,7 @@ public class HduFitsTableWriter extends AbstractFitsTableWriter {
      *              use no-arg constructor and configuration methods instead
      */
     @Deprecated
+    @SuppressWarnings("this-escape")
     public HduFitsTableWriter( String name, boolean allowSignedByte,
                                WideFits wide ) {
         this();

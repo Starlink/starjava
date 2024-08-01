@@ -44,6 +44,7 @@ public class BufferedRandomInput implements BasicInput {
      * @param  offset0   offset into file of stream start
      * @param  bufsize   buffer size
      */
+    @SuppressWarnings("this-escape")
     public BufferedRandomInput( RandomAccessFile file, long offset0,
                                 int bufsize ) throws IOException {
         file_ = file;

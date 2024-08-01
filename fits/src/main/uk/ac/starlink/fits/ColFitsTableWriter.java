@@ -40,6 +40,7 @@ public class ColFitsTableWriter extends AbstractFitsTableWriter {
      *              use no-arg constructor and configuration methods instead
      */
     @Deprecated
+    @SuppressWarnings("this-escape")
     public ColFitsTableWriter( String name, WideFits wide ) {
         this();
         setFormatName( name );

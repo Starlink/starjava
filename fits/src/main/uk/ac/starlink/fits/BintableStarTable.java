@@ -119,6 +119,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
      * @param   wide  convention for representing extended columns;
      *                use null to avoid use of extended columns
      */
+    @SuppressWarnings("this-escape")
     protected BintableStarTable( FitsHeader hdr, boolean isRandom,
                                  WideFits wide )
             throws IOException {

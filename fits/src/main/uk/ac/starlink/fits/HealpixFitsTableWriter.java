@@ -37,6 +37,7 @@ public class HealpixFitsTableWriter extends AbstractFitsTableWriter {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public HealpixFitsTableWriter() {
         super( "fits-healpix" );
         setAllowSignedByte( false );
