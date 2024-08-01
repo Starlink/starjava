@@ -345,17 +345,8 @@ class MrtReader implements RowSequence {
             }
         }
         else if ( 'E' == fmtChar || 'F' == fmtChar ) {
-            int nsf = 'E' == fmtChar ? nchr - 2 : nchr;
-            if ( nsf <= 6 ) {
-                return new ColumnReader<Float>( Float.class, info,
-                                                iStart0, iEnd0, blankTxt,
-                                                Float::valueOf );
-            }
-            else {
-                return new ColumnReader<Double>( Double.class, info,
-                                                 iStart0, iEnd0, blankTxt,
-                                                 Double::valueOf );
-            }
+            return new ColumnReader<Double>( Double.class, info, iStart0, iEnd0,
+                                             blankTxt, Double::valueOf );
         }
         else {
             throw new AssertionError( "Bad format char '" + fmtChar + "'??" );
