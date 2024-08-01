@@ -41,6 +41,7 @@ public class SlideDateRanger extends JPanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public SlideDateRanger() {
         super( new BorderLayout() );
         epochSlider_ = new JSlider();

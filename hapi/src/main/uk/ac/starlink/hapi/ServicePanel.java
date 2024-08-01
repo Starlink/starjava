@@ -80,6 +80,7 @@ public class ServicePanel extends JPanel {
      *                        typically displays in a browser;
      *                        may be null
      */
+    @SuppressWarnings("this-escape")
     public ServicePanel( HapiService service, Consumer<URL> docUrlHandler ) {
         super( new BorderLayout() );
         service_ = service;

@@ -71,6 +71,7 @@ public class HapiBrowser extends JPanel {
      *                        typically displays in a browser;
      *                        may be null
      */
+    @SuppressWarnings("this-escape")
     public HapiBrowser( Supplier<ContentCoding> codingSupplier,
                         Consumer<URL> docUrlHandler ) {
         super( new BorderLayout() );

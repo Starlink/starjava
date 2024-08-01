@@ -61,6 +61,7 @@ public class HapiTableLoadDialog extends AbstractTableLoadDialog {
      *                        typically displays in a browser;
      *                        may be null
      */
+    @SuppressWarnings("this-escape")
     public HapiTableLoadDialog( Consumer<URL> docUrlHandler ) {
         super( "HAPI Query",
                "Load time series using " +

@@ -37,6 +37,7 @@ public class DateRangePanel extends JPanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public DateRangePanel() {
         super( new BorderLayout() );
         isoFormat_ = Times.createDateFormat( "yyyy-MM-dd'T'HH:mm:ss" );
