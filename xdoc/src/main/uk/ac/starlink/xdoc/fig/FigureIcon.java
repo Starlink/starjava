@@ -51,6 +51,7 @@ public abstract class FigureIcon implements Icon {
      *
      * @param   bounds of image
      */
+    @SuppressWarnings("this-escape")
     protected FigureIcon( Rectangle bounds ) {
         setBounds( bounds );
     }
