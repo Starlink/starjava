@@ -39,6 +39,7 @@ public class OutputReporterParameter extends Parameter<OutputReporter> {
      *
      * @param   name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public OutputReporterParameter( String name ) {
         super( name, OutputReporter.class, true );
         List<Parameter<?>> paramList = new ArrayList<Parameter<?>>();

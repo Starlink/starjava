@@ -86,6 +86,7 @@ public class MatrixPlot2Task extends
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public MatrixPlot2Task() {
         super( PLOT_TYPE, (Map<ConfigKey<String>,Input>) null );
 

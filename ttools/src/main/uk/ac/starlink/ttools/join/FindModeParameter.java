@@ -19,6 +19,7 @@ public class FindModeParameter extends ChoiceParameter<PairMode> {
      *
      * @param  name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public FindModeParameter( String name ) {
         super( name, PairMode.values() );
         PairMode[] modes =

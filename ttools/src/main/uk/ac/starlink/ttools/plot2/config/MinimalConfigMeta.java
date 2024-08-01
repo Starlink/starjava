@@ -16,6 +16,7 @@ public class MinimalConfigMeta extends ConfigMeta {
      *
      * @param  name  basic name for this item
      */
+    @SuppressWarnings("this-escape")
     public MinimalConfigMeta( String name ) {
         super( name, name );
         setXmlDescription( "<p>(no description)</p>" );

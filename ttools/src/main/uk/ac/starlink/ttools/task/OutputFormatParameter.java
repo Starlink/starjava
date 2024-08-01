@@ -12,6 +12,7 @@ import uk.ac.starlink.task.StringParameter;
 public class OutputFormatParameter extends StringParameter 
                                    implements ExtraParameter {
 
+    @SuppressWarnings("this-escape")
     public OutputFormatParameter( String name ) {
         super( name );
         setUsage( "<out-format>" );

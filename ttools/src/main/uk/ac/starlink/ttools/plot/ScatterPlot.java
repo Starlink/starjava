@@ -46,6 +46,7 @@ public class ScatterPlot extends SurfacePlot {
      *
      * @param  surface  plotting surface implementation
      */
+    @SuppressWarnings("this-escape")
     public ScatterPlot( PlotSurface surface ) {
         super();
         add( new ScatterDataPanel() );

@@ -81,6 +81,7 @@ public class TimeSurface implements Surface, PlanarSurface {
      * @param  tformat  time labelling format
      * @param  annotateflags  which sides to annotate
      */
+    @SuppressWarnings("this-escape")
     public TimeSurface( int gxlo, int gxhi, int gylo, int gyhi,
                         double dtlo, double dthi, double dylo, double dyhi,
                         boolean ylog, boolean yflip,

@@ -29,6 +29,7 @@ public class RangeSlider extends JSlider {
      * Constructs a RangeSlider with default minimum and maximum values of 0
      * and 100.
      */
+    @SuppressWarnings("this-escape")
     public RangeSlider() {
         initSlider();
     }
@@ -37,6 +38,7 @@ public class RangeSlider extends JSlider {
      * Constructs a RangeSlider with the specified default minimum and maximum 
      * values.
      */
+    @SuppressWarnings("this-escape")
     public RangeSlider(int min, int max) {
         super(min, max);
         initSlider();

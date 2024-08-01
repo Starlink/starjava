@@ -13,6 +13,7 @@ import uk.ac.starlink.task.TaskException;
  */
 public class TablePipe extends SingleMapperTask {
 
+    @SuppressWarnings("this-escape")
     public TablePipe() {
         super( "Performs pipeline processing on a table", new ChoiceMode(),
                false, true );

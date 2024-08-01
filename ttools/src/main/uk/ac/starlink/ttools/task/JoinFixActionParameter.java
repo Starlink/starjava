@@ -21,6 +21,7 @@ public class JoinFixActionParameter
      *
      * @param  name   parameter name
      */
+    @SuppressWarnings("this-escape")
     public JoinFixActionParameter( String name ) {
         super( name, Fixer.class );
         setPrompt( "Whether and how to rename input columns" );

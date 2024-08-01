@@ -31,6 +31,7 @@ public class ColorComboBox extends RenderingComboBox<Color> {
      *
      * @param   colors  colour array
      */
+    @SuppressWarnings("this-escape")
     public ColorComboBox( Color[] colors ) {
         super( colors.clone() );
         setSelectedIndex( 0 );

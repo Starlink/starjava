@@ -28,6 +28,7 @@ public class TapResume extends ConsumerTask {
     private final ContentCodingParameter codingParam_;
     private final TapResultReader resultReader_;
 
+    @SuppressWarnings("this-escape")
     public TapResume() {
         super( "Resumes a previous query to a Table Access Protocol server",
                new ChoiceMode(), true );

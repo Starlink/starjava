@@ -108,6 +108,7 @@ public class AllWiseAsciiStarTable extends StreamStarTable {
      * @param   schemaUrl  URL for 'schema' table which describes data types
      * @param   nrow   reported number of rows in table, -1 if unknown
      */
+    @SuppressWarnings("this-escape")
     public AllWiseAsciiStarTable( DataSource datsrc, URL schemaUrl,
                                   long nrow )
             throws IOException {

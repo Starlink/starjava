@@ -31,6 +31,7 @@ public class ArrayPlotData implements PlotData {
      * @param   hasLabels  whether there are per-point text labels 
      * @param   points   point data array
      */
+    @SuppressWarnings("this-escape")
     public ArrayPlotData( int nset, String[] setNames, Style[] setStyles, 
                           int ndim, int nerror, boolean hasLabels,
                           PointData[] points ) {

@@ -61,6 +61,7 @@ public class ShaderParameter extends StyleParameter<Shader> {
      *
      * @param  name  parameter name
      */
+    @SuppressWarnings("this-escape")
     public ShaderParameter( String name ) {
         super( name, SHADERS );
         setPrompt( "Shader defining how aux axes are coloured" );

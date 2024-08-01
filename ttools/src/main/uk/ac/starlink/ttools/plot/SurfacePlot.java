@@ -38,6 +38,7 @@ public abstract class SurfacePlot extends TablePlot implements Printable {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     protected SurfacePlot() {
         setLayout( new OverlayLayout( this ) );
     }

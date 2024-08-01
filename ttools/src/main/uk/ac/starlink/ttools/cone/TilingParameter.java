@@ -23,6 +23,7 @@ public class TilingParameter extends Parameter<SkyTiling> {
      *
      * @param  name   parameter name
      */
+    @SuppressWarnings("this-escape")
     public TilingParameter( String name ) {
         super( name, SkyTiling.class, true );
         setPrompt( "Sky tiling scheme" );

@@ -40,6 +40,7 @@ public abstract class NamedColorSet {
      *
      * @param   map  name-&gt;color map
      */
+    @SuppressWarnings("this-escape")
     public NamedColorSet( Map<String,Color> map ) {
         origMap_ = map;
         normMap_ = new HashMap<String,Color>( map.size() );

@@ -32,6 +32,7 @@ public class SquashAttributeHandler extends SAXWriter {
      *            with no interesting content and no other attributes,
      *            the element itself is removed from the output
      */
+    @SuppressWarnings("this-escape")
     public SquashAttributeHandler( Writer out, String attName,
                                    boolean removeEmptyElement ) {
         out_ = out;

@@ -73,6 +73,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
      *         1 means single-threaded only, and &lt;=0 means no limit -
      *         use with care!
      */
+    @SuppressWarnings("this-escape")
     public SkyConeMatch2( String purpose, Coner coner, int maxParallel ) {
         super( purpose, new ChoiceMode(), true, true );
         coner_ = coner;

@@ -21,6 +21,7 @@ public class DoubleArrayParameter extends Parameter<double[]> {
      * @param  name  parameter name
      * @param  count   numeric array length
      */
+    @SuppressWarnings("this-escape")
     public DoubleArrayParameter( String name, int count ) {
         super( name, double[].class, false );
         count_ = count;

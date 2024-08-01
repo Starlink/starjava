@@ -48,6 +48,7 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
      *
      * @param  name  parameter name
      */
+    @SuppressWarnings("this-escape")
     protected AbstractInputTableParameter( String name, Class<T> clazz ) {
         super( name, clazz, true );
         String suffix = "";

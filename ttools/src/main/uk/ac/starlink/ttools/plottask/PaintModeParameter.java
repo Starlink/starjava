@@ -24,6 +24,7 @@ public class PaintModeParameter extends ChoiceParameter<PaintMode> {
      * @param  name   parameter name
      * @param  exporters   list of graphic exporters for file output options
      */
+    @SuppressWarnings("this-escape")
     public PaintModeParameter( String name, GraphicExporter[] exporters ) {
         super( name, PaintMode.class, PaintMode.getKnownModes( exporters ) );
 
