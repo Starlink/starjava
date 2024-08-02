@@ -1,6 +1,8 @@
 package uk.ac.starlink.auth;
 
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -176,9 +178,10 @@ public class Challenge {
             throws BadChallengeException {
         String value = getRequiredParameter( key );
         try {
-            return new URL( value );
+            return new URI( value ).toURL();
         }
-        catch ( MalformedURLException e ) {
+        catch ( MalformedURLException | URISyntaxException
+                                      | IllegalArgumentException e ) {
             throw new BadChallengeException( "Parameter \"" + key + "\""
                                            + " is not a URL" );
         }

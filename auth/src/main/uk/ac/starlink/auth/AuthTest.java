@@ -2,6 +2,8 @@ package uk.ac.starlink.auth;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -40,13 +42,13 @@ public class AuthTest {
     }
 
     public static void main( String[] args )
-            throws IOException, BadChallengeException {
+            throws IOException, URISyntaxException, BadChallengeException {
         List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
         
         AuthScheme scheme0 = null;
         String username = null;
         String password = null;
-        URL url = null;
+        URI uri = null;
         String usage = AuthTest.class.getName()
                      + " [-scheme <scheme>]"
                      + " [-user <username>]"
@@ -84,7 +86,7 @@ public class AuthTest {
             }
             else if ( "-url".equals( arg ) ) {
                 it.remove();
-                url = new URL( it.next() );
+                uri = new URI( it.next() );
                 it.remove();
             }
             else if ( arg.charAt( 0 ) == '-' ) {
@@ -92,10 +94,10 @@ public class AuthTest {
                 System.exit( 1 );
             }
         }
-        if ( argList.size() > 0 && url == null ) {
-            url = new URL( argList.remove( 0 ) );
+        if ( argList.size() > 0 && uri == null ) {
+            uri = new URI( argList.remove( 0 ) );
         }
-        if ( argList.size() > 0 || url == null ) {
+        if ( argList.size() > 0 || uri == null ) {
             System.err.println( usage );
             System.exit( 1 );
         }
@@ -103,6 +105,7 @@ public class AuthTest {
                          ? UserInterface.createFixed( username, password )
                          : UserInterface.CLI;
 
+        URL url = uri.toURL();
         URLConnection conn = url.openConnection();
         if ( conn instanceof HttpURLConnection ) {
             HttpURLConnection hconn = (HttpURLConnection) conn;
