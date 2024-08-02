@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -38,7 +40,7 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class LinkChecker {
 
-    private final URL context;
+    private final URI context;
     private final boolean attemptExternal;
     private int localFailures;
     private int extFailures;
@@ -64,7 +66,7 @@ public class LinkChecker {
      * @param  attemptExternal  true if you want to check external (http) 
      *         links; if false, only local ones will be checked
      */
-    public LinkChecker( URL context, boolean attemptExternal ) {
+    public LinkChecker( URI context, boolean attemptExternal ) {
         this.context = context;
         this.attemptExternal = attemptExternal;
     }
@@ -85,15 +87,15 @@ public class LinkChecker {
         String frag;
         try {
             if ( hashPos < 0 ) {
-                url = new URL( context, href );
+                url = context.resolve( href ).toURL();
                 frag = null;
             }
             else {
-                url = new URL( context, href.substring( 0, hashPos ) );
+                url = context.resolve( href.substring( 0, hashPos ) ).toURL();
                 frag = href.substring( hashPos + 1 );
             }
         }
-        catch ( MalformedURLException e ) {
+        catch ( MalformedURLException | IllegalArgumentException e ) {
             logMessage( "Badly formed URL: " + href );
             localFailures++;
             return false;
@@ -408,9 +410,10 @@ public class LinkChecker {
             }
             URL url1; 
             try {
-                url1 = new URL( loc );
+                url1 = new URI( loc ).toURL();
             }
-            catch ( MalformedURLException e ) {
+            catch ( MalformedURLException | URISyntaxException
+                                          | IllegalArgumentException e ) {
                 throw (IOException)
                       new IOException( "Bad Location field for " + code
                                      + " response from " + url0 )
@@ -512,8 +515,7 @@ public class LinkChecker {
 
         try {
             LinkChecker checker =
-                new LinkChecker( new File( "." ).toURI().toURL(),
-                                 attemptExternal );
+                new LinkChecker( new File( "." ).toURI(), attemptExternal );
             boolean ok = checker.checkLinks( styleSrc, docSrc, params );
             int localFailures = checker.getLocalFailures();
             int extFailures = checker.getExternalFailures();

@@ -42,7 +42,7 @@ public class DocTest extends TestCase {
         Map<String,String> xsltParams = new HashMap<>();
         xsltParams.put( "BASEDIR", context.toString() );
         LinkChecker checker =
-            new LinkChecker( context.toURI().toURL(), attemptExt );
+            new LinkChecker( context.toURI(), attemptExt );
         checker.checkLinks( new StreamSource( docXslt1 ),
                             new StreamSource( docFile ),
                             xsltParams );
