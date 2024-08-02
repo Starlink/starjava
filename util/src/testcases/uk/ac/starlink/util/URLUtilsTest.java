@@ -53,6 +53,9 @@ public class URLUtilsTest extends junit.framework.TestCase {
         for (int i=0; i<badurls.length; i++) {
             assertNull(URLUtils.makeURL(badurls[i]));
         }
+
+        assertEquals( "file:foo/bar",
+                      URLUtils.makeURL("file:foo/bar").toString());
     }
 
     public static void testUrlToUri() {
@@ -149,9 +152,25 @@ public class URLUtilsTest extends junit.framework.TestCase {
                       URLUtils.urlToFile( "file://localhost/etc/motd" ) );
         assertEquals( new File( "/data/table/x++m.xml" ),
                       URLUtils.urlToFile( "file:///data/table/x++m.xml" ) );
+        assertEquals( new File( "/data/table/a b.txt" ),
+                      URLUtils.urlToFile( "file:///data/table/a%20b.txt" ) );
+    }
+
+    public void testRelative() {
+        assertEquals( "http://example.com/foo/bar",
+                      URLUtils.makeURL( "http://example.com/foo/", "bar" )
+                              .toString() );
+        assertEquals( "file:/src/lib",
+                      URLUtils.makeURL( "file:/src/etc", "file:lib" )
+                              .toString() );
+        assertEquals( "https://foo.com/bar",
+                      URLUtils.makeURL( null, "https://foo.com/bar" )
+                              .toString() );
+        assertEquals( "file:foo/bar",
+                      URLUtils.makeURL( null, "foo/bar" )
+                              .toString() );
+        assertEquals( "file:/etc/motd",
+                      URLUtils.makeURL( null, "/etc/motd" )
+                              .toString() );
     }
 }
-
-            
-                    
-        
