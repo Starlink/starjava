@@ -41,7 +41,7 @@ public class CgiQuery {
     public CgiQuery( String base ) {
         base = base.trim();
         try {
-            new URL( base );
+            URLUtils.newURL( base );
         }
         catch ( MalformedURLException e ) {
             throw (IllegalArgumentException)
@@ -148,10 +148,10 @@ public class CgiQuery {
      */
     public URL toURL() {
         try {
-            return new URL( sbuf_.toString() );
+            return URLUtils.newURL( sbuf_.toString() );
         }
         catch ( MalformedURLException e ) {
-            throw new AssertionError(); // I think, since base is a URL
+            throw new IllegalStateException( e );
         }
     }
 

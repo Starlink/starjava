@@ -659,7 +659,7 @@ public abstract class DataSource {
 
         /* Try it as a URL. */
         try {
-            return new URLDataSource( new URL( loc ) );
+            return new URLDataSource( URLUtils.newURL( loc ) );
         }
         catch ( MalformedURLException e ) {
         }
@@ -770,7 +770,7 @@ public abstract class DataSource {
 
         /* Try it as a URL. */
         try {
-            URL url = new URL( location );
+            URL url = URLUtils.newURL( location );
             return AuthManager.getInstance().connect( url ).getInputStream();
         }
         catch ( MalformedURLException e ) {
