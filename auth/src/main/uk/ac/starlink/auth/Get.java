@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -129,10 +131,11 @@ public class Get {
             }
             else {
                 try {
-                    url = new URL( arg );
+                    url = new URI( arg ).toURL();
                     it.remove();
                 }
-                catch ( MalformedURLException e ) {
+                catch ( MalformedURLException | URISyntaxException
+                                              | IllegalArgumentException e ) {
                     System.err.println( usage );
                     return false;
                 }

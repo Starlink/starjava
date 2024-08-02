@@ -3,6 +3,8 @@ package uk.ac.starlink.auth;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -83,9 +85,10 @@ public abstract class Redirector {
                 }
                 URL url1;
                 try {
-                    url1 = new URL( loc1 );
+                    url1 = new URI( loc1 ).toURL();
                 }
-                catch ( MalformedURLException e ) {
+                catch ( MalformedURLException | URISyntaxException
+                                              | IllegalArgumentException e ) {
                     throw (IOException)
                           new IOException( "Bad Location field for " + hcode
                                          + " response: " + loc1 )
