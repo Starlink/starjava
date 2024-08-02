@@ -9,7 +9,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLDecoder;
 import java.net.URLStreamHandlerFactory;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -57,17 +56,17 @@ public class URLUtils {
         Logger.getLogger( "uk.ac.starlink.util" );
 
     /* Set up a URL representing the default context (the current directory). */
-    private static URL defaultContext;
+    private static final URI defaultContext;
     static {
+        URI dc;
         try {
-            defaultContext = new URL( "file:." );
+            dc = new URI( "file:." );
         }
-        catch ( MalformedURLException e ) {
-            throw protestFileProtocolIsLegal( e );
+        catch ( URISyntaxException e ) {
+            assert false;
+            dc = null;
         }
-        catch ( SecurityException e ) {
-            defaultContext = null;
-        }
+        defaultContext = dc;
     }
     private static final Pattern FILE_URL_REGEX =
         Pattern.compile( "(file:)(/*)(.*)" );
@@ -145,25 +144,21 @@ public class URLUtils {
             return null;
         }
         try {
-            return new URL( location );
-        }
-        catch ( MalformedURLException e ) {
-            try {
-                URI uri = new File( location ).toURI();
+            URI uri = new URI( location );
+            if ( uri.isAbsolute() ) {
                 return uri.toURL();
-                //return new URL( uri.toString() );
-            }
-            catch ( MalformedURLException e2 ) {
-                throw protestFileProtocolIsLegal( e2 );
             }
         }
-        catch ( SecurityException e ) {
-            try {
-                return new URL( "file:" + location );
-            }
-            catch ( MalformedURLException e2 ) {
-                throw protestFileProtocolIsLegal( e2 );
-            }
+        catch ( URISyntaxException | MalformedURLException e ) {
+        }
+
+        /* It's not a valid URI or doesn't have a valid URL scheme,
+         * interpret it as a filename. */
+        try {
+            return new URI( "file:" + location ).toURL();
+        }
+        catch ( MalformedURLException | URISyntaxException e ) {
+            return null;
         }
     }
 
@@ -185,25 +180,44 @@ public class URLUtils {
      * @return  a URL representing the location of the resource
      */
     public static URL makeURL( String context, String location ) {
-        URL contextURL;
+        URI contextURI;
         if ( context == null || context.trim().length() == 0 ) {
-            contextURL = defaultContext;
+            contextURI = defaultContext;
         }
         else {
-            contextURL = makeURL( context );
-        }
-        try {
-            return new URL( contextURL, location );
-        }
-        catch ( MalformedURLException e ) {
             try {
-                return new URL( contextURL, makeURL( location ).toString() );
+                URL contextURL = makeURL( context );
+                contextURI = contextURL != null ? contextURL.toURI() : null;
             }
-            catch ( MalformedURLException e2 ) {
-                // can this happen??
-                return makeURL( location );
+            catch ( URISyntaxException e ) {
+                contextURI = null;
             }
         }
+        if ( contextURI != null ) {
+            URI locURI;
+            try {
+                locURI = new URI( location );
+            }
+            catch ( URISyntaxException e ) {
+                locURI = null;
+            }
+            String loc;
+            if ( locURI != null && locURI.isAbsolute() &&
+                 locURI.getScheme().equals( contextURI.getScheme() ) ) {
+                String locFrag = locURI.getFragment();
+                loc = locURI.getSchemeSpecificPart()
+                    + ( locFrag == null ? "" : ( "#" + locFrag ) );
+            }
+            else {
+                loc = location;
+            }
+            try {
+                return contextURI.resolve( loc ).toURL();
+            }
+            catch ( MalformedURLException | IllegalArgumentException e ) {
+            }
+        }
+        return makeURL( location );
     }
 
     /**
@@ -323,16 +337,17 @@ public class URLUtils {
                         return fixURL( new File( path ).getAbsoluteFile()
                                                        .toURI().toURL() );
                     case 1:
-                        return new URL( scheme + "//localhost" 
-                                               + slashes + path );
+                        return new URI( scheme + "//localhost" 
+                                               + slashes + path ).toURL();
                     case 2:
                         return url;
                     default:
                         return url;
                 }
             }
-            catch ( MalformedURLException e ) {
-                throw new AssertionError( e );
+            catch ( MalformedURLException | URISyntaxException e ) {
+                assert false;
+                return url;
             }
         }
         else {
@@ -384,42 +399,25 @@ public class URLUtils {
      * @return   local file referenced by <code>url</code>, or null
      */
     public static File urlToFile( String url ) {
-        URL u;
-        try {
-            u = new URL( url );
-        }
-        catch ( MalformedURLException e ) {
+        if ( url == null || url.trim().length() == 0 ) {
             return null;
         }
-        if ( u.getProtocol().equals( "file" ) && u.getRef() == null
-                                              && u.getQuery() == null ) {
+        URI u;
+        try {
+            u = new URI( url );
+        }
+        catch ( URISyntaxException e ) {
+            return null;
+        }
+        if ( "file".equals( u.getScheme() ) && u.getRawFragment() == null
+                                            && u.getRawQuery() == null ) {
             String path = u.getPath();
-            try {
-
-                /* Careful.  URLDecoder does almost what we want, but not
-                 * quite - it replaces "+" with " ", which is appropriate
-                 * for application/x-www-form-urlencoded, but not for
-                 * normal URL decoding (RFC1738).  The %xy decoding is
-                 * as required.  So by converting + to its hex-escaped
-                 * form before using URLDecoder we get what we need. 
-                 * An alternative would be to do the hex decoding by hand. */
-                path = URLDecoder.decode( path.replace( "+", "%2B" ), "utf-8" );
-            }
-            catch ( IllegalArgumentException e ) {
-                // probably a badly-formed URL - try with the undecoded form
-            }
-            catch ( UnsupportedEncodingException e ) {
-                // UTF-8 not accepted?  fall back in this unlikely event.
-                assert false;
-            }
             String filename = File.separatorChar == '/'
                             ? path
                             : path.replace( '/', File.separatorChar );
             return new File( filename );
         }
-        else {
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -483,9 +481,9 @@ public class URLUtils {
             }
             URL url1;
             try {
-                url1 = new URL( loc );
+                url1 = new URI( loc ).toURL();
             }
-            catch ( MalformedURLException e ) {
+            catch ( MalformedURLException | URISyntaxException e ) {
                 throw (IOException)
                       new IOException( "Bad Location field for " + hcode0
                                      + " response from " + url0 )
