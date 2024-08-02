@@ -448,7 +448,7 @@ public class SourceReader {
             String sysid = strmsrc.getSystemId();
             if ( sysid != null ) {
                 try {
-                    URL url = new URL( sysid );
+                    URL url = URLUtils.newURL( sysid );
                     return url.openStream();
                 }
                 catch ( MalformedURLException e ) {
@@ -474,7 +474,7 @@ public class SourceReader {
                 String sysid = saxsrc.getSystemId();
                 if ( sysid != null ) {
                     try {
-                        URL url = new URL( sysid );
+                        URL url = URLUtils.newURL( sysid );
                         return url.openStream();
                     }
                     catch ( MalformedURLException e ) {
