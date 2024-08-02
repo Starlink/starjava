@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
@@ -75,6 +76,57 @@ public class URLUtils {
      * Private constructor prevents instantiation.
      */
     private URLUtils() {
+    }
+
+    /**
+     * Drop-in replacement for the deprecated
+     * {@link java.net.URL#URL(String)} constructor.
+     *
+     * <p>All URL constructors are deprecated since Java 20
+     * because of issues with parsing and validation.
+     * This utility method provides a way for code to avoid deprecation
+     * warnings.  It may not do much to solve the underlying problems,
+     * and might introduce some new ones, but code that is having problems
+     * here can be adapted to handle URL creation more carefully;
+     * such approaches, according to the JDK documentation, should generally
+     * be URI-based.  Other utility methods may be added here in future
+     * as required.
+     *
+     * <p>As far as I can tell, most of the difficulties arising with
+     * URL parsing that have led to the deprecation relate to relatively
+     * strange URLs, so that "normal" http/https/file-protocol URL strings
+     * passed to this method should behave the same as if passed
+     * to the deprecated constructor.
+     * However, there may be changes of behaviour when it comes to
+     * constructions like embedded spaces in paths or special characters
+     * in query parts etc.
+     *
+     * <p>Note that passing a string to this method which is not a valid URI,
+     * for instance because it contains unescaped illegal characters like "[",
+     * will fail, unlike the call to <code>new URL()</code>.
+     * In such cases a <code>MalformedURLException</code> will be thrown
+     * (which is really the result of a <code>URISyntaxException</code>).
+     *
+     * @param  spec  textual representation of URL
+     * @return  URL, not null
+     * @throws MalformedURLException  in case of syntax error
+     */
+    public static URL newURL( String spec ) throws MalformedURLException {
+        URI uri;
+        try {
+            uri = new URI( spec );
+        }
+        catch ( URISyntaxException e ) {
+            throw (MalformedURLException)
+                  new MalformedURLException( "Bad URI: " + spec )
+                 .initCause( e );
+        }
+        if ( uri.isAbsolute() ) {
+            return uri.toURL();
+        }
+        else {
+            throw new MalformedURLException( "No scheme for URL: " + spec );
+        }
     }
 
     /**
