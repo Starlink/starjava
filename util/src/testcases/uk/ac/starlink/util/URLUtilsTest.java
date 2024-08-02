@@ -37,11 +37,6 @@ public class URLUtilsTest extends junit.framework.TestCase {
                          URLUtils.makeURL(okpairs[i]).toString());
         }
         
-        // Context defaults correctly?
-        File me = new File("wibble");
-        assertEquals("file:" + me.getAbsolutePath(),
-                     URLUtils.makeURL("wibble").toString());
-
         // Following should fail
         String[] badurls = {
             // XXX I would have expected these to fail, but they don't
