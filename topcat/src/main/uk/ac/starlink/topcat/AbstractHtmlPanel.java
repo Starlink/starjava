@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.BorderLayout;
+import java.awt.GraphicsEnvironment;
 import java.net.URL;
 import javax.swing.JPanel;
 import java.util.logging.Level;
@@ -49,15 +50,23 @@ public abstract class AbstractHtmlPanel extends JPanel {
      */
     public static boolean hasJavaFx() {
         if ( hasFx_ == null ) {
-            try {
-                Class.forName( "javafx.beans.Observable" ).toString();
-                logger_.log( Level.CONFIG, "JavaFX is present" );
-                hasFx_ = Boolean.TRUE;
+            boolean hasFx;
+            if ( GraphicsEnvironment.isHeadless() ) {
+                hasFx = false;
             }
-            catch ( Throwable e ) {
-                logger_.log( Level.INFO, "No JavaFX: " + e );
-                hasFx_ = Boolean.FALSE;
+            else {
+                try {
+                    Class.forName( "javafx.beans.Observable" ).toString();
+                    GraphicsEnvironment.getLocalGraphicsEnvironment();
+                    logger_.log( Level.CONFIG, "JavaFX is present" );
+                    hasFx = true;
+                }
+                catch ( Throwable e ) {
+                    logger_.log( Level.INFO, "No JavaFX: " + e );
+                    hasFx = false;
+                }
             }
+            hasFx_ = Boolean.valueOf( hasFx );
         }
         return hasFx_.booleanValue();
     }
