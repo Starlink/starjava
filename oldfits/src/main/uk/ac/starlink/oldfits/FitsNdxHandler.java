@@ -63,7 +63,7 @@ import uk.ac.starlink.util.URLUtils;
 /**
  * Turns URLs which reference FITS files or HDUs into Ndx objects.
  *
- * <h3>FITS file format for NDXs</h3>
+ * <h2>FITS file format for NDXs</h2>
  *
  * When writing an NDX into FITS format, the image array is written
  * as the primary HDU.  The headers of this HDU also contain a
