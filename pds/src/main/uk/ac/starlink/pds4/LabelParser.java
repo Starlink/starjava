@@ -26,7 +26,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.util.DOMUtils;
-import uk.ac.starlink.util.URLUtils;
 
 /**
  * Parses a PDS4 Label (an XML file) to extract information that can be
@@ -89,12 +88,12 @@ public class LabelParser {
          * This will be necessary to locate the data file(s) described by
          * the label.  This code was copied from
          * gov/nasa/pds/objectAccess/example/ExtractTable. */
-        URL parent;
+        URI parent;
         try {
             URI labelUri = url.toURI();
             parent = labelUri.getPath().endsWith( "/" )
-                   ? labelUri.resolve( ".." ).toURL()
-                   : labelUri.resolve( "." ).toURL();
+                   ? labelUri.resolve( ".." )
+                   : labelUri.resolve( "." );
         }
         catch ( URISyntaxException e ) {
             throw new TableFormatException( "Badly-formed URL", e );
@@ -113,22 +112,20 @@ public class LabelParser {
     public Label parseLabel( File file ) throws IOException {
         InputStream in = new FileInputStream( file );
         File parentFile = file.getAbsoluteFile().getParentFile();
-        URL parentUrl =
-            URLUtils.makeFileURL( file.getAbsoluteFile().getParentFile() );
-        return parseLabel( in, parentUrl );
+        return parseLabel( in, parentFile.toURI() );
     }
 
     /**
      * Parses the label file from a given InputStream to create a Label object.
      *
      * @param  in  input stream, closed unconditionally on exit
-     * @param  contextUrl   context URL
+     * @param  contextUri   context URI
      * @return   parsed label object
      */
-    public Label parseLabel( InputStream in, URL contextUrl )
+    public Label parseLabel( InputStream in, URI contextUri )
             throws IOException {
         try {
-            return attemptParseLabel( in, contextUrl );
+            return attemptParseLabel( in, contextUri );
         }
         catch ( SAXException e ) {
             throw new TableFormatException( "Label file not XML", e );
@@ -143,10 +140,10 @@ public class LabelParser {
      * possibly throwing various exceptions.
      *
      * @param  in  input stream, closed unconditionally on exit
-     * @param  contextUrl   context URL
+     * @param  contextUri   context URI
      * @return   parsed label object
      */
-    private Label attemptParseLabel( InputStream in, URL contextUrl )
+    private Label attemptParseLabel( InputStream in, URI contextUri )
             throws IOException, SAXException,
                    ParserConfigurationException,
                    XPathExpressionException {
@@ -173,8 +170,8 @@ public class LabelParser {
             }
         }
         return new Label() {
-            public URL getContextUrl() {
-                return contextUrl;
+            public URI getContextUri() {
+                return contextUri;
             }
             public Table[] getTables() {
                 return tableList.toArray( new Table[ 0 ] );
