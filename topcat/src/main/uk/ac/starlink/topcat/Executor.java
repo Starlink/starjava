@@ -105,23 +105,6 @@ public abstract class Executor {
     }
 
     /**
-     * Returns an executor which executes a single command line.
-     *
-     * @param   line   shell command line
-     * @return  executor
-     */
-    public static Executor createExecutor( final String line ) {
-        return new Executor() {
-            public Process getProcess() throws IOException {
-                return Runtime.getRuntime().exec( line );
-            }
-            public String getLine() {
-                return line;
-            }
-        };
-    }
-
-    /**
      * Returns an executor which executes a command made of words.
      *
      * @param  argv  argument vector
