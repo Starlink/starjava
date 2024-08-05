@@ -10,6 +10,7 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.IOConsumer;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Knows how to load a HAPI table.
@@ -59,7 +60,7 @@ public class HapiSource {
                            + dataUrl );
         }
         try {
-            standaloneUrl_ = new URL( dataUrl + "&include=header" );
+            standaloneUrl_ = URLUtils.newURL( dataUrl + "&include=header" );
         }
         catch ( MalformedURLException e ) {
             throw new AssertionError();

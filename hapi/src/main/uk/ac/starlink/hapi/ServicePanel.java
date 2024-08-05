@@ -40,6 +40,7 @@ import org.json.JSONObject;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.ArrayTableColumn;
 import uk.ac.starlink.util.gui.ArrayTableModel;
 
@@ -112,7 +113,7 @@ public class ServicePanel extends JPanel {
                 public void mouseClicked( MouseEvent evt ) {
                     URL url;
                     try {
-                        url = new URL( resourceUrlField_.getText() );
+                        url = URLUtils.newURL( resourceUrlField_.getText() );
                     }
                     catch ( MalformedURLException e ) {
                         return;

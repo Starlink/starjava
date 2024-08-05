@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.util.IOSupplier;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Listing for HAPI services.
@@ -105,7 +106,7 @@ public class ServerListing {
             try ( BufferedReader in =
                       new BufferedReader(
                           new InputStreamReader(
-                              new URL( url ).openStream() ) ) ) {
+                              URLUtils.newURL( url ).openStream() ) ) ) {
                 return in.lines().toArray( n -> new String[ n ] );
             }
         } );
@@ -149,7 +150,7 @@ public class ServerListing {
                 String url = words[ 0 ];
                 boolean urlOk;
                 try {
-                    new URL( url );
+                    URLUtils.newURL( url );
                     urlOk = true;
                 }
                 catch ( MalformedURLException e ) {
