@@ -52,7 +52,7 @@ class FitsURL {
             Matcher mat = pat.matcher( urlstr );
             if ( mat.matches() ) {
                 try {
-                    basicURL = new URL( mat.group( 1 ) );
+                    basicURL = newURL( mat.group( 1 ) );
                 }
                 catch ( MalformedURLException e ) {
                     throw new AssertionError( e );
@@ -69,7 +69,7 @@ class FitsURL {
             Matcher mat = pat.matcher( urlstr );
             if ( mat.matches() ) {
                 try {
-                    basicURL = new URL( mat.group( 1 ) );
+                    basicURL = newURL( mat.group( 1 ) );
                 }
                 catch ( MalformedURLException e ) {
                     throw new AssertionError( e );
@@ -125,6 +125,28 @@ class FitsURL {
         else {
             return false;
         }
+    }
+
+    /**
+     * Creates a URL from a string.
+     * This is intended as a drop-in replacement for the one-argument
+     * URL constructor, which is deprecated in later Java versions.
+     *
+     * @param  spec  the string to parse as a URL
+     * @return URL
+     */
+    private static URL newURL( String spec ) throws MalformedURLException {
+
+        /* I originally tried replacing the deprecated call with some URI 
+         * manipulation.  However, it's tricky, because this package
+         * encourages use of trailing square brackets to reference HDUs,
+         * in a way that is probably illegal for URIs.  The chances of
+         * putting something non-deprecated in here that behave the same
+         * as the previous behaviour seem slim.  So just suppress the
+         * deprecation warning. */
+        @SuppressWarnings("deprecation")
+        URL url = new URL( spec );
+        return url;
     }
 
 }

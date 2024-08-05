@@ -918,8 +918,7 @@
     <javac srcdir="${tests.dir}"
            destdir="${build.tests}"
            debug="${debug}"
-           source="${source.version}"
-           deprecation="${deprecation}" >
+           source="${source.version}" >
       <classpath refid="tests-classpath"/>
     </javac>
   </target>
