@@ -5,7 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -244,20 +244,20 @@ public class Pds4TableBuilder extends DocumentedTableBuilder
         else {
             table = tables[ 0 ];
         }
-        return createStarTable( table, label.getContextUrl() );
+        return createStarTable( table, label.getContextUri() );
     }
 
     public TableSequence makeStarTables( DataSource datsrc,
                                          StoragePolicy storage )
             throws IOException {
         Label label = parseLabel( datsrc );
-        URL contextUrl = label.getContextUrl();
+        URI contextUri = label.getContextUri();
         Table[] tables = label.getTables();
         return new TableSequence() {
             int iNext_;
             public StarTable nextTable() throws IOException {
                 return iNext_ < tables.length
-                     ? createStarTable( tables[ iNext_++ ], contextUrl )
+                     ? createStarTable( tables[ iNext_++ ], contextUri )
                      : null;
             }
         };
@@ -347,18 +347,18 @@ public class Pds4TableBuilder extends DocumentedTableBuilder
      * Turns a PDS4 Table object into a StarTable.
      *
      * @param  table  table object on which this table is based
-     * @param  contextUrl   parent URL for the PDS4 label
+     * @param  contextUri   parent URI for the PDS4 label
      * @return  star table
      */
-    private StarTable createStarTable( Table table, URL contextUrl )
+    private StarTable createStarTable( Table table, URI contextUri )
             throws IOException {
         TableType ttype = table.getTableType();
         if ( table instanceof BaseTable ) {
-            return new BasePds4StarTable( (BaseTable) table, contextUrl );
+            return new BasePds4StarTable( (BaseTable) table, contextUri );
         }
         else if ( table instanceof DelimitedTable ) {
             return new DelimitedPds4StarTable( (DelimitedTable) table,
-                                               contextUrl );
+                                               contextUri );
         }
         else {
             assert false;
