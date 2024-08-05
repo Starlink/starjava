@@ -13,6 +13,7 @@ import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.ConfigMethod;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * A StarTableWriter that outputs text to HTML.
@@ -389,7 +390,7 @@ public class HTMLTableWriter extends DocumentedStreamStarTableWriter
              txt.startsWith( "ftp:" ) ||
              txt.startsWith( "mailto:" ) ) {
             try {
-                new URL( txt );
+                URLUtils.newURL( txt );
                 return true;
             }
             catch ( MalformedURLException e ) {

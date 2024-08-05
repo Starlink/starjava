@@ -5,6 +5,7 @@ import java.util.List;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.swing.table.TableCellRenderer;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * ValueInfo for URL values.
@@ -97,7 +98,7 @@ public class URLValueInfo implements ValueInfo {
 
     public Object unformatString( String rep ) {
         try {
-            return new URL( rep );
+            return URLUtils.newURL( rep );
         }
         catch ( MalformedURLException e ) {
             return null;
