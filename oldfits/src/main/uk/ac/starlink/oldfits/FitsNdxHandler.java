@@ -159,7 +159,7 @@ public class FitsNdxHandler
         /* If there is XML information here, read it to construct the NDX. */
         if ( hdr.containsKey( FitsConstants.NDX_XML ) ) {
             String loc = hdr.getStringValue( FitsConstants.NDX_XML );
-            URL xurl = new URL( url, loc );
+            URL xurl = contextURL( url, loc );
             ArrayDataInput xstrm =
                 fab.getReadableStream( xurl, AccessMode.READ );
             try {
@@ -388,7 +388,7 @@ public class FitsNdxHandler
         URL iurl;
         if ( url != null ) {
             try {
-                iurl = new URL( url, "#" + ihdu );
+                iurl = contextURL( url, "#" + ihdu );
             }
             catch ( MalformedURLException e ) {
                 throw new AssertionError( e );
@@ -429,7 +429,7 @@ public class FitsNdxHandler
             URL vurl;
             if ( url != null ) {
                 try {
-                    vurl = new URL( url, "#" + vhdu );
+                    vurl = contextURL( url, "#" + vhdu );
                 }
                 catch ( MalformedURLException e ) {
                     throw new AssertionError( e );
@@ -455,7 +455,7 @@ public class FitsNdxHandler
             URL qurl;
             if ( url != null ) {
                 try {
-                    qurl = new URL( url, "#" + qhdu );
+                    qurl = contextURL( url, "#" + qhdu );
                 }
                 catch ( MalformedURLException e ) {
                     throw new AssertionError( e );
@@ -576,5 +576,30 @@ public class FitsNdxHandler
     public javax.xml.transform.Source makeHdxSource( java.net.URL url )
             throws HdxException {
         return new DOMSource( makeHdxDocument( url ) );
+    }
+
+    /**
+     * Creates a URL by parsing the given spec within a specified context.
+     * This is intended as a drop-in replacement for the 2-argument URL
+     * constructor, which is deprecated in later java versions.
+     *
+     * @context  the context in which to parse the specification
+     * @spec     the String to parse as a URL
+     * @return   new URL, should be the same as
+     *           <code>new URL(context, spec)</code>
+     */
+    private static URL contextURL( URL context, String spec )
+            throws MalformedURLException {
+
+        /* I originally tried replacing the deprecated call with some URI
+         * manipulation.  However, it's tricky, because this package
+         * encourages use of trailing square brackets to reference HDUs,
+         * in a way that is probably illegal for URIs.  The chances of
+         * putting something non-deprecated in here that behaves the same
+         * as the previous behaviour seem slim.  So just suppress the
+         * deprecation warning. */
+        @SuppressWarnings("deprecation")
+        URL url = new URL( context, spec );
+        return url;
     }
 }
