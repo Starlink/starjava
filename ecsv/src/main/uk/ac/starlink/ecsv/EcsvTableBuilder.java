@@ -21,6 +21,7 @@ import uk.ac.starlink.table.formats.DocumentedTableBuilder;
 import uk.ac.starlink.util.ConfigMethod;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.IOUtils;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * TableBuilder implementation for ECSV tables.
@@ -251,7 +252,7 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
         else {
             URL url;
             try {
-                url = new URL( location );
+                url = URLUtils.newURL( location );
             }
             catch ( MalformedURLException e ) {
                 String msg = "No file or URL \"" + location + "\"";
