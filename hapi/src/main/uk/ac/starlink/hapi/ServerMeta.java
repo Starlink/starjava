@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Describes basic information about a HAPI server.
@@ -90,7 +91,8 @@ public abstract class ServerMeta {
         try ( BufferedReader in =
                   new BufferedReader(
                       new InputStreamReader(
-                          new URL( SERVER_LIST_URL ).openStream() ) ) ) {
+                          URLUtils.newURL( SERVER_LIST_URL )
+                                  .openStream() ) ) ) {
             lines = in.lines().toArray( n -> new String[ n ] );
         }
         catch ( IOException e ) {
@@ -127,7 +129,7 @@ public abstract class ServerMeta {
                 String url = words[ 0 ];
                 boolean urlOk;
                 try {
-                    new URL( url );
+                    URLUtils.newURL( url );
                     urlOk = true;
                 }
                 catch ( MalformedURLException e ) {
