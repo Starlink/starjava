@@ -2,6 +2,7 @@ package uk.ac.starlink.vo;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * AdqlExample implementation that provides fixed-text examples
@@ -30,7 +31,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
         name_ = name;
         description_ = description;
         try {
-            infoUrl_ = new URL( infoUrl );
+            infoUrl_ = URLUtils.newURL( infoUrl );
         }
         catch ( MalformedURLException e ) {
             throw new RuntimeException( "bad url: " + infoUrl, e );

@@ -57,6 +57,7 @@ import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.votable.VOTableWriter;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ExampleSelectField;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -478,7 +479,8 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         TapVersion version =
             tcap == null ? TapVersion.V10 : tcap.getTapVersion();
         try {
-            return TapServices.createTapService( new URL( surl ), version );
+            return TapServices.createTapService( URLUtils.newURL( surl ),
+                                                 version );
         }
         catch ( MalformedURLException e ) {
             return null;
@@ -963,7 +965,8 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         public String getIvoid( String serviceUrl ) {
             if ( serviceUrl != null ) {
                 try {
-                    return finderPanel_.getIvoid( new URL( serviceUrl ) );
+                    return finderPanel_
+                          .getIvoid( URLUtils.newURL( serviceUrl ) );
                 }
                 catch ( MalformedURLException e ) {
                     return null;

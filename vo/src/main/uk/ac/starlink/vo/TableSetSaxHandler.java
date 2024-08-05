@@ -25,6 +25,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Parses an XML document which describes Tabular Data as prescribed by
@@ -582,7 +583,7 @@ public class TableSetSaxHandler extends DefaultHandler {
     public static void main( String[] args ) throws IOException, SAXException {
         java.io.PrintStream out = System.out;
         TableSetSaxHandler tsHandler =
-            populateHandler( new URL( args[ 0 ] ), ContentCoding.GZIP );
+            populateHandler( URLUtils.newURL( args[ 0 ] ), ContentCoding.GZIP );
         for ( SchemaMeta schema : tsHandler.getSchemas( false ) ) {
             out.println( schema.getName() );
             for ( TableMeta table : schema.getTables() ) {

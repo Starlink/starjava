@@ -13,6 +13,7 @@ import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.votable.datalink.ServiceDescriptor;
 import uk.ac.starlink.votable.datalink.ServiceParam;
 import uk.ac.starlink.util.CgiQuery;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Provides functionality related to invoking a service defined by
@@ -70,7 +71,7 @@ public class ServiceInvoker {
     public ServiceInvoker( ServiceDescriptor descriptor, StarTable resultTable )
             throws MalformedURLException, IOException {
         descriptor_ = descriptor;
-        urlBase_ = new URL( descriptor.getAccessUrl() );
+        urlBase_ = URLUtils.newURL( descriptor.getAccessUrl() );
         rowParams_ = new LinkedHashMap<ServiceParam,RowValuer>();
         fixedParams_ = new LinkedHashMap<ServiceParam,String>();
         userParams_ = new ArrayList<ServiceParam>();

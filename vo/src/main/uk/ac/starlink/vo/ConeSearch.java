@@ -16,6 +16,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.CgiQuery;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
@@ -221,7 +222,7 @@ public class ConeSearch {
      */
     public URL getServiceURL() {
         try {
-            return new URL( serviceUrl_ );
+            return URLUtils.newURL( serviceUrl_ );
         }
         catch ( MalformedURLException e ) {
             throw new AssertionError();

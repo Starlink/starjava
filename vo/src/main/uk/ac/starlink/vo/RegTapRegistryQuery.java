@@ -23,6 +23,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Registry Query implementation that uses TAP to access a Relational Registry.
@@ -227,7 +228,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
 
     public URL getRegistry() {
         try {
-            return new URL( tapService_.getIdentity() );
+            return URLUtils.newURL( tapService_.getIdentity() );
         }
         catch ( MalformedURLException e ) {
             return null;

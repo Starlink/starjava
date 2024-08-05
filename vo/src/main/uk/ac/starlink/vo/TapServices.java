@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Utility class for working with TapService instances.
@@ -115,7 +116,7 @@ public class TapServices {
     public static TapService createTapService( String baseUrl,
                                                TapVersion tapVersion ) {
         try {
-            return createTapService( new URL( baseUrl ), tapVersion );
+            return createTapService( URLUtils.newURL( baseUrl ), tapVersion );
         }
         catch ( MalformedURLException e ) {
             logger_.warning( "Bad URL for TAP service: " + baseUrl );
@@ -167,7 +168,7 @@ public class TapServices {
         }
         else {
             try {
-                return new URL( accessUrl );
+                return URLUtils.newURL( accessUrl );
             }
             catch ( MalformedURLException e ) {
                 logger_.warning( "Ignore badly formed TAP base URL: "
@@ -186,7 +187,7 @@ public class TapServices {
      */
     private static URL appendPath( URL base, String subPath ) {
         try {
-            return new URL( base.toString() + subPath );
+            return URLUtils.newURL( base.toString() + subPath );
         }
         catch ( MalformedURLException e ) {
             assert false;

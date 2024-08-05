@@ -26,6 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Handles validation of ADQL queries.
@@ -302,7 +303,7 @@ public class AdqlValidator {
                 String loc = it.next();
                 it.remove();
                 schMetas = TableSetSaxHandler
-                          .readTableSet( new java.net.URL( loc ),
+                          .readTableSet( URLUtils.newURL( loc ),
                                          ContentCoding.GZIP );
             }
         }

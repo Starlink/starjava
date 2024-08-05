@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Defines the details of a registry access protocol.
@@ -265,7 +266,8 @@ public abstract class RegistryProtocol {
                 throws IOException {
             try {
                 TapService service0 =
-                    TapServices.createDefaultTapService( new URL( regUrl0 ) );
+                    TapServices
+                   .createDefaultTapService( URLUtils.newURL( regUrl0 ) );
                 return RegTapRegistryQuery
                       .getSearchableRegistries( service0 );
             }

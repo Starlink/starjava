@@ -18,6 +18,7 @@ import uk.ac.starlink.registry.SoapRequest;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * RegistryQuery implementation using the SOAP Registry Interface 1.0 
@@ -193,7 +194,7 @@ public class Ri1RegistryQuery implements RegistryQuery {
      */
     static URL toUrl( String url ) {
         try {
-            return new URL( url );
+            return URLUtils.newURL( url );
         }
         catch ( MalformedURLException e ) {
             throw (IllegalArgumentException)

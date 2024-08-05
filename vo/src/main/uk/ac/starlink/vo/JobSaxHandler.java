@@ -15,6 +15,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 import uk.ac.starlink.auth.AuthManager;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * SAX content handler implementation which can parse one or more
@@ -346,7 +347,7 @@ class JobSaxHandler extends DefaultHandler {
     }
 
     public static void main( String[] args ) throws IOException, SAXException {
-        UwsJobInfo[] infos = readJobInfos( new URL( args[ 0 ] ) );
+        UwsJobInfo[] infos = readJobInfos( URLUtils.newURL( args[ 0 ] ) );
         UwsJobInfo info = infos[ 0 ];
         System.out.println( "job id: " + info.getJobId() );
         System.out.println( "start time: " + info.getStartTime() );
