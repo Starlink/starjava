@@ -15,6 +15,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 import uk.ac.starlink.auth.AuthManager;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Methods to perform validation against XSD schemas.
@@ -249,7 +250,7 @@ public class XsdValidation {
      * Usage: &lt;url-to-validate&gt; [&lt;expected-top-level-element&gt;].
      */
     public static void main( String[] args ) throws IOException {
-        URL url = new URL( args[ 0 ] );
+        URL url = URLUtils.newURL( args[ 0 ] );
         String topElName = args.length > 1 ? args[ 1 ] : null;
         Reporter reporter =
             new TextOutputReporter( System.out, ReportType.values(),

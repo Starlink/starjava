@@ -12,6 +12,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Writer;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ import uk.ac.starlink.util.LoadException;
 import uk.ac.starlink.util.ObjectFactory;
 import uk.ac.starlink.util.SplitPolicy;
 import uk.ac.starlink.util.SplitProcessor;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.XmlWriter;
 
 /**
@@ -415,10 +417,10 @@ public class Plot2Example {
             return null;
         }
         else if ( txt.endsWith( "/" ) ) {
-            return new URL( txt );
+            return URLUtils.newURL( txt );
         }
         else {
-            return new URL( txt + "/" );
+            return URLUtils.newURL( txt + "/" );
         }
     }
 
@@ -638,7 +640,13 @@ public class Plot2Example {
                             System.out.println( intro );
                         }
                         System.out.println( "   " + tname );
-                        URL turl = new URL( dataUrl, tname );
+                        URL turl;
+                        try {
+                            turl = dataUrl.toURI().resolve( tname ).toURL();
+                        }
+                        catch ( URISyntaxException e ) {
+                            throw new MalformedURLException();
+                        }
                         InputStream in = turl.openStream();
                         OutputStream out = new FileOutputStream( f );
                         IOUtils.copy( in, out );

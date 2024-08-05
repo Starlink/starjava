@@ -37,7 +37,7 @@ public abstract class WebMapper {
     public static final WebMapper URL = new WebMapper( "URL" ) {
         public URL toUrl( String txt ) {
             try {
-                return new URL( txt );
+                return URLUtils.newURL( txt );
             }
             catch ( MalformedURLException e ) {
                 return null;
@@ -149,7 +149,7 @@ public abstract class WebMapper {
      */
     private static URL stringToUrl( String url ) {
         try {
-            return new URL( url );
+            return URLUtils.newURL( url );
         }
         catch ( MalformedURLException e ) {
             assert false;
