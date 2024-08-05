@@ -20,6 +20,7 @@ import uk.ac.starlink.auth.UrlConnector;
 import uk.ac.starlink.util.ByteList;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.ContentType;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapQuery;
@@ -503,7 +504,7 @@ public class JobStage implements Stage {
         private URL resourceUrl( UwsJob job, String subResource ) {
             String urlStr = job.getJobUrl() + subResource;
             try {
-                return new URL( urlStr );
+                return URLUtils.newURL( urlStr );
             }
             catch ( MalformedURLException e ) {
                 reporter_.report( FixedCode.F_MURL,
@@ -549,7 +550,7 @@ public class JobStage implements Stage {
                                       String key, String value ) {
             URL url;
             try {
-                url = new URL( job.getJobUrl() + subResource );
+                url = URLUtils.newURL( job.getJobUrl() + subResource );
             }
             catch ( MalformedURLException e ) {
                 throw (AssertionError) new AssertionError().initCause( e );

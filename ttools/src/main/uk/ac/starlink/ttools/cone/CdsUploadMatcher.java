@@ -22,6 +22,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.CgiQuery;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.vo.HttpStreamParam;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
@@ -367,7 +368,7 @@ public class CdsUploadMatcher implements UploadMatcher {
     private static BufferedReader getLineReader( String urltxt,
                                                  ContentCoding coding )
             throws IOException {
-        URL url = new URL( urltxt );
+        URL url = URLUtils.newURL( urltxt );
         InputStream in = coding.openStream( url );
         return new BufferedReader( new InputStreamReader( in, "utf8" ) );
     }

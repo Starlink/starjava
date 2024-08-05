@@ -29,6 +29,7 @@ import uk.ac.starlink.ttools.votlint.VocabChecker;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.ContentType;
 import uk.ac.starlink.util.DOMUtils;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.vo.DatalinkVersion;
 import uk.ac.starlink.vo.Ivoid;
 import uk.ac.starlink.vo.datalink.LinkColMap;
@@ -986,7 +987,7 @@ public class DatalinkValidator {
             }
             else {
                 try {
-                    new URL( accessUrl );
+                    URLUtils.newURL( accessUrl );
                 }
                 catch ( MalformedURLException e ) {
                     String msg = new StringBuffer()
@@ -1155,7 +1156,7 @@ public class DatalinkValidator {
             /* Check access_url content. */
             if ( accessUrl != null ) {
                 try {
-                    URL url = new URL( accessUrl );
+                    URL url = URLUtils.newURL( accessUrl );
                     String msg = new StringBuffer()
                         .append( "Row " )
                         .append( jrow )

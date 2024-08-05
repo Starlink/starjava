@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.vo.VocabTerm;
 import uk.ac.starlink.vo.Vocabulary;
 
@@ -128,7 +129,7 @@ public class VocabChecker {
      */
     public VocabChecker( String vocabUrl, String[] fixedTerms ) {
         try {
-            vocabUrl_ = new URL( vocabUrl );
+            vocabUrl_ = URLUtils.newURL( vocabUrl );
         }
         catch ( MalformedURLException e ) {
             throw new IllegalArgumentException( "Not a URL: " + vocabUrl );

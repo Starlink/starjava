@@ -34,6 +34,7 @@ import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.StarEntityResolver;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
 import uk.ac.starlink.vo.UwsJobInfo;
@@ -573,7 +574,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                         new String( UwsJob
                                    .toPostedBytes( tq.getStringParams() ),
                                     "utf-8" );
-                    URL qurl = new URL( syncEndpoint + "?" + ptxt );
+                    URL qurl = URLUtils.newURL( syncEndpoint + "?" + ptxt );
                     if ( doChecks ) {
                         reporter.report( FixedCode.I_QGET,
                                          "Query GET URL: " + qurl );
@@ -626,11 +627,12 @@ public abstract class VotLintTapRunner extends TapRunner {
                 if ( "COMPLETED".equals( phase ) ) {
                     uwsJob.setDeleteOnExit( true );
                     return AuthManager.getInstance()
-                          .connect(  new URL( jobUrl + "/results/result" ) );
+                          .connect( URLUtils.newURL( jobUrl
+                                                   + "/results/result" ) );
                 }
                 else if ( "ERROR".equals( phase ) ) {
                     return AuthManager.getInstance()
-                          .connect( new URL( jobUrl + "/error" ) );
+                          .connect( URLUtils.newURL( jobUrl + "/error" ) );
                 }
                 else {
                     throw new IOException( "Unexpected UWS phase " + phase );
