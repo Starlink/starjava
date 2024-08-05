@@ -387,6 +387,7 @@ public class HTMLTableWriter extends DocumentedStreamStarTableWriter
      */
     protected boolean isUrl( String txt ) {
         if ( txt.startsWith( "http:" ) ||
+             txt.startsWith( "https:" ) ||
              txt.startsWith( "ftp:" ) ||
              txt.startsWith( "mailto:" ) ) {
             try {
