@@ -49,6 +49,7 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.util.URLUtils;
 
 public class GavoTableLoadDialog extends AbstractTableLoadDialog {
 
@@ -245,7 +246,7 @@ public class GavoTableLoadDialog extends AbstractTableLoadDialog {
         String urlString = url+sqlEncoding;
         final URL queryUrl;
         try {
-            queryUrl = new URL( urlString );
+            queryUrl = URLUtils.newURL( urlString );
         }
         catch ( MalformedURLException e ) {
             throw (IllegalArgumentException)

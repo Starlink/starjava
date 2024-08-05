@@ -18,6 +18,7 @@ import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.util.URLDataSource;
+import uk.ac.starlink.util.URLUtils;
 /**
  *
  * @author molinaro
@@ -60,7 +61,7 @@ public class BaSTITableLoadDialog extends AbstractTableLoadDialog {
                     public void run() {
                         try {
                             for (int t=0; t<locations.length; t++) {
-                                URL URLLocation = new URL(locations[t]);
+                                URL URLLocation = URLUtils.newURL(locations[t]);
                                 StarTable table = tfact.makeStarTable(new URLDataSource(URLLocation), "votable");
                                 table.setParameter(new DescribedValue(TableLoader.SOURCE_INFO, table.getName()));
                                 tseq.addTable(table);

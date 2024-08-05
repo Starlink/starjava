@@ -384,9 +384,8 @@ public class ResourceIcon implements Icon {
      */
     public URL getExternalURL() throws IOException {
         TopcatServer server = TopcatServer.getInstance();
-        return server == null
-             ? null
-             : new URL( server.getTopcatPackageUrl(), PREFIX + location );
+        return server == null ? null
+                              : server.getRelativeUrl( PREFIX + location );
     }
 
     /**
