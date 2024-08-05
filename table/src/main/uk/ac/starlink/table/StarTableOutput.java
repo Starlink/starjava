@@ -32,6 +32,7 @@ import uk.ac.starlink.table.formats.TstTableWriter;
 import uk.ac.starlink.util.BeanConfig;
 import uk.ac.starlink.util.LoadException;
 import uk.ac.starlink.util.Loader;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Outputs StarTable objects.
@@ -385,7 +386,7 @@ public class StarTableOutput {
 
         /* Try to interpret it as a URL. */
         try {
-            URL url = new URL( location );
+            URL url = URLUtils.newURL( location );
             URLConnection uconn = url.openConnection();
             uconn.setDoInput( false );
             uconn.setDoOutput( true );
