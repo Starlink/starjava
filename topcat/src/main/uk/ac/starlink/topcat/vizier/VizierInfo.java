@@ -15,6 +15,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.URLDataSource;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.votable.ParamElement;
 import uk.ac.starlink.votable.TableElement;
@@ -167,7 +168,7 @@ public class VizierInfo {
      * Attempts to read the resource information from VizieR service.
      */
     private void attemptReadTables() throws IOException, SAXException {
-        URL url = new URL( vizierBaseUrl_ + "?-meta.aladin=all" );
+        URL url = URLUtils.newURL( vizierBaseUrl_ + "?-meta.aladin=all" );
         logger_.info( url.toString() );
         VOElement top = new VOElementFactory( StoragePolicy.PREFER_MEMORY )
                        .makeVOElement( new URLDataSource( url, coding_ ) );

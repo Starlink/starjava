@@ -151,7 +151,7 @@ public class SendSpectrumActivationType implements ActivationType {
             }
             else {
                 try {
-                    url = new URL( loc );
+                    url = URLUtils.newURL( loc );
                 }
                 catch ( MalformedURLException e ) {
                     return Outcome.failure( "Bad URL/no such file: " + loc );

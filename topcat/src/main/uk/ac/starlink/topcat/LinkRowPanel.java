@@ -21,6 +21,7 @@ import javax.swing.border.Border;
 import javax.swing.text.JTextComponent;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.vo.datalink.LinkColMap;
 import uk.ac.starlink.vo.datalink.LinksDoc;
 import uk.ac.starlink.vo.datalink.ServiceInvoker;
@@ -400,7 +401,7 @@ public class LinkRowPanel extends JPanel {
             URL url;
             if ( urlStr != null ) {
                 try {
-                    url = new URL( urlStr );
+                    url = URLUtils.newURL( urlStr );
                 }
                 catch ( MalformedURLException e ) {
                     url = null;

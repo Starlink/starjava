@@ -856,7 +856,8 @@ public class TopcatUtils {
         IOException e1 = null;
         try {
             URLConnection conn =
-                URLUtils.followRedirects( new URL( url ).openConnection(),
+                URLUtils.followRedirects( URLUtils.newURL( url )
+                                                  .openConnection(),
                                           (int[]) null );
             if ( conn instanceof HttpURLConnection &&
                  ((HttpURLConnection) conn).getResponseCode() == 200 ) {
@@ -873,7 +874,7 @@ public class TopcatUtils {
             try {
                 URLConnection conn2 =
                     URLUtils
-                   .followRedirects( new URL( url2 ).openConnection(),
+                   .followRedirects( URLUtils.newURL( url2 ).openConnection(),
                                      (int[]) null );
                 if ( conn2 instanceof HttpURLConnection &&
                      ((HttpURLConnection) conn2).getResponseCode() == 200 ) {

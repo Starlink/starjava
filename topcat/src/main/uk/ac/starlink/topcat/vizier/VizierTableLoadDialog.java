@@ -58,6 +58,7 @@ import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.util.CgiQuery;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.URLDataSource;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.ArrayTableModel;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.DoubleValueField;
@@ -416,7 +417,7 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
         ubuf.append( encodeArg( "-out.max", maxrows ) );
         final URL url;
         try {
-            url = new URL( ubuf.toString() );
+            url = URLUtils.newURL( ubuf.toString() );
         }
         catch ( MalformedURLException e ) {
             throw (IllegalArgumentException)
@@ -493,7 +494,7 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
         if ( server instanceof String ) {
             URL url;
             try {
-                url = new URL( (String) server + "viz-bin/votable" );
+                url = URLUtils.newURL( (String) server + "viz-bin/votable" );
             }
             catch ( MalformedURLException e ) {
                 Toolkit.getDefaultToolkit().beep();

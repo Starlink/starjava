@@ -20,6 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * This class characterises a HiPS survey corresponding to an existing
@@ -395,7 +396,7 @@ public class HipsSurvey {
                 .append( "=" )
                 .append( entry.getValue() );
         }
-        URL url = new URL( mocServerUrl + qbuf.toString() );
+        URL url = URLUtils.newURL( mocServerUrl + qbuf.toString() );
 
         /* Read JSON content and parse into a list of HipsSurvey objects. */
         logger_.info( "Loading HiPS list from " + url );

@@ -27,8 +27,8 @@ public class HelpTest extends TestCase {
 
     public void testXML() throws Exception {
         parseXML( hsURL );
-        parseXML( new URL( hsURL, "Map.xml" ) );
-        parseXML( new URL( hsURL, "TOC.xml" ) );
+        parseXML( hsURL.toURI().resolve( "Map.xml" ).toURL() );
+        parseXML( hsURL.toURI().resolve( "TOC.xml" ).toURL() );
     }
 
     public void parseXML( URL url ) throws Exception {

@@ -25,6 +25,7 @@ import uk.ac.starlink.topcat.LinkRowPanel;
 import uk.ac.starlink.topcat.Outcome;
 import uk.ac.starlink.topcat.Safety;
 import uk.ac.starlink.util.CgiQuery;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.vo.datalink.LinksDoc;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
@@ -416,7 +417,7 @@ public class ViewDatalinkActivationType implements ActivationType {
             }
             else {
                 try {
-                    new URL( btxt );
+                    URLUtils.newURL( btxt );
                     return btxt;
                 }
                 catch ( MalformedURLException e ) {

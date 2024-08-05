@@ -4,7 +4,6 @@ import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -132,19 +131,9 @@ public class BrowserHelpAction extends AbstractAction {
      * @return  URL, or null in case of problem
      */
     public static URL getHelpUrl( String relUrl ) {
-        if ( server_ != null ) {
-            try {
-                return new URL( server_.getTopcatPackageUrl(),
-                                "sun253/" + relUrl );
-            }
-            catch ( MalformedURLException e ) {
-                assert false;
-                return null;
-            }
-        }
-        else {
-            return null;
-        }
+        return server_ == null
+             ? null
+             : server_.getRelativeUrl( "sun253/" + relUrl );
     }
 
     /**

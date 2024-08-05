@@ -232,7 +232,7 @@ public abstract class TopcatSender {
         if ( subs.isSubscribed( directMtype ) ) {
             try {
                 return new Message( directMtype )
-                      .addParam( "url", new URL( uloc ).toString() );
+                      .addParam( "url", URLUtils.newURL( uloc ).toString() );
             }
             catch ( MalformedURLException e ) {
             }

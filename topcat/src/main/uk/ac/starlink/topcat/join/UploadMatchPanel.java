@@ -55,6 +55,7 @@ import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.UploadMatcher;
 import uk.ac.starlink.ttools.cone.WrapperQuerySequence;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.ComboBoxBumper;
 import uk.ac.starlink.util.gui.Downloader;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -433,7 +434,7 @@ public class UploadMatchPanel extends JPanel {
         String surl = CdsUploadMatcher.XMATCH_URL;
         final URL url;
         try {
-            url = new URL( surl );
+            url = URLUtils.newURL( surl );
         }
         catch ( MalformedURLException e ) {
             throw new IllegalArgumentException( "Bad URL: " + surl );
