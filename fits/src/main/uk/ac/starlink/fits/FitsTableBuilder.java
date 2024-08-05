@@ -19,6 +19,7 @@ import uk.ac.starlink.table.formats.DocumentedTableBuilder;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.IOUtils;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Implementation of the <code>TableBuilder</code> interface which 
@@ -569,7 +570,7 @@ public class FitsTableBuilder extends DocumentedTableBuilder
                              baseUrl.toString().indexOf( '#' ) < 0 ) {
                             String hduUrl = baseUrl + "#" + ihdu;
                             try {
-                                table.setURL( new URL( hduUrl ) );
+                                table.setURL( URLUtils.newURL( hduUrl ) );
                             }
                             catch ( MalformedURLException e ) {
                                 logger.info( "Bad URL " + hduUrl + "?" );
