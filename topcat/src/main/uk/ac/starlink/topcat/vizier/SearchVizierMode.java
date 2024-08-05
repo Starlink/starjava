@@ -34,6 +34,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.topcat.ToggleButtonModel;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.ArrayTableColumn;
 import uk.ac.starlink.util.gui.ArrayTableModel;
 import uk.ac.starlink.util.gui.ArrayTableSorter;
@@ -340,7 +341,7 @@ public abstract class SearchVizierMode implements VizierMode {
         if ( queryArgs != null && queryArgs.trim().length() > 0 ) {
             ubuf.append( queryArgs );
         }
-        URL url = new URL( ubuf.toString() );
+        URL url = URLUtils.newURL( ubuf.toString() );
         logger_.info( url.toString() );
         SAXParserFactory spfact = SAXParserFactory.newInstance();
         spfact.setNamespaceAware( false );

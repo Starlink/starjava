@@ -69,6 +69,7 @@ import uk.ac.starlink.ttools.cone.ParallelResultRowSequence;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.task.TableProducer;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -464,7 +465,7 @@ public class DalMultiPanel extends JPanel {
     private static URL toUrl( String surl ) {
         if ( surl.startsWith( "http://" ) ) {
             try {
-                return new URL( surl );
+                return URLUtils.newURL( surl );
             }
             catch ( MalformedURLException e ) {
                 return null;
@@ -620,7 +621,7 @@ public class DalMultiPanel extends JPanel {
         }
         URL serviceUrl;
         try {
-            serviceUrl = new URL( sUrl );
+            serviceUrl = URLUtils.newURL( sUrl );
         }
         catch ( MalformedURLException e ) {
             throw (IllegalArgumentException)

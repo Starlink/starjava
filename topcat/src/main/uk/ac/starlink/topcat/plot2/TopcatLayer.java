@@ -264,7 +264,7 @@ public class TopcatLayer {
         String loc = tcModel.getLocation();
         URL url;
         try {
-            url = new URL( loc );
+            url = URLUtils.newURL( loc );
         }
         catch ( MalformedURLException e ) {
             url = null;

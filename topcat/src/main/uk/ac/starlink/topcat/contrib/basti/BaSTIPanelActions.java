@@ -20,6 +20,7 @@ import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  *
@@ -176,7 +177,7 @@ class BaSTIPanelActions {
                 String outputline = "";
                 try {
                     // open connection and POST
-                    URL url = new URL("http://albione.oa-teramo.inaf.it/POSTQuery/getResults.php");
+                    URL url = URLUtils.newURL("http://albione.oa-teramo.inaf.it/POSTQuery/getResults.php");
                     URLConnection conn = url.openConnection();
                     conn.setDoOutput(true);
                     OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
@@ -306,7 +307,7 @@ class BaSTIPanelActions {
                 String outputline = "";
                 try {
                     // open connection and POST
-                    URL url = new URL("http://albione.oa-teramo.inaf.it/POSTQuery/getCount.php");
+                    URL url = URLUtils.newURL("http://albione.oa-teramo.inaf.it/POSTQuery/getCount.php");
                     URLConnection conn = url.openConnection();
                     conn.setDoOutput(true);
                     OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
@@ -414,7 +415,7 @@ class BaSTIPanelActions {
                 String outputline = "";
                 try {
                     // open connection and POST
-                    URL url = new URL("http://albione.oa-teramo.inaf.it/POSTQuery/getRanges.php");
+                    URL url = URLUtils.newURL("http://albione.oa-teramo.inaf.it/POSTQuery/getRanges.php");
                     URLConnection conn = url.openConnection();
                     conn.setDoOutput(true);
                     OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());

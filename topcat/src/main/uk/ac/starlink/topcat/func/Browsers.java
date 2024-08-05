@@ -15,6 +15,7 @@ import java.net.URL;
 import uk.ac.starlink.topcat.AbstractHtmlPanel;
 import uk.ac.starlink.topcat.Executor;
 import uk.ac.starlink.topcat.HtmlWindow;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Displays URLs in web browsers.
@@ -59,7 +60,7 @@ public class Browsers {
         }
         if ( url1 == null ) {
             try {
-                url1 = new URL( url );
+                url1 = URLUtils.newURL( url );
             }
             catch ( MalformedURLException e ) {
                 return "Bad URL: " + url;

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import org.astrogrid.samp.client.ClientProfile;
@@ -14,6 +15,7 @@ import org.astrogrid.samp.httpd.ServerResource;
 import org.astrogrid.samp.httpd.URLMapperHandler;
 import org.astrogrid.samp.httpd.UtilServer;
 import uk.ac.starlink.topcat.Driver;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Provides HTTP server functionality for TOPCAT.
@@ -101,6 +103,23 @@ public class TopcatServer {
     }
 
     /**
+     * Returns the URL for a resource available at a path served
+     * by this server.
+     *
+     * @param  subPath   path relative to this server's base URL
+     * @return  URL, or null in case of trouble
+     */
+    public URL getRelativeUrl( String subPath ) {
+        try {
+            return tcPkgUrl_.toURI().resolve( subPath ).toURL();
+        }
+        catch ( MalformedURLException | URISyntaxException
+                                      | IllegalArgumentException e ) {
+            return null;
+        }
+    }
+
+    /**
      * Indicates whether this server can serve the resource with a given URL.
      *
      * @param   url  URL to enquire about
@@ -160,7 +179,7 @@ public class TopcatServer {
         cRes = cRes.substring( 0, cRes.length() - cname.length() );
 
         /* Return the result as a URL. */
-        return new URL( cRes );
+        return URLUtils.newURL( cRes );
     }
 
     /**

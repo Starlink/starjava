@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -107,11 +108,19 @@ public class TopcatSampControl {
         meta.setName( "topcat" );
         meta.setDescriptionText( "Tool for OPerations "
                                + "on Catalogues And Tables" );
-        URL docUrl = new URL( tcPkgUrl, "sun253/index.html" );
+        URL docUrl;
+        URL logoUrl;
+        try {
+            docUrl = tcPkgUrl.toURI().resolve( "sun253/index.html" ).toURL();
+            logoUrl = tcPkgUrl.toURI().resolve( "images/tc_sok.png" ).toURL();
+        }
+        catch ( URISyntaxException e ) {
+            docUrl = null;
+            logoUrl = null;
+        }
         meta.setDocumentationUrl( tcServer.isFound( docUrl )
                                   ? docUrl.toString()
                                   : homepage );
-        URL logoUrl = new URL( tcPkgUrl, "images/tc_sok.png" );
         meta.setIconUrl( tcServer.isFound( logoUrl )
                              ? logoUrl.toString()
                              : homepage + "images/tc_sok.png" );
@@ -577,7 +586,7 @@ public class TopcatSampControl {
         else if ( url != null ) {
             ListModel<TopcatModel> tablesList =
                 ControlWindow.getInstance().getTablesListModel();
-            URL u = new URL( url );
+            URL u = URLUtils.newURL( url );
             for ( int i = 0; i < tablesList.getSize(); i++ ) {
                 TopcatModel tcModel = tablesList.getElementAt( i );
                 if ( URLUtils.sameResource( u, tcModel.getDataModel()
@@ -691,9 +700,8 @@ public class TopcatSampControl {
                                 : (String) message.getParam( "format" );
             File file = URLUtils.urlToFile( url );
             final DataSource datsrc =
-                file != null
-                     ? (DataSource) new FileDataSource( file )
-                     : (DataSource) new URLDataSource( new URL( url ) );
+                file != null ? new FileDataSource( file )
+                             : new URLDataSource( URLUtils.newURL( url ) );
             String tableName = (String) message.getParam( "name" );
             String label = "SAMP" + ":" + senderName;
             if ( tableName != null ) {
