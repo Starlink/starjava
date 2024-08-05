@@ -18,6 +18,7 @@ import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.util.LoadException;
 import uk.ac.starlink.util.LogUtils;
+import uk.ac.starlink.util.URLUtils;
 
 public class CeaTest extends TestCase {
 
@@ -87,7 +88,7 @@ public class CeaTest extends TestCase {
             out.close();
 
             String schemaLoc = writer.getSchemaLocation();
-            URL schemaUrl = new URL( schemaLoc );
+            URL schemaUrl = URLUtils.newURL( schemaLoc );
             if ( Boolean.getBoolean( "tests.withnet" ) ) {
                 Schema schema = SchemaFactory
                                .newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI )

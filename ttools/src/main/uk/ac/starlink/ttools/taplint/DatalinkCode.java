@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.taplint;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Enumerates known ReportCode instances for Datalink validation.
@@ -177,7 +178,7 @@ public enum DatalinkCode implements ReportCode {
         public Doc( String name, String url ) {
             name_ = name;
             try {
-                url_ = new URL( url );
+                url_ = URLUtils.newURL( url );
             }
             catch ( MalformedURLException e ) {
                 // shouldn't happen.

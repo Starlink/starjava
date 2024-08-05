@@ -184,7 +184,7 @@ public class DatalinkLint implements Task {
      */
     private static URL toUrl( String loc ) {
         try {
-            return new URL( loc );
+            return URLUtils.newURL( loc );
         }
         catch ( MalformedURLException e ) {
         }

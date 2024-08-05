@@ -27,6 +27,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.CgiQuery;
 import uk.ac.starlink.util.DOMUtils;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Column calculator which interrogates the IPAC Dust Extinction map service.
@@ -176,7 +177,7 @@ public class SchlegelCalculator
             if ( url == null ) {
                 return row;
             }
-            Element resultsEl = getOkResultsElement( new URL( url ) );
+            Element resultsEl = getOkResultsElement( URLUtils.newURL( url ) );
             int ic = 0;
             for ( int ir = 0; ir < rtypes_.length; ir++ ) {
                 ResultType rtype = rtypes_[ ir ];

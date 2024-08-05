@@ -16,6 +16,7 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.ForeignMeta;
 import uk.ac.starlink.vo.SchemaMeta;
@@ -76,7 +77,7 @@ public class TablesEndpointStage extends TableMetadataStage {
         String query = isVosi11 ? "?detail=max" : "";
         final URL turl;
         try {
-            turl = new URL( tapService.getTablesEndpoint() + query );
+            turl = URLUtils.newURL( tapService.getTablesEndpoint() + query );
         }
         catch ( MalformedURLException e ) {
             throw new RuntimeException( "Shouldn't happen: " + e, e );

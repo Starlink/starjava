@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -830,12 +831,19 @@ public class ExampleStage implements Stage {
                 }
                 String hrefAtt = getAttribute( contEl, "href" );
                 URL url;
-                try {
-                    url = hrefAtt == null ? new URL( "" )
-                                          : new URL( contextUrl, hrefAtt );
+                if ( hrefAtt != null && hrefAtt.trim().length() > 0 ) {
+                    try {
+                        url = contextUrl.toURI().resolve( hrefAtt ).toURL();
+                    }
+                    catch ( MalformedURLException | URISyntaxException
+                          | IllegalArgumentException e ) {
+                        url = null;
+                    }
                 }
-                catch ( MalformedURLException e ) {
+                else {
                     url = null;
+                }
+                if ( url == null ) {
                     String msg = new StringBuffer()
                        .append( hrefAtt == null || hrefAtt.length() == 0
                               ? "Missing @href attribute"
@@ -845,7 +853,7 @@ public class ExampleStage implements Stage {
                        .toString();
                     reporter_.report( FixedCode.E_EXCH, msg );
                 }
-                if ( url != null ) {
+                else {
                     if ( exampleDocUrls_.add( url.toString() ) ) {
                         urls.add( url );
                     }
