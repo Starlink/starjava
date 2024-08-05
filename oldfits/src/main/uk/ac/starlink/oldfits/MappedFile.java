@@ -30,7 +30,7 @@ import uk.ac.starlink.util.Loader;
  * so that accessing a single datum distant from (or before) the last
  * datum accessed always results in filling a whole buffer.
  *
- * <h3>Limitations:</h3>
+ * <h2>Limitations:</h2>
  * <ul>
  * <li>Files larger than Integer.MAX_VALUE bytes may not currently be accessed
  * <li>Access to very large files may fail if virtual memory runs out
