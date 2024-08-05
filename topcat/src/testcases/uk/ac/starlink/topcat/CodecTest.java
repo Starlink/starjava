@@ -39,6 +39,7 @@ public class CodecTest extends TableCase {
         LogUtils.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
         LogUtils.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
         LogUtils.getLogger( "uk.ac.starlink.topcat" ).setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.votable" ).setLevel( Level.WARNING);
         controlWindow_ = null;
         tWriter_ = new VOTableWriter();
         tReader_ = new VOTableBuilder();
