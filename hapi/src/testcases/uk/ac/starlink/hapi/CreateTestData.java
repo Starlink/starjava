@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -12,10 +14,11 @@ import uk.ac.starlink.util.IOUtils;
 
 public class CreateTestData {
 
-    public static void main( String[] args ) throws IOException {
+    public static void main( String[] args )
+            throws IOException, URISyntaxException {
         for ( Map.Entry<String,String> entry : createFileMap().entrySet() ) {
             File file = new File( entry.getKey() );
-            URL url = new URL( entry.getValue() );
+            URL url = new URI( entry.getValue() ).toURL();
             System.out.println( file );
             try ( InputStream in = url.openStream();
                   OutputStream out = new FileOutputStream( file ) ) {

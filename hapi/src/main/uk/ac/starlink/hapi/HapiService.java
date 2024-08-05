@@ -61,7 +61,7 @@ public class HapiService {
                  url.startsWith( "https://" ) ) ) {
             throw new MalformedURLException( "Bad HAPI server URL: " + url );
         }
-        new URL( url );
+        URLUtils.newURL( url );
         StringBuffer sbuf = new StringBuffer( url );
         if ( sbuf.charAt( sbuf.length() - 1 ) != '/' ) {
             sbuf.append( "/" );
