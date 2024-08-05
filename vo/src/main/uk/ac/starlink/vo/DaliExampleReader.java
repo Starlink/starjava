@@ -4,6 +4,9 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,6 +33,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.util.DOMUtils;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Extracts DaliExample objects from a document.
@@ -136,9 +140,10 @@ public class DaliExampleReader {
                 }
                 else {
                     try {
-                        contList = readExamples( new URL( url, href ) );
+                        contList =
+                            readExamples( url.toURI().resolve( href ).toURL() );
                     }
-                    catch ( IOException e ) {
+                    catch ( IOException | URISyntaxException e ) {
                         contList = null;
                         logger_.log( Level.WARNING,
                                      "Failed to read examples continuation at "
@@ -193,7 +198,14 @@ public class DaliExampleReader {
             throws IOException {
         final String idAtt = exEl.getAttribute( "id" );
         final String resourceAtt = exEl.getAttribute( "resource" );
-        final URL exUrl = new URL( docUrl, "#" + idAtt );
+        final URL exUrl;
+        try {
+            exUrl = docUrl.toURI().resolve( "#" + idAtt ).toURL();
+        }
+        catch ( URISyntaxException e ) {
+            throw (MalformedURLException)
+                  new MalformedURLException().initCause( e );
+        }
         String name0 = getPropertyText( exEl, "name" );
         final String name = name0 == null
                           ? null
@@ -347,7 +359,8 @@ public class DaliExampleReader {
      */
     public static void main( String[] args ) throws IOException {
         for ( Tree<DaliExample> tree :
-              new DaliExampleReader().readExamples( new URL( args[ 0 ] ) ) ) {
+              new DaliExampleReader().readExamples( URLUtils
+                                                   .newURL( args[ 0 ] ) ) ) {
             writeTree( 0, tree );
         }
     }

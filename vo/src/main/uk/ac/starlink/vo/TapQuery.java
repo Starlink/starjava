@@ -333,7 +333,7 @@ public class TapQuery {
         String phase = info.getPhase();
         assert UwsStage.forPhase( phase ) == UwsStage.FINISHED;
         if ( "COMPLETED".equals( phase ) ) {
-            return new URL( uwsJob.getJobUrl() + "/results/result" );
+            return URLUtils.newURL( uwsJob.getJobUrl() + "/results/result" );
         }
         else if ( "ABORTED".equals( phase ) ) {
             throw new IOException( "TAP query did not complete ("
@@ -353,7 +353,7 @@ public class TapQuery {
              * navigate the UWS document in the presence of namespaces
              * which often refer to different/older versions of the
              * UWS protocol. */
-            URL errUrl = new URL( uwsJob.getJobUrl() + "/error" );
+            URL errUrl = URLUtils.newURL( uwsJob.getJobUrl() + "/error" );
             logger_.info( "Read error VOTable from " + errUrl );
             try {
                 errText = readErrorInfo( AuthManager.getInstance()
@@ -414,7 +414,7 @@ public class TapQuery {
     public static StarTable getResult( UwsJob uwsJob, ContentCoding coding,
                                        StoragePolicy storage )
             throws IOException {
-        URL url = new URL( uwsJob.getJobUrl() + "/results/result" );
+        URL url = URLUtils.newURL( uwsJob.getJobUrl() + "/results/result" );
         return readResultVOTable( AuthManager.getInstance()
                                              .connect( url, coding ),
                                   coding, storage );

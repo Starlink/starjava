@@ -11,6 +11,7 @@ import org.w3c.dom.Node;
 import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.SourceReader;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Information about an astronomical object obrtained from some name
@@ -90,10 +91,11 @@ public class ResolverInfo {
         return resolve(name, SESAME_URL);       
     }
     
-    public static ResolverInfo resolve( String name, String resolverUrl ) throws ResolverException {
+    public static ResolverInfo resolve( String name, String resolverUrl )
+            throws ResolverException {
         try {
-            URL url = new URL( resolverUrl
-                    + URLEncoder.encode( name, "UTF-8" ) );
+            URL url = URLUtils.newURL( resolverUrl
+                                     + URLEncoder.encode( name, "UTF-8" ) );
             logger_.info( url.toString() );
             Element el = new SourceReader()
                         .getElement( new StreamSource( AuthManager.getInstance()

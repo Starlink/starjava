@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * TapMetaReader that works with the VOSI-1.1 scalable /tables endpoint.
@@ -196,7 +197,7 @@ public class Vosi11TapMetaReader implements TapMetaReader {
         if ( query != null ) {
             surl += "?" + query;
         }
-        URL url = new URL( surl );
+        URL url = URLUtils.newURL( surl );
         logger_.info( "Reading table metadata from " + url );
         try {
             return TableSetSaxHandler.populateHandler( url, coding_ );

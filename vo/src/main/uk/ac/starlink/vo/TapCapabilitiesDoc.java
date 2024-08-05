@@ -23,6 +23,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.util.DOMUtils;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Encapsulates useful information found in the capabilities document
@@ -90,10 +91,10 @@ public class TapCapabilitiesDoc {
         }
         else {
             try {
-                return new URL( baseUrl 
-                              + ( baseUrl.toString().endsWith( "/" ) ? ""
-                                                                     : "/" )
-                              + "capabilities" );
+                return URLUtils
+                      .newURL( baseUrl 
+                            + ( baseUrl.toString().endsWith( "/" ) ? "" : "/" )
+                            + "capabilities" );
             }
             catch ( MalformedURLException e ) {
                 throw new RuntimeException( "Surely not" );

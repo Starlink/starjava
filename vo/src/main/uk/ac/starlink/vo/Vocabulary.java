@@ -21,6 +21,7 @@ import org.json.JSONTokener;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Represents information from an IVOA Vocabulary.
@@ -457,7 +458,7 @@ public class Vocabulary {
     public static void main( String[] args ) throws IOException {
         String url = args.length > 0 ? args[ 0 ]
                                      : "http://www.ivoa.net/rdf/timescale";
-        Vocabulary vocab = readVocabulary( new URL( url ) );
+        Vocabulary vocab = readVocabulary( URLUtils.newURL( url ) );
         System.out.println( vocab.getUri() );
         for ( VocabTerm term : vocab.getTerms().values() ) {
             System.out.println( "   " + term );

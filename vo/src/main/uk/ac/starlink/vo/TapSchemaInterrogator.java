@@ -19,6 +19,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Interrogates the TAP_SCHEMA tables from a TAP service to acquire
@@ -1030,7 +1031,7 @@ public class TapSchemaInterrogator {
     public static void main( String[] args ) throws IOException {
         String url = args[ 0 ];
         TapService service =
-            TapServices.createDefaultTapService( new URL( url ) );
+            TapServices.createDefaultTapService( URLUtils.newURL( url ) );
         int maxrec = 100000;
         ContentCoding coding = ContentCoding.GZIP;
         SchemaMeta[] smetas =
