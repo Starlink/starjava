@@ -62,7 +62,7 @@ public class System {
      * @example  <code>exec("do_stuff.py " + RA + " " + DEC)</code>
      */
     public static String exec( String line ) {
-        return execute( Executor.createExecutor( line ) );
+        return exec( (Object[]) line.trim().split( " +" ) );
     }
 
     /**
