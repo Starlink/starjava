@@ -1,6 +1,6 @@
 package uk.ac.starlink.pds4;
 
-import java.net.URL;
+import java.net.URI;
 
 /**
  * Returns the result of parsing a PDS4 label XML file.
@@ -12,12 +12,12 @@ import java.net.URL;
 public interface Label {
 
     /**
-     * Returns the parent URL in which this label was located.
+     * Returns the parent URI in which this label was located.
      * It can be used to resolve relative data locations.
      *
-     * @return   returns parent URL of this label
+     * @return   returns parent URI of this label
      */
-    URL getContextUrl();
+    URI getContextUri();
 
     /**
      * Returns any Table items that are associated with this label.

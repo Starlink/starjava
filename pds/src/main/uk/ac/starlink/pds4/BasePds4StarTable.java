@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -39,12 +39,12 @@ public class BasePds4StarTable extends Pds4StarTable {
      * Constructor.
      *
      * @param  table  table object on which this table is based
-     * @param  contextUrl   parent URL for the PDS4 label
+     * @param  contextUri   parent URI for the PDS4 label
      */
     @SuppressWarnings("this-escape")
-    public BasePds4StarTable( BaseTable table, URL contextUrl )
+    public BasePds4StarTable( BaseTable table, URI contextUri )
             throws IOException {
-        super( table, contextUrl );
+        super( table, contextUri );
         recordLength_ = Tables.checkedLongToInt( table.getRecordLength() );
         colRdrs_ = createColumnReaders( table.getContents() );
         ncol_ = colRdrs_.length;
