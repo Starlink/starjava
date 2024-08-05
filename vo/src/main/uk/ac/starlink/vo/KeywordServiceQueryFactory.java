@@ -16,6 +16,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.RenderingComboBox;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
@@ -176,6 +177,6 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
      * @return   registry URL
      */
     private URL getUrl() throws MalformedURLException {
-        return new URL( regSelector_.getUrl() );
+        return URLUtils.newURL( regSelector_.getUrl() );
     }
 }

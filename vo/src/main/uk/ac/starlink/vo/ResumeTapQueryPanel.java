@@ -28,6 +28,7 @@ import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Panel used as part of the TAP load dialogue to resume execution of or
@@ -71,7 +72,7 @@ class ResumeTapQueryPanel extends JPanel {
                 final String urlTxt = urlField_.getText();
                 final UwsJob job;
                 try {
-                    viewJob( new UwsJob( new URL( urlTxt ) ) );
+                    viewJob( new UwsJob( URLUtils.newURL( urlTxt ) ) );
                 }
                 catch ( MalformedURLException e ) {
                     assert false;
@@ -85,7 +86,7 @@ class ResumeTapQueryPanel extends JPanel {
                 String txt = urlField_.getText();
                 if ( txt != null && txt.trim().length() > 0 ) {
                     try {
-                        new URL( urlField_.getText() );
+                        URLUtils.newURL( urlField_.getText() );
                         jobAct.setEnabled( true );
                         return;
                     }
@@ -307,7 +308,7 @@ class ResumeTapQueryPanel extends JPanel {
         String urlTxt = urlField_.getText();
         if ( urlTxt != null ) {
             try {
-                viewJob( new UwsJob( new URL( urlTxt ) ) );
+                viewJob( new UwsJob( URLUtils.newURL( urlTxt ) ) );
             }
             catch ( MalformedURLException e ) {
             }

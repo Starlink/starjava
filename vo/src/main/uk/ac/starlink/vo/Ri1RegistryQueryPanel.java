@@ -12,6 +12,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.MutableComboBoxModel;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Component which allows the user to select a Registry Interface 1.0-style
@@ -88,7 +89,7 @@ public class Ri1RegistryQueryPanel extends JPanel {
             throw new MalformedURLException( "Registry URL is blank" );
         }
         try {
-            regURL = new URL( regServ );
+            regURL = URLUtils.newURL( regServ );
         }
         catch ( MalformedURLException e ) {
             throw new MalformedURLException( "Bad registry URL: " + regServ );

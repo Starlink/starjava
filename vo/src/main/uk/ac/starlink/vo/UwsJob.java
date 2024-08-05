@@ -31,6 +31,7 @@ import uk.ac.starlink.auth.UrlConnector;
 import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Job submitted using the Universal Worker Service pattern.
@@ -165,7 +166,7 @@ public class UwsJob {
     private void postUwsParameter( String relativeLocation, String paramName,
                                    String paramValue )
             throws IOException {
-        URL postUrl = new URL( jobUrl_ + relativeLocation );
+        URL postUrl = URLUtils.newURL( jobUrl_ + relativeLocation );
         HttpURLConnection hconn = postForm( postUrl, paramName, paramValue );
         int code = hconn.getResponseCode();
         if ( code != HttpURLConnection.HTTP_SEE_OTHER ) {
@@ -326,7 +327,7 @@ public class UwsJob {
      * @return  job status
      */
     private UwsJobInfo readInfoQuery( String queryPart ) throws IOException {
-        URL url = new URL( jobUrl_ + queryPart );
+        URL url = URLUtils.newURL( jobUrl_ + queryPart );
         logger_.info( "Read UWS job: " + url );
         UwsJobInfo[] infos;
         try {
@@ -501,7 +502,7 @@ public class UwsJob {
                                     Map<String,HttpStreamParam> streamParamMap )
             throws IOException {
         HttpURLConnection hconn =
-            postForm( new URL( jobListUrl ), ContentCoding.NONE,
+            postForm( URLUtils.newURL( jobListUrl ), ContentCoding.NONE,
                       stringParamMap, streamParamMap );
         int code = hconn.getResponseCode();
         String codeMsg = "(" + code + " " + hconn.getResponseMessage() + ")";
@@ -517,7 +518,7 @@ public class UwsJob {
                 throw new IOException( "No Location field in 303 response" );
             }
             logger_.info( "Created UWS job at: " + location );
-            return new UwsJob( new URL( location ) );
+            return new UwsJob( URLUtils.newURL( location ) );
         }
         else if ( code == 403 ) {
             throw new IOException( "UWS job creation rejected " + codeMsg );

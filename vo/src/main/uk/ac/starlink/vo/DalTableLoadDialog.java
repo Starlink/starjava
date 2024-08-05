@@ -27,6 +27,7 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Table load dialogue abstract superclass for registry-based DAL-like queries.
@@ -160,7 +161,7 @@ public abstract class DalTableLoadDialog
         }
         else {
             try {
-                new URL( txt );
+                URLUtils.newURL( txt );
                 return true;
             }
             catch ( MalformedURLException e ) {
@@ -219,7 +220,7 @@ public abstract class DalTableLoadDialog
         }
         else {
             try {
-                return new URL( url );
+                return URLUtils.newURL( url );
             }
             catch ( MalformedURLException e ) {
                 throw new IllegalArgumentException( "Bad " + protoName_

@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.logging.Logger;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * TapMetaReader implementation that works with VizieR's non-standard
@@ -89,7 +90,7 @@ public class VizierTapMetaReader implements TapMetaReader {
         String tName = cstNames != null
                      ? cstNames[ 2 ]
                      : fixer_.getOriginalTableName( table );
-        URL turl = new URL( url_ + "/" + syntax_.unquote( tName ) );
+        URL turl = URLUtils.newURL( url_ + "/" + syntax_.unquote( tName ) );
         SchemaMeta[] schemas = readSchemas( turl );
         if ( schemas.length == 1 ) {
             TableMeta[] tables = schemas[ 0 ].getTables();

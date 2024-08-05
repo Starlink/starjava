@@ -62,6 +62,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.ArrayTableColumn;
 import uk.ac.starlink.util.gui.ArrayTableModel;
 import uk.ac.starlink.util.gui.ArrayTableSorter;
@@ -2149,7 +2150,7 @@ public class TableSetPanel extends JPanel {
                 String logo = role.getLogo();
                 if ( logo != null && logo.trim().length() > 0 ) {
                     try {
-                        return new URL( logo );
+                        return URLUtils.newURL( logo );
                     }
                     catch ( MalformedURLException e ) {
                     }

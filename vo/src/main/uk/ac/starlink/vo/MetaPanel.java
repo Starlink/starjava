@@ -36,6 +36,7 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.html.HTMLEditorKit;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Panel for displaying metadata under headings.
@@ -147,7 +148,7 @@ public class MetaPanel extends JPanel implements Scrollable {
                 String txt = field.getText();
                 if ( txt != null && txt.length() > 0 && urlHandler != null ) {
                     try {
-                        urlHandler.accept( new URL( txt ) );
+                        urlHandler.accept( URLUtils.newURL( txt ) );
                     }
                     catch ( MalformedURLException e ) {
                     }
@@ -178,7 +179,7 @@ public class MetaPanel extends JPanel implements Scrollable {
                     String txt = field.getText();
                     if ( txt != null && txt.length() > 0 ) {
                         try {
-                            new URL( txt );
+                            URLUtils.newURL( txt );
                             hasUrl = true;
                         }
                         catch ( MalformedURLException e ) {
