@@ -2,6 +2,8 @@ package uk.ac.starlink.registry;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -23,7 +25,8 @@ public class RegClientTest {
     /**
      * Main method.  The "-help" flag will print usage information.
      */
-    public static void main( String[] args ) throws IOException {
+    public static void main( String[] args )
+            throws IOException, URISyntaxException {
         Map<String, URL> knownRegMap = getKnownRegMap();
 
         /* Construct usage message. */
@@ -55,7 +58,7 @@ public class RegClientTest {
                 it.remove();
                 endpoint = knownRegMap.containsKey( e )
                          ? knownRegMap.get( e )
-                         : new URL( e );
+                         : new URI( e ).toURL();
             }
             else if ( arg.equals( "-adqls" ) && it.hasNext() ) {
                 keywords = null;
@@ -156,17 +159,17 @@ public class RegClientTest {
         Map<String, URL> map = new HashMap<String, URL>();
         try {
             map.put( "ag",
-                     new URL( "http://registry.astrogrid.org/"
+                     new URI( "http://registry.astrogrid.org/"
                             + "astrogrid-registry/services/"
-                            + "RegistryQueryv1_0" ) );
+                            + "RegistryQueryv1_0" ).toURL() );
             map.put( "nvo",
-                     new URL( "http://nvo.stsci.edu/vor10/"
-                            + "ristandardservice.asmx" ) );
+                     new URI( "http://nvo.stsci.edu/vor10/"
+                            + "ristandardservice.asmx" ).toURL() );
             map.put( "euro",
-                     new URL( "http://registry.euro-vo.org/services/"
-                            + "RegistrySearch" ) );
+                     new URI( "http://registry.euro-vo.org/services/"
+                            + "RegistrySearch" ).toURL() );
         }
-        catch ( MalformedURLException e ) {
+        catch ( MalformedURLException | URISyntaxException e ) {
             throw (Error) new AssertionError( "do what?" ).initCause( e );
         }
         return map;
