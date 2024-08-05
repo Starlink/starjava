@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URL;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Parameter which can provide an input stream based on its value.
@@ -32,7 +32,7 @@ public class InputStreamParameter extends Parameter<InputStream> {
         if ( ! sval.equals( "-" ) &&
              ! new File( sval ).exists() ) {
             try {
-                new URL( sval ); 
+                URLUtils.newURL( sval );
             }
             catch ( MalformedURLException e ) {
                 String msg = "Value " + sval + " is not a file, URL or \"-\"";
