@@ -8271,7 +8271,7 @@ Totals: Errors: 9; Warnings: 1
 
 <p><code>tapquery</code> can query remote databases using the
 Table Access Protocol (TAP) services by submitting 
-Astronomical Data Query Language queries to them and retrieving
+Astronomical Data Query Language (ADQL) queries to them and retrieving
 the results.
 <webref url="http://www.ivoa.net/Documents/TAP/">TAP</webref> and
 <webref url="http://www.ivoa.net/Documents/latest/ADQL.html">ADQL</webref>
@@ -8284,26 +8284,26 @@ In asynchronous mode, if the query has not been deleted by the time the
 command exits (see the <code>delete</code> parameter),
 the result can be picked up at a later stage using the
 <ref id="tapresume"><code>tapresume</code></ref> command.
-Table uploads are supported, so it is possible (if the service supports
+</p>
+
+<p>Table uploads are supported, so it is possible (if the service supports
 this functionality), to upload a local table to the remote database,
 perform a query involving it, such as a join with a remote table of some sort, 
 and receive the result.  This powerful facility gives you crossmatches
 between local and remote tables.
 </p>
 
+<p>For services that require authentication, you will need to supply
+your credentials as described in <ref id="AuthManager"/>.
+Otherwise, queries will be submitted anonymously by default,
+but you can force a login attempt to services with optional
+authentication by setting <code>auth=true</code>.
+</p>
+
 <p>This command does not provide any facility for querying the service
 for either table or capability metadata, so you will need to know about
 the service capabilities and database structure from some other source
 (possibly TOPCAT).
-</p>
-
-<p><strong>Note:</strong> this command has been introduced at STILTS version
-2.3, at which time most available TAP services are quite new and may not
-fully conform to the standards, and usage patterns are still settling down.
-For this reason you may find that some TAP services do not behave
-quite as expected; it is also possible that in future versions the
-command behaviour or parameters will change in line with changing
-service profiles or in the light of user experience.
 </p>
 
 &tapquery-summary;
@@ -8315,22 +8315,38 @@ service profiles or in the light of user experience.
 <dl>
 
 <dt><verbatim>
-stilts tapquery tapurl='http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap'
-                adql='SELECT TOP 1000 * FROM ppmxl.main'
-                out=ppmxl.fits
+stilts tapquery tapurl=https://gea.esac.esa.int/tap-server/tap
+                adql='SELECT TOP 1000 source_id, ra, dec
+                      FROM gaiadr3.gaia_source
+                      ORDER BY random_index'
+                out=g.fits
 </verbatim></dt>
 <dd><p>Executes the given ADQL query on the service referenced by the URL
     and writes the result to a FITS file.
     </p></dd>
 
+<dt><verbatim>
+stilts tapquery tapurl=https://gea.esac.esa.int/tap-server/tap
+                adql='SELECT TOP 1000 source_id, ra, dec
+                      FROM gaiadr3.gaia_source
+                      ORDER BY random_index'
+                sync=true auth=true
+                out=g.fits
+</verbatim></dt>
+<dd><p>Same as the previous example, except that
+    <code>sync=true</code> runs the query synchronously
+    instead of asynchronously, and
+    <code>auth=true</code> will attempt to log in to the service
+    (prompting you for username and password) if it offers authentication.
+    </p></dd>
+
 <dt><verbatim><![CDATA[
 stilts tapquery
-       tapurl='http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap'
-       adql="SELECT *
-                FROM twomass.data AS t
-                JOIN TAP_UPLOAD.up1 AS s
-                ON 1=CONTAINS(POINT('ICRS', t.RAJ2000, t.DEJ2000),
-                              CIRCLE('ICRS', s.ra2000, s.dec2000, 5./3600.))"
+       tapurl=http://dc.g-vo.org/tap
+       adql='SELECT *
+             FROM twomass.data AS t
+             JOIN TAP_UPLOAD.up1 AS s
+                  ON DISTANCE(t.raj2000,t.dej2000,s.ra2000,s.dec2000)<5./3600'
        nupload=1 upload1=6dfgs_E7.fits ucmd1='select BMAG-RMAG<0'
        maxrec=20000
        ocmd='tablename 2mass_x_6df' omode=topcat
