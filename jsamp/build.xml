@@ -79,7 +79,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="JSAMP"/>
   <property name="name" value="jsamp"/>
-  <property name="version" value="1.3.7"/>
+  <property name="version" value="1.3.9"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
