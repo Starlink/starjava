@@ -15358,6 +15358,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         These changes will not be noticeable in most cases,
         but questionable usages like embedded spaces in URLs may need
         to be replaced by their <code>%</code>-encoded equivalents.</li>
+    <li>Upgrade JSAMP to v1.3.9.</li>
     </ul>
     </p></dd>
 
