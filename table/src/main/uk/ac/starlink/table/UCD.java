@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
  * UCDs are obtained from the static {@link #getUCD} method; any 
  * two UCDs with the same ID are guaranteed to be the same object.
  *
- * <h3>Source of information</h3>
+ * <h2>Source of information</h2>
  * The UCD ids and descriptions are read from a list at the resource
  * {@link #UCD_DEFINITIONS_LOC}.  If this resource is unavailable at
  * runtime, a warning will be written to the logging system.
