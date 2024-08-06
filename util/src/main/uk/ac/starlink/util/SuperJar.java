@@ -412,7 +412,7 @@ public class SuperJar {
      * Writes a new jar or zip file based on the contents of an existing
      * jar file and the jar files referenced by its manifest.
      *
-     * <h3>Usage:</h3>
+     * <p><strong>Usage:</strong></p>
      * <pre>
      *    SuperJar [-oj outjar] [-oz outzip]
      *             [[-xjar jar] -xjar jar ...]
