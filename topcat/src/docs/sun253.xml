@@ -524,7 +524,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>29 February 2024</docdate>
+<docdate>7 August 2024</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -33488,119 +33488,139 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v4.10">Version 4.10 (7 August 2024)</dt>
 <dd><p>
-    <ul>
-    <li>Fix bug in TAP window ADQL tab tree population in presence
-        of illegal syntax for UDF form.</li>
-    <li>Fix issue with display of multi-line text in ADQL tree on
-        MacOS.</li>
-    <li>Fix ADQL Hints tab in TAP window which failed to load for
-        some versions of Java.</li>
-    <li>Add new <ref id="scheme-test">Test scheme</ref> options
-        "<code>g</code>" and "<code>w</code>".</li>
-    <li>Add new <ref id="outVotable">VOTable output handler</ref>
-        configuration option "<code>date</code>"
-        to control whether a datestamp comment is written.</li>
-    <li>Fits-plus output handlers now honour <code>date</code> 
-        config option for VOTable metadata 
-        as well as DATE-HDU header card.</li>
-    <li>FITS output handling improved and reorganised to provide
-        more flexible configuration options;
-        this is now all documented under the <ref id="outFits">FITS</ref>
-        heading, there is no longer a separate <code>colfits</code>
-        section in the documentation.</li>
-    <li>Report default values for most configuration options in
-        <ref id="ioFormats">I/O handler</ref> documentation.</li>
-    <li>Fix annoying bug where text pasted into the TAP window
-        TAP URL selector got mixed up with the placeholder text.</li>
-    <li>Bugfix update of CDS HEALPix library to v0.30.3,
-        prevents occasional plot failures.</li>
-    <li>Add to this document detailed documentation of
-        <ref id="fitsPlus">FITS-plus</ref> and
-        <ref id="wideFits">Wide FITS</ref> conventions.</li>
-    <li>MacOS DMG now bundled with Java 11 not Java 8,
-        fixes poor rendering of selected tab label in JTabbedPane.</li>
-    <li>Parquet reader now copes with some other variants of
-        array-valued columns.</li>
-    <li>Upgrade parquet support libraries to parquet-mr 1.13.1.
-        This means that snappy compression is now supported for
-        MacOS ARM, as well as other, architectures.</li>
-    <li>Add support for LZ4_RAW compression to Parquet I/O handlers.</li>
-    <li>Add compression type configuration option to
-        <ref id="outParquet">Parquet output handler</ref>.</li>
-    <li>Initial highlight of selected table in TAP window
-        now works as well for delimited-identifer table names.</li>
-    <li>Fix parquet input handler bug related to compression.</li>
-    <li>About application button on MacOS should now display
-        custom About TOPCAT window.</li>
-    <li>Improve metadata in tables created by
-        <ref id="match-windows">Match windows</ref>;
-        they now record match parameters such as max error.</li>
-    <li>Treatment of null values in the astrometric epoch propagation 
-        functions
-        <ref id="Gaia-epochProp"><code>epochProp</code></ref> and
-        <ref id="Gaia-epochPropErr"><code>epochPropErr</code></ref>
-        has changed; null values for parallax and proper motion are
-        now treated as if zero rather than invalidating the propagation.
-        This (partly) follows behaviour of corresponding functionality
-        in Gaia and VO ADQL propagation UDFs.</li>
-    <li>Column XType is now displayed in the
-        <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
-    <li>Fix broken STC-S BOX parsing for 
-        <ref id="GangLayerControl_area">Area</ref> plots.</li>
-    <li>Fix some bugs to do with authentication and metadata acquisition
-        in the TAP window.</li>
-    <li>Fix VOTable output bug that wrote infinite floating point 
-        array elements to TABLEDATA as "<code>+/-Infinity</code>"
-        rather than "<code>+/-Inf"</code>.</li>
-    <li>Avoid stack overflow errors for long ASCII MOCs in
-        <ref id="Coverage">Coverage</ref> functions.</li>
-    <li>Xtypes are now written into FITS headers using the
-        non-standard header card <code>TXTYPnnn</code>.</li> 
-    <li>Non-standard FITS headers
-        <code>TUCDnnn</code> and <code>TUTYPnnn</code> 
-        are now written with comment parts, space permitting.</li>
-    <li>The SoG internal <ref id="imageViewers">image viewer</ref>
-        has been withdrawn, since the required JAI classes are
-        now unlikely to be available.</li>
-    <li>Widespread changes to the build system to make it easier to
-        build TOPCAT from source.  Most people do not need to do this.
-        Should result in few or no user-visible changes.</li>
-    <li>Fix authentication bug to do with redirects.</li>
-    <li>Avoid writing <code>arraysize="1"</code>
-        in <code>FIELD</code>/<code>PARAM</code> elements 
-        of VOTables with version &gt;=1.3, 
-        in accordance with VOTable 1.3 Erratum #3.</li>
-    <li>Avoid non-VOUnit units in output VOTables in some cases.</li>
-    <li>Add &Matrix; Plot Table option
-        to <ref id="DatalinkWindow">DataLink Window</ref>
-        Action selector.</li>
-    <li>Fix column search bug.</li>
-    <li>Decrease size of parquet output files in most cases 
-        when writing NaNs and empty strings/arrays.</li>
-    <li>Add dictionary use configuration option to
-        <ref id="outParquet">Parquet output handler</ref>.</li>
-    <li>New config option <code>useFloat</code> 
-        in <ref id="inMrt">MRT input handler</ref>;
-        this is set false by default to avoid a rare bug
-        that read large values as infinite.</li>
-    <li>New config option <code>tryUrl</code>
-        in <ref id="inParquet">parquet input handler</ref>;
-        this is set false by default to avoid cryptic error messsages
-        when trying to open remote parquet files.</li>
-    <li>Some changes have been made to URL handling.
-        Syntactically invalid URIs are now mostly rejected.
-        These changes will not be noticeable in most cases,
-        but questionable usages like embedded spaces in URLs may need
-        to be replaced by their <code>%</code>-encoded equivalents.</li>
-    <li>Upgrade JSAMP to v1.3.9.</li>
-    <li>The <code>topcat-lite</code> configuration is no longer supplied,
-        since it's no longer significantly smaller than
-        <code>topcat-full</code>.</li>
-    <li>WebStart is no longer supported, since it has been removed
-        from more recent versions of Java.</li>
-    </ul>
+    <dl>
+    <dt>Source code</dt>
+    <dd><p>At this version the source code and build system have been
+        substantially tidied up so that the application can be built
+        straightforwardly using modern versions of Java (8, 11, 17, 21)
+        with a minimum of warnings.
+        This should be mostly invisible to users,
+        but a few behaviour changes may be observed:
+        <ul>
+        <li>Some changes have been made to URL handling.
+            Syntactically invalid URIs are now mostly rejected.
+            This should not be noticeable in most cases,
+            but questionable usages like embedded spaces in URLs may need
+            to be replaced by their <code>%</code>-encoded equivalents.</li>
+        <li>The SoG internal <ref id="imageViewers">image viewer</ref>
+            has been withdrawn, since the required JAI classes are
+            now unlikely to be available.</li>
+        <li>The <code>topcat-lite</code> configuration is no longer supplied,
+            since it's no longer significantly smaller than
+            <code>topcat-full</code>.</li>
+        <li>WebStart is no longer supported, since it has been removed
+            from more recent versions of Java.</li>
+        </ul>
+        </p></dd>
+    <dt>I/O handler improvements</dt>
+    <dd><p>
+        <ul>
+        <li>Documentation for <ref id="ioFormats">I/O handler</ref>
+            config options now mostly reports their default values.</li>
+        <li>Add to this document detailed documentation of
+            <ref id="fitsPlus">FITS-plus</ref> and
+            <ref id="wideFits">Wide FITS</ref> conventions.</li>
+        <li>FITS output handling improved and reorganised to provide
+            more flexible configuration options;
+            this is now all documented under the <ref id="outFits">FITS</ref>
+            heading, there is no longer a separate <code>colfits</code>
+            section in the documentation.</li>
+        <li>Xtypes are now written into FITS headers using the
+            non-standard header card <code>TXTYPnnn</code>.</li>
+        <li>Non-standard FITS headers
+            <code>TUCDnnn</code> and <code>TUTYPnnn</code>
+            are now written with comment parts, space permitting.</li>
+        <li>Upgrade parquet support libraries to parquet-mr 1.13.1.
+            This means that Snappy compression is now supported in parquet for
+            MacOS ARM, as well as other, architectures.</li>
+        <li>Add support for LZ4_RAW compression to Parquet I/O handlers.</li>
+        <li>Decrease size of parquet output files in most cases 
+            when writing NaNs and empty strings/arrays.</li>
+        <li>Parquet input handler now copes with some additional variants of
+            array-valued columns.</li>
+        <li>New config option <code>date</code>
+            for <ref id="outVotable">VOTable output handler</ref>.</li>
+        <li>New config options <code>compression</code>, <code>usedict</code>
+            for <ref id="outParquet">Parquet output handler</ref>.</li>
+        <li>New config option <code>tryUrl</code>
+            for <ref id="inParquet">Parquet input handler</ref>,
+            set false by default to avoid cryptic error messsages
+            when trying to open remote parquet files.</li>
+        <li>New config option <code>useFloat</code> 
+            in <ref id="inMrt">MRT input handler</ref>,
+            set false by default to avoid a rare bug
+            that could read large values as infinite.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and behaviour changes</dt>
+    <dd><p>
+        <ul>
+        <li>Treatment of null values in the astrometric epoch propagation
+            functions
+            <ref id="Gaia-epochProp"><code>epochProp</code></ref> and
+            <ref id="Gaia-epochPropErr"><code>epochPropErr</code></ref>
+            has changed; null values for parallax and proper motion are
+            now treated as if zero rather than invalidating the propagation.
+            This (partly) follows behaviour of corresponding functionality
+            in Gaia and VO ADQL propagation UDFs, and is more likely
+            what you want to see.</li>
+        <li>Add &Matrix; Plot Table option
+            to <ref id="DatalinkWindow">DataLink Window</ref>
+            Action selector.</li>
+        <li>MacOS DMG now bundled with Java 11 not Java 8,
+            fixes poor rendering of selected tab label in JTabbedPane.
+            This also avoids runtime warnings on some MacOS versions
+            about secure coding.</li>
+        <li>About application button on MacOS should now display
+            custom About TOPCAT window.</li>
+        <li>Improve metadata in tables created by
+            <ref id="match-windows">Match windows</ref>;
+            they now record match parameters such as max error.</li>
+        <li>Column XType is now displayed in the
+            <ref id="ColumnInfoWindow">Columns Window</ref>.</li>
+        <li>Avoid writing <code>arraysize="1"</code>
+            in <code>FIELD</code>/<code>PARAM</code> elements 
+            of VOTables with version &gt;=1.3, 
+            in accordance with VOTable 1.3 Erratum #3.</li>
+        <li>Avoid non-VOUnit units in output VOTables in some cases.</li>
+        <li>New <ref id="scheme-test"><code>test</code> scheme</ref> options
+            "<code>g</code>" and "<code>w</code>".</li>
+        <li>Upgrade JSAMP to v1.3.9.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fix annoying bug where text pasted into the
+            <ref id="TapTableLoadDialog_service">TAP URL selector</ref>
+            got mixed up with the placeholder text.</li>
+        <li>Fix some bugs to do with authentication and metadata acquisition
+            in the <ref id="TapTableLoadDialog_query">TAP window</ref>.</li>
+        <li>Fix issue with display of multi-line text in TAP window
+            ADQL tree on MacOS.</li>
+        <li>Fix bug in TAP window ADQL tab tree population in presence
+            of illegal syntax for UDF form.</li>
+        <li>Fix ADQL Hints tab in TAP window which failed to load for
+            some versions of Java.</li>
+        <li>Initial highlight of selected table in TAP window
+            now works as well for delimited-identifer table names.</li>
+        <li>Bugfix update of CDS HEALPix library to v0.30.3,
+            prevents occasional plot failures.</li>
+        <li>Fix parquet input handler bug related to compression.</li>
+        <li>Fix broken STC-S BOX parsing for 
+            <ref id="GangLayerControl_area">Area</ref> plots.</li>
+        <li>Fix VOTable output bug that wrote infinite floating point 
+            array elements to TABLEDATA as "<code>+/-Infinity</code>"
+            rather than "<code>+/-Inf"</code>.</li>
+        <li>Avoid stack overflow errors for long ASCII MOCs in
+            <ref id="Coverage">Coverage</ref> functions.</li>
+        <li>Fix authentication bug to do with redirects.</li>
+        <li>Fix column search bug.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
