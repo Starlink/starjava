@@ -33599,6 +33599,11 @@ introduced since the last version:
         in <ref id="inParquet">parquet input handler</ref>;
         this is set false by default to avoid cryptic error messsages
         when trying to open remote parquet files.</li>
+    <li>Some changes have been made to URL handling.
+        Syntactically invalid URIs are now mostly rejected.
+        These changes will not be noticeable in most cases,
+        but questionable usages like embedded spaces in URLs may need
+        to be replaced by their <code>%</code>-encoded equivalents.</li>
     </ul>
     </p></dd>
 
