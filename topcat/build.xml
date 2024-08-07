@@ -560,34 +560,6 @@
     <delete file="${build.classes}/uk/ac/starlink/topcat/revision-string"/>
     <delete file="${build.classes}/uk/ac/starlink/ttools/revision-string"/>
 
-    <!-- Build topcat-lite.jar - minimal standalone which does basic things. -->
-    <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
-      <classpath refid="classpath"/>
-      <arg value="-oj"/><arg value="${dist.lib.pkg}/topcat-lite.jar"/>
-      <arg value="-xjar"/><arg value="array.jar"/>
-      <arg value="-xjar"/><arg value="astrogrid.jar"/>
-      <arg value="-xjar"/><arg value="axis.jar"/>
-      <arg value="-xjar"/><arg value="hds.jar"/>
-      <arg value="-xjar"/><arg value="hdx.jar"/>
-      <arg value="-xjar"/><arg value="jaiutil.jar"/>
-      <arg value="-xjar"/><arg value="jniast.jar"/>
-      <arg value="-xjar"/><arg value="junit.jar"/>
-      <arg value="-xjar"/><arg value="oldfits.jar"/>
-      <arg value="-xjar"/><arg value="ndx.jar"/>
-      <arg value="-xjar"/><arg value="parquet-mr-stil.jar"/>
-      <arg value="-xjar"/><arg value="soapserver.jar"/>
-      <arg value="-xjar"/><arg value="srb.jar"/>
-      <arg value="-xent"/><arg value="*"/>
-      <arg value="-xent"/><arg value="META-INF/*"/>
-      <arg value="-xent"/><arg value="META-INF/maven/"/>
-      <arg value="-file"/><arg value="${star.bin}/topcat"/>
-      <arg value="-file"/><arg value="${star.bin}/stilts"/>
-      <arg value="-file"/><arg value="${star.etc}/ttools/stilts.py"/>
-      <arg value="-file"/><arg value="${star.dir}/source/src/etc/LICENCE.txt"/>
-      <arg value="${star.lib.pkg}/topcat.jar"/>
-      <arg value="${dist.lib.pkg}/extras.zip"/>
-    </java>
-
     <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
       <classpath refid="classpath"/>
       <arg value="-oj"/><arg value="${dist.lib.pkg}/topcat-full.jar"/>

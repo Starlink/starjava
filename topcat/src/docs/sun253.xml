@@ -3755,8 +3755,8 @@ it has been installed on your system; some of these are described below.
 starts up the program - in this case just clicking on it will probably work.
 Failing that you may be able to locate the
 jar file (probably named <code>topcat.jar</code>, 
-<code>topcat-full.jar</code>, <code>topcat-lite.jar</code>
-or <code>topcat-extra.jar</code>)
+<code>topcat-full.jar</code> or
+<code>topcat-extra.jar</code>)
 and click on that.  These files would be located in the
 <code>java/lib/topcat/</code> directory in a standard Starjava installation.
 Note that when you start by clicking on something
@@ -3773,7 +3773,7 @@ the <em>starjava</em>/java/bin directory.  If you have one of the
 standalone jar files (topcat-*.jar), it should
 be in the same directory as it/them.  If it's not there,
 you can unpack it from the jar file itself, using a command like
-<code>unzip topcat-lite.jar topcat</code>.
+<code>unzip topcat-full.jar topcat</code>.
 If that directory (and java) is on your path then you can write:
 <verbatim>
    topcat [java-args] [topcat-args]
@@ -4074,7 +4074,7 @@ This is to do with Java's security model.
 If you need to specify a classpath which includes more than the
 TOPCAT classes themselves, you can't use <code>java -jar</code>
 (use 
-<code>java -classpath topcat-lite.jar:... uk.ac.starlink.topcat.Driver</code>
+<code>java -classpath topcat-full.jar:... uk.ac.starlink.topcat.Driver</code>
 instead).
 </p>
 
@@ -19778,9 +19778,6 @@ for username, password etc, and you will then be able to browse
 the remote filestore as if it were local.  The same button can be
 used to log out when you are finished, but the session will be 
 logged out automatically when TOPCAT ends in any case.
-Access to remote filesystems is dependent on certain optional
-components of TOPCAT, and it may not be available if you
-have the topcat-lite configuration.
 </p>
 
 <p>The browser initially displays the current directory, but this can be
@@ -19927,7 +19924,7 @@ as described in <ref id="demoData"/>.
 
 <p>Note that this window requires certain optional 
 components of the TOPCAT installation,
-and will not be available if you have the topcat-lite configuration.
+and may not always be available.
 </p>
 
 <subsubsubsect>
@@ -33605,6 +33602,9 @@ introduced since the last version:
         but questionable usages like embedded spaces in URLs may need
         to be replaced by their <code>%</code>-encoded equivalents.</li>
     <li>Upgrade JSAMP to v1.3.9.</li>
+    <li>The <code>topcat-lite</code> configuration is no longer supplied,
+        since it's no longer significantly smaller than
+        <code>topcat-full</code>.</li>
     </ul>
     </p></dd>
 
