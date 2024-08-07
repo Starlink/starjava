@@ -3799,13 +3799,6 @@ any other class path information, such as the CLASSPATH environment
 variable or java's <code>-classpath</code> flag - see <ref id="jvmClasspath"/>.
 </p>
 
-<p>Note that Java
-<webref url="http://java.sun.com/products/javawebstart/">Web Start</webref>
-can also be used to invoke the program
-without requiring any prior download/installation - sorry, this isn't
-documented properly here yet.
-</p>
-
 <p>The meaning of the optional 
 <code>[topcat-args]</code> 
 and 
@@ -33605,6 +33598,8 @@ introduced since the last version:
     <li>The <code>topcat-lite</code> configuration is no longer supplied,
         since it's no longer significantly smaller than
         <code>topcat-full</code>.</li>
+    <li>WebStart is no longer supported, since it has been removed
+        from more recent versions of Java.</li>
     </ul>
     </p></dd>
 
