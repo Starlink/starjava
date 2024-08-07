@@ -398,7 +398,7 @@ or something like
 </verbatim>
 or
 <verbatim>
-   java -classpath topcat-lite.jar uk.ac.starlink.ttools.Stilts
+   java -classpath topcat-full.jar uk.ac.starlink.ttools.Stilts
 </verbatim>
 or something else - 
 this is covered in detail in <ref id="invoke"/>.
@@ -904,8 +904,8 @@ Depending on how you have done your installation the core STILTS
 classes could be in various places, but they are probably in a
 file with one of the names 
 <code>stilts.jar</code>,
-<code>topcat-lite.jar</code> or
-<code>topcat-full.jar</code>.
+<code>topcat-full.jar</code> or
+<code>topcat-extra.jar</code>.
 The full pathname of one of these files can therefore be used as
 your classpath.  In some cases these files are self-contained and
 in some cases they reference other jar files in the filesystem -
