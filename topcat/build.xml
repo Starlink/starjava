@@ -855,7 +855,7 @@
    !  targets.
    !-->
   <target name="dist"
-          depends="build,docs-html,jars,javadocs,webstart"
+          depends="build,docs-html,jars,javadocs"
           unless="runonly.install"
           description="-> configures the local binary distribution">
 
