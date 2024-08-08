@@ -9,7 +9,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.net.HttpURLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -858,14 +857,9 @@ public class UwsJob {
             if ( sbuf.length() != 0 ) {
                 sbuf.append( '&' );
             }
-            try {
-                sbuf.append( URLEncoder.encode( entry.getKey(), UTF8 ) )
-                    .append( '=' )
-                    .append( URLEncoder.encode( entry.getValue(), UTF8 ) );
-            }
-            catch ( UnsupportedEncodingException e ) {
-                throw new AssertionError( "No " + UTF8 + "??" );
-            }
+            sbuf.append( URLUtils.urlEncode( entry.getKey() ) )
+                .append( '=' )
+                .append( URLUtils.urlEncode( entry.getValue() ) );
         }
         int nc = sbuf.length();
         byte[] bbuf = new byte[ nc ];
