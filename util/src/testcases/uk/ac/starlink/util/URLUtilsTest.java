@@ -168,4 +168,13 @@ public class URLUtilsTest extends junit.framework.TestCase {
                       URLUtils.makeURL( null, "/etc/motd" )
                               .toString() );
     }
+
+    public void testCoding() {
+        String pre = "1 + 1 = 2";
+        String post = "1+%2b+1+%3d+2";
+        assertEquals( post, URLUtils.urlEncode( pre ).toLowerCase() );
+        assertEquals( pre, URLUtils.urlDecode( post ) );
+        assertEquals( "abc", URLUtils.urlEncode( "abc" ) );
+        assertEquals( "def", URLUtils.urlDecode( "def" ) );
+    }
 }
