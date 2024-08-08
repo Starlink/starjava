@@ -15412,6 +15412,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix bug in TAP curl logging.</li>
     </ul>
     </p></dd>
 

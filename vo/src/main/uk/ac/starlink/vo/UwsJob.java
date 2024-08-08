@@ -604,6 +604,7 @@ public class UwsJob {
             hout.write( postBytes );
             hout.close();
         };
+        boolean isMultipart = false;
         logger_.info( "POST to " + url );
         logger_.config( "POST content: "
                               + ( postBytes.length < 200
@@ -619,7 +620,8 @@ public class UwsJob {
            .config( "Did something like: "
                   + getCurlPostEquivalent(
                         url, coding, aconn.getContext(), AuthUtil.LOG_SECRETS,
-                        paramMap, new HashMap<String,HttpStreamParam>() ) );
+                        paramMap, new HashMap<String,HttpStreamParam>(),
+                        isMultipart ) );
         }
         URLConnection conn = aconn.getConnection();
         if ( conn instanceof HttpURLConnection ) {
@@ -664,6 +666,7 @@ public class UwsJob {
             connectMultipartForm( hconn, coding, stringMap, streamMap,
                                   boundary0 );
         };
+        boolean isMultipart = true;
         AuthConnection aconn =
             AuthManager
            .getInstance()
@@ -673,7 +676,8 @@ public class UwsJob {
            .config( "Did something like: "
                   + getCurlPostEquivalent( url, coding, aconn.getContext(),
                                            AuthUtil.LOG_SECRETS,
-                                           stringMap, streamMap ) );
+                                           stringMap, streamMap,
+                                           isMultipart ) );
         }
         URLConnection conn = aconn.getConnection();
         if ( conn instanceof HttpURLConnection ) {
@@ -784,6 +788,10 @@ public class UwsJob {
      * @param   stringParams  name-&gt;value map for POST parameters;
      *          values will be URL encoded as required
      * @param   streamParams  name-&gt;parameter map for POST parameters
+     * @param   isMultipart  true if form POST is done using
+     *                       multipart/form-data encoding,
+     *                       false for application/x-www-form-urlencoded;
+     *                       must be true if streamParams is not empty
      * @return   line of pseudo-shell script giving curl invocation
      * @see   <a href="http://curl.haxx.se/">curl</a>
      * @see   #postForm
@@ -792,7 +800,12 @@ public class UwsJob {
             getCurlPostEquivalent( URL url, ContentCoding coding,
                                    AuthContext context, boolean showSecret,
                                    Map<String,String> stringParams,
-                                   Map<String,HttpStreamParam> streamParams ) {
+                                   Map<String,HttpStreamParam> streamParams,
+                                   boolean isMultipart ) {
+        if ( !isMultipart && !streamParams.isEmpty() ) {
+            logger_.warning( "Uh oh, that shouldn't happen" );
+        }
+        boolean isForm = isMultipart || ! streamParams.isEmpty();
         StringBuffer sbuf = new StringBuffer()
             .append( "curl" )
             .append( " --url " )
@@ -808,12 +821,25 @@ public class UwsJob {
             }
         }
         for ( Map.Entry<String,String> entry : stringParams.entrySet() ) {
-            sbuf.append( " --form " )
+            String val = entry.getValue();
+            final String ptype;
+            if ( isForm ) {
+                ptype = "--form";
+            }
+            else {
+                ptype = val.equals( URLUtils.urlEncode( val ) )
+                      ? "--data"
+                      : "--data-urlencode";
+            }
+            sbuf.append( ' ' )
+                .append( ptype )
+                .append( ' ' )
                 .append( entry.getKey() )
                 .append( '=' )
-                .append( shellEscape( entry.getValue() ) );
+                .append( shellEscape( val ) );
         }
         for ( String key : streamParams.keySet() ) {
+            assert isForm;
             sbuf.append( " --form " )
                 .append( key )
                 .append( "=" )
