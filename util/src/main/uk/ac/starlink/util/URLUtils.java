@@ -9,7 +9,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.net.URLStreamHandlerFactory;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -436,6 +439,50 @@ public class URLUtils {
         else {
             return url2 != null
                 && url1.toString().equals( url2.toString() );
+        }
+    }
+
+    /**
+     * URL-encodes a string using UTF-8, without pesky exceptions.
+     *
+     * @see   java.net.URLEncoder
+     * @param  txt  string to encode
+     * @return   encoded string
+     */
+    public static String urlEncode( String txt ) {
+        if ( txt == null ) {
+            return null;
+        }
+        else {
+            try {
+                return URLEncoder.encode( txt, StandardCharsets.UTF_8.name() );
+            }
+            catch ( UnsupportedEncodingException e ) {
+                assert false;
+                return txt;
+            }
+        }
+    }
+
+    /**
+     * URL-decodes a string using UTF-8, without pesky exceptions.
+     *
+     * @see   java.net.URLDecoder
+     * @param  txt  string to decode
+     * @return   decoded string
+     */
+    public static String urlDecode( String txt ) {
+        if ( txt == null ) {
+            return null;
+        }
+        else {
+            try {
+                return URLDecoder.decode( txt, StandardCharsets.UTF_8.name() );
+            }
+            catch ( UnsupportedEncodingException e ) {
+                assert false;
+                return txt;
+            }
         }
     }
 
