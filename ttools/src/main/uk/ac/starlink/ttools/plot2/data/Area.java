@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 import cds.healpix.Healpix;
+import java.util.Arrays;
 import uk.ac.starlink.ttools.plot2.CdsHealpixUtil;
 
 /**
@@ -9,7 +10,7 @@ import uk.ac.starlink.ttools.plot2.CdsHealpixUtil;
  * The shape is defined by a numeric code (Type enum) and a numeric array,
  * so that it can be easily de/serialised.
  *
- * <p>Currently no distinction is made in this object between shapes
+ * <p>Currently no distinction is made in this class between shapes
  * on a 2-d plane and on the surface of a sphere; instances of this
  * class may be interpreted in either context as required.
  *
@@ -73,6 +74,73 @@ public class Area {
      */
     public void writeSkyCoords3( double[] buffer ) {
         type_.writeSkyCoords3( dataArray_, buffer );
+    }
+
+    /**
+     * Converts a list of Area instances into its MULTISHAPE numeric array
+     * serialization.
+     * 
+     * @param  areas  array of area instances that form the multishape
+     * @return   array serialization
+     * @see  Type#MULTISHAPE
+     */
+    public static double[] serializeMultishape( Area[] areas ) {
+        int nel = 1 + Arrays.stream( areas )
+                            .mapToInt( a -> 2 + a.getDataArray().length )
+                            .sum();
+        double[] array = new double[ nel ];
+        int iel = 0;
+        array[ iel++ ] = areas.length;
+        for ( Area area : areas ) {
+            array[ iel++ ] = area.getType().ordinal();
+            array[ iel++ ] = area.getDataArray().length;
+        }
+        for ( Area area : areas ) {
+            double[] coords = area.getDataArray();
+            int nc = coords.length;
+            System.arraycopy( coords, 0, array, iel, nc );
+            iel += nc;
+        }
+        assert iel == array.length;
+        return array;
+    }
+
+    /**
+     * Converts a numeric representation of a MULTISHAPE into a
+     * list of Area instances.
+     *
+     * @param  data  array serialization of a MULTISHAPE
+     * @return  list of decoded Area instances
+     * @see  Type#MULTISHAPE
+     */
+    public static Area[] deserializeMultishape( double[] data ) {
+        int iel = 0;
+        int ns = (int) data[ iel++ ];
+        Area[] shapes = new Area[ ns ];
+        int kel = 1 + ns * 2;
+        for ( int is = 0; is < ns; is++ ) {
+            Area.Type type = Area.Type.values()[ (int) data[ iel++ ] ];
+            int nc = (int) data[ iel++ ];
+            double[] d = new double[ nc ];
+            System.arraycopy( data, kel, d, 0, nc );
+            kel += nc;
+            shapes[ is ] = new Area( type, d );
+        }
+        assert kel == data.length;
+        return shapes;
+    }
+
+    /**
+     * Creates a multishape area from a list of other areas.
+     *
+     * @param   areas  list of subordinate areas
+     * @return   new area with Type.MULTISHAPE,
+     *           or null if there the <code>areas</code> list is null or empty
+     */
+    public static Area createMultishape( Area[] areas ) {
+        return areas != null && areas.length > 0 
+             ? new Area( Type.MULTISHAPE, serializeMultishape( areas ) )
+             : null;
     }
 
     /**
@@ -219,6 +287,63 @@ public class Area {
                 buffer[ 0 ] = tx * scale;
                 buffer[ 1 ] = ty * scale;
                 buffer[ 2 ] = tz * scale;
+            }
+        },
+
+        /**
+         * Collection of Area instances, to be considered as a union.
+         * Serialization is
+         * <code>[nshape, type0, ncoord0, type1, ncoord1, ..., coords]</code>.
+         * Type values are ordinals of the {@link Type} enum.
+         *
+         * @see #serializeMultishape serializeMultishape
+         * @see #deserializeMultishape deserializeMultishape
+         */
+        MULTISHAPE() {
+            public boolean isLegalArrayLength( int n ) {
+                return n > 3;
+            }
+            public void writePlaneCoords2( double[] data, double[] buffer ) {
+                Area[] shapes = deserializeMultishape( data );
+                assert shapes.length > 0;
+                Area shape0 = shapes[ 0 ];
+                shape0.getType()
+                      .writePlaneCoords2( shape0.getDataArray(), buffer );
+                double x0 = buffer[ 0 ];
+                double y0 = buffer[ 1 ];
+                double xmin = x0;
+                double xmax = x0;
+                double ymin = y0;
+                double ymax = y0;
+                for ( int is = 1; is < shapes.length; is++ ) {
+                    Area shape = shapes[ is ];
+                    shape.getType()
+                         .writePlaneCoords2( shape.getDataArray(), buffer );
+                    double x = buffer[ 0 ];
+                    double y = buffer[ 1 ];
+                    xmin = Math.min( xmin, x );
+                    xmax = Math.max( xmax, x );
+                    ymin = Math.min( ymin, y );
+                    ymax = Math.max( ymax, y );
+                }
+                buffer[ 0 ] = 0.5 * ( xmin + xmax );
+                buffer[ 1 ] = 0.5 * ( ymin + ymax );
+            }
+            public void writeSkyCoords3( double[] data, double[] buffer ) {
+                double sx = 0;
+                double sy = 0;
+                double sz = 0;
+                for ( Area shape : deserializeMultishape( data ) ) {
+                    shape.getType()
+                         .writeSkyCoords3( shape.getDataArray(), buffer );
+                    sx += buffer[ 0 ];
+                    sy += buffer[ 1 ];
+                    sz += buffer[ 2 ];
+                }
+                double fact = 1.0 / Math.sqrt( sx * sx + sy * sy + sz * sz );
+                buffer[ 0 ] = sx * fact;
+                buffer[ 1 ] = sy * fact;
+                buffer[ 2 ] = sz * fact;
             }
         };
 
