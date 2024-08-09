@@ -33627,6 +33627,9 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>Fix bug in TAP curl logging.</li>
+    <li>STC-S encoding in
+        <ref id="GangLayerControl_area">Area</ref>-like plots
+        now copes with UNIONs of all shapes, not just of POLYGONs.</li>
     </ul>
     </p></dd>
 
