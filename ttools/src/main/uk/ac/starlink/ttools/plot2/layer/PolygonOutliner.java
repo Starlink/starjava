@@ -7,6 +7,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -867,8 +868,8 @@ public class PolygonOutliner extends PixOutliner {
          * between disjoint shapes rather than an actual vertex position.
          * If true, then readDataPos will not give a useful result.
          *
-         * <p>Only certain VertexData types (currently Areas with type POLYGON)
-         * ever return true from this method.
+         * <p>Only certain VertexData types (currently Areas with type
+         * POLYGON or MULTISHAPE) ever return true from this method.
          *
          * @param  ivert  vertex index
          * @return   true iff this entry corresponds to a break between
@@ -1250,6 +1251,14 @@ public class PolygonOutliner extends PixOutliner {
                                     dpos[ 1 ] = latDeg;
                                 }
                             };
+                        case MULTISHAPE:
+                            double[] data = area.getDataArray();
+                            VertexData[] vds =
+                                Arrays
+                               .stream( Area.deserializeMultishape( data ) )
+                               .map( s -> createVertexData( s ) )
+                               .toArray( n -> new VertexData[ n ] );
+                            return new MultiVertexData( vds );
                         default:
                             assert false;
                             return NO_VERTEX_DATA;
@@ -1353,6 +1362,14 @@ public class PolygonOutliner extends PixOutliner {
                                     rotation.rotate( dpos );
                                 }
                             };
+                        case MULTISHAPE:
+                            double[] data = area.getDataArray();
+                            VertexData[] vds =
+                                Arrays
+                               .stream( Area.deserializeMultishape( data ) )
+                               .map( s -> createVertexData( s ) )
+                               .toArray( n -> new VertexData[ n ] );
+                            return new MultiVertexData( vds );
                         default:
                             assert false;
                             return NO_VERTEX_DATA;
@@ -1531,6 +1548,13 @@ public class PolygonOutliner extends PixOutliner {
                 return toSphere( point[ 0 ], point[ 1 ], radius, dpos )
                      ? createPointVertexData( dpos )
                      : NO_VERTEX_DATA;
+            case MULTISHAPE:
+                VertexData[] vds =
+                    Arrays
+                   .stream( Area.deserializeMultishape( area.getDataArray() ) )
+                   .map( s -> createSphereAreaVertexData( s, radius ) )
+                   .toArray( n -> new VertexData[ n ] );
+                return new MultiVertexData( vds );
             default:
                 assert false;
                 return NO_VERTEX_DATA;
@@ -1734,6 +1758,55 @@ public class PolygonOutliner extends PixOutliner {
          *               to be populated on output
          */
         abstract void copyLonlat( double lonRad, double latRad, double[] dpos );
+    }
+
+    /**
+     * VertexData implementation made by aggregating a number of other
+     * VertexData instances.  A break is inserted between each one.
+     */
+    private static class MultiVertexData implements VertexData {
+        private final VertexData[] vds_;
+
+        /**
+         * Constructor.
+         *
+         * @return   vds  constituent VertexData instances
+         */
+        MultiVertexData( VertexData[] vds ) {
+            vds_ = vds;
+        }
+ 
+        public int getVertexCount() {
+            return Arrays.stream( vds_ )
+                         .mapToInt( VertexData::getVertexCount ).sum()
+                 + vds_.length - 1;
+        }
+
+        public boolean isBreak( int ivert ) {
+            int jv = 0;
+            for ( VertexData vd : vds_ ) {
+                jv += vd.getVertexCount();
+                if ( jv > ivert ) {
+                    return false;
+                }
+                else if ( jv == ivert ) {
+                    return true;
+                }
+                jv++;
+            }
+            return false;
+        }
+
+        public boolean readDataPos( int ivert, double[] dpos ) {
+            for ( VertexData vd : vds_ ) {
+                int nv = vd.getVertexCount();
+                if ( ivert < nv ) {
+                    return vd.readDataPos( ivert, dpos );
+                }
+                ivert -= nv + 1;
+            }
+            return false;
+        }
     }
 
     /**
