@@ -562,26 +562,17 @@ public class AreaDomain implements Domain<AreaMapper> {
                 }
                 Matcher termMatcher =
                     TERM_PATTERN.matcher( parenMatcher.group( 1 ) );
-                List<Area> plist = new ArrayList<Area>();
+                List<Area> shapes = new ArrayList<>();
                 while ( termMatcher.find() ) {
                     Area termArea = stcsArea( termMatcher.group(), allowPoint );
-                    if ( termArea != null &&
-                         termArea.getType() == Area.Type.POLYGON ) {
-                        plist.add( termArea );
+                    if ( termArea != null ) {
+                        shapes.add( termArea );
                     }
                     else {
                         return null;
                     }
                 }
-                DoubleList dlist = new DoubleList();
-                for ( Area poly : plist ) {
-                    if ( dlist.size() > 0 ) {
-                        dlist.add( Double.NaN );
-                        dlist.add( Double.NaN );
-                    }
-                    dlist.addAll( poly.getDataArray() );
-                }
-                return new Area( Area.Type.POLYGON, dlist.toDoubleArray() );
+                return Area.createMultishape( shapes.toArray( new Area[ 0 ] ) );
             }
             else if ( "MOC".equals( word0 ) ) {
                 return mocArea( remainder );
