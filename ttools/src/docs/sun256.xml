@@ -15416,6 +15416,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>STC-S encoding in
         <ref id="layer-area"><code>area</code></ref>-like plots
         now copes with UNIONs of all shapes, not just of POLYGONs.</li>
+    <li>Upgrade JSON-java library to 20240303.
+        Behaviour is not expected to change in interesting ways,
+        but some vulnerabilities are addressed.</li>
     </ul>
     </p></dd>
 
