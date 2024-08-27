@@ -33630,6 +33630,9 @@ introduced since the last version:
     <li>STC-S encoding in
         <ref id="GangLayerControl_area">Area</ref>-like plots
         now copes with UNIONs of all shapes, not just of POLYGONs.</li>
+    <li>Update JSON-java library to 20240303.
+        Behaviour is not expected to change in interesting ways,
+        but some vulnerabilities are addressed.</li>
     </ul>
     </p></dd>
 
