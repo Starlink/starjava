@@ -15419,6 +15419,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Upgrade JSON-java library to 20240303.
         Behaviour is not expected to change in interesting ways,
         but some vulnerabilities are addressed.</li>
+    <li>More units (seconds with SI prefixes) are now properly handled
+        in VOTable <code>TIMESYS</code>-referencing fields.</li>
     </ul>
     </p></dd>
 
