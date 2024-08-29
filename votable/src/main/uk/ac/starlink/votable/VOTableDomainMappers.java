@@ -158,14 +158,29 @@ class VOTableDomainMappers {
      *
      * <p><strong>Note:</strong> this does not currently implement
      * all of VOUnits; for instance SI prefixes (kilodays etc)
-     * are not understood.
+     * are not understood except for a few special cases.
      *
      * @param  units  unit string
      * @return   extent of unit in seconds, or NaN if not understood
      */
     private static double getUnitInSeconds( String units ) {
-        if ( "s".equals( units ) ) {
+        if ( "ps".equals( units ) ) {
+            return 1e-12;
+        }
+        else if ( "ns".equals( units ) ) {
+            return 1e-9;
+        }
+        else if ( "us".equals( units ) ) {
+            return 1e-6;
+        }
+        else if ( "ms".equals( units ) ) {
+            return 1e-3;
+        }
+        else if ( "s".equals( units ) ) {
             return 1.0;
+        }
+        else if ( "ks".equals( units ) ) {
+            return 1e3;
         }
         else if ( "d".equals( units ) ) {
             return 60 * 60 * 24;
