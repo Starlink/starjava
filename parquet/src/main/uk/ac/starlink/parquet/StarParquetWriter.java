@@ -2,7 +2,7 @@ package uk.ac.starlink.parquet;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -15,7 +15,9 @@ import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.Types;
 import org.apache.parquet.io.OutputFile;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * ParquetWriter implementation for output of StarTables.
@@ -126,7 +128,6 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
          */
         StarWriteSupport( StarTable table, boolean groupArray ) {
             List<OutCol<?>> outcols = new ArrayList<>();
-            metaMap_ = new HashMap<String,String>();
             Types.MessageTypeBuilder schemaBuilder = Types.buildMessage();
             int jc = 0;
             for ( int ic = 0; ic < table.getColumnCount(); ic++ ) {
@@ -145,6 +146,7 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
             schema_ = schemaBuilder.named( "table" );
             outcols_ = outcols.toArray( new OutCol<?>[ 0 ] );
             ncol_ = outcols_.length;
+            metaMap_ = getParquetMetadata( table );
         }
 
         public String getName() {
@@ -156,7 +158,7 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
         }
 
         public FinalizedWriteContext finalizeWrite() {
-            return new FinalizedWriteContext( new HashMap<String,String>() );
+            return new FinalizedWriteContext( metaMap_ );
         }
 
         public void prepareForWrite( RecordConsumer recordConsumer ) {
@@ -170,6 +172,37 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
             }
             consumer_.endMessage();
         }
+    }
+
+    /**
+     * Returns a key-value map of extra file-level metadata that can
+     * be associated in the output parquet file with a given StarTable.
+     *
+     * @param  table  table
+     * @return  extra metadata map
+     */
+    private static Map<String,String> getParquetMetadata( StarTable table ) {
+        Map<String,String> map = new LinkedHashMap<>();
+        String name = table.getName();
+        if ( name != null && name.trim().length() > 0 ) {
+            map.put( ParquetStarTable.NAME_KEY, name );
+        }
+        int maxleng = 160;
+        for ( DescribedValue dval : table.getParameters() ) {
+            ValueInfo pinfo = dval.getInfo();
+            String pname = pinfo.getName();
+            Object pvalue = dval.getValue();
+            if ( pvalue != null ) {
+                String ptxt = pinfo.formatValue( pvalue, maxleng );
+                if ( ptxt != null && ptxt.trim().length() > 0 &&
+                     ptxt.equals( pinfo.formatValue( pvalue,
+                                                     ( maxleng + 1 ) ) ) &&
+                     ! map.containsKey( pname ) ) {
+                    map.put( pname, ptxt );
+                }
+            }
+        }
+        return map;
     }
 
     /**

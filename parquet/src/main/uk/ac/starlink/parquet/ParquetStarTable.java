@@ -2,6 +2,8 @@ package uk.ac.starlink.parquet;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -47,6 +49,9 @@ public abstract class ParquetStarTable extends AbstractStarTable {
         new DefaultValueInfo( "Parquet_Created_By", String.class,
                               "Parquet library source for file" );
 
+    /** Extra metadata key for table name. */
+    public static final String NAME_KEY = "name";
+
     /**
      * Constructor.
      *
@@ -58,17 +63,36 @@ public abstract class ParquetStarTable extends AbstractStarTable {
         pfrSupplier_ = pfrSupplier;
 
         /* Acquire per-file metadata. */
-        Map<String,String> metaMap;
+        Map<String,String> kvmap;
         try ( ParquetFileReader pfr = pfrSupplier.get() ) {
             FileMetaData fmeta = pfr.getFileMetaData();
-            metaMap = fmeta.getKeyValueMetaData();
+            kvmap = fmeta.getKeyValueMetaData();
             schema_ = fmeta.getSchema();
             createdBy_ = fmeta.getCreatedBy();
             nrow_ = pfr.getRecordCount();
         }
+        Map<String,String> metaMap = kvmap == null
+                                   ? new HashMap<String,String>()
+                                   : new LinkedHashMap<String,String>( kvmap );
+
+        /* Record table name if stored. */
+        String tname = metaMap.remove( NAME_KEY );
+        if ( tname != null ) {
+            setName( tname );
+        }
+  
+        /* Record remaining per-file metadata as parameters. */
+        List<DescribedValue> params = getParameters();
         if ( createdBy_ != null ) {
-            getParameters()
-           .add( new DescribedValue( CREATEDBY_INFO, createdBy_ ) );
+            params.add( new DescribedValue( CREATEDBY_INFO, createdBy_ ) );
+        }
+        for ( Map.Entry<String,String> meta : metaMap.entrySet() ) {
+            String pvalue = meta.getValue();
+            if ( pvalue != null && pvalue.trim().length() > 0 ) {
+                ValueInfo pinfo =
+                    new DefaultValueInfo( meta.getKey(), String.class, null );
+                params.add( new DescribedValue( pinfo, pvalue ) );
+            }
         }
 
         /* Prepare per-column metadata and readers. */

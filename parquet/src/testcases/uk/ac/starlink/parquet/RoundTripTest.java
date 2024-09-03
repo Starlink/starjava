@@ -7,16 +7,24 @@ import java.io.IOException;
 import java.io.OutputStream;
 import junit.framework.TestCase;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.TestTableScheme;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.FileDataSource;
 
 public class RoundTripTest extends TestCase {
 
+    private static final ValueInfo SOUP_INFO =
+        new DefaultValueInfo( "SOUP", String.class, null );
+
     public void testRoundTrip() throws IOException {
         StarTable table = new TestTableScheme().createTable( "100,s" );
+        String soup = "\u0411\u043e\u0440\u0449";
+        table.getParameters().add( new DescribedValue( SOUP_INFO, soup ) );
         CompressionCodecName[] codecs = {
             null,
             CompressionCodecName.UNCOMPRESSED,
@@ -53,6 +61,9 @@ public class RoundTripTest extends TestCase {
     }
 
     private void assertSameTable( StarTable t1, StarTable t2 ) {
+        assertEquals( t1.getName(), t2.getName() );
+        assertEquals( t1.getParameterByName( SOUP_INFO.getName() ).getValue(),
+                      t2.getParameterByName( SOUP_INFO.getName() ).getValue() );
         assertEquals( Tables.tableToString( t1, "csv" ),
                       Tables.tableToString( t2, "csv" ) );
     }
