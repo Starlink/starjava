@@ -653,6 +653,24 @@ public class VOStarTable extends AbstractStarTable {
     }
 
     /**
+     * Returns a table in which the data comes from an input StarTable,
+     * but the metadata is supplied by a TableElement.
+     * It is the responsibility of the calling code to ensure that
+     * the supplied metadata is consistent with the supplied data.
+     *
+     * @param  dataTable  StarTable supplying data
+     * @param  metadataEl  TABLE element supplying metadata
+     * @return   table, not guaranteed to be consistent
+     */
+    public static VOStarTable createDecoratedTable( StarTable dataTable,
+                                                    TableElement metadataEl )
+            throws IOException {
+        metadataEl.setData( new TableBodies.StarTableTabularData( dataTable ) );
+        VOStarTable outTable = new VOStarTable( metadataEl );
+        return outTable;
+    }
+
+    /**
      * Returns a DescribedValue representing a LINK element.
      *
      * @param  link link element

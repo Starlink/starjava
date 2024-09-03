@@ -363,15 +363,11 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
             }
         }
 
-        /* Turn it into a TabularData element associated it with its
-         * TABLE DOM element as if the DOM builder had found the table
-         * data in a DATA element within the TABLE element. */
-        tabEl.setData( new TableBodies.StarTableTabularData( dataTable ) );
-
         /* Now create and return a StarTable based on the TABLE element; 
          * its metadata comes from the VOTable, but its data comes from 
          * the FITS table we've just read. */
-        VOStarTable outTable = new VOStarTable( tabEl );
+        VOStarTable outTable =
+            VOStarTable.createDecoratedTable( dataTable, tabEl );
 
         /* Ensure column type consistency.  There can occasionally by 
          * some nasty issues with Character/String types. */
