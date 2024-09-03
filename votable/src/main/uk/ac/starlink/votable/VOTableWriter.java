@@ -332,7 +332,7 @@ public class VOTableWriter
      * @param  writer       destination stream
      * @see    #writePostTableXML
      */
-    protected void writePreTableXML( BufferedWriter writer )
+    public void writePreTableXML( BufferedWriter writer )
             throws IOException {
 
         /* Output XML declaration if required. */
@@ -410,7 +410,7 @@ public class VOTableWriter
      *
      * @param  writer       destination stream
      */
-    protected void writeBetweenTableXML( BufferedWriter writer )
+    public void writeBetweenTableXML( BufferedWriter writer )
             throws IOException {
         writer.write( "</RESOURCE>" );
         writer.newLine();
@@ -426,7 +426,7 @@ public class VOTableWriter
      * @param  writer       destination stream
      * @see    #writePreTableXML
      */
-    protected void writePostTableXML( BufferedWriter writer )
+    public void writePostTableXML( BufferedWriter writer )
             throws IOException {
 
         /* Close the open elements. */
