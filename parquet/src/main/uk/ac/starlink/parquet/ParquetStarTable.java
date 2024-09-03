@@ -36,6 +36,7 @@ public abstract class ParquetStarTable extends AbstractStarTable {
     private final IOSupplier<ParquetFileReader> pfrSupplier_;
     private final MessageType schema_;
     private final String createdBy_;
+    private final String votmeta_;
     private final long nrow_;
     private final int ncol_;
     private final ColumnInfo[] cinfos_;
@@ -83,6 +84,9 @@ public abstract class ParquetStarTable extends AbstractStarTable {
         if ( tname != null ) {
             setName( tname );
         }
+
+        /* Record VOTable metadata if present. */
+        votmeta_ = metaMap.remove( VOTMETA_KEY );
   
         /* Record remaining per-file metadata as parameters. */
         List<DescribedValue> params = getParameters();
@@ -153,6 +157,16 @@ public abstract class ParquetStarTable extends AbstractStarTable {
      */
     public MessageType getSchema() {
         return schema_;
+    }
+
+    /**
+     * Returns the text content of a VOTable intended to supply
+     * metadata for this table.
+     *
+     * @return   metadata VOTable text, or null
+     */
+    public String getVOTableMetadataText() {
+        return votmeta_;
     }
 
     /**

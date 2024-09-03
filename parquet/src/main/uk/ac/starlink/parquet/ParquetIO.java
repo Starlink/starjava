@@ -48,9 +48,9 @@ class ParquetIO {
      * @param  tryUrl    whether to attempt opening non-file URLs
      * @return  loaded table
      */
-    public StarTable readParquet( DataSource datsrc,
-                                  ParquetTableBuilder builder,
-                                  boolean useCache, boolean tryUrl )
+    public ParquetStarTable readParquet( DataSource datsrc,
+                                         ParquetTableBuilder builder,
+                                         boolean useCache, boolean tryUrl )
             throws IOException {
         IOSupplier<ParquetFileReader> pfrSupplier =
             readerSupplier( createInputFile( datsrc, tryUrl ),

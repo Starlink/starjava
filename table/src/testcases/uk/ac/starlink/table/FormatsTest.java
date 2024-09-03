@@ -562,9 +562,12 @@ public class FormatsTest extends TableCase {
         ParquetTableBuilder parquetBuilder = new ParquetTableBuilder();
         ParquetTableWriter parquetWriter = new ParquetTableWriter();
         parquetBuilder.setCacheCols( Boolean.FALSE );
+        parquetWriter.setVOTableMetadata( false );
         exerciseReadWrite( parquetWriter, parquetBuilder, "parquet");
         parquetBuilder.setCacheCols( Boolean.TRUE );
         exerciseReadWrite( parquetWriter, parquetBuilder, "parquet");
+        parquetWriter.setVOTableMetadata( true );
+        exerciseReadWrite( parquetWriter, parquetBuilder, "votable" );
 
         exerciseReadWrite(
             new FeatherTableWriter( false, StoragePolicy.PREFER_MEMORY ),
