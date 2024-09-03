@@ -7,6 +7,7 @@ import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.formats.DocumentedIOHandler;
 import uk.ac.starlink.util.ConfigMethod;
+import uk.ac.starlink.votable.VOTableVersion;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
 /**
@@ -21,6 +22,8 @@ public class ParquetTableWriter
     private boolean groupArray_;
     private CompressionCodecName codec_;
     private Boolean useDict_;
+    private boolean votMeta_;
+    private VOTableVersion votVersion_;
 
     public ParquetTableWriter() {
         groupArray_ = true;
@@ -52,10 +55,11 @@ public class ParquetTableWriter
             "project.",
             "Data is compressed on disk and read into memory before use.",
             "</p>",
-            "<p>At present, only very limited metadata is written.",
-            "Parquet does not seem(?) to have any standard format for",
-            "per-column metadata, so the only information written about",
-            "each column apart from its datatype is its name.",
+            "<p>At present, by default only rather limited metadata is written",
+            "so that column units, descriptions, UCDs etc are lost.",
+            "Setting the <code>votmeta</code> option below provides a way",
+            "to remedy that, but this is currently experimental",
+            "and may not be supported by other parquet I/O libraries.",
             "</p>",
             readText( "parquet-packaging.xml" ),
             ""
@@ -209,5 +213,55 @@ public class ParquetTableWriter
      */
     public Boolean isDictionaryEncoding() {
         return useDict_;
+    }
+
+    /**
+     * Sets the flag to indicate storing metadata in a dummy VOTable.
+     *
+     * @param  votMeta  true to store rich metadata as VOTable text
+     */
+    @ConfigMethod(
+        property = "votmeta",
+        example = "true",
+        doc = "<p>If true, rich metadata for the table will be written out\n"
+            + "in the form of a DATA-less VOTable that is stored in the\n"
+            + "parquet extra metadata key-value list under the key\n"
+            + "<code>" + ParquetStarTable.VOTMETA_KEY + "</code>.\n"
+            + "This enables items such as Units, UCDs and column descriptions, "
+            + "that would otherwise be lost in the serialization,\n"
+            + "to be stored in the output parquet file.\n"
+            + "This information can then be recovered by parquet readers\n"
+            + "that understand this convention.\n"
+            + "</p>"
+    )
+    public void setVOTableMetadata( boolean votMeta ) {
+        votMeta_ = votMeta;
+    }
+
+    /**
+     * Returns the flag that indicates storing metadata in a dummy VOTable.
+     *
+     * @return  if true, rich metadata will be stored as VOTable text
+     */
+    public boolean isVOTableMetadata() {
+        return votMeta_;
+    }
+
+    /**
+     * Sets the version of VOTable used to write metadata, if any.
+     *
+     * @param  votVersion  preferred VOTable version, or null for default
+     */
+    public void setVOTableVersion( VOTableVersion votVersion ) {
+        votVersion_ = votVersion;
+    }
+
+    /**
+     * Returns the version of VOTable used to write metadata, if any.
+     *
+     * @return  preferred VOTable version, or null for default
+     */
+    public VOTableVersion getVOTableVersion() {
+        return votVersion_;
     }
 }

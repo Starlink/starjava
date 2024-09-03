@@ -23,6 +23,7 @@ import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.IOSupplier;
 import uk.ac.starlink.util.URLUtils;
+import uk.ac.starlink.votable.VOTableVersion;
 
 /**
  * Handles all the interactions with the parquet-mr libraries required
@@ -196,8 +197,18 @@ class ParquetIO {
      */
     private static void configureBuilder( StarParquetWriter.StarBuilder builder,
                                           ParquetTableWriter writer ) {
+        final VOTableVersion votmetaVersion;
+        if ( writer.isVOTableMetadata() ) {
+            VOTableVersion vers = writer.getVOTableVersion();
+            votmetaVersion = vers == null ? VOTableVersion.getDefaultVersion()
+                                          : vers;
+        }
+        else {
+            votmetaVersion = null;
+        }
         builder.withWriteMode( ParquetFileWriter.Mode.OVERWRITE )
                .withGroupArray( writer.isGroupArray() )
+               .withVOTableMetadata( votmetaVersion )
                .withValidation( true )
                .withPageWriteChecksumEnabled( false ) // doesn't seem to help
                .withDictionaryEncoding( true );

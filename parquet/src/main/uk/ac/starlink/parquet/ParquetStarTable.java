@@ -52,6 +52,9 @@ public abstract class ParquetStarTable extends AbstractStarTable {
     /** Extra metadata key for table name. */
     public static final String NAME_KEY = "name";
 
+    /** Extra metadata key for skeleton VOTable text. */
+    public static final String VOTMETA_KEY = "metadata.votable";
+
     /**
      * Constructor.
      *

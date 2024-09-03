@@ -1,10 +1,13 @@
 package uk.ac.starlink.parquet;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -15,9 +18,15 @@ import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.Types;
 import org.apache.parquet.io.OutputFile;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.IntList;
+import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.VOSerializer;
+import uk.ac.starlink.votable.VOTableVersion;
+import uk.ac.starlink.votable.VOTableWriter;
 
 /**
  * ParquetWriter implementation for output of StarTables.
@@ -50,6 +59,7 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
             extends ParquetWriter.Builder<Object[],StarBuilder> {
         private final StarTable table_;
         private boolean groupArray_;
+        private VOTableVersion votmetaVersion_;
 
         /**
          * Constructor based on a hadoop Path.
@@ -93,6 +103,20 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
             return self();
         }
 
+        /**
+         * Configures output of metadata in VOTable format.
+         * If a non-null value is supplied, metadata will be written into
+         * the output file key-value extra metadata list under the key
+         * {@link ParquetStarTable#VOTMETA_KEY}.
+         *
+         * @param  version  VOTable version for dummy metadata table,
+         *                  or null if not required
+         */
+        public StarBuilder withVOTableMetadata( VOTableVersion version ) {
+            votmetaVersion_ = version;
+            return self();
+        }
+
         public StarBuilder self() {
             return this;
         }
@@ -102,7 +126,7 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
                 throw new IllegalStateException( "builder.withTable"
                                                + " not called" );
             }
-            return new StarWriteSupport( table_, groupArray_ );
+            return new StarWriteSupport( table_, groupArray_, votmetaVersion_ );
         }
     }
 
@@ -125,18 +149,24 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
          * @param  table  table to write
          * @param   groupArray   true for group-style arrays,
          *                       false for repeated primitives
+         * @param   votmetaVersion  version of dummy metadata VOTable to write,
+         *                          or null if not required
          */
-        StarWriteSupport( StarTable table, boolean groupArray ) {
+        StarWriteSupport( StarTable table, boolean groupArray,
+                          VOTableVersion votmetaVersion ) {
             List<OutCol<?>> outcols = new ArrayList<>();
             Types.MessageTypeBuilder schemaBuilder = Types.buildMessage();
             int jc = 0;
-            for ( int ic = 0; ic < table.getColumnCount(); ic++ ) {
+            int nc = table.getColumnCount();
+            IntList icList = new IntList( nc );
+            for ( int ic = 0; ic < nc; ic++ ) {
                 ColumnInfo cinfo = table.getColumnInfo( ic );
                 Encoder<?> encoder =
                     Encoders.createEncoder( cinfo, groupArray );
                 if ( encoder != null ) {
                     outcols.add( OutCol.create( encoder, ic, jc++ ) );
                     schemaBuilder.addField( encoder.getColumnType() );
+                    icList.add( ic );
                 }
                 else {
                     logger_.warning( "Can't write column to parquet: "
@@ -146,7 +176,18 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
             schema_ = schemaBuilder.named( "table" );
             outcols_ = outcols.toArray( new OutCol<?>[ 0 ] );
             ncol_ = outcols_.length;
-            metaMap_ = getParquetMetadata( table );
+
+            StarTable outTable =
+                new ColumnPermutedStarTable( table, icList.toIntArray() );
+            assert outTable.getColumnCount() == ncol_;
+            metaMap_ = getParquetMetadata( outTable );
+            if ( votmetaVersion != null ) {
+                String votmeta =
+                    createMetadataVOTable( outTable, votmetaVersion );
+                if ( votmeta != null ) {
+                    metaMap_.put( ParquetStarTable.VOTMETA_KEY, votmeta );
+                }
+            }
         }
 
         public String getName() {
@@ -203,6 +244,44 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
             }
         }
         return map;
+    }
+
+    /**
+     * Returns the text of a DATA-less VOTable describing the metadata
+     * of a supplied table.
+     *
+     * @param  table  table to document
+     * @param  version   version of VOTable for serialization
+     * @return   DATA-less VOTable content, or null if there was a problem
+     */
+    private static String createMetadataVOTable( StarTable table,
+                                                 VOTableVersion version ) {
+        if ( version == null ) {
+            return null;
+        }
+        StringWriter textWriter = new StringWriter();
+        BufferedWriter writer = new BufferedWriter( textWriter );
+        VOTableWriter votWriter =
+            new VOTableWriter( (DataFormat) null, false, version ) {};
+        votWriter.setWriteDate( false );
+        try {
+            VOSerializer voser =
+                VOSerializer
+               .makeSerializer( DataFormat.TABLEDATA, version, table );
+            votWriter.writePreTableXML( writer );
+            voser.writePreDataXML( writer );
+            writer.write( "<!-- Dummy VOTable - no DATA element -->" );
+            writer.newLine();
+            voser.writePostDataXML( writer );
+            votWriter.writePostTableXML( writer );
+            writer.flush();
+            return textWriter.getBuffer().toString();
+        }
+        catch ( IOException e ) {
+            logger_.log( Level.WARNING,
+                         "Failed to serialize VOTable metadata: " + e, e );
+            return null;
+        }
     }
 
     /**
