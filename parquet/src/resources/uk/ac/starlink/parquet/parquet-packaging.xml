@@ -39,7 +39,6 @@ in particular the files
 <code>hadoop-common-3.2.3.jar</code>
 <code>hadoop-mapreduce-client-core-3.2.3.jar</code>
 <code>htrace-core4-4.1.0-incubating.jar</code>
-<code>log4j-1.2.17.jar</code>
 <code>parquet-cli-1.13.1.jar</code>
 <code>parquet-column-1.13.1.jar</code>
 <code>parquet-common-1.13.1.jar</code>
@@ -47,9 +46,8 @@ in particular the files
 <code>parquet-format-structures-1.13.1.jar</code>
 <code>parquet-hadoop-1.13.1.jar</code>
 <code>parquet-jackson-1.13.1.jar</code>
-<code>parquet-mr-stil.jar</code>
 <code>slf4j-api-1.7.22.jar</code>
-<code>slf4j-log4j12-1.7.22.jar</code>
+<code>slf4j-nop-1.7.22.jar</code>
 <code>snappy-java-1.1.8.3.jar</code>
 <code>stax2-api-4.2.1.jar</code>
 <code>woodstox-core-5.3.0.jar</code>.
