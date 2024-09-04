@@ -22,7 +22,6 @@ public class ExampleTest extends TestCase {
 
     static {
         LogUtils.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
-        ParquetUtil.silenceLog4j();
     }
  
     public void testExamples() throws IOException {
