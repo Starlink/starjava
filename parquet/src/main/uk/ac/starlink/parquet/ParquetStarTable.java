@@ -54,7 +54,7 @@ public abstract class ParquetStarTable extends AbstractStarTable {
     public static final String NAME_KEY = "name";
 
     /** Extra metadata key for skeleton VOTable text. */
-    public static final String VOTMETA_KEY = "metadata.votable";
+    public static final String VOTMETA_KEY = "IVOA.VOTable-Parquet.content";
 
     /**
      * Constructor.
