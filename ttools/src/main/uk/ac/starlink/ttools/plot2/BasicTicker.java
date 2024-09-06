@@ -1,10 +1,13 @@
 package uk.ac.starlink.ttools.plot2;
 
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import uk.ac.starlink.util.Pair;
 
 /**
  * Partial Ticker implementation based on a rule defining a sequence of ticks.
@@ -422,20 +425,22 @@ public abstract class BasicTicker implements Ticker {
     public static boolean overlaps( Tick[] ticks, Axis axis,
                                     Captioner captioner, Orientation orient ) {
         int cpad = captioner.getPad();
-        Rectangle lastBox = null;
+        Point2D[] lastBox = null;
         for ( int i = 0; i < ticks.length; i++ ) {
             Tick tick = ticks[ i ];
             Caption label = tick.getLabel();
             if ( label != null ) {
                 int gx = (int) axis.dataToGraphics( tick.getValue() );
                 Rectangle cbounds = captioner.getCaptionBounds( label );
+                cbounds.width += cpad;
                 AffineTransform oTrans =
                     orient.captionTransform( cbounds, cpad );
-                Rectangle box =
-                    oTrans.createTransformedShape( cbounds ).getBounds();
-                box.translate( gx, 0 );
-                box.width += cpad;
-                if ( lastBox != null && box.intersects( lastBox ) ) {
+                Point2D.Double[] box = transformBox( cbounds, oTrans );
+                for ( Point2D.Double p : box ) {
+                    p.x += gx;
+                }
+                if ( lastBox != null &&
+                     convexPolygonIntersect( box, lastBox ) ) {
                     return true;
                 }
                 lastBox = box;
@@ -486,6 +491,135 @@ public abstract class BasicTicker implements Ticker {
             sbuf.append( '0' );
         }
         return sbuf.toString();
+    }
+
+    /**
+     * Transforms the vertices of a Rectangle using a given transform,
+     * and returns the result as a 4-element array of Points.
+     *
+     * @param  box  rectangle
+     * @param  trans  transform
+     * @return  4-element array of transformed vertices of rectangle
+     */
+    private static Point2D.Double[] transformBox( Rectangle box,
+                                                  AffineTransform trans ) {
+        return new Point2D.Double[] {
+            (Point2D.Double)
+            trans.transform( new Point( box.x, box.y ),
+                             new Point2D.Double() ),
+            (Point2D.Double)
+            trans.transform( new Point( box.x + box.width, box.y ),
+                             new Point2D.Double() ),
+            (Point2D.Double)
+            trans.transform( new Point( box.x + box.width, box.y + box.height ),
+                             new Point2D.Double() ),
+            (Point2D.Double)
+            trans.transform( new Point( box.x, box.y + box.height ),
+                             new Point2D.Double() ),
+        };
+    }
+
+    /**
+     * Determines whether two convex polygons,
+     * represented as lists of vertices, have any intersection.
+     * If the two touch without overlapping it doesn't count.
+     *
+     * <p>If the polygons are not convex, behaviour is undefined
+     *
+     * @param  poly1  array of points representing first polygon
+     * @param  poly2  array of points representing second polygon
+     * @return   true iff there is a non-empty overlap between the two
+     */
+    private static boolean convexPolygonIntersect( Point2D[] poly1,
+                                                   Point2D[] poly2 ) {
+
+        /* For each side of each polygon, check whether all the vertices
+         * of one polygon fall on one side and all the vertices of the
+         * other polygon fall on the other side of it.
+         * Vertices on the line are ignored.
+         * If there is any side for which this is true, then you can draw a
+         * line between the two polygons, and there is no overlap.
+         * Otherwise you can't, and there is. */
+        List<Pair<Point2D[]>> pairs = new ArrayList<>();
+        pairs.add( new Pair<Point2D[]>( poly1, poly2 ) );
+        pairs.add( new Pair<Point2D[]>( poly2, poly1 ) );
+        for ( Pair<Point2D[]> pair : pairs ) {
+            Point2D[] polyA = pair.getItem1();
+            Point2D[] polyB = pair.getItem2();
+            int nva = polyA.length;
+            for ( int iva = 0; iva < nva; iva++ ) {
+                Line line = new Line( polyA[ iva ], polyA[ ( iva+1 ) % nva ] );
+                if ( line.sameSide( polyA ) * line.sameSide( polyB ) == -1 ) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Represents a line on the plane defined by two points.
+     */
+    private static class Line {
+
+        double x0_;
+        double y0_;
+        double x1_;
+        double y1_;
+
+        /**
+         * Constructs a line that runs through two points.
+         *
+         * @param  p0  one point
+         * @param  p1  other point
+         */
+        Line( Point2D p0, Point2D p1 ) {
+            x0_ = p0.getX();
+            y0_ = p0.getY();
+            x1_ = p1.getX();
+            y1_ = p1.getY();
+        }
+
+        /**
+         * Returns a value of -1, 0 or +1 according to which side of
+         * this line a given point is on, using some unspecified convention
+         * for sense.  Zero means it's on the line.
+         *
+         * @param  p  test point
+         * @return  0 for on the line, +1 for one side, -1 for the other side
+         */
+        int getSide( Point2D p ) {
+            return (int) Math.signum( ( p.getX() - x0_ ) * ( y1_ - y0_ )
+                                    - ( p.getY() - y0_ ) * ( x1_ - x0_ ) );
+        }
+
+        /**
+         * Returns a value of -1, 0, or +1 indicating which side of this line
+         * all the supplied points are on, using some unspecified convention
+         * for sense.  Zero means that some are definitely on one side
+         * and others are definitely on the other.  Points on the line
+         * are ignored.
+         *
+         * @param  points  test points, not collinear
+         * @return  +1 if they are all either on the line or on one side,
+         *          -1 if they are all either on the line or on the other side,
+         *           0 if there is at least one point on each side
+         */
+        int sameSide( Point2D[] points ) {
+            int kside = 0;
+            for ( Point2D p : points ) {
+                int iside = getSide( p );
+                if ( iside != 0 ) {
+                    if ( kside == 0 ) {
+                        kside = iside;
+                    }
+                    else if ( kside != iside ) {
+                        return 0;
+                    }
+                }
+            }
+            return kside;
+        }
     }
 
     /**
