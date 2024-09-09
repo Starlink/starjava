@@ -168,11 +168,13 @@ public class TimeSurfaceFactory
         Profile p = profile;
         return TimeSurface
               .createSurface( plotBounds, aspect,
-                              p.ylog_, p.yflip_, p.tlabel_, p.ylabel_,
-                              p.t2func_, p.y2func_, p.t2label_, p.y2label_,
+                              p.ylog_, p.yflip_,
+                              p.tlabel_, p.ylabel_,
+                              p.t2func_, p.y2func_,
+                              p.t2label_, p.y2label_,
                               p.captioner_, p.gridcolor_, p.tformat_,
-                              p.tcrowd_, p.ycrowd_, p.minor_, p.shadow_,
-                              p.annotateflags_ );
+                              p.tcrowd_, p.ycrowd_, p.orientpolicy_,
+                              p.minor_, p.shadow_, p.annotateflags_ );
     }
 
     public ConfigKey<?>[] getProfileKeys() {
@@ -212,6 +214,7 @@ public class TimeSurfaceFactory
                         : null;
         double tcrowd = config.get( TCROWD_KEY );
         double ycrowd = config.get( YCROWD_KEY );
+        OrientationPolicy orientpolicy = OrientationPolicy.HORIZONTAL;
         TimeFormat tformat = config.get( TFORMAT_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
         boolean shadow = config.get( StyleKeys.SHADOW_TICKS );
@@ -219,8 +222,8 @@ public class TimeSurfaceFactory
         SideFlags annotateflags = SideFlags.ALL;
         return new Profile( ylog, yflip, tlabel, ylabel,
                             t2func, y2func, t2label, y2label, captioner,
-                            gridcolor, tcrowd, ycrowd, tformat, minor, shadow,
-                            annotateflags );
+                            gridcolor, tcrowd, ycrowd, orientpolicy,
+                            tformat, minor, shadow, annotateflags );
     }
 
     public ConfigKey<?>[] getAspectKeys() {
@@ -528,6 +531,7 @@ public class TimeSurfaceFactory
         private final Color gridcolor_;
         private final double tcrowd_;
         private final double ycrowd_;
+        private final OrientationPolicy orientpolicy_;
         private final TimeFormat tformat_;
         private final boolean minor_;
         private final boolean shadow_;
@@ -553,6 +557,7 @@ public class TimeSurfaceFactory
          *                 1 is normal
          * @param  ycrowd  crowding factor for tick marks on Y axis;
          *                 1 is normal
+         * @param  orientpolicy  tick label orientation policy
          * @param  tformat time labelling format
          * @param  minor   whether to draw minor ticks
          * @param  shadow  whether to paint shadow ticks on opposite axes
@@ -564,7 +569,8 @@ public class TimeSurfaceFactory
                         DoubleUnaryOperator t2func, DoubleUnaryOperator y2func,
                         String t2label, String y2label, Captioner captioner,
                         Color gridcolor, double tcrowd, double ycrowd,
-                        TimeFormat tformat, boolean minor, boolean shadow,
+                        OrientationPolicy orientpolicy, TimeFormat tformat,
+                        boolean minor, boolean shadow,
                         SideFlags annotateflags ) {
             ylog_ = ylog;
             yflip_ = yflip;
@@ -578,6 +584,7 @@ public class TimeSurfaceFactory
             gridcolor_ = gridcolor;
             tcrowd_ = tcrowd;
             ycrowd_ = ycrowd;
+            orientpolicy_ = orientpolicy;
             tformat_ = tformat;
             minor_ = minor;
             shadow_ = shadow;
@@ -603,7 +610,8 @@ public class TimeSurfaceFactory
             return new Profile( ylog_, yflip_, tlabel_, ylabel_,
                                 t2func_, y2func_, t2label_, y2label_,
                                 captioner_, gridcolor_, tcrowd_, ycrowd_,
-                                tformat_, minor_, shadow_, annotateflags );
+                                orientpolicy_, tformat_, minor_, shadow_,
+                                annotateflags );
         }
     }
 }

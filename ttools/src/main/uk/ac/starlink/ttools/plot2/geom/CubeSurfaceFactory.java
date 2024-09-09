@@ -289,7 +289,8 @@ public class CubeSurfaceFactory
                               new boolean[] { p.xflip_, p.yflip_, p.zflip_ },
                               new String[] { p.xlabel_, p.ylabel_, p.zlabel_ },
                               new double[] { p.xcrowd_, p.ycrowd_, p.zcrowd_ },
-                              p.captioner_, p.frame_, p.minor_, p.antialias_ );
+                              p.orientpolicy_, p.captioner_, p.frame_, p.minor_,
+                              p.antialias_ );
     }
 
     public ConfigKey<?>[] getProfileKeys() {
@@ -337,6 +338,7 @@ public class CubeSurfaceFactory
         double xcrowd = config.get( isIso_ ? ISOCROWD_KEY : XCROWD_KEY );
         double ycrowd = config.get( isIso_ ? ISOCROWD_KEY : YCROWD_KEY );
         double zcrowd = config.get( isIso_ ? ISOCROWD_KEY : ZCROWD_KEY );
+        OrientationPolicy orientpolicy = OrientationPolicy.HORIZONTAL;
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         boolean frame = config.get( FRAME_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
@@ -345,7 +347,7 @@ public class CubeSurfaceFactory
                             xflip, yflip, zflip,
                             xlabel, ylabel, zlabel,
                             captioner, frame, xcrowd, ycrowd, zcrowd,
-                            minor, antialias );
+                            orientpolicy, minor, antialias );
     }
 
     public ConfigKey<?>[] getAspectKeys() {
@@ -688,6 +690,7 @@ public class CubeSurfaceFactory
         private final double xcrowd_;
         private final double ycrowd_;
         private final double zcrowd_;
+        private final OrientationPolicy orientpolicy_;
         private final boolean minor_;
         private final boolean antialias_;
 
@@ -711,6 +714,7 @@ public class CubeSurfaceFactory
          *                 1 is normal
          * @param  zcrowd  crowding factor for tick marks on Z axis;
          *                 1 is normal
+         * @param  orientpolicy  axis label orientation policy
          * @param  minor   whether to paint minor tick marks on axes
          * @param  antialias  whether to antialias grid lines and text
          */
@@ -719,7 +723,8 @@ public class CubeSurfaceFactory
                         String xlabel, String ylabel, String zlabel,
                         Captioner captioner, boolean frame,
                         double xcrowd, double ycrowd, double zcrowd,
-                        boolean minor, boolean antialias ) {
+                        OrientationPolicy orientpolicy, boolean minor,
+                        boolean antialias ) {
             xlog_ = xlog;
             ylog_ = ylog;
             zlog_ = zlog;
@@ -734,6 +739,7 @@ public class CubeSurfaceFactory
             xcrowd_ = xcrowd;
             ycrowd_ = ycrowd;
             zcrowd_ = zcrowd;
+            orientpolicy_ = orientpolicy;
             minor_ = minor;
             antialias_ = antialias;
         }

@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2;
 
 import java.util.ArrayList;
 import java.util.List;
+import uk.ac.starlink.util.Bi;
 
 /**
  * Partial Ticker implementation for major tick labels with prefixes.
@@ -61,38 +62,44 @@ public abstract class PrefixTicker implements Ticker {
                                      double approxMajorCount,
                                      int adjust );
 
-    public Tick[] getTicks( double dlo, double dhi, boolean withMinor,
-                            Captioner captioner, Orientation orient,
-                            int npix, double crowding ) {
+    public TickRun getTicks( double dlo, double dhi, boolean withMinor,
+                             Captioner captioner, Orientation[] orients,
+                             int npix, double crowding ) {
 
-        Rule rule = getRule( dlo, dhi, captioner, orient, npix, crowding );
+        Bi<Rule,Orientation> orule =
+            getRule( dlo, dhi, captioner, orients, npix, crowding );
+        Rule rule = orule.getItem1();
+        Orientation orient = orule.getItem2();
         Tick[] majors = getMajorTicks( rule, dlo, dhi );
-        return withMinor
-             ? PlotUtil
-              .arrayConcat( majors,
-                            BasicTicker.getMinorTicks( rule, dlo, dhi ) )
-             : majors;
+        Tick[] ticks = withMinor
+                     ? PlotUtil.arrayConcat( majors,
+                                             BasicTicker
+                                            .getMinorTicks( rule, dlo, dhi ) )
+                     : majors;
+        return new TickRun( ticks, orient );
     }
 
     /**
      * Returns a Rule suitable for a given axis labelling job.
      * This starts off by generating ticks at roughly a standard separation,
-     * guided by the crowding parameter.  However, if the resulting ticks
-     * are so close as to overlap, it backs off until it finds a set of
-     * ticks that can be displayed in a tidy fashion.
+     * guided by the crowding parameter.
+     * If none of the orientations can generate ticks without overlap,
+     * it backs off until it finds a set of ticks that can be displayed
+     * in a tidy fashion.
      *
      * @param   dlo        minimum axis data value
      * @param   dhi        maximum axis data value
      * @param   captioner  caption painter
-     * @param   orient     label orientation
+     * @param   orients    label orientation options in order of preference
      * @param   npix       number of pixels along the axis
      * @param   crowding   1 for normal tick density on the axis,
      *                     lower for fewer labels, higher for more
-     * @return   tick generation rule
+     * @return   tick generation rule with associated orientation
      */
-    private Rule getRule( double dlo, double dhi,
-                          Captioner captioner, Orientation orient,
-                          int npix, double crowding ) {
+    private Bi<Rule,Orientation> getRule( double dlo, double dhi,
+                                          Captioner captioner,
+                                          Orientation[] orients,
+                                          int npix, double crowding ) {
 
         /* This implementation is copied from BasicTicker.
          * However, I don't want to inherit it, since it might be
@@ -108,19 +115,27 @@ public abstract class PrefixTicker implements Ticker {
         double approxMajorCount = Math.max( 1, npix / 80 ) * crowding;
 
         /* Acquire a suitable rule and use it to generate the major ticks.
-         * When we have the ticks, check that they are not so crowded as
-         * to generate overlapping tick labels.  If they are, back off
-         * to lower tick crowding levels until we have something suitable. */
+         * When we have the ticks, try to find an orientation for which
+         * they are not so crowded as to overlap.  If that's not possible,
+         * back off to lower crowding levels until we have
+         * something suitable. */
         Axis axis = Axis.createAxis( 0, npix, dlo, dhi, logFlag_, false );
-        int adjust = 0;
-        Rule rule;
-        Tick[] majors;
-        do {
-            rule = createRule( dlo, dhi, approxMajorCount, adjust );
-            majors = getMajorTicks( rule, dlo, dhi );
-       } while ( BasicTicker.overlaps( majors, axis, captioner, orient )
-                  && adjust-- > -5 );
-        return rule;
+        int maxAdjust = -5;
+        for ( int adjust = 0 ; adjust > maxAdjust; adjust-- ) {
+            Rule rule = createRule( dlo, dhi, approxMajorCount, adjust );
+            Tick[] majors = getMajorTicks( rule, dlo, dhi );
+            for ( Orientation orient : orients ) {
+                if ( ! BasicTicker
+                      .overlaps( majors, axis, captioner, orient ) ) {
+                    return new Bi<Rule,Orientation>( rule, orient );
+                }
+            }
+        }
+
+        /* Adjustment is getting too extreme.  Return rule with overlapping
+         * labels, too bad. */
+        Rule rule = createRule( dlo, dhi, approxMajorCount, maxAdjust );
+        return new Bi<Rule,Orientation>( rule, orients[ 0 ] );
     }
 
     /**

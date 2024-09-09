@@ -14,10 +14,12 @@ import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.BasicTicker;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.CoordSequence;
+import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.Surround;
 import uk.ac.starlink.ttools.plot2.Tick;
+import uk.ac.starlink.ttools.plot2.TickRun;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 
 /**
@@ -40,10 +42,14 @@ public class TimeSurface implements Surface, PlanarSurface {
     private final boolean yflip_;
     private final Tick[] tticks_;
     private final Tick[] yticks_;
+    private final Orientation torient_;
+    private final Orientation yorient_;
     private final String tlabel_;
     private final String ylabel_;
     private final Tick[] t2ticks_;
     private final Tick[] y2ticks_;
+    private final Orientation t2orient_;
+    private final Orientation y2orient_;
     private final String t2label_;
     private final String y2label_;
     private final Captioner captioner_;
@@ -70,10 +76,14 @@ public class TimeSurface implements Surface, PlanarSurface {
      * @param  yflip  whether to invert direction of Y axis
      * @param  tticks  array of tickmark objects for time axis
      * @param  yticks  array of tickmark objects for Y axis
+     * @param  torient  tick label orientation on time axis
+     * @param  yorient  tick label orientation on Y axis
      * @param  tlabel  text for labelling time axis
      * @param  ylabel  text for labelling Y axis
      * @param  t2ticks  array of tickmark objects for secondary time axis
      * @param  y2ticks  array of tickmark objects for secondary Y axis
+     * @param  t2orient  tick label orientation on secondary time axis
+     * @param  y2orient  tick label orientation on secondary Y axis
      * @param  t2label  text for labelling secondary time axis
      * @param  y2label  text for labelling secondary Y axis
      * @param  captioner  text renderer for axis labels etc
@@ -86,8 +96,10 @@ public class TimeSurface implements Surface, PlanarSurface {
                         double dtlo, double dthi, double dylo, double dyhi,
                         boolean ylog, boolean yflip,
                         Tick[] tticks, Tick[] yticks,
+                        Orientation torient, Orientation yorient,
                         String tlabel, String ylabel,
                         Tick[] t2ticks, Tick[] y2ticks,
+                        Orientation t2orient, Orientation y2orient,
                         String t2label, String y2label,
                         Captioner captioner, Color gridcolor,
                         TimeFormat tformat, SideFlags annotateflags ) {
@@ -103,10 +115,14 @@ public class TimeSurface implements Surface, PlanarSurface {
         yflip_ = yflip;
         tticks_ = tticks;
         yticks_ = yticks;
+        torient_ = torient;
+        yorient_ = yorient;
         tlabel_ = tlabel;
         ylabel_ = ylabel;
         t2ticks_ = t2ticks;
         y2ticks_ = y2ticks;
+        t2orient_ = t2orient;
+        y2orient_ = y2orient;
         t2label_ = t2label;
         y2label_ = y2label;
         captioner_ = captioner;
@@ -342,8 +358,10 @@ public class TimeSurface implements Surface, PlanarSurface {
     private AxisAnnotation createAxisAnnotation() {
         return new PlaneAxisAnnotation( gxlo_, gxhi_, gylo_, gyhi_,
                                         tAxis_, yAxis_,
-                                        tticks_, yticks_, tlabel_, ylabel_,
-                                        t2ticks_, y2ticks_, t2label_, y2label_,
+                                        tticks_, yticks_, torient_, yorient_,
+                                        tlabel_, ylabel_,
+                                        t2ticks_, y2ticks_, t2orient_,y2orient_,
+                                        t2label_, y2label_,
                                         captioner_, annotateflags_ );
     }
 
@@ -362,10 +380,14 @@ public class TimeSurface implements Surface, PlanarSurface {
         code = 23 * code + ( yflip_ ? 5 : 7 );
         code = 23 * code + Arrays.hashCode( tticks_ );
         code = 23 * code + Arrays.hashCode( yticks_ );
+        code = 23 * code + PlotUtil.hashCode( torient_ );
+        code = 23 * code + PlotUtil.hashCode( yorient_ );
         code = 23 * code + PlotUtil.hashCode( tlabel_ );
         code = 23 * code + PlotUtil.hashCode( ylabel_ );
         code = 23 * code + Arrays.hashCode( t2ticks_ );
         code = 23 * code + Arrays.hashCode( y2ticks_ );
+        code = 23 * code + PlotUtil.hashCode( t2orient_ );
+        code = 23 * code + PlotUtil.hashCode( y2orient_ );
         code = 23 * code + PlotUtil.hashCode( t2label_ );
         code = 23 * code + PlotUtil.hashCode( y2label_ );
         code = 23 * code + captioner_.hashCode();
@@ -391,10 +413,14 @@ public class TimeSurface implements Surface, PlanarSurface {
                 && this.yflip_ == other.yflip_
                 && Arrays.equals( this.tticks_, other.tticks_ )
                 && Arrays.equals( this.yticks_, other.yticks_ )
+                && PlotUtil.equals( this.torient_, other.torient_ )
+                && PlotUtil.equals( this.yorient_, other.yorient_ )
                 && PlotUtil.equals( this.tlabel_, this.tlabel_ )
                 && PlotUtil.equals( this.ylabel_, other.ylabel_ )
                 && Arrays.equals( this.t2ticks_, other.t2ticks_ )
                 && Arrays.equals( this.y2ticks_, other.y2ticks_ )
+                && PlotUtil.equals( this.t2orient_, other.t2orient_ )
+                && PlotUtil.equals( this.y2orient_, other.y2orient_ )
                 && PlotUtil.equals( this.t2label_, other.t2label_ )
                 && PlotUtil.equals( this.y2label_, other.y2label_ )
                 && this.captioner_.equals( other.captioner_ )
@@ -450,6 +476,7 @@ public class TimeSurface implements Surface, PlanarSurface {
      *                  1 is normal
      * @param  ycrowd   crowding factor for tick marks on Y axis;
      *                  1 is normal
+     * @param  orientpolicy   tick label orientation policy
      * @param  minor   whether to paint minor tick marks on axes
      * @param  shadow  whether to paint shadow ticks on opposite axes
      *                 if no secondary axis
@@ -467,6 +494,7 @@ public class TimeSurface implements Surface, PlanarSurface {
                                              Color gridcolor,
                                              TimeFormat tformat,
                                              double tcrowd, double ycrowd,
+                                             OrientationPolicy orientpolicy,
                                              boolean minor, boolean shadow,
                                              SideFlags annotateflags ) {
         int gxlo = plotBounds.x;
@@ -477,32 +505,53 @@ public class TimeSurface implements Surface, PlanarSurface {
         double dthi = aspect.getTMax();
         double dylo = aspect.getYMin();
         double dyhi = aspect.getYMax();
-        Tick[] tticks = tformat.getTicker()
-                       .getTicks( aspect.getTMin(), aspect.getTMax(), minor,
-                                  captioner, PlaneAxisAnnotation.X_ORIENT,
-                                  plotBounds.width, tcrowd );
-        Tick[] yticks = ( ylog ? BasicTicker.LOG : BasicTicker.LINEAR )
-                       .getTicks( dylo, dyhi, minor, captioner,
-                                  PlaneAxisAnnotation.Y_ORIENT,
-                                  plotBounds.height, ycrowd );
+        TickRun ttickRun = tformat.getTicker()
+                          .getTicks( aspect.getTMin(), aspect.getTMax(), minor,
+                                     captioner, orientpolicy.getOrientationsX(),
+                                     plotBounds.width, tcrowd );
+        TickRun ytickRun = ( ylog ? BasicTicker.LOG : BasicTicker.LINEAR )
+                          .getTicks( dylo, dyhi, minor,
+                                     captioner, orientpolicy.getOrientationsY(),
+                                     plotBounds.height, ycrowd );
+        Tick[] tticks = ttickRun.getTicks();
+        Tick[] yticks = ytickRun.getTicks();
+        Orientation torient = ttickRun.getOrientation();
+        Orientation yorient = ytickRun.getOrientation();
         Axis tAxis = Axis.createAxis( gxlo, gxhi, dtlo, dthi, false, false );
         Axis yAxis = Axis.createAxis( gylo, gyhi, dylo, dyhi, ylog,
                                       yflip ^ PlaneAxisAnnotation.INVERT_Y );
-        Tick[] t2ticks = t2func == null
-                       ? ( shadow ? PlotUtil.getShadowTicks( tticks ) : null )
-                       : new SlaveTicker( tAxis, t2func, BasicTicker.LINEAR )
-                        .getTicks( aspect.getTMin(), aspect.getTMax(), minor,
-                                   captioner, PlaneAxisAnnotation.X2_ORIENT,
-                                   plotBounds.width, tcrowd );
-        Tick[] y2ticks = y2func == null
-                       ? ( shadow ? PlotUtil.getShadowTicks( yticks ) : null )
-                       : SlaveTicker.createTicker( yAxis, y2func )
-                                    .getTicks( dylo, dyhi, minor, captioner,
-                                               PlaneAxisAnnotation.Y2_ORIENT,
-                                               plotBounds.height, ycrowd );
+        TickRun t2tickRun =
+              t2func == null
+            ? ( shadow ? new TickRun( PlotUtil.getShadowTicks( tticks ),
+                                      Orientation.ANTI_X )
+                       : null )
+            : new SlaveTicker( tAxis, t2func, BasicTicker.LINEAR )
+                 .getTicks( aspect.getTMin(), aspect.getTMax(), minor,
+                            captioner, orientpolicy.getOrientationsX2(),
+                            plotBounds.width, tcrowd );
+        TickRun y2tickRun =
+              y2func == null
+            ? ( shadow ? new TickRun( PlotUtil.getShadowTicks( yticks ),
+                                      Orientation.ANTI_Y )
+                       : null )
+            : SlaveTicker.createTicker( yAxis, y2func )
+                         .getTicks( dylo, dyhi, minor, captioner,
+                                    orientpolicy.getOrientationsY2(),
+                                    plotBounds.height, ycrowd );
+        Tick[] t2ticks = t2tickRun == null ? null : t2tickRun.getTicks();
+        Tick[] y2ticks = y2tickRun == null ? null : y2tickRun.getTicks();
+        Orientation t2orient = t2tickRun == null
+                             ? null
+                             : t2tickRun.getOrientation();
+        Orientation y2orient = y2tickRun == null
+                             ? null
+                             : y2tickRun.getOrientation();
         return new TimeSurface( gxlo, gxhi, gylo, gyhi, dtlo, dthi, dylo, dyhi,
-                                ylog, yflip, tticks, yticks, tlabel, ylabel,
-                                t2ticks, y2ticks, t2label, y2label,
+                                ylog, yflip,
+                                tticks, yticks, torient, yorient,
+                                tlabel, ylabel,
+                                t2ticks, y2ticks, t2orient, y2orient,
+                                t2label, y2label,
                                 captioner, gridcolor, tformat, annotateflags );
     }
 }

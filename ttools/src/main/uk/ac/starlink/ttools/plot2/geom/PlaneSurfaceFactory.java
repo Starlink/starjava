@@ -222,7 +222,8 @@ public class PlaneSurfaceFactory
                               p.xlabel_, p.ylabel_, p.x2func_, p.y2func_,
                               p.x2label_, p.y2label_, p.captioner_,
                               p.annotateflags_, p.xyfactor_,
-                              p.xcrowd_, p.ycrowd_, p.minor_, p.shadow_,
+                              p.xcrowd_, p.ycrowd_, p.orientpolicy_,
+                              p.minor_, p.shadow_,
                               p.gridcolor_, p.axlabelcolor_,
                               labelFormattedPosition_ );
     }
@@ -274,6 +275,7 @@ public class PlaneSurfaceFactory
         boolean grid = config.get( GRID_KEY );
         double xcrowd = config.get( XCROWD_KEY );
         double ycrowd = config.get( YCROWD_KEY );
+        OrientationPolicy orientpolicy = OrientationPolicy.HORIZONTAL;
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
         boolean shadow = config.get( StyleKeys.SHADOW_TICKS );
         Color gridcolor = StyleKeys.GRIDCOLOR_KEYSET.createValue( config );
@@ -286,7 +288,8 @@ public class PlaneSurfaceFactory
         return new Profile( xlog, ylog, xflip, yflip, xlabel, ylabel,
                             x2func, y2func, x2label, y2label,
                             captioner, annotateflags, xyfactor, xcrowd, ycrowd,
-                            minor, shadow, gridcolor, axlabelcolor );
+                            orientpolicy, minor, shadow,
+                            gridcolor, axlabelcolor );
     }
 
     public ConfigKey<?>[] getAspectKeys() {
@@ -837,6 +840,7 @@ public class PlaneSurfaceFactory
         private final double xyfactor_;
         private final double xcrowd_;
         private final double ycrowd_;
+        private final OrientationPolicy orientpolicy_;
         private final boolean minor_;
         private final boolean shadow_;
         private final Color gridcolor_;
@@ -866,6 +870,7 @@ public class PlaneSurfaceFactory
          *                 1 is normal
          * @param  ycrowd  crowding factor for tick marks on Y axis;
          *                 1 is normal
+         * @param  orientpolicy  tick label orientation policy
          * @param  minor   whether to paint minor tick marks on axes
          * @param  shadow  whether to paint shadow ticks on opposite axes
          *                 if no secondary axis
@@ -879,6 +884,7 @@ public class PlaneSurfaceFactory
                         String x2label, String y2label,
                         Captioner captioner, SideFlags annotateflags,
                         double xyfactor, double xcrowd, double ycrowd,
+                        OrientationPolicy orientpolicy,
                         boolean minor, boolean shadow,
                         Color gridcolor, Color axlabelcolor ) {
             xlog_ = xlog;
@@ -896,6 +902,7 @@ public class PlaneSurfaceFactory
             xyfactor_ = xyfactor;
             xcrowd_ = xcrowd;
             ycrowd_ = ycrowd;
+            orientpolicy_ = orientpolicy;
             minor_ = minor;
             shadow_ = shadow;
             gridcolor_ = gridcolor;
@@ -929,8 +936,8 @@ public class PlaneSurfaceFactory
                                 addSecondary ? xlabel_ : x2label_,
                                 addSecondary ? ylabel_ : y2label_,
                                 captioner_, annotateFlags,
-                                xyfactor_, xcrowd_, ycrowd_, minor_, shadow_,
-                                gridcolor_, axlabelcolor_ );
+                                xyfactor_, xcrowd_, ycrowd_, orientpolicy_,
+                                minor_, shadow_, gridcolor_, axlabelcolor_ );
         }
     }
 }
