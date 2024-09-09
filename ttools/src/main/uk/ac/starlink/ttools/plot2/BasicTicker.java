@@ -108,9 +108,9 @@ public abstract class BasicTicker implements Ticker {
      *                     lower for fewer labels, higher for more
      * @return   basic tick generation rule
      */
-    public Rule getRule( double dlo, double dhi,
-                         Captioner captioner, Orientation orient,
-                         int npix, double crowding ) {
+    private Rule getRule( double dlo, double dhi,
+                          Captioner captioner, Orientation orient,
+                          int npix, double crowding ) {
         if ( dhi <= dlo  ) {
             throw new IllegalArgumentException( "Bad range: "
                                               + dlo + " .. " + dhi );
