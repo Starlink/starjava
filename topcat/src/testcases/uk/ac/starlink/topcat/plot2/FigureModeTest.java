@@ -16,6 +16,8 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 import uk.ac.starlink.ttools.jel.JELUtils;
+import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.Tick;
 import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
@@ -45,10 +47,13 @@ public class FigureModeTest extends TestCase {
                 new PlaneSurface( 0, 100, 0, 100,        // graphics coords
                                   0.1, 10000, 0.2, 20,   // data coords
                                   xlog, ylog, xflip, yflip,
-                                  new Tick[ 0 ], new Tick[ 0 ], "X", "Y",
-                                  new Tick[ 0 ], new Tick[ 0 ], null, null,
-                                  null, SideFlags.ALL, Color.GRAY, Color.BLACK,
-                                  false );
+                                  new Tick[ 0 ], new Tick[ 0 ],
+                                  Orientation.X, Orientation.Y, "X", "Y",
+                                  new Tick[ 0 ], new Tick[ 0 ],
+                                  Orientation.ANTI_X, Orientation.ANTI_Y,
+                                  (String) null, (String) null,
+                                  (Captioner) null, SideFlags.ALL,
+                                  Color.GRAY, Color.BLACK, false );
             checkPlaneMode( PlaneFigureMode.POLYGON,
                             PlaneFigureMode.OUTSIDE_POLYGON,
                             surf,

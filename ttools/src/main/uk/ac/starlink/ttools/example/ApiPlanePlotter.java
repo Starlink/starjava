@@ -22,6 +22,7 @@ import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.SimpleDataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.TupleRunner;
+import uk.ac.starlink.ttools.plot2.geom.OrientationPolicy;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.PlaneNavigator;
@@ -113,6 +114,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         double xyfactor = Double.NaN;
         double xcrowd = 1;
         double ycrowd = 1;
+        OrientationPolicy orientpolicy = OrientationPolicy.HORIZONTAL;
         boolean minor = true;
         boolean shadow = true;
         Color gridColor = null;
@@ -122,7 +124,8 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
                                              xlabel, ylabel, x2func, y2func,
                                              x2label, y2label, captioner,
                                              annotateFlags, xyfactor,
-                                             xcrowd, ycrowd, minor, shadow,
+                                             xcrowd, ycrowd, orientpolicy,
+                                             minor, shadow,
                                              gridColor, axlabelColor );
 
         /* Set up a plot Aspect.  This is the initial data range,

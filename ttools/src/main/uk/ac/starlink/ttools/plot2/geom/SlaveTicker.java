@@ -9,8 +9,9 @@ import uk.ac.starlink.ttools.plot2.BasicTicker;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
-import uk.ac.starlink.ttools.plot2.Ticker;
 import uk.ac.starlink.ttools.plot2.Tick;
+import uk.ac.starlink.ttools.plot2.TickRun;
+import uk.ac.starlink.ttools.plot2.Ticker;
 
 /**
  * Ticker implementation that provides ticks for a supplied function
@@ -51,21 +52,23 @@ public class SlaveTicker implements Ticker {
         basicTicker_ = basicTicker;
     }
 
-    public Tick[] getTicks( double masterDlo, double masterDhi,
-                            boolean withMinor,
-                            Captioner captioner, Orientation orient,
-                            int npix, double crowding ) {
+    public TickRun getTicks( double masterDlo, double masterDhi,
+                             boolean withMinor,
+                             Captioner captioner, Orientation[] orients,
+                             int npix, double crowding ) {
         double slaveD1 = masterToSlave( masterDlo );
         double slaveD2 = masterToSlave( masterDhi );
         if ( !PlotUtil.isFinite( slaveD1 ) || !PlotUtil.isFinite( slaveD2 ) ||
              slaveD1 == slaveD2 ) {
-            return new Tick[ 0 ];
+            return new TickRun( new Tick[ 0 ], orients[ 0 ] );
         }
         double slaveDlo = slaveD1 < slaveD2 ? slaveD1 : slaveD2;
         double slaveDhi = slaveD1 < slaveD2 ? slaveD2 : slaveD1;
-        Tick[] slaveTicks =
+        TickRun slaveTickRun =
             basicTicker_.getTicks( slaveDlo, slaveDhi, withMinor,
-                                   captioner, orient, npix, crowding );
+                                   captioner, orients, npix, crowding );
+        Tick[] slaveTicks = slaveTickRun.getTicks();
+        Orientation slaveOrient = slaveTickRun.getOrientation();
         int ntick = slaveTicks.length;
         Tick[] outTicks = new Tick[ ntick ];
         for ( int it = 0; it < ntick; it++ ) {
@@ -73,7 +76,7 @@ public class SlaveTicker implements Ticker {
             outTicks[ it ] = new Tick( slaveToMaster( slaveTick.getValue() ),
                                        slaveTick.getLabel() );
         }
-        return outTicks;
+        return new TickRun( outTicks, slaveOrient );
     }
 
     /**
