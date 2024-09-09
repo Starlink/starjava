@@ -14,10 +14,12 @@ import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.BasicTicker;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.CoordSequence;
+import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.Surround;
 import uk.ac.starlink.ttools.plot2.Tick;
+import uk.ac.starlink.ttools.plot2.TickRun;
 import uk.ac.starlink.ttools.plot2.Ticker;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 
@@ -43,10 +45,14 @@ public class PlaneSurface implements Surface, PlanarSurface {
     private final boolean yflip_;
     private final Tick[] xticks_;
     private final Tick[] yticks_;
+    private final Orientation xorient_;
+    private final Orientation yorient_;
     private final String xlabel_;
     private final String ylabel_;
     private final Tick[] x2ticks_;
     private final Tick[] y2ticks_;
+    private final Orientation x2orient_;
+    private final Orientation y2orient_;
     private final String x2label_;
     private final String y2label_;
     private final Captioner captioner_;
@@ -74,10 +80,14 @@ public class PlaneSurface implements Surface, PlanarSurface {
      * @param  yflip  whether to invert direction of Y axis
      * @param  xticks  array of tickmark objects for X axis
      * @param  yticks  array of tickmark objects for Y axis
+     * @param  xorient  tick label orientation on X axis
+     * @param  yorient  tick label orientation on Y axis
      * @param  xlabel  text for labelling X axis
      * @param  ylabel  text for labelling Y axis
      * @param  x2ticks  array of tickmark objects for secondary X axis
      * @param  y2ticks  array of tickmark objects for secondary Y axis
+     * @param  x2orient  tick label orientation on secondary X axis
+     * @param  y2orient  tick label orientation on secondary Y axis
      * @param  x2label  text for labelling secondary X axis
      * @param  y2label  text for labelling secondary Y axis
      * @param  captioner  text renderer for axis labels etc, or null if absent
@@ -93,8 +103,10 @@ public class PlaneSurface implements Surface, PlanarSurface {
                          boolean xlog, boolean ylog,
                          boolean xflip, boolean yflip,
                          Tick[] xticks, Tick[] yticks,
+                         Orientation xorient, Orientation yorient,
                          String xlabel, String ylabel,
                          Tick[] x2ticks, Tick[] y2ticks,
+                         Orientation x2orient, Orientation y2orient,
                          String x2label, String y2label,
                          Captioner captioner, SideFlags annotateflags,
                          Color gridcolor, Color axlabelcolor,
@@ -113,10 +125,14 @@ public class PlaneSurface implements Surface, PlanarSurface {
         yflip_ = yflip;
         xticks_ = xticks;
         yticks_ = yticks;
+        xorient_ = xorient;
+        yorient_ = yorient;
         xlabel_ = xlabel;
         ylabel_ = ylabel;
         x2ticks_ = x2ticks;
         y2ticks_ = y2ticks;
+        x2orient_ = x2orient;
+        y2orient_ = y2orient;
         x2label_ = x2label;
         y2label_ = y2label;
         captioner_ = captioner;
@@ -354,8 +370,10 @@ public class PlaneSurface implements Surface, PlanarSurface {
     private AxisAnnotation createAxisAnnotation() {
         return new PlaneAxisAnnotation( gxlo_, gxhi_, gylo_, gyhi_,
                                         xAxis_, yAxis_,
-                                        xticks_, yticks_, xlabel_, ylabel_,
-                                        x2ticks_, y2ticks_, x2label_, y2label_,
+                                        xticks_, yticks_, xorient_, yorient_,
+                                        xlabel_, ylabel_,
+                                        x2ticks_, y2ticks_, x2orient_,y2orient_,
+                                        x2label_, y2label_,
                                         captioner_, annotateflags_ );
     }
 
@@ -377,10 +395,14 @@ public class PlaneSurface implements Surface, PlanarSurface {
                 && this.yflip_ == other.yflip_
                 && Arrays.equals( this.xticks_, other.xticks_ )
                 && Arrays.equals( this.yticks_, other.yticks_ )
+                && PlotUtil.equals( this.xorient_, other.xorient_ )
+                && PlotUtil.equals( this.yorient_, other.yorient_ )
                 && PlotUtil.equals( this.xlabel_, other.xlabel_ )
                 && PlotUtil.equals( this.ylabel_, other.ylabel_ )
                 && Arrays.equals( this.x2ticks_, other.x2ticks_ )
                 && Arrays.equals( this.y2ticks_, other.y2ticks_ )
+                && PlotUtil.equals( this.x2orient_, other.x2orient_ )
+                && PlotUtil.equals( this.y2orient_, other.y2orient_ )
                 && PlotUtil.equals( this.x2label_, other.x2label_ )
                 && PlotUtil.equals( this.y2label_, other.y2label_ )
                 && this.captioner_.equals( other.captioner_ )
@@ -411,10 +433,14 @@ public class PlaneSurface implements Surface, PlanarSurface {
                          + ( yflip_ ? 8 : 0 );
         code = 23 * code + Arrays.hashCode( xticks_ );
         code = 23 * code + Arrays.hashCode( yticks_ );
+        code = 23 * code + PlotUtil.hashCode( xorient_ );
+        code = 23 * code + PlotUtil.hashCode( yorient_ );
         code = 23 * code + PlotUtil.hashCode( xlabel_ );
         code = 23 * code + PlotUtil.hashCode( ylabel_ );
         code = 23 * code + Arrays.hashCode( x2ticks_ );
         code = 23 * code + Arrays.hashCode( y2ticks_ );
+        code = 23 * code + PlotUtil.hashCode( x2orient_ );
+        code = 23 * code + PlotUtil.hashCode( y2orient_ );
         code = 23 * code + PlotUtil.hashCode( x2label_ );
         code = 23 * code + PlotUtil.hashCode( y2label_ );
         code = 23 * code + captioner_.hashCode();
@@ -453,6 +479,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
      *                 1 is normal
      * @param  ycrowd  crowding factor for tick marks on Y axis;
      *                 1 is normal
+     * @param  orientpolicy  tick label orientation policy
      * @param  minor   whether to paint minor tick marks on axes
      * @param  shadow  whether to paint shadow ticks on opposite axes
      *                 if no secondary axis
@@ -474,6 +501,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
                                               SideFlags annotateflags,
                                               double xyfactor,
                                               double xcrowd, double ycrowd,
+                                              OrientationPolicy orientpolicy,
                                               boolean minor, boolean shadow,
                                               Color gridcolor,
                                               Color axlabelcolor,
@@ -493,8 +521,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
          * all of both requested data ranges is included, and one of them is
          * extended if necessary to accommodate the extra graphics space.
          * Only makes sense if both linear or both log. */
-        final Tick[] xticks;
-        final Tick[] yticks;
+        final TickRun xtickRun;
+        final TickRun ytickRun;
         if ( xyfactor > 0 && xlog == ylog ) {
             boolean log = xlog;
             double gx = gxhi - gxlo;
@@ -527,42 +555,62 @@ public class PlaneSurface implements Surface, PlanarSurface {
             dx = log ? Math.log( dxhi / dxlo ) : dxhi - dxlo;
             dy = log ? Math.log( dyhi / dylo ) : dyhi - dylo;
             assert Math.abs( xyfactor * ( gy / dy ) / ( gx / dx ) - 1 ) < 1e-6;
-            xticks = xTicker.getTicks( dxlo, dxhi, minor, captioner,
-                                       PlaneAxisAnnotation.X_ORIENT,
-                                       plotBounds.width, 1 );
-            yticks = yTicker.getTicks( dylo, dyhi, minor, captioner,
-                                       PlaneAxisAnnotation.Y_ORIENT,
-                                       plotBounds.height, 1 );
+            xtickRun = xTicker.getTicks( dxlo, dxhi, minor, captioner,
+                                         orientpolicy.getOrientationsX(),
+                                         plotBounds.width, 1 );
+            ytickRun = yTicker.getTicks( dylo, dyhi, minor, captioner,
+                                         orientpolicy.getOrientationsY(),
+                                         plotBounds.height, 1 );
         }
 
         /* Otherwise generate standard axis ticks. */
         else {
-            xticks = xTicker.getTicks( dxlo, dxhi, minor, captioner,
-                                       PlaneAxisAnnotation.X_ORIENT,
-                                       plotBounds.width, xcrowd );
-            yticks = yTicker.getTicks( dylo, dyhi, minor, captioner,
-                                       PlaneAxisAnnotation.Y_ORIENT,
-                                       plotBounds.height, ycrowd );
+            xtickRun = xTicker.getTicks( dxlo, dxhi, minor, captioner,
+                                         orientpolicy.getOrientationsX(),
+                                         plotBounds.width, xcrowd );
+            ytickRun = yTicker.getTicks( dylo, dyhi, minor, captioner,
+                                         orientpolicy.getOrientationsY(),
+                                         plotBounds.height, ycrowd );
         }
+        Tick[] xticks = xtickRun.getTicks();
+        Tick[] yticks = ytickRun.getTicks();
+        Orientation xorient = xtickRun.getOrientation();
+        Orientation yorient = ytickRun.getOrientation();
         Axis xAxis = Axis.createAxis( gxlo, gxhi, dxlo, dxhi, xlog, xflip );
         Axis yAxis = Axis.createAxis( gylo, gyhi, dylo, dyhi, ylog,
                                       yflip ^ PlaneAxisAnnotation.INVERT_Y );
-        Tick[] x2ticks = x2func == null
-                       ? ( shadow ? PlotUtil.getShadowTicks( xticks ) : null )
-                       : SlaveTicker.createTicker( xAxis, x2func )
-                                    .getTicks( dxlo, dxhi, minor, captioner,
-                                               PlaneAxisAnnotation.X2_ORIENT,
-                                               plotBounds.width, xcrowd );
-        Tick[] y2ticks = y2func == null
-                       ? ( shadow ? PlotUtil.getShadowTicks( yticks ) : null )
-                       : SlaveTicker.createTicker( yAxis, y2func )
-                                    .getTicks( dylo, dyhi, minor, captioner,
-                                               PlaneAxisAnnotation.Y2_ORIENT,
-                                               plotBounds.height, ycrowd );
+        TickRun x2tickRun =
+              x2func == null
+            ? ( shadow ? new TickRun( PlotUtil.getShadowTicks( xticks ),
+                                      Orientation.ANTI_X )
+                       : null )
+            : SlaveTicker.createTicker( xAxis, x2func )
+                         .getTicks( dxlo, dxhi, minor, captioner,
+                                    orientpolicy.getOrientationsX2(),
+                                    plotBounds.width, xcrowd );
+        TickRun y2tickRun =
+              y2func == null
+            ? ( shadow ? new TickRun( PlotUtil.getShadowTicks( yticks ),
+                                      Orientation.ANTI_Y )
+                       : null )
+            : SlaveTicker.createTicker( yAxis, y2func )
+                         .getTicks( dylo, dyhi, minor, captioner,
+                                    orientpolicy.getOrientationsY2(),
+                                    plotBounds.height, ycrowd );
+        Tick[] x2ticks = x2tickRun == null ? null : x2tickRun.getTicks();
+        Tick[] y2ticks = y2tickRun == null ? null : y2tickRun.getTicks();
+        Orientation x2orient = x2tickRun == null
+                             ? null
+                             : x2tickRun.getOrientation();
+        Orientation y2orient = y2tickRun == null
+                             ? null
+                             : y2tickRun.getOrientation();
         return new PlaneSurface( gxlo, gxhi, gylo, gyhi, dxlo, dxhi, dylo, dyhi,
                                  xlog, ylog, xflip, yflip,
-                                 xticks, yticks, xlabel, ylabel,
-                                 x2ticks, y2ticks, x2label, y2label,
+                                 xticks, yticks, xorient, yorient,
+                                 xlabel, ylabel,
+                                 x2ticks, y2ticks, x2orient, y2orient,
+                                 x2label, y2label,
                                  captioner, annotateflags,
                                  gridcolor, axlabelcolor, islabelposition );
     }

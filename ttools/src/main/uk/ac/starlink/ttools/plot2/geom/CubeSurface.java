@@ -26,6 +26,7 @@ import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.Surround;
 import uk.ac.starlink.ttools.plot2.Tick;
 import uk.ac.starlink.ttools.plot2.TickLook;
+import uk.ac.starlink.ttools.plot2.TickRun;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.util.SplitCollector;
 
@@ -57,6 +58,7 @@ public class CubeSurface implements Surface {
     private final double xoff_;
     private final double yoff_;
     private final Tick[][] ticks_;
+    private final Orientation[] orients_;
     private final String[] labels_;
     private final Captioner captioner_;
     private final boolean frame_;
@@ -69,7 +71,6 @@ public class CubeSurface implements Surface {
     private final double[] dScales_;
     private final double[] dOffs_;
 
-    private static final Orientation ORIENTATION = Orientation.X;
     private static final TickLook TICKLOOK = TickLook.STANDARD;
 
     /**
@@ -88,6 +89,7 @@ public class CubeSurface implements Surface {
      * @param  xoff  graphics X offset in pixels, 0 means centred in plot bounds
      * @param  yoff  graphics Y offset in pixels, 0 means centred in plot bounds
      * @param  ticks  3-element array X,Y,Z tickmark arrays
+     * @param  orients  3-element array X,Y,Z tick caption orientations
      * @param  labels  3-element array of X,Y,Z axis label strings
      * @param  captioner  text renderer
      * @param  frame  whether to draw wire frame
@@ -98,8 +100,8 @@ public class CubeSurface implements Surface {
                         double[] dlos, double[] dhis,
                         boolean[] logFlags, boolean[] flipFlags,
                         double[] rotmat, double zoom, double xoff, double yoff,
-                        Tick[][] ticks, String[] labels, Captioner captioner,
-                        boolean frame, boolean antialias ) {
+                        Tick[][] ticks, Orientation[] orients, String[] labels,
+                        Captioner captioner, boolean frame, boolean antialias ){
         gxlo_ = gxlo;
         gxhi_ = gxhi;
         gylo_ = gylo;
@@ -113,6 +115,7 @@ public class CubeSurface implements Surface {
         xoff_ = xoff;
         yoff_ = yoff;
         ticks_ = ticks.clone();
+        orients_ = orients.clone();
         labels_ = labels.clone();
         captioner_ = captioner;
         frame_ = frame;
@@ -790,6 +793,7 @@ public class CubeSurface implements Surface {
                 && this.yoff_ == other.yoff_
                 && Arrays.equals( this.rotmat_, other.rotmat_ )
                 && Arrays.deepEquals( this.ticks_, other.ticks_ )
+                && Arrays.equals( this.orients_, other.orients_ )
                 && Arrays.equals( this.labels_, other.labels_ )
                 && this.captioner_.equals( other.captioner_ )
                 && this.frame_ == other.frame_
@@ -816,6 +820,7 @@ public class CubeSurface implements Surface {
         code = 23 * code + Float.floatToIntBits( (float) yoff_ );
         code = 23 * code + Arrays.hashCode( rotmat_ );
         code = 23 * code + Arrays.deepHashCode( ticks_ );
+        code = 23 * code + Arrays.hashCode( orients_ );
         code = 23 * code + Arrays.hashCode( labels_ );
         code = 23 * code + captioner_.hashCode();
         code = 23 * code + ( frame_ ? 1 : 3 );
@@ -1082,7 +1087,7 @@ public class CubeSurface implements Surface {
                                    logFlags_[ iaxis ],
                                    ( ! forward ) ^ flipFlags_[ iaxis ] );
         ax.drawLabels( ticks_[ iaxis ], labels_[ iaxis ],
-                       captioner_, TICKLOOK, ORIENTATION, false, g2 );
+                       captioner_, TICKLOOK, orients_[ iaxis ], false, g2 );
         g2.setTransform( atf0 );
     }
 
@@ -1123,6 +1128,7 @@ public class CubeSurface implements Surface {
      * @param  labels  3-element array of X,Y,Z axis label strings
      * @param  crowdFactors  3-element array giving tick mark crowding factors
      *                       for X,Y,Z axes; 1 is normal
+     * @param  orientpolicy  axis label orientation policy
      * @param  captioner  text renderer
      * @param  frame  whether to draw wire frame
      * @param  minor  whether to draw minor tickmarks
@@ -1135,6 +1141,7 @@ public class CubeSurface implements Surface {
                                              boolean[] flipFlags,
                                              String[] labels,
                                              double[] crowdFactors,
+                                             OrientationPolicy orientpolicy,
                                              Captioner captioner,
                                              boolean frame,
                                              boolean minor,
@@ -1147,14 +1154,18 @@ public class CubeSurface implements Surface {
         double[] dhis = new double[ 3 ];
         double[][] limits = aspect.getLimits();
         Tick[][] ticks = new Tick[ 3 ][];
+        Orientation[] orients = new Orientation[ 3 ];
         int npix = getPixelScale( plotBounds.width, plotBounds.height );
         for ( int i = 0; i < 3; i++ ) {
             dlos[ i ] = limits[ i ][ 0 ];
             dhis[ i ] = limits[ i ][ 1 ];
-            ticks[ i ] = ( logFlags[ i ] ? BasicTicker.LOG
-                                         : BasicTicker.LINEAR )
-                        .getTicks( dlos[ i ], dhis[ i ], minor, captioner,
-                                   ORIENTATION, npix, crowdFactors[ i ] );
+            TickRun tickRun =
+                  ( logFlags[ i ] ? BasicTicker.LOG : BasicTicker.LINEAR )
+                 .getTicks( dlos[ i ], dhis[ i ], minor, captioner,
+                            orientpolicy.getOrientationsX(), npix,
+                            crowdFactors[ i ] );
+            ticks[ i ] = tickRun.getTicks();
+            orients[ i ] = tickRun.getOrientation();
         }
         double[] rotmat = aspect.getRotation();
         double zoom = aspect.getZoom();
@@ -1162,7 +1173,8 @@ public class CubeSurface implements Surface {
         double yoff = aspect.getOffsetY();
         return new CubeSurface( gxlo, gxhi, gylo, gyhi, dlos, dhis,
                                 logFlags, flipFlags, rotmat, zoom, xoff, yoff,
-                                ticks, labels, captioner, frame, antialias );
+                                ticks, orients, labels, captioner,
+                                frame, antialias );
     }
 
     /**

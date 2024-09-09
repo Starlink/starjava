@@ -15,11 +15,12 @@ public class TickerTest extends TestCase {
         Ticker basicTicker = BasicTicker.LINEAR;
         SlaveTicker slaveTicker =
             new SlaveTicker( masterAxis, x -> x*x, basicTicker );
-        Tick[] masterTicks =
+        Orientation[] orients = new Orientation[] { Orientation.X };
+        TickRun masterTickRun =
             basicTicker.getTicks( dlo, dhi, false, NullCaptioner.INSTANCE,
-                                  Orientation.X, npix, 1 );
-        Tick[] slaveTicks =
+                                  orients, npix, 1 );
+        TickRun slaveTickRun =
             slaveTicker.getTicks( dlo, dhi, false, NullCaptioner.INSTANCE,
-                                  Orientation.X, npix, 1 );
+                                  orients, npix, 1 );
     }
 }

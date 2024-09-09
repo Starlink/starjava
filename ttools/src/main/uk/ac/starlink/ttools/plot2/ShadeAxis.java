@@ -27,7 +27,7 @@ public class ShadeAxis {
     private final Captioner captioner_;
     private final double crowding_;
     private final int rampWidth_;
-    private static final Orientation ORIENTATION = Orientation.ANTI_Y;
+    private static final Orientation[] ORIENTATIONS = { Orientation.ANTI_Y };
     private static final Caption PAD_CAPTION = Caption.createCaption( "0" );
     private static final TickLook TICKLOOK =
         TickLook.createStandardLook( "outside", -1 );
@@ -149,13 +149,13 @@ public class ShadeAxis {
      * @return  icon
      */
     private ShaderIcon createShaderAxisIcon( Rectangle rampBounds ) {
-        Tick[] ticks = ( scaler_.isLogLike() ? BasicTicker.LOG
-                                             : BasicTicker.LINEAR )
-                      .getTicks( scaler_.getLow(), scaler_.getHigh(),
-                                 false, captioner_, ORIENTATION,
-                                 rampBounds.height, crowding_ );
-        return new ShaderIcon( shader_, scaler_, label_, captioner_,
-                               rampBounds, ticks );
+        TickRun tickRun = ( scaler_.isLogLike() ? BasicTicker.LOG
+                                                : BasicTicker.LINEAR )
+                         .getTicks( scaler_.getLow(), scaler_.getHigh(),
+                                    false, captioner_, ORIENTATIONS,
+                                    rampBounds.height, crowding_ );
+        return new ShaderIcon( shader_, scaler_, label_, captioner_, rampBounds,
+                               tickRun.getTicks(), tickRun.getOrientation() );
     }
 
     /**
@@ -169,6 +169,7 @@ public class ShadeAxis {
         private final Captioner captioner_;
         private final Rectangle box_;
         private final Tick[] ticks_;
+        private final Orientation orient_;
         private final Axis axis_;
 
         /**
@@ -180,16 +181,19 @@ public class ShadeAxis {
          * @param  captioner   text rendering object
          * @param  rampBounds  bounds of actual ramp scale graphic
          * @param  ticks   axis ticks for annotation
+         * @param  orient  tick label orientation
          */
         public ShaderIcon( Shader shader, Scaler scaler,
                            String label, Captioner captioner,
-                           Rectangle rampBounds, Tick[] ticks ) {
+                           Rectangle rampBounds, Tick[] ticks,
+                           Orientation orient ) {
             shader_ = shader;
             scaler_ = scaler;
             label_ = label;
             captioner_ = captioner;
             box_ = rampBounds;
             ticks_ = ticks;
+            orient_ = orient;
             axis_ = Axis.createAxis( box_.y, box_.y + box_.height,
                                      scaler.getLow(), scaler.getHigh(),
                                      scaler.isLogLike(), false );
@@ -300,7 +304,7 @@ public class ShadeAxis {
             g2.translate( box_.x + box_.width, box_.y + box_.height );
             g2.rotate( - Math.PI / 2 );
             axis_.drawLabels( ticks_, label_, captioner_, TICKLOOK,
-                              ORIENTATION, false, g2 );
+                              orient_, false, g2 );
 
             /* Reset graphics context. */
             g2.setColor( color0 );
@@ -314,8 +318,8 @@ public class ShadeAxis {
          */
         public Insets getInsets() {
             Rectangle bounds =
-                axis_.getLabelBounds( ticks_, label_, captioner_,
-                                      ORIENTATION, false );
+                axis_.getLabelBounds( ticks_, label_, captioner_, orient_,
+                                      false );
             bounds = AffineTransform.getRotateInstance( - Math.PI / 2 )
                                     .createTransformedShape( bounds )
                                     .getBounds();
@@ -335,7 +339,8 @@ public class ShadeAxis {
                     && PlotUtil.equals( this.label_, other.label_ )
                     && this.captioner_.equals( other.captioner_ )
                     && this.box_.equals( other.box_ )
-                    && Arrays.equals( this.ticks_, other.ticks_ );
+                    && Arrays.equals( this.ticks_, other.ticks_ )
+                    && PlotUtil.equals( this.orient_, other.orient_ );
             }
             else {
                 return false;
@@ -351,6 +356,7 @@ public class ShadeAxis {
             code = 23 * code + captioner_.hashCode();
             code = 23 * code + box_.hashCode();
             code = 23 * code + Arrays.hashCode( ticks_ );
+            code = 23 * code + PlotUtil.hashCode( orient_ );
             return code;
         }
     }
