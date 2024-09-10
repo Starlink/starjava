@@ -15421,6 +15421,13 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         but some vulnerabilities are addressed.</li>
     <li>More units (seconds with SI prefixes) are now properly handled
         in VOTable <code>TIMESYS</code>-referencing fields.</li>
+    <li>New <code><ref id="plot2plane-labelangle">labelangle</ref></code>
+        configuration option in most plot types;
+        allows angled labels that can accommodate more major ticks
+        on crowded axes.
+        <code>plot2cube</code>/<code>plot2sphere</code> (sometimes)
+        and <code>plot2matrix</code> now use angled axis labels
+        by default.</li>
     </ul>
     </p></dd>
 

@@ -123,6 +123,8 @@ public class MatrixAxesController
             StyleKeys.SHADOW_TICKS,
             PlaneSurfaceFactory.XCROWD_KEY,
             PlaneSurfaceFactory.YCROWD_KEY,
+            MatrixPlotType.getInstance().getSurfaceFactory()
+                          .getOrientationsKey(),
         } ) );
         ConfigKey<?>[] gridKeys = gridKeyList.toArray( new ConfigKey<?>[ 0 ] );
         mainControl_.addSpecifierTab( "Grid", new ConfigSpecifier( gridKeys ) );

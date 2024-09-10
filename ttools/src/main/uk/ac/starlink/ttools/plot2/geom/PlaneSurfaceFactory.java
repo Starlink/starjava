@@ -27,6 +27,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
+import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StringConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
@@ -178,6 +179,14 @@ public class PlaneSurfaceFactory
     /** Config key to anchor Y axis during zooms. */
     public static final ConfigKey<Boolean> YANCHOR_KEY = ANCHOR_XYKEY.getKeyY();
 
+    /** OrientationPolicy key for use with Plane plot. */
+    public static final ConfigKey<OrientationPolicy> ORIENTATIONS_KEY_PLANE =
+        createOrientationsKey( OrientationPolicy.HORIZONTAL );
+
+    /** OrientationPolicy key for use with Matrix plot. */
+    public static final ConfigKey<OrientationPolicy> ORIENTATIONS_KEY_MATRIX =
+        createOrientationsKey( OrientationPolicy.ANGLED );
+
     /** Default configuration for plane surface factory. */
     public static final Config DFLT_CONFIG = new Config() {
         public boolean has2dMetric() {
@@ -189,11 +198,15 @@ public class PlaneSurfaceFactory
         public boolean labelFormattedPosition() {
             return false;
         }
+        public ConfigKey<OrientationPolicy> getOrientationsKey() {
+            return ORIENTATIONS_KEY_PLANE;
+        }
     };
 
     private final PlotMetric plotMetric_;
     private final boolean hasSecondaryAxes_;
     private final boolean labelFormattedPosition_;
+    private final ConfigKey<OrientationPolicy> orientationsKey_;
 
     /**
      * Constructs a PlaneSurfaceFactory with default characteristics.
@@ -211,6 +224,7 @@ public class PlaneSurfaceFactory
         plotMetric_ = new PlanePlotMetric( config.has2dMetric() );
         hasSecondaryAxes_ = config.hasSecondaryAxes();
         labelFormattedPosition_ = config.labelFormattedPosition();
+        orientationsKey_ = config.getOrientationsKey();
     }
 
     public Surface createSurface( Rectangle plotBounds, Profile profile,
@@ -251,6 +265,7 @@ public class PlaneSurfaceFactory
             GRID_KEY,
             XCROWD_KEY,
             YCROWD_KEY,
+            orientationsKey_,
             StyleKeys.MINOR_TICKS,
             StyleKeys.SHADOW_TICKS,
         } ) );
@@ -275,7 +290,7 @@ public class PlaneSurfaceFactory
         boolean grid = config.get( GRID_KEY );
         double xcrowd = config.get( XCROWD_KEY );
         double ycrowd = config.get( YCROWD_KEY );
-        OrientationPolicy orientpolicy = OrientationPolicy.HORIZONTAL;
+        OrientationPolicy orientpolicy = config.get( orientationsKey_ );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
         boolean shadow = config.get( StyleKeys.SHADOW_TICKS );
         Color gridcolor = StyleKeys.GRIDCOLOR_KEYSET.createValue( config );
@@ -384,6 +399,15 @@ public class PlaneSurfaceFactory
             list.add( LABEL2_XYKEY );
         }
         return list.toArray( new XyKeyPair<?>[ 0 ] );
+    }
+
+    /**
+     * Returns the OrientationPolicy config key used by this factory.
+     *
+     * @return  orientations key
+     */
+    public ConfigKey<OrientationPolicy> getOrientationsKey() {
+        return orientationsKey_;
     }
 
     /**
@@ -635,6 +659,40 @@ public class PlaneSurfaceFactory
     }
 
     /**
+     * Returns an OrientationPolicy config key suitable for use with this
+     * factory, but with a configurable default value.
+     *
+     * @return  config key
+     */
+    public static ConfigKey<OrientationPolicy>
+            createOrientationsKey( OrientationPolicy dflt ) {
+        ConfigMeta meta = new ConfigMeta( "labelangle", "Tick Label Angles" );
+        meta.setShortDescription( "Tick label orientations" );
+        meta.setXmlDescription( new String[] {
+            "<p>Controls the orientation of numeric labels on the axes.",
+            "In most cases labels are written horizontally on both horizontal",
+            "and vertical axes, but this option provides the possibility",
+            "to write them at an angle which may be able to accommodate",
+            "more labels on the horizontal axis,",
+            "especially if the labels are long or a high crowding factor",
+            "is requested.",
+            "</p>",
+            "<p>Note that the <code>" + OrientationPolicy.ADAPTIVE + "</code>",
+            "option is currently not perfect, and can sometimes lead to",
+            "suboptimal border placement.",
+            "</p>",
+        } );
+        return new OptionConfigKey<OrientationPolicy>
+                                  ( meta, OrientationPolicy.class,
+                                    OrientationPolicy.getOptions(), dflt ) {
+            public String getXmlDescription( OrientationPolicy orient ) {
+                return orient.getDescription();
+            }
+        }.setOptionUsage()
+         .addOptionsXml();
+    }
+
+    /**
      * Utility method to interrogate axis range configuration variables
      * and work out the actual range to use on a given Cartesian axis.
      * If not enough information is supplied to determine the definite range,
@@ -745,6 +803,13 @@ public class PlaneSurfaceFactory
          * @see  uk.ac.starlink.ttools.plot2.Surface#formatPosition
          */
         boolean labelFormattedPosition();
+
+        /**
+         * Returns a suitable OrientationPolicy config key.
+         *
+         * @return  config key
+         */
+        ConfigKey<OrientationPolicy> getOrientationsKey();
     }
 
     /**

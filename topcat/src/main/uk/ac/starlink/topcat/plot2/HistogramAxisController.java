@@ -18,13 +18,13 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
-import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.SliderSpecifier;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
+import uk.ac.starlink.ttools.plot2.geom.OrientationPolicy;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlaneNavigator;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
@@ -60,8 +60,8 @@ public class HistogramAxisController
     public HistogramAxisController() {
         super( HISTOGRAM_SURFACE_FACTORY,
                PlaneAxisController.createAxisLabelKeys() );
-        SurfaceFactory<PlaneSurfaceFactory.Profile,PlaneAspect> surfFact =
-            getSurfaceFactory();
+        PlaneSurfaceFactory surfFact =
+            (PlaneSurfaceFactory) getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
 
         /* Log/flip tab. */
@@ -103,6 +103,7 @@ public class HistogramAxisController
             StyleKeys.SHADOW_TICKS,
             PlaneSurfaceFactory.XCROWD_KEY,
             PlaneSurfaceFactory.YCROWD_KEY,
+            surfFact.getOrientationsKey(),
         } ) );
         ConfigKey<?>[] gridKeys = gridKeyList.toArray( new ConfigKey<?>[ 0 ] );
         mainControl.addSpecifierTab( "Grid", new ConfigSpecifier( gridKeys ) );
@@ -376,6 +377,9 @@ public class HistogramAxisController
                 }
                 public boolean labelFormattedPosition() {
                     return false;
+                }
+                public ConfigKey<OrientationPolicy> getOrientationsKey() {
+                    return PlaneSurfaceFactory.ORIENTATIONS_KEY_PLANE;
                 }
             };
 

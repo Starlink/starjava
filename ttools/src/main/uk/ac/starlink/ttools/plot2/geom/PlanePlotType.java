@@ -9,6 +9,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.SingleGangerFactory;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.PerUnitConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -73,6 +74,9 @@ public class PlanePlotType
             }
             public boolean labelFormattedPosition() {
                 return false;
+            }
+            public ConfigKey<OrientationPolicy> getOrientationsKey() {
+                return PlaneSurfaceFactory.ORIENTATIONS_KEY_PLANE;
             }
         };
     private static final PlanePlotType INSTANCE =

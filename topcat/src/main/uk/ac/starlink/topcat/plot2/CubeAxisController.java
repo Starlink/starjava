@@ -134,7 +134,10 @@ public class CubeAxisController
                 CubeSurfaceFactory.ZCROWD_KEY,
             } ) );
         }
-        gridKeyList.add( StyleKeys.GRID_ANTIALIAS );
+        gridKeyList.addAll( Arrays.asList( new ConfigKey<?>[] {
+            CubeSurfaceFactory.ORIENTATIONS_KEY,
+            StyleKeys.GRID_ANTIALIAS,
+        } ) );
         mainControl.addSpecifierTab( "Grid",
                      new ConfigSpecifier( gridKeyList
                                          .toArray( new ConfigKey<?>[ 0 ] ) ) );
