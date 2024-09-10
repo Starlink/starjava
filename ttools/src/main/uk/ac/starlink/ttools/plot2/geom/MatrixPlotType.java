@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.ttools.plot2.GangerFactory;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.PerUnitConfigKey;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
@@ -46,6 +47,9 @@ public class MatrixPlotType extends PlanePlotType {
             }
             public boolean labelFormattedPosition() {
                 return true;
+            }
+            public ConfigKey<OrientationPolicy> getOrientationsKey() {
+                return PlaneSurfaceFactory.ORIENTATIONS_KEY_MATRIX;
             }
         };
 

@@ -15130,6 +15130,16 @@ It has the following options:
 <dt>X/Y Tick Crowding</dt>
 <dd><p>Use the slider to influence how many tick marks are draw on each axis.
     </p></dd>
+<dt>Tick Label Angles</dt>
+<dd><p>Controls orientation of numeric labels on the axes.
+    By default they are drawn with <label>horizontal</label> alignment,
+    but you can also choose <label>angled</label>.
+    If <label>adaptive</label> is selected, they will be horizontal where
+    possible, but may be angled to accommodate more labels if
+    crowding is high;
+    note this option is currently not perfect
+    and can result in suboptimal border placement.
+    </p></dd>
 </dl>
 </p>
 
@@ -15892,6 +15902,14 @@ cube wire frame enclosing the data volume.
 <dt>X/Y/Z Tick Crowding</dt>
 <dd><p>Use the slider to influence how many tick marks are draw on each axis.
     </p></dd>
+<dt>Tick Label Angles</dt>
+<dd><p>Controls orientation of numeric labels on the axes.
+    By default they are drawn <label>adaptive</label>ly:
+    horizontally where possible,
+    but may be angled to accommodate more labels if crowding is high.
+    But you can choose to fix the orientation
+    <label>horizontal</label> or <label>angled</label> instead.
+    </p></dd>
 <dt>Antialiasing</dt>
 <dd><p>Controls whether grid lines will be drawn antialiased
     (smoothed) or not.  This option does not affect exported plots.
@@ -16203,6 +16221,14 @@ cube wire frame enclosing the data volume.
     </p></dd>
 <dt>Tick Crowding</dt>
 <dd><p>Use the slider to influence how many tick marks are draw on the axes.
+    </p></dd>
+<dt>Tick Label Angles</dt>
+<dd><p>Controls orientation of numeric labels on the axes.
+    By default they are drawn <label>adaptive</label>ly:
+    horizontally where possible,
+    but may be angled to accommodate more labels if crowding is high.
+    But you can choose to fix the orientation
+    <label>horizontal</label> or <label>angled</label> instead.
     </p></dd>
 <dt>Antialiasing</dt>
 <dd><p>Controls whether grid lines will be drawn antialiased
@@ -16561,6 +16587,17 @@ It has the following options:
     </p></dd>
 <dt>X/Y Tick Crowding</dt>
 <dd><p>Use the slider to influence how many tick marks are draw on each axis.
+    </p></dd>
+<dt>Tick Label Angles</dt>
+<dd><p>Controls orientation of numeric labels on the axes.
+    By default they are drawn <label>angled</label> to accommodate
+    more labels on crowded axes,
+    but you can also choose <label>horizontal</label>.
+    If <label>adaptive</label> is selected, they will be horizontal where
+    possible, but may be angled to accommodate more labels if
+    crowding is high;
+    note this option is currently not perfect
+    and can result in suboptimal border placement.
     </p></dd>
 </dl>
 </p>
@@ -17028,6 +17065,16 @@ It has the following options:
     </p></dd>
 <dt>Time/Y Tick Crowding</dt>
 <dd><p>Use the slider to influence how many tick marks are drawn on each axis.
+    </p></dd>
+<dt>Tick Label Angles</dt>
+<dd><p>Controls orientation of numeric labels on the axes.
+    By default they are drawn with <label>horizontal</label> alignment,
+    but you can also choose <label>angled</label>.
+    If <label>adaptive</label> is selected, they will be horizontal where
+    possible, but may be angled to accommodate more labels if
+    crowding is high;
+    note this option is currently not perfect
+    and can result in suboptimal border placement.
     </p></dd>
 <dt>Grid Colour</dt>
 <dd><p>Selects the colour with which grid lines will be drawn.
@@ -33635,6 +33682,13 @@ introduced since the last version:
         but some vulnerabilities are addressed.</li>
     <li>More units (seconds with SI prefixes) are now properly handled
         in VOTable <code>TIMESYS</code>-referencing fields.</li>
+    <li>New <label>Tick Label Angles</label> configuration option
+        in <ref id="PlaneAxisControl_grid">Grid</ref> tab
+        of most plot type axis controls;
+        allows angled labels that can accommodate more major ticks
+        on crowded axes.
+        Cube/Sphere (sometimes) and &Matrix; plots
+        now use angled axis labels by default.</li>
     </ul>
     </p></dd>
 
