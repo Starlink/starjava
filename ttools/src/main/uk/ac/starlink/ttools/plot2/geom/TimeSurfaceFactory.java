@@ -154,6 +154,10 @@ public class TimeSurfaceFactory
     public static final ConfigKey<Double> YCROWD_KEY =
         PlaneSurfaceFactory.YCROWD_KEY;
 
+    /** Config key to control axis label orientation. */
+    public static final ConfigKey<OrientationPolicy> ORIENTATIONS_KEY =
+        PlaneSurfaceFactory.ORIENTATIONS_KEY_PLANE;
+
     /** Config key to control time value formatting. */
     public static final ConfigKey<TimeFormat> TFORMAT_KEY =
         createTimeFormatKey();
@@ -191,6 +195,7 @@ public class TimeSurfaceFactory
             GRID_KEY,
             TCROWD_KEY,
             YCROWD_KEY,
+            ORIENTATIONS_KEY,
             TFORMAT_KEY,
             StyleKeys.MINOR_TICKS,
             StyleKeys.SHADOW_TICKS,
@@ -214,7 +219,7 @@ public class TimeSurfaceFactory
                         : null;
         double tcrowd = config.get( TCROWD_KEY );
         double ycrowd = config.get( YCROWD_KEY );
-        OrientationPolicy orientpolicy = OrientationPolicy.HORIZONTAL;
+        OrientationPolicy orientpolicy = config.get( ORIENTATIONS_KEY );
         TimeFormat tformat = config.get( TFORMAT_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
         boolean shadow = config.get( StyleKeys.SHADOW_TICKS );

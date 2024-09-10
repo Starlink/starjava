@@ -67,7 +67,8 @@ public class TimeAxisController
                             StyleKeys.MINOR_TICKS,
                             StyleKeys.SHADOW_TICKS,
                             TimeSurfaceFactory.TCROWD_KEY,
-                            TimeSurfaceFactory.YCROWD_KEY );
+                            TimeSurfaceFactory.YCROWD_KEY,
+                            TimeSurfaceFactory.ORIENTATIONS_KEY );
         Collections.addAll( gridKeyList,
                             StyleKeys.GRIDCOLOR_KEYSET.getKeys() );
         ConfigKey<?>[] gridKeys = gridKeyList.toArray( new ConfigKey<?>[ 0 ] );

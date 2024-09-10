@@ -19,6 +19,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
+import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 
@@ -268,6 +269,29 @@ public class CubeSurfaceFactory
            .setStringUsage( "<pixels>" )
         , 0, -2, +2, false );
 
+    /** Config key for axis label orientation. */
+    public static final ConfigKey<OrientationPolicy> ORIENTATIONS_KEY =
+        new OptionConfigKey<OrientationPolicy>(
+                new ConfigMeta( "labelangle", "Tick Label Angles" )
+               .setShortDescription( "Tick label orientations" )
+               .setXmlDescription( new String[] {
+                    "<p>Controls the orientation of the numeric labels",
+                    "on the axes.",
+                    "By default the labels are written parallel to the axes",
+                    "as long as they fit, but if they become too crowded",
+                    "they can be angled so they don't overlap.",
+                    "This option controls the choice of parallel or angled",
+                    "labelling.",
+                    "</p>",
+                } ), 
+                OrientationPolicy.class, OrientationPolicy.getOptions(),
+                OrientationPolicy.ADAPTIVE ) {
+            public String getXmlDescription( OrientationPolicy orient ) {
+                return orient.getDescription();
+            }
+        }.setOptionUsage()
+         .addOptionsXml();
+
     /** Proportional auto-ranging isotropic snap-to-origin threshold. */
     public static final double ISO_CENTER_TOLERANCE = 0.1;
 
@@ -309,11 +333,13 @@ public class CubeSurfaceFactory
                 XCROWD_KEY,
                 YCROWD_KEY,
                 ZCROWD_KEY,
+                ORIENTATIONS_KEY,
             } ) );
         }
         else {
             list.addAll( Arrays.asList( new ConfigKey<?>[] {
                 ISOCROWD_KEY,
+                ORIENTATIONS_KEY,
             } ) );
         }
         list.addAll( Arrays.asList( new ConfigKey<?>[] {
@@ -338,7 +364,7 @@ public class CubeSurfaceFactory
         double xcrowd = config.get( isIso_ ? ISOCROWD_KEY : XCROWD_KEY );
         double ycrowd = config.get( isIso_ ? ISOCROWD_KEY : YCROWD_KEY );
         double zcrowd = config.get( isIso_ ? ISOCROWD_KEY : ZCROWD_KEY );
-        OrientationPolicy orientpolicy = OrientationPolicy.ADAPTIVE;
+        OrientationPolicy orientpolicy = config.get( ORIENTATIONS_KEY );
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         boolean frame = config.get( FRAME_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.ttools.plot.Range;
-import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -28,8 +27,8 @@ public class PlaneAxisController
     @SuppressWarnings("this-escape")
     public PlaneAxisController() {
         super( new PlaneSurfaceFactory(), createAxisLabelKeys() );
-        SurfaceFactory<PlaneSurfaceFactory.Profile,PlaneAspect> surfFact =
-            getSurfaceFactory();
+        PlaneSurfaceFactory surfFact =
+            (PlaneSurfaceFactory) getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
    
         /* Log/flip tab. */
@@ -71,6 +70,7 @@ public class PlaneAxisController
             StyleKeys.SHADOW_TICKS,
             PlaneSurfaceFactory.XCROWD_KEY,
             PlaneSurfaceFactory.YCROWD_KEY,
+            surfFact.getOrientationsKey(),
         } ) );
         ConfigKey<?>[] gridKeys = gridKeyList.toArray( new ConfigKey<?>[ 0 ] );
         mainControl.addSpecifierTab( "Grid", new ConfigSpecifier( gridKeys ) );
