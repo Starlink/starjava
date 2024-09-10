@@ -338,7 +338,7 @@ public class CubeSurfaceFactory
         double xcrowd = config.get( isIso_ ? ISOCROWD_KEY : XCROWD_KEY );
         double ycrowd = config.get( isIso_ ? ISOCROWD_KEY : YCROWD_KEY );
         double zcrowd = config.get( isIso_ ? ISOCROWD_KEY : ZCROWD_KEY );
-        OrientationPolicy orientpolicy = OrientationPolicy.HORIZONTAL;
+        OrientationPolicy orientpolicy = OrientationPolicy.ADAPTIVE;
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         boolean frame = config.get( FRAME_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
