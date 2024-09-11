@@ -1776,6 +1776,7 @@ public class Plot2Example {
                 null,
                 "*layer_f=contour", "*color_f=#bbbb00", "*smooth_f=10",
                 "*nlevel_f=5",
+                "*labelangle=horizontal",
                 "barform=semi_steps",
                 null,
                 "*leglabel_A=RRAB", "*leglabel_C=RRC", "*legseq=_A_m,_C_m",
