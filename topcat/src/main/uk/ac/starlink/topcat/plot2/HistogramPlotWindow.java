@@ -464,7 +464,7 @@ public class HistogramPlotWindow
      *
      * @return  histogram plotter list
      */
-    private static Plotter<?>[] createHistogramPlotters() {
+    static Plotter<?>[] createHistogramPlotters() {
         FloatingCoord xCoord = PlaneDataGeom.X_COORD;
         ConfigKey<Unit> unitKey = null;
         return new Plotter<?>[] {

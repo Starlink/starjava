@@ -156,6 +156,7 @@ public class HistogramAxisController
         ConfigSpecifier genSpecifier = new ConfigSpecifier( new ConfigKey<?>[] {
             StyleKeys.CUMULATIVE,
             StyleKeys.NORMALISE,
+            StyleKeys.SIDEWAYS,
         } );
         ConfigControl barControl =
             new ConfigControl( "Bins", ResourceIcon.HISTOBARS );
