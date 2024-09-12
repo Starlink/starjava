@@ -7,7 +7,6 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -237,7 +236,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                 if ( xRange.isFinite() ) {
                     double[] xlims = xRange.getFiniteBounds( isLog );
                     double yhi = plan.getFactor( xlims[ 0 ], xlims[ 1 ],
-                                                 Rounding.DECIMAL, style);
+                                                 Rounding.DECIMAL, style );
                     Range yRange = ranges[ 1 ];
                     yRange.submit( 0 );
                     yRange.submit( yhi );
@@ -473,35 +472,32 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         void paintLine( Graphics g, PlanarSurface surface, StatsStyle style,
                         boolean isBitmap ) {
             double factor = getFactor( surface, style );
+            Axis xAxis = surface.getAxes()[ 0 ];
+            Axis yAxis = surface.getAxes()[ 1 ];
             Graphics2D g2 = (Graphics2D) g;
             Rectangle box = surface.getPlotBounds();
-            int gxlo = box.x - 2;
-            int gxhi = box.x + box.width + 2;
+            int gxlo = xAxis.getGraphicsLimits()[ 0 ] - 2;
+            int gxhi = xAxis.getGraphicsLimits()[ 1 ] + 2;
             int np = gxhi - gxlo;
             LineTracer tracer = style.createLineTracer( g2, box, np, isBitmap );
             Color color = style.getColor();
-            Point2D.Double gpos = new Point2D.Double();
-            double[] dpos = new double[ surface.getDataDimCount() ];
             for ( int ip = 0; ip < np; ip++ ) {
-                double dx =
-                    surface
-                   .graphicsToData( new Point( gxlo + ip, box.y ), null )[ 0 ];
+                double gx = gxlo + ip;
+                double dx = xAxis.graphicsToData( gx );
                 if ( ! Double.isNaN( dx ) ) {
-                    dpos[ 0 ] = dx;
-                    dpos[ 1 ] = factor * gaussian( dx );
-                    if ( surface.dataToGraphics( dpos, false, gpos ) &&
-                         PlotUtil.isPointReal( gpos ) ) {
-                        tracer.addVertex( gpos.x, gpos.y, color );
+                    double dy = factor * gaussian( dx );
+                    double gy = yAxis.dataToGraphics( dy );
+                    if ( ! Double.isNaN( gy ) ) {
+                        tracer.addVertex( gx, gy, color );
                     }
                 }
             }
             tracer.flush();
             if ( style.showmean_ ) {
                 double dx = mean_;
-                Axis[] axes = surface.getAxes();
-                double gx = axes[ 0 ].dataToGraphics( dx );
-                double gylo = axes[ 1 ].dataToGraphics( 0 );
-                double gyhi = axes[ 1 ].dataToGraphics( factor );
+                double gx = xAxis.dataToGraphics( dx );
+                double gylo = yAxis.dataToGraphics( 0 );
+                double gyhi = yAxis.dataToGraphics( factor );
                 LineTracer meanTracer =
                     style.createLineTracer( g2, box, 3, isBitmap );
                 meanTracer.addVertex( gx, gylo, color );
