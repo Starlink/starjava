@@ -15428,7 +15428,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>plot2cube</code>/<code>plot2sphere</code> (sometimes)
         and <code>plot2matrix</code> now use angled axis labels
         by default.</li>
-    <li>Histogram plot has a new
+    <li>Histogram-like plots
+        (<ref id="layer-histogram"><code>histogram</code></ref>,
+         <ref id="layer-kde"><code>kde</code></ref>,
+         <ref id="layer-knn"><code>knn</code></ref>,
+         <ref id="layer-densogram"><code>densogram</code></ref>)
+        have a new
         <code><ref id="layer-histogram-sidewaysN">sideways</ref></code>
         configuration option that draws the quantity being assessed
         along the vertical instead of the horizontal axis.</li>
