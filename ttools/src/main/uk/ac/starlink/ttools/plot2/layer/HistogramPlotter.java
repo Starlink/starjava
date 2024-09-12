@@ -3,9 +3,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -22,6 +20,7 @@ import uk.ac.starlink.ttools.plot.BarStyle;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
+import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
@@ -521,23 +520,17 @@ public class HistogramPlotter
         Cumulation cumul = style.cumulative_;
         Normalisation norm = style.norm_;
         Unit unit = style.unit_;
-        Rectangle clip = surface.getPlotBounds();
-        int xClipMin = clip.x - 64;
-        int xClipMax = clip.x + clip.width + 64;
-        int yClipMin = clip.y - 64;
-        int yClipMax = clip.y + clip.height + 64;
-        double[][] dataLimits = surface.getDataLimits();
-        double dxMin = dataLimits[ 0 ][ 0 ];
-        double dxMax = dataLimits[ 0 ][ 1 ];
-        boolean[] flipFlags = surface.getFlipFlags();
-        final boolean xflip = flipFlags[ 0 ];
-        final boolean yflip = flipFlags[ 1 ];
+        Axis xAxis = surface.getAxes()[ 0 ];
+        Axis yAxis = surface.getAxes()[ 1 ];
+        int xClipMin = xAxis.getGraphicsLimits()[ 0 ] - 64;
+        int xClipMax = xAxis.getGraphicsLimits()[ 1 ] + 64;
+        int yClipMin = yAxis.getGraphicsLimits()[ 0 ] - 64;
+        int yClipMax = yAxis.getGraphicsLimits()[ 1 ] + 64;
+        double dxMin = xAxis.getDataLimits()[ 0 ];
+        double dxMax = xAxis.getDataLimits()[ 1 ];
+        boolean xflip = surface.getFlipFlags()[ 0 ];
         boolean ylog = surface.getLogFlags()[ 1 ];
-       
-        Point2D.Double p0 = new Point2D.Double();
-        Point2D.Double p1 = new Point2D.Double();
-        double[] dpos0 = new double[ 2 ];
-        double[] dpos1 = new double[ 2 ];
+
         int lastGx1 = xflip ? Integer.MAX_VALUE : Integer.MIN_VALUE;
         int lastGy1 = 0;
         int commonGy0 = 0;
@@ -559,22 +552,21 @@ public class HistogramPlotter
                  ( cumul.isCumulative() || dy != 0 ) ) {
 
                  /* Transform the corners of each bar to graphics coords. */
-                 dpos0[ 0 ] = dxlo;
-                 dpos0[ 1 ] = ylog ? Double.MIN_VALUE : 0;
-                 dpos1[ 0 ] = dxhi;
-                 dpos1[ 1 ] = dy;
-                 if ( surface.dataToGraphics( dpos0, false, p0 ) &&
-                      PlotUtil.isPointReal( p0 ) &&
-                      surface.dataToGraphics( dpos1, false, p1 ) &&
-                      PlotUtil.isPointReal( p1 ) ) {
+                 double p0x = xAxis.dataToGraphics( dxlo );
+                 double p0y = yAxis.dataToGraphics( ylog ? Double.MIN_VALUE
+                                                         : 0 );
+                 double p1x = xAxis.dataToGraphics( dxhi );
+                 double p1y = yAxis.dataToGraphics( dy );
+                 if ( ! ( Double.isNaN( p0x ) || Double.isNaN( p0y ) ||
+                          Double.isNaN( p1x ) || Double.isNaN( p1y ) ) ) {
 
                     /* Clip them so they are not too far off the plot region;
                      * attempting to draw ridiculously large rectangles can
                      * give AWT a headache. */
-                    int gx0 = clip( (int) p0.x, xClipMin, xClipMax );
-                    int gx1 = clip( (int) p1.x, xClipMin, xClipMax );
-                    int gy0 = clip( (int) p0.y, yClipMin, yClipMax );
-                    int gy1 = clip( (int) p1.y, yClipMin, yClipMax );
+                    int gx0 = clip( (int) p0x, xClipMin, xClipMax );
+                    int gx1 = clip( (int) p1x, xClipMin, xClipMax );
+                    int gy0 = clip( (int) p0y, yClipMin, yClipMax );
+                    int gy1 = clip( (int) p1y, yClipMin, yClipMax );
 
                     /* Draw the trailing edge of the previous bar if
                      * necessary. */
