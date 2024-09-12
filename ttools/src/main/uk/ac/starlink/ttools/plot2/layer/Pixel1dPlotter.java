@@ -51,7 +51,6 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
     private final ConfigKey<Combiner> combinerKey_;
     private final String name_;
     private final Icon icon_;
-    private final SliceDataGeom pixoDataGeom_;
     private final CoordGroup pixoCoordGrp_;
     private final int icX_;
     private final int icWeight_;
@@ -133,8 +132,6 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
                                         new boolean[] { true } );
         }
         combinerKey_ = createCombinerKey( weightCoord_, unitKey );
-        pixoDataGeom_ =
-            new SliceDataGeom( new FloatingCoord[] { xCoord_, null }, "X" );
 
         /* For this plot type, coordinate indices are not sensitive to
          * plot-time geom (the CoordGroup has no point positions),
@@ -192,6 +189,14 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
             return "";
         }
     }
+
+    /**
+     * Returns the sideways flag implied by a given style.
+     *
+     * @param   style  plot style
+     * @return   if true, plot is sideways
+     */
+    protected abstract boolean isY( S style );
 
     /**
      * Returns the LayerOpt suitable for a given style for this plotter.
@@ -275,8 +280,13 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
         if ( dataSpec == null || style == null ) {
             return null;
         }
+        final boolean isY = isY( style );
         final LayerOpt layerOpt = getLayerOpt( style );
-        return new AbstractPlotLayer( this, pixoDataGeom_, dataSpec,
+        DataGeom pixoDataGeom =
+              isY
+            ? new SliceDataGeom( new FloatingCoord[] { null, xCoord_ }, "Y" )
+            : new SliceDataGeom( new FloatingCoord[] { xCoord_, null }, "X" );
+        return new AbstractPlotLayer( this, pixoDataGeom, dataSpec,
                                       style, layerOpt ) {
             public Drawing createDrawing( Surface surface,
                                           Map<AuxScale,Span> auxSpans,
@@ -286,8 +296,8 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
                                                       + surface );
                 }
                 final PlanarSurface pSurf = (PlanarSurface) surface;
-                final Axis xAxis = pSurf.getAxes()[ 0 ];
-                final boolean xLog = pSurf.getLogFlags()[ 0 ];
+                final Axis xAxis = pSurf.getAxes()[ isY ? 1 : 0 ];
+                final boolean xLog = pSurf.getLogFlags()[ isY ? 1 : 0 ];
                 final int xpad = getPixelPadding( style, pSurf );
                 final Combiner combiner = getCombiner( style );
                 return new Drawing() {
