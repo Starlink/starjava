@@ -107,6 +107,23 @@ public class StyleKeys {
                            .createColorMeta( "color", "Color", "plotted data" ),
                             ColorConfigKey.COLORNAME_RED, false );
 
+    /** Config key for drawing histogram-like plots sideways. */
+    public static final ConfigKey<Boolean> SIDEWAYS =
+        new BooleanConfigKey(
+            new ConfigMeta( "sideways", "Sideways" )
+           .setShortDescription( "Independent variable is Y?" )
+           .setXmlDescription( new String[] {
+                "<p>When set to the default value of <code>false</code>,",
+                "the quantity being accumulated is on the the horizontal axis",
+                "and the frequency is represented vertically as usual.",
+                "If set <code>true</code> the quantity accumulated",
+                "is on the vertical axis,", 
+                "and the frequency is represented horizontally,",
+                "so that the chart is displayed reflected in the X=Y line.",
+                "</p>",
+            } )
+        , false );
+
     /** Config key for the opacity limit of auxiliary shaded plots. */
     public static final ConfigKey<Double> AUX_OPAQUE =
         DoubleConfigKey.createSliderKey(
