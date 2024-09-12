@@ -257,10 +257,12 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         BinSizer sizer = BinSizer.createCountBinSizer( 16 );
         double phase = 0;
         Combiner combiner = Combiner.SUM;
+        boolean isY = false;
         HistogramPlotter.HistoStyle style =
             new HistogramPlotter.HistoStyle( color, barForm, placement,
                                              cumulative, norm, unit, thick,
-                                             dash, sizer, phase, combiner );
+                                             dash, sizer, phase, combiner,
+                                             isY );
 
         /* Combine data and style to generate a histogram plot layer. */
         Plotter<HistogramPlotter.HistoStyle> plotter =
