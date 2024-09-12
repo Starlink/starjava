@@ -14780,7 +14780,7 @@ and has the following controls:
 
 </subdiv>
 
-<subdiv>
+<subdiv id="ConfigControl_histobins_general">
 <subhead><title>General Tab</title></subhead>
 
 <figure>
@@ -14820,6 +14820,14 @@ and has the following controls:
         The total height of histogram bars is normalised to unity.
         </li>
     </ul>
+    </p></dd>
+<dt>Sideways</dt>
+<dd><p>Controls the orientation of the histogram.
+    By default the quantity being accumulated is on the horizontal axis
+    and the frequencies are represented vertically.
+    But if this option is set, the quantity accumulated is on the vertical axis
+    and the frequencies are represented horizontally,
+    so the chart is displayed reflected in the X=Y line.
     </p></dd>
 </dl>
 </p>
@@ -33689,6 +33697,11 @@ introduced since the last version:
         on crowded axes.
         Cube/Sphere (sometimes) and &Matrix; plots
         now use angled axis labels by default.</li>
+    <li>New config option <label>Sideways</label> in
+        Histogram Bins control
+        <ref id="ConfigControl_histobins_general">General</ref> tab.
+        This allows histogram-like plots to be accumulated on the
+        vertical, not horizontal, axis.</li>
     </ul>
     </p></dd>
 
