@@ -70,7 +70,6 @@ public class HistogramPlotter
     private final ConfigKey<Unit> unitKey_;
     private final ConfigKey<Combiner> combinerKey_;
     private final ReportKey<Combiner.Type> ctypeRepkey_;
-    private final SliceDataGeom histoDataGeom_;
     private final CoordGroup histoCoordGrp_;
     private final int icX_;
     private final int icWeight_;
@@ -140,6 +139,9 @@ public class HistogramPlotter
             } )
         , 0, 0, 1, false, false, SliderSpecifier.TextOption.ENTER_ECHO );
 
+    private static final AffineTransform XY_TRANSFORM =
+        new AffineTransform( 0, 1, 1, 0, 0, 0 );
+
     /**
      * Constructor.
      *
@@ -169,8 +171,6 @@ public class HistogramPlotter
                                         new boolean[] { true } );
         }
         combinerKey_ = createCombinerKey( weightCoord_, unitKey );
-        histoDataGeom_ =
-            new SliceDataGeom( new FloatingCoord[] { xCoord_, null }, "X" );
 
         /* For this plot type, coordinate indices are not sensitive to
          * plot-time geom (the CoordGroup has no point positions),
@@ -248,6 +248,7 @@ public class HistogramPlotter
             list.add( unitKey_ );
         }
         list.addAll( Arrays.asList( new ConfigKey<?>[] {
+            StyleKeys.SIDEWAYS,
             StyleKeys.CUMULATIVE,
             StyleKeys.NORMALISE,
             StyleKeys.BAR_FORM,
@@ -270,8 +271,10 @@ public class HistogramPlotter
         BinSizer sizer = config.get( BINSIZER_KEY );
         double binPhase = config.get( PHASE_KEY );
         Combiner combiner = config.get( combinerKey_ );
+        boolean isY = config.get( StyleKeys.SIDEWAYS ).booleanValue();
         return new HistoStyle( color, barForm, placement, cumulative, norm,
-                               unit, thick, dash, sizer, binPhase, combiner );
+                               unit, thick, dash, sizer, binPhase, combiner,
+                               isY );
     }
 
     @Override
@@ -306,7 +309,13 @@ public class HistogramPlotter
                                  && style.barForm_.isOpaque();
             final Rounding xround = Rounding.getRounding( isTimeX_ );
             LayerOpt layerOpt = new LayerOpt( color, isOpaque );
-            return new AbstractPlotLayer( this, histoDataGeom_, dataSpec,
+            final boolean isY = style.isY_;
+            final DataGeom histoDataGeom =
+                isY ? new SliceDataGeom( new FloatingCoord[] { null, xCoord_ },
+                                         "Y" )
+                    : new SliceDataGeom( new FloatingCoord[] { xCoord_, null },
+                                         "X" );
+            return new AbstractPlotLayer( this, histoDataGeom, dataSpec,
                                           style, layerOpt ) {
                 public Drawing createDrawing( Surface surface,
                                               Map<AuxScale,Span> auxSpans,
@@ -316,8 +325,8 @@ public class HistogramPlotter
                                                           + " " + surface );
                     }
                     final PlanarSurface pSurf = (PlanarSurface) surface;
-                    final boolean xlog = pSurf.getLogFlags()[ 0 ];
-                    double[] xlimits = pSurf.getDataLimits()[ 0 ];
+                    final boolean xlog = pSurf.getLogFlags()[ isY ? 1 : 0 ];
+                    double[] xlimits = pSurf.getDataLimits()[ isY ? 1 : 0 ];
                     final double xlo = xlimits[ 0 ];
                     final double xhi = xlimits[ 1 ];
                     final double binWidth =
@@ -390,9 +399,9 @@ public class HistogramPlotter
                 public void extendCoordinateRanges( Range[] ranges,
                                                     boolean[] logFlags,
                                                     DataStore dataStore ) {
-                    Range xRange = ranges[ 0 ];
-                    Range yRange = ranges[ 1 ];
-                    boolean xlog = logFlags[ 0 ];
+                    Range xRange = ranges[ isY ? 1 : 0 ];
+                    Range yRange = ranges[ isY ? 0 : 1 ];
+                    boolean xlog = logFlags[ isY ? 1 : 0 ];
 
                     /* The range in X will have been already calculated on
                      * the basis of the X values in this and any other layers
@@ -520,17 +529,18 @@ public class HistogramPlotter
         Cumulation cumul = style.cumulative_;
         Normalisation norm = style.norm_;
         Unit unit = style.unit_;
-        Axis xAxis = surface.getAxes()[ 0 ];
-        Axis yAxis = surface.getAxes()[ 1 ];
+        boolean isY = style.isY_;
+        Axis xAxis = surface.getAxes()[ isY ? 1 : 0 ];
+        Axis yAxis = surface.getAxes()[ isY ? 0 : 1 ];
         int xClipMin = xAxis.getGraphicsLimits()[ 0 ] - 64;
         int xClipMax = xAxis.getGraphicsLimits()[ 1 ] + 64;
         int yClipMin = yAxis.getGraphicsLimits()[ 0 ] - 64;
         int yClipMax = yAxis.getGraphicsLimits()[ 1 ] + 64;
         double dxMin = xAxis.getDataLimits()[ 0 ];
         double dxMax = xAxis.getDataLimits()[ 1 ];
-        boolean xflip = surface.getFlipFlags()[ 0 ];
-        boolean ylog = surface.getLogFlags()[ 1 ];
-
+        boolean xflip = surface.getFlipFlags()[ isY ? 1 : 0 ];
+        boolean ylog = surface.getLogFlags()[ isY ? 0 : 1 ];
+       
         int lastGx1 = xflip ? Integer.MAX_VALUE : Integer.MIN_VALUE;
         int lastGy1 = 0;
         int commonGy0 = 0;
@@ -552,7 +562,7 @@ public class HistogramPlotter
                  ( cumul.isCumulative() || dy != 0 ) ) {
 
                  /* Transform the corners of each bar to graphics coords. */
-                 double p0x = xAxis.dataToGraphics( dxlo );
+                 double p0x = xAxis.dataToGraphics( dxlo ); 
                  double p0y = yAxis.dataToGraphics( ylog ? Double.MIN_VALUE
                                                          : 0 );
                  double p1x = xAxis.dataToGraphics( dxhi );
@@ -571,22 +581,22 @@ public class HistogramPlotter
                     /* Draw the trailing edge of the previous bar if
                      * necessary. */
                     if ( lastGx1 != gx0 ) {
-                        barStyle.drawEdge( g, lastGx1, lastGy1, gy0,
-                                           iseq, nseq );
+                        drawEdge( barStyle, g, isY, lastGx1, lastGy1, gy0,
+                                  iseq, nseq );
                         lastGy1 = gy0;
                     }
 
                     /* Draw the leading edge of the current bar. */
-                    barStyle.drawEdge( g, gx0, lastGy1, gy1, iseq, nseq );
+                    drawEdge( barStyle, g, isY, gx0, lastGy1, gy1, iseq, nseq );
                     lastGx1 = gx1;
                     lastGy1 = gy1;
                     commonGy0 = gy0;
 
                     /* Draw the bar. */
-                    int gxlo = xflip ? gx1 : gx0;
-                    int gxhi = xflip ? gx0 : gx1;
-                    drawGeneralBar( barStyle, g, gxlo, gxhi, gy0, gy1,
-                                    iseq, nseq );
+                    int gxlo = gx0 < gx1 ? gx0 : gx1;
+                    int gxhi = gx0 < gx1 ? gx1 : gx0;
+                    drawBar( barStyle, g, isY, gxlo, gxhi, gy0, gy1,
+                             iseq, nseq );
                 }
             }
         }
@@ -594,7 +604,8 @@ public class HistogramPlotter
         /* Draw the trailing edge of the final bar unless we have already
          * filled the whole X range. */
         if ( ! cumul.isCumulative() ) {
-            barStyle.drawEdge( g, lastGx1, lastGy1, commonGy0, iseq, nseq );
+            drawEdge( barStyle, g, isY, lastGx1, lastGy1, commonGy0,
+                      iseq, nseq );
         }
         g.setColor( color0 );
     }
@@ -614,7 +625,9 @@ public class HistogramPlotter
     /**
      * Draws a bar which may point upwards or downwards in a histogram.
      *
+     * @param   barStyle  bar style
      * @param   g  graphics context
+     * @param   isY  true for sideways plot
      * @param   xlo  lower bound in X direction
      * @param   xhi  upper bound in X direction
      * @param   y0   Y coordinate of the base of the bar
@@ -622,7 +635,7 @@ public class HistogramPlotter
      * @param   iseq  index of the set being plotted
      * @param   nseq  number of sets being plotted for this bar
      */
-    private void drawGeneralBar( BarStyle barStyle, Graphics g,
+    private static void drawBar( BarStyle barStyle, Graphics g, boolean isY,
                                  int xlo, int xhi, int y0, int y1,
                                  int iseq, int nseq ) {
 
@@ -631,17 +644,43 @@ public class HistogramPlotter
          * facing down and the data level facing up.  If we need to
          * do it the other way round (Y axis inverted) do it by
          * applying a coordinate transformation to the graphics context. */
+        Graphics2D g2 = (Graphics2D) g;
+        AffineTransform trans0 = g2.getTransform();
+        if ( isY ) {
+            g2.transform( XY_TRANSFORM );
+        }
         if ( y0 >= y1 ) {
             barStyle.drawBar( g, xlo, xhi, y1, y0, iseq, nseq );
         }
         else {
-            Graphics2D g2 = (Graphics2D) g;
-            AffineTransform trans0 = g2.getTransform();
             g2.translate( 0, y0 + y1 );
             g2.scale( 1, -1 );
             barStyle.drawBar( g, xlo, xhi, y0, y1, iseq, nseq );
-            g2.setTransform( trans0 );
         }
+        g2.setTransform( trans0 );
+    }
+
+    /**
+     * Draws a bar edge in a histogram.
+     *
+     * @param  barStyle  bar style
+     * @param  g  graphics context
+     * @param  isY  true for sideways plot
+     * @param  x  X position of edge
+     * @param  y0  start Y value for edge
+     * @param  y1  end Y value for edge
+     * @param   iseq  index of the set being plotted
+     * @param   nseq  number of sets being plotted for this bar
+     */
+    private static void drawEdge( BarStyle barStyle, Graphics g, boolean isY,
+                                  int x, int y0, int y1, int iseq, int nseq ) {
+        Graphics2D g2 = (Graphics2D) g;
+        AffineTransform trans0 = g2.getTransform();
+        if ( isY ) {
+            g2.transform( XY_TRANSFORM );
+        }
+        barStyle.drawEdge( g, x, y0, y1, iseq, nseq );
+        g2.setTransform( trans0 );
     }
 
     /**
@@ -811,7 +850,7 @@ public class HistogramPlotter
         private final BinSizer sizer_;
         private final double phase_;
         private final Combiner combiner_;
-
+        private final boolean isY_;
         private final BarStyle barStyle_;
 
         /**
@@ -828,12 +867,14 @@ public class HistogramPlotter
          * @param  sizer   determines bin widths
          * @param  phase   bin reference point, 0..1
          * @param  combiner  bin aggregation mode
+         * @param  isY    true for sideways histogram
          */
         public HistoStyle( Color color, BarStyle.Form barForm,
                            BarStyle.Placement placement,
                            Cumulation cumulative, Normalisation norm, Unit unit,
                            int thick, float[] dash,
-                           BinSizer sizer, double phase, Combiner combiner ) {
+                           BinSizer sizer, double phase, Combiner combiner,
+                           boolean isY ) {
             color_ = color;
             barForm_ = barForm;
             placement_ = placement;
@@ -845,6 +886,7 @@ public class HistogramPlotter
             sizer_ = sizer;
             phase_ = phase;
             combiner_ = combiner;
+            isY_ = isY;
             barStyle_ = new BarStyle( color, barForm, placement );
             barStyle_.setLineWidth( thick );
             barStyle_.setDash( dash );
@@ -913,6 +955,7 @@ public class HistogramPlotter
             code = 23 * code + sizer_.hashCode();
             code = 23 * code + Float.floatToIntBits( (float) phase_ );
             code = 23 * code + combiner_.hashCode();
+            code = 23 * code + ( isY_ ? 99 : 103 );
             return code;
         }
 
@@ -930,7 +973,8 @@ public class HistogramPlotter
                     && Arrays.equals( this.dash_, other.dash_ )
                     && this.sizer_.equals( other.sizer_ )
                     && this.phase_ == other.phase_
-                    && this.combiner_.equals( other.combiner_ );
+                    && this.combiner_.equals( other.combiner_ )
+                    && this.isY_ == other.isY_;
             }
             else {
                 return false;
