@@ -103,6 +103,7 @@ public abstract class AbstractKernelDensityPlotter
         List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.add( StyleKeys.COLOR );
         list.add( StyleKeys.TRANSPARENCY );
+        list.add( StyleKeys.SIDEWAYS );
         list.addAll( Arrays.asList( getKernelConfigKeys() ) );
         if ( unitKey_ != null ) {
             list.add( unitKey_ );
@@ -118,6 +119,7 @@ public abstract class AbstractKernelDensityPlotter
     public KDenseStyle createStyle( ConfigMap config ) throws ConfigException {
         Color color = StyleKeys.getAlphaColor( config, StyleKeys.COLOR,
                                                StyleKeys.TRANSPARENCY );
+        boolean isY = config.get( StyleKeys.SIDEWAYS ).booleanValue();
         Kernel1dShape kernelShape = config.get( KERNEL_KEY );
         Cumulation cumulative = config.get( StyleKeys.CUMULATIVE );
         Normalisation norm = config.get( NORMALISE_KEY );
@@ -130,8 +132,13 @@ public abstract class AbstractKernelDensityPlotter
                                          BasicStroke.CAP_ROUND,
                                          BasicStroke.JOIN_ROUND )
                       : null;
-        return new KDenseStyle( color, fill, stroke, kernelShape, kernelFigure,
+        return new KDenseStyle( color, fill, stroke, isY,
+                                kernelShape, kernelFigure,
                                 combiner, unit, cumulative, norm );
+    }
+
+    protected boolean isY( KDenseStyle style ) {
+        return style.isY_;
     }
 
     protected LayerOpt getLayerOpt( KDenseStyle style ) {
@@ -141,8 +148,10 @@ public abstract class AbstractKernelDensityPlotter
     }
 
     protected int getPixelPadding( KDenseStyle style, PlanarSurface surf ) {
+        boolean isY = style.isY_;
         Kernel1d kernel =
-            style.createKernel( surf.getAxes()[ 0 ], surf.getLogFlags()[ 0 ] );
+            style.createKernel( surf.getAxes()[ isY ? 1 : 0 ],
+                                surf.getLogFlags()[ isY ? 1 : 0 ] );
         return getEffectiveExtent( kernel );
     }
 
@@ -162,18 +171,19 @@ public abstract class AbstractKernelDensityPlotter
         float calpha = rgba[ 3 ];
 
         /* Get the data values for each pixel position. */
-        Axis xAxis = surface.getAxes()[ 0 ];
-        boolean xLog = surface.getLogFlags()[ 0 ];
+        boolean isY = style.isY_;
+        Axis xAxis = surface.getAxes()[ isY ? 1 : 0 ];
+        boolean xLog = surface.getLogFlags()[ isY ? 1 : 0 ];
         Kernel1d kernel = style.createKernel( xAxis, xLog );
         double[] bins = getDataBins( binArray, xAxis, kernel, style );
 
         /* Work out the Y axis base of the bars in graphics coordinates. */
-        Axis yAxis = surface.getAxes()[ 1 ];
-        boolean yLog = surface.getLogFlags()[ 1 ];
-        boolean yFlip = surface.getFlipFlags()[ 1 ];
+        Axis yAxis = surface.getAxes()[ isY ? 0 : 1 ];
+        boolean yLog = surface.getLogFlags()[ isY ? 0 : 1 ];
+        boolean yFlip = surface.getFlipFlags()[ isY ? 0 : 1 ];
         int gy0;
         if ( yLog ) {
-            double[] dyLimits = surface.getDataLimits()[ 1 ];
+            double[] dyLimits = surface.getDataLimits()[ isY ? 0 : 1 ];
             double dy0 = yAxis.dataToGraphics( dyLimits[ 0 ] );
             gy0 = (int) ( yFlip ? dy0 - 2 : dy0 + 2 );
         }
@@ -181,13 +191,15 @@ public abstract class AbstractKernelDensityPlotter
             gy0 = (int) yAxis.dataToGraphics( 0 );
         }
         Rectangle clip = surface.getPlotBounds();
-        int yClipMin = clip.y - 64;
-        int yClipMax = clip.y + clip.height + 64;
+        int yClipMin = ( isY ? clip.x : clip.y ) - 64;
+        int yClipMax = ( isY ? clip.x + clip.width 
+                             : clip.y + clip.height ) + 64;
         gy0 = clip( gy0, yClipMin, yClipMax );
 
         /* Work out the range of bin indices that need to be painted. */
-        int ixlo = binArray.getBinIndex( clip.x );
-        int ixhi = binArray.getBinIndex( clip.x + clip.width );
+        int ixlo = binArray.getBinIndex( isY ? clip.y : clip.x );
+        int ixhi = binArray.getBinIndex( isY ? clip.y + clip.height
+                                             : clip.x + clip.width );
 
         /* Assemble a list of the (x,y) graphics coordinates of the
          * top left hand corner for each bar in the plot region. */
@@ -238,7 +250,7 @@ public abstract class AbstractKernelDensityPlotter
             pxs[ nVertex - 1 ] = xs[ np - 1 ] + 1;
             pys[ nVertex - 1 ] = gy0;
             g.setColor( new Color( cr, cg, cb, calpha * fillAlpha ) );
-            g.fillPolygon( pxs, pys, nVertex );
+            g.fillPolygon( isY ? pys : pxs, isY ? pxs : pys, nVertex );
         }
 
         /* Or plot a wiggly line along the top of the bars. */
@@ -266,7 +278,7 @@ public abstract class AbstractKernelDensityPlotter
             g.setColor( new Color( cr, cg, cb, calpha * lineAlpha ) );
             Stroke stroke0 = g.getStroke();
             g.setStroke( style.stroke_ );
-            g.drawPolyline( pxs, pys, nVertex );
+            g.drawPolyline( isY ? pys : pxs, isY ? pxs : pys, nVertex );
             g.setStroke( stroke0 );
         }
 
@@ -281,10 +293,11 @@ public abstract class AbstractKernelDensityPlotter
                                                   DataStore dataStore ) {
 
         /* Calculate the height of the bars for auto-ranging purposes. */
-        Range xRange = ranges[ 0 ];
-        Range yRange = ranges[ 1 ];
-        boolean xlog = logFlags[ 0 ];
-        boolean ylog = logFlags[ 1 ];
+        boolean isY = style.isY_;
+        Range xRange = ranges[ isY ? 1 : 0 ];
+        Range yRange = ranges[ isY ? 0 : 1 ];
+        boolean xlog = logFlags[ isY ? 1 : 0 ];
+        boolean ylog = logFlags[ isY ? 0 : 1 ];
 
         /* Assume y=0 is always of interest for a histogram. */
         yRange.submit( ylog ? 1 : 0 );
@@ -404,6 +417,7 @@ public abstract class AbstractKernelDensityPlotter
         private final Color color_;
         private final FillMode fill_;
         private final Stroke stroke_;
+        private final boolean isY_;
         private final Kernel1dShape kernelShape_;
         private final KernelFigure kernelFigure_;
         private final Combiner combiner_;
@@ -418,6 +432,7 @@ public abstract class AbstractKernelDensityPlotter
          * @param  color  plot colour
          * @param  fill   fill mode
          * @param  stroke  line stroke, null for filled area
+         * @param  isY   true to turn the plot sideways
          * @param  kernelShape  smoothing kernel shape
          * @param  kernelFigure  kernel configuration
          * @param  combiner   bin aggregation mode
@@ -426,6 +441,7 @@ public abstract class AbstractKernelDensityPlotter
          * @param  norm   normalisation mode
          */
         public KDenseStyle( Color color, FillMode fill, Stroke stroke,
+                            boolean isY,
                             Kernel1dShape kernelShape,
                             KernelFigure kernelFigure,
                             Combiner combiner, Unit unit,
@@ -433,6 +449,7 @@ public abstract class AbstractKernelDensityPlotter
             color_ = color;
             fill_ = fill;
             stroke_ = stroke;
+            isY_ = isY;
             kernelShape_ = kernelShape;
             kernelFigure_ = kernelFigure;
             combiner_ = combiner;
@@ -480,6 +497,7 @@ public abstract class AbstractKernelDensityPlotter
             code = 23 * code + color_.hashCode();
             code = 23 * code + fill_.hashCode();
             code = 23 * code + PlotUtil.hashCode( stroke_ );
+            code = 23 * code + ( isY_ ? 19 : 101 );
             code = 23 * code + kernelShape_.hashCode();
             code = 23 * code + kernelFigure_.hashCode();
             code = 23 * code + combiner_.hashCode();
@@ -496,6 +514,7 @@ public abstract class AbstractKernelDensityPlotter
                 return this.color_.equals( other.color_ )
                     && this.fill_.equals( other.fill_ )
                     && PlotUtil.equals( this.stroke_, other.stroke_ )
+                    && this.isY_ == other.isY_
                     && this.kernelShape_.equals( other.kernelShape_ )
                     && this.kernelFigure_.equals( other.kernelFigure_ )
                     && this.combiner_.equals( other.combiner_ )
