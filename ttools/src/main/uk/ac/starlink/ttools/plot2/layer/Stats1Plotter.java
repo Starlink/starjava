@@ -59,7 +59,6 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
     private final FloatingCoord xCoord_;
     private final FloatingCoord weightCoord_;
     private final ConfigKey<Unit> unitKey_;
-    private final SliceDataGeom fitDataGeom_;
     private final CoordGroup fitCoordGrp_;
     private final int icX_;
     private final int icWeight_;
@@ -129,8 +128,6 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                .createPartialCoordGroup( new Coord[] { xCoord },
                                          new boolean[] { false } );
         }
-        fitDataGeom_ =
-            new SliceDataGeom( new FloatingCoord[] { xCoord_, null }, "X" );
 
         /* For this plot type, coordinate indices are not sensitive to
          * plot-time geom (the CoordGroup has no point positions),
@@ -182,6 +179,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.add( StyleKeys.COLOR );
         list.add( SHOWMEAN_KEY );
+        list.add( StyleKeys.SIDEWAYS );
         list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
         list.add( StyleKeys.ANTIALIAS );
         if ( unitKey_ != null ) {
@@ -195,6 +193,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
     public StatsStyle createStyle( ConfigMap config ) {
         Color color = config.get( StyleKeys.COLOR );
         boolean showmean = Boolean.TRUE.equals( config.get( SHOWMEAN_KEY ) );
+        boolean isY = config.get( StyleKeys.SIDEWAYS ).booleanValue();
         Stroke stroke = StyleKeys.createStroke( config, BasicStroke.CAP_ROUND,
                                                 BasicStroke.JOIN_ROUND );
         boolean antialias = config.get( StyleKeys.ANTIALIAS );
@@ -202,7 +201,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         Unit unit = unitKey_ == null ? Unit.UNIT : config.get( unitKey_ );
         BinSizer sizer = config.get( BINSIZER_KEY );
         return new StatsStyle( color, stroke, antialias, showmean,
-                               norm, unit, sizer );
+                               norm, unit, sizer, isY );
     }
 
     @Override
@@ -213,7 +212,12 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
     public PlotLayer createLayer( final DataGeom geom, final DataSpec dataSpec,
                                   final StatsStyle style ) {
         LayerOpt layerOpt = new LayerOpt( style.getColor(), true );
-        return new AbstractPlotLayer( this, fitDataGeom_, dataSpec,
+        boolean isY = style.isY_;
+        DataGeom fitDataGeom =
+              isY
+            ? new SliceDataGeom( new FloatingCoord[] { null, xCoord_ }, "Y" )
+            : new SliceDataGeom( new FloatingCoord[] { xCoord_, null }, "X" );
+        return new AbstractPlotLayer( this, fitDataGeom, dataSpec,
                                       style, layerOpt ) {
             public Drawing createDrawing( Surface surface,
                                           Map<AuxScale,Span> auxSpans,
@@ -225,19 +229,19 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             public void extendCoordinateRanges( Range[] ranges,
                                                 boolean[] logFlags,
                                                 DataStore dataStore ) {
-                boolean isLog = logFlags[ 0 ];
+                boolean isLog = logFlags[ isY ? 1 : 0 ];
                 WStats stats = collectStats( isLog, dataSpec, dataStore );
                 StatsPlan plan = new StatsPlan( isLog, stats, dataSpec );
                 double mean = stats.getMean();
                 double sd = stats.getSigma();
-                Range xRange = ranges[ 0 ];
+                Range xRange = ranges[ isY ? 1 : 0 ];
                 xRange.submit( mean - sd * 2 );
                 xRange.submit( mean + sd * 2 );
                 if ( xRange.isFinite() ) {
                     double[] xlims = xRange.getFiniteBounds( isLog );
                     double yhi = plan.getFactor( xlims[ 0 ], xlims[ 1 ],
                                                  Rounding.DECIMAL, style );
-                    Range yRange = ranges[ 1 ];
+                    Range yRange = ranges[ isY ? 0 : 1 ];
                     yRange.submit( 0 );
                     yRange.submit( yhi );
                 }
@@ -311,6 +315,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         final Normalisation norm_;
         final Unit unit_;
         final BinSizer sizer_;
+        final boolean isY_;
 
         /**
          * Constructor.
@@ -323,15 +328,17 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
          * @param  unit   axis scaling unit
          * @param  sizer   histogram equivalent bin sizer,
          *                 may be used in conjunction with norm
+         * @param  isY    if true, plotted sideways
          */
         public StatsStyle( Color color, Stroke stroke, boolean antialias,
                            boolean showmean, Normalisation norm, Unit unit,
-                           BinSizer sizer ) {
+                           BinSizer sizer, boolean isY ) {
             super( color, stroke, antialias );
             showmean_ = showmean;
             norm_ = norm;
             unit_ = unit;
             sizer_ = sizer;
+            isY_ = isY;
         }
 
         @Override
@@ -341,6 +348,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             code = 23 * code + PlotUtil.hashCode( norm_ );
             code = 23 * code + unit_.hashCode();
             code = 23 * code + PlotUtil.hashCode( sizer_ );
+            code = 23 * code + ( isY_ ? 71 : 41 );
             return code;
         }
 
@@ -352,7 +360,8 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                     && this.showmean_ == other.showmean_
                     && PlotUtil.equals( this.norm_, other.norm_ )
                     && this.unit_.equals( other.unit_ )
-                    && PlotUtil.equals( this.sizer_, other.sizer_ );
+                    && PlotUtil.equals( this.sizer_, other.sizer_ )
+                    && this.isY_ == other.isY_;
             }
             else {
                 return false;
@@ -391,7 +400,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
 
         public Object calculatePlan( Object[] knownPlans,
                                      DataStore dataStore ) {
-            final boolean isLog = surface_.getLogFlags()[ 0 ];
+            final boolean isLog = surface_.getLogFlags()[ style_.isY_ ? 1 : 0 ];
 
             /* If one of the known plans matches the one we're about
              * to calculate, just return that. */
@@ -472,8 +481,9 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         void paintLine( Graphics g, PlanarSurface surface, StatsStyle style,
                         boolean isBitmap ) {
             double factor = getFactor( surface, style );
-            Axis xAxis = surface.getAxes()[ 0 ];
-            Axis yAxis = surface.getAxes()[ 1 ];
+            boolean isY = style.isY_;
+            Axis xAxis = surface.getAxes()[ isY ? 1 : 0 ];
+            Axis yAxis = surface.getAxes()[ isY ? 0 : 1 ];
             Graphics2D g2 = (Graphics2D) g;
             Rectangle box = surface.getPlotBounds();
             int gxlo = xAxis.getGraphicsLimits()[ 0 ] - 2;
@@ -488,7 +498,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                     double dy = factor * gaussian( dx );
                     double gy = yAxis.dataToGraphics( dy );
                     if ( ! Double.isNaN( gy ) ) {
-                        tracer.addVertex( gx, gy, color );
+                        tracer.addVertex( isY ? gy : gx, isY ? gx : gy, color );
                     }
                 }
             }
@@ -500,8 +510,14 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                 double gyhi = yAxis.dataToGraphics( factor );
                 LineTracer meanTracer =
                     style.createLineTracer( g2, box, 3, isBitmap );
-                meanTracer.addVertex( gx, gylo, color );
-                meanTracer.addVertex( gx, gyhi, color );
+                if ( isY ) {
+                    meanTracer.addVertex( gylo, gx, color );
+                    meanTracer.addVertex( gyhi, gx, color );
+                }
+                else {
+                    meanTracer.addVertex( gx, gylo, color );
+                    meanTracer.addVertex( gx, gyhi, color );
+                }
                 meanTracer.flush();
             }
         }
@@ -514,8 +530,9 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
          * @param  style     stats style
          */
         private double getFactor( PlanarSurface surface, StatsStyle style ) {
-            double[] xlims = surface.getDataLimits()[ 0 ];
-            boolean isTime = surface.getTimeFlags()[ 0 ];
+            boolean isY = style.isY_;
+            double[] xlims = surface.getDataLimits()[ isY ? 1 : 0 ];
+            boolean isTime = surface.getTimeFlags()[ isY ? 1 : 0 ];
             Rounding xround = Rounding.getRounding( isTime );
             return getFactor( xlims[ 0 ], xlims[ 1 ], xround, style );
         }
