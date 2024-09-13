@@ -15432,7 +15432,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (<ref id="layer-histogram"><code>histogram</code></ref>,
          <ref id="layer-kde"><code>kde</code></ref>,
          <ref id="layer-knn"><code>knn</code></ref>,
-         <ref id="layer-densogram"><code>densogram</code></ref>)
+         <ref id="layer-densogram"><code>densogram</code></ref>,
+         <ref id="layer-gaussian"><code>gaussian</code></ref>)
         have a new
         <code><ref id="layer-histogram-sidewaysN">sideways</ref></code>
         configuration option that draws the quantity being assessed
