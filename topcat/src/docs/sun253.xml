@@ -33702,6 +33702,8 @@ introduced since the last version:
         <ref id="ConfigControl_histobins_general">General</ref> tab.
         This allows histogram-like plots to be accumulated on the
         vertical, not horizontal, axis.</li>
+    <li>Fix regression bug (since v4.9) in HTTP 3xx redirect handling 
+        that failed to cope with relative Location field values.</li>
     </ul>
     </p></dd>
 
