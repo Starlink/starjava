@@ -15438,6 +15438,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code><ref id="layer-histogram-sidewaysN">sideways</ref></code>
         configuration option that draws the quantity being assessed
         along the vertical instead of the horizontal axis.</li>
+    <li>Fix regression bug (since v3.4-9) in HTTP 3xx redirect handling
+        that failed to cope with relative Location field values.</li>
     </ul>
     </p></dd>
 

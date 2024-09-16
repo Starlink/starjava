@@ -526,16 +526,7 @@ public class URLUtils {
                 throw new IOException( "No Location field for " + hcode0
                                      + " response" );
             }
-            URL url1;
-            try {
-                url1 = new URI( loc ).toURL();
-            }
-            catch ( MalformedURLException | URISyntaxException e ) {
-                throw (IOException)
-                      new IOException( "Bad Location field for " + hcode0
-                                     + " response from " + url0 )
-                     .initCause( e );
-            }
+            URL url1 = resolveLocation( url0, loc );
             if ( ! urlSet.add( url1 ) ) {
                 throw new IOException( "Recursive " + hcode0 + " redirect at "
                                      + url1 );
@@ -582,6 +573,49 @@ public class URLUtils {
             hconn = hconn1;
         }
         return hconn;
+    }
+
+    /**
+     * Returns the URL corresponding by a supplied location string,
+     * resolved in the context of a base URL.
+     *
+     * @param  url0  context URL
+     * @param  location   location, may be relative or absolute URI
+     * @return   resolved location URL
+     * @throws  IOException  if anything goes wrong
+     */
+    public static URL resolveLocation( URL url0, String location )
+            throws IOException {
+        if ( location == null || location.trim().length() == 0 ) {
+            return url0;
+        }
+        URI locUri;
+        try {
+            locUri = new URI( location );
+        }
+        catch ( URISyntaxException e ) {
+            throw new IOException( "Bad location URI: " + location, e );
+        }
+        final URI uri1;
+        if ( locUri.isAbsolute() ) {
+            uri1 = locUri;
+        }
+        else {
+            if ( url0 != null ) {
+                try {
+                    uri1 = url0.toURI().resolve( locUri );
+                }
+                catch ( URISyntaxException e ) {
+                    throw new IOException( "Bad base URI: " + url0, e );
+                }
+            }
+            else {
+                throw new IOException( "URI not absolute, no context: "
+                                     + locUri );
+            }
+        }
+        assert uri1.isAbsolute();
+        return uri1.toURL();
     }
 
     /**
