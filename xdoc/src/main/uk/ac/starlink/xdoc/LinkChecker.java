@@ -408,9 +408,12 @@ public class LinkChecker {
                 throw new IOException( "No Location field for " + code 
                                      + " response from " + url0 );
             }
-            URL url1; 
+            final URL url1; 
             try {
-                url1 = new URI( loc ).toURL();
+                URI locUri = new URI( loc );
+                url1 = locUri.isAbsolute()
+                     ? locUri.toURL()
+                     : url0.toURI().resolve( locUri ).toURL();
             }
             catch ( MalformedURLException | URISyntaxException
                                           | IllegalArgumentException e ) {

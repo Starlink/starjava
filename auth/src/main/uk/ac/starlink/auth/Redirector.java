@@ -83,9 +83,12 @@ public abstract class Redirector {
                     throw new IOException( "No Location field for " + hcode
                                          + " response (" + url0 + ")" );
                 }
-                URL url1;
+                final URL url1;
                 try {
-                    url1 = new URI( loc1 ).toURL();
+                    URI locUri = new URI( loc1 );
+                    url1 = locUri.isAbsolute()
+                         ? locUri.toURL()
+                         : url0.toURI().resolve( locUri ).toURL();
                 }
                 catch ( MalformedURLException | URISyntaxException
                                               | IllegalArgumentException e ) {
