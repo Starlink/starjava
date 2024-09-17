@@ -59,6 +59,24 @@ public abstract class SingleMapperTask extends ConsumerTask {
     }
 
     /**
+     * Returns the single input table parameter.
+     *
+     * @return  input table parameter
+     */
+    public InputTableParameter getInputTableParameter() {
+        return inTableParam_;
+    }
+
+    /**
+     * Returns the single input filter parameter, if present.
+     *
+     * @return  input filter parameter, may be null
+     */
+    public FilterParameter getInputFilterParameter() {
+        return inFilterParam_;
+    }
+
+    /**
      * Returns an object provides which provides the (possibly filtered)
      * input table.
      *
