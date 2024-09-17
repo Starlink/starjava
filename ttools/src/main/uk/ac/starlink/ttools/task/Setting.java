@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.task;
 
+import java.util.regex.Pattern;
 import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 
@@ -22,6 +23,9 @@ public class Setting {
     private final String strDflt_;
     private Object objValue_;
     private Credibility credibility_;
+
+    private static final Pattern SHELLSAFE_REGEX =
+        Pattern.compile( "[a-zA-Z0-9,._+:@%/-]*" );
 
     /**
      * Constructs a setting.  The attributes set here are immutable
@@ -176,10 +180,35 @@ public class Setting {
         StringBuffer sbuf = new StringBuffer()
            .append( key_ )
            .append( '=' )
-           .append( strValue_ );
-        if ( isDefaultValue() ) {
-            sbuf.append( " (dflt)" );
-        }
+           .append( shellQuote( strValue_ ) );
         return sbuf.toString();
     }
+
+    /**
+     * Quotes a string as required for use on a shell command line.
+     * I'm thinking of bash, but hopefully the rules will work
+     * reasonably well for any not-too-weird Un*x shell, and ideally
+     * other things like whatever MS Windows uses for a command line too.
+     *
+     * @param  txt   string to quote
+     * @return   text suitable for use on the command line;
+     *           some quoting may have been added if required
+     */
+    public static String shellQuote( String txt ) {
+        if ( txt == null ) {
+            return "";
+        }
+        else if ( SHELLSAFE_REGEX.matcher( txt ).matches() ) {
+            return txt;
+        }
+        else if ( txt.indexOf( '\'' ) < 0 ) {
+            return "'" + txt + "'";
+        }
+        else if ( txt.matches( "[^\"$`!\\\\]*" ) ) {
+            return "\"" + txt + "\"";
+        }
+        else {
+            return "'" + txt.replaceAll( "'", "'\\\\''" ) + "'";
+        }
+    }       
 }

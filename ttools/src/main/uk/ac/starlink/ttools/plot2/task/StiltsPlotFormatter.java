@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
@@ -32,7 +31,8 @@ import uk.ac.starlink.ttools.task.Setting;
 import uk.ac.starlink.ttools.task.SettingGroup;
 
 /**
- * Handles export of StiltsPlot objects to external serialization formats.
+ * Handles export of PlotStiltsCommand objects to external
+ * serialization formats.
  *
  * @author   Mark Taylor
  * @since    15 Sep 2017
@@ -50,8 +50,6 @@ public class StiltsPlotFormatter {
     private final TableNamer tableNamer_;
     private final Color syntaxColor_;
     private boolean forceError_;
-    private static final Pattern SAFE_REGEX =
-        Pattern.compile( "[a-zA-Z0-9,._+:@%/-]*" );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2.task" );
 
@@ -168,7 +166,8 @@ public class StiltsPlotFormatter {
      *                         the executable; probably incorrect parameter
      *                         assignments of some kind
      */
-    public Executable createExecutable( StiltsPlot plot ) throws TaskException {
+    public Executable createExecutable( PlotStiltsCommand plot )
+            throws TaskException {
 
         /* Populate an execution environment that will throw an
          * exception if there is an attempt to add the same parameter twice. */
@@ -212,7 +211,7 @@ public class StiltsPlotFormatter {
      * @return  plot display component
      * @see   AbstractPlot2Task#createPlotComponent
      */
-    public PlotDisplay<?,?> createPlotComponent( StiltsPlot plot,
+    public PlotDisplay<?,?> createPlotComponent( PlotStiltsCommand plot,
                                                  boolean caching )
             throws TaskException, IOException, InterruptedException {
         MapEnvironment env = new MapEnvironment();
@@ -227,7 +226,7 @@ public class StiltsPlotFormatter {
      *
      * @param   plot  plot speicification
      */
-    public StyledDocument createShellDocument( StiltsPlot plot ) {
+    public StyledDocument createShellDocument( PlotStiltsCommand plot ) {
         StyleContext context = StyleContext.getDefaultStyleContext();
         AttributeSet plain = context.getEmptySet();
         AttributeSet faint =
@@ -276,7 +275,7 @@ public class StiltsPlotFormatter {
                         getStyle( s.getCredibility(),
                                   keyStyle, warning1, warning2 );
                     String key = s.getKey();
-                    String val = shellQuote( s.getStringValue() );
+                    String val = Setting.shellQuote( s.getStringValue() );
                     int wleng = key.length() + 1 + val.length() + 1;
                     if ( nc + wleng + npre > cwidth_ && nc > npre ) {
                         addText( doc, prefixCont, faint );
@@ -347,7 +346,7 @@ public class StiltsPlotFormatter {
      * @param  plot   plot specification
      * @return   groups in plot specification
      */
-    private List<SettingGroup> getGroups( StiltsPlot plot ) {
+    private List<SettingGroup> getGroups( PlotStiltsCommand plot ) {
         List<SettingGroup> list =
             new ArrayList<SettingGroup>( Arrays.asList( plot.getGroups() ) );
         if ( forceError_ ) {
@@ -365,7 +364,8 @@ public class StiltsPlotFormatter {
      * @param  env  execution environment to populate;
      *              should probably be empty on entry
      */
-    private void populateEnvironment( StiltsPlot plot, MapEnvironment env ) {
+    private void populateEnvironment( PlotStiltsCommand plot,
+                                      MapEnvironment env ) {
         for ( SettingGroup g : getGroups( plot ) ) {
             for ( Setting s : getSettings( g ) ) {
                 String key = s.getKey();
@@ -435,34 +435,6 @@ public class StiltsPlotFormatter {
             default:
                 assert false;
                 return yesStyle;
-        }
-    }
-
-    /**
-     * Quotes a string as required for use on a shell command line.
-     * I'm thinking of bash, but hopefully the rules will work
-     * reasonably well for any not-too-weird Un*x shell, and ideally
-     * other things like whatever MS Windows uses for a command line too.
-     *
-     * @param  txt   string to quote
-     * @return   text suitable for use on the command line;
-     *           some quoting may have been added if required
-     */
-    private static String shellQuote( String txt ) {
-        if ( txt == null ) {
-            return "";
-        }
-        else if ( SAFE_REGEX.matcher( txt ).matches() ) {
-            return txt;
-        }
-        else if ( txt.indexOf( '\'' ) < 0 ) {
-            return "'" + txt + "'";
-        }
-        else if ( txt.matches( "[^\"$`!\\\\]*" ) ) {
-            return "\"" + txt + "\"";
-        }
-        else {
-            return "'" + txt.replaceAll( "'", "'\\\\''" ) + "'";
         }
     }
 
