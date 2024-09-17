@@ -30,6 +30,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.StringContent;
+import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -231,9 +232,15 @@ public class StiltsMonitor {
      * @return   scrolled component containing panel
      */
     public static JComponent wrapTextPanel( JTextComponent textPanel ) {
+        StyleContext styleContext = StyleContext.getDefaultStyleContext();
+        int fontHeight =
+            styleContext
+           .getFontMetrics( styleContext.getFont( styleContext.getEmptySet() ) )
+           .getHeight();
         JComponent noWrapPanel = new JPanel( new BorderLayout() );
         noWrapPanel.add( textPanel, BorderLayout.CENTER );
         JScrollPane scroller = new JScrollPane( noWrapPanel );
+        scroller.getVerticalScrollBar().setUnitIncrement( fontHeight );
         JComponent container = new JPanel( new BorderLayout() );
         container.add( scroller, BorderLayout.CENTER );
         container.setPreferredSize( new Dimension( 600, 180 ) );
