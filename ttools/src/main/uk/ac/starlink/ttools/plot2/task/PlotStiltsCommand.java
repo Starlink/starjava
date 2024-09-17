@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -14,10 +13,7 @@ import java.util.Set;
 import java.util.stream.IntStream;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.filter.SelectFilter;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -47,23 +43,17 @@ import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapeModePlotter;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
 import uk.ac.starlink.ttools.plot2.task.AbstractPlot2Task;
-import uk.ac.starlink.ttools.task.Credibility;
 import uk.ac.starlink.ttools.task.CredibleString;
 import uk.ac.starlink.ttools.task.FilterParameter;
 import uk.ac.starlink.ttools.task.InputTableParameter;
-import uk.ac.starlink.ttools.task.MapEnvironment;
 import uk.ac.starlink.ttools.task.Setting;
 import uk.ac.starlink.ttools.task.SettingGroup;
+import uk.ac.starlink.ttools.task.StiltsCommand;
 import uk.ac.starlink.ttools.task.TableNamer;
 import uk.ac.starlink.util.LoadException;
 
 /**
- * Represents an abstract model of a STILTS command line.
- * A list of parameter-value pairs along with basic parameter
- * grouping information is reprented.
- * There is no guarantee that the contents of this object
- * will correspond to a STILTS command that can actually be executed,
- * so care must be taken in assembling it.
+ * StiltsCommand subclass for plot2 commands.
  *
  * <p>Use a {@link StiltsPlotFormatter} instance to export this object into a
  * useful external form, such as a shell command line.
@@ -71,14 +61,10 @@ import uk.ac.starlink.util.LoadException;
  * @author   Mark Taylor
  * @since    15 Sep 2017
  */
-public class StiltsPlot {
+public class PlotStiltsCommand extends StiltsCommand {
 
-    private final AbstractPlot2Task task_;
-    private final String taskName_;
-    private final SettingGroup[] groups_;
+    private final AbstractPlot2Task plotTask_;
 
-    private static final Collection<String> autoFormatNames_ =
-        getAutoFormatNames();
     private static final ConfigKey<?>[] AUX_KEYS = getAuxKeys(); 
 
     /**
@@ -89,11 +75,10 @@ public class StiltsPlot {
      * @param  groups   all name-value pairs specifying the configuration
      *                  of the task, grouped for cosmetic purposes
      */
-    public StiltsPlot( AbstractPlot2Task task, String taskName,
-                       SettingGroup[] groups ) {
-        task_ = task;
-        taskName_ = taskName;
-        groups_ = groups;
+    public PlotStiltsCommand( AbstractPlot2Task task, String taskName,
+                              SettingGroup[] groups ) {
+        super( task, taskName, groups );
+        plotTask_ = task;
     }
 
     /**
@@ -102,28 +87,7 @@ public class StiltsPlot {
      * @return  plot task object
      */
     public AbstractPlot2Task getTask() {
-        return task_;
-    }
-
-    /**
-     * Returns the name of this object's plot task, as used by the
-     * stilts command line.
-     *
-     * @return  task name
-     */
-    public String getTaskName() {
-        return taskName_;
-    }
-
-    /**
-     * Returns an array of objects that together contain all the parameter
-     * settings required to specify this task to stilts.
-     * They are grouped for cosmetic purposes.
-     *
-     * @return  settings
-     */
-    public SettingGroup[] getGroups() {
-        return groups_;
+        return plotTask_;
     }
 
     /**
@@ -154,8 +118,8 @@ public class StiltsPlot {
      * @param  plotSpec  programmatic representation of a plot
      * @param  formatter  defines details of how formatting will take place
      */
-    public static <P,A> StiltsPlot createPlot( PlotSpec<P,A> plotSpec,
-                                               StiltsPlotFormatter formatter )
+    public static <P,A> PlotStiltsCommand
+            createPlot( PlotSpec<P,A> plotSpec, StiltsPlotFormatter formatter )
             throws LoadException {
         PlotType<P,A> plotType = plotSpec.getPlotType();
         Dimension extSize = plotSpec.getExtSize();
@@ -178,7 +142,7 @@ public class StiltsPlot {
         AbstractPlot2Task task = createTask( taskName );
 
         /* Global settings for the task. */
-        List<Setting> taskSettings = new ArrayList<Setting>();
+        List<Setting> taskSettings = new ArrayList<>();
         if ( extSize != null ) {
             Integer xp = Integer.valueOf( extSize.width );
             Integer yp = Integer.valueOf( extSize.height );
@@ -270,7 +234,7 @@ public class StiltsPlot {
             /* Work out the layer type and possibly associated shading type. */
             Plotter<?> plotter = lspec.getPlotter();
             final String ltype;
-            List<Setting> modeSettings = new ArrayList<Setting>();
+            List<Setting> modeSettings = new ArrayList<>();
             if ( plotter instanceof ShapeModePlotter ) {
                 ShapeModePlotter sPlotter = (ShapeModePlotter) plotter;
                 ShapeForm form = sPlotter.getForm();
@@ -337,7 +301,7 @@ public class StiltsPlot {
             extractCommonSettings( layerSettings.values() );
 
         /* Miscellaneous settings at the end. */
-        List<Setting> trailSettings = new ArrayList<Setting>();
+        List<Setting> trailSettings = new ArrayList<>();
         if ( lkeys.size() > 1 ) {
             Setting seqSetting =
                 createParamSetting( task.getSequenceParameter(),
@@ -357,7 +321,7 @@ public class StiltsPlot {
 
         /* Collect all the settings together and return them as a
          * plot object. */
-        List<SettingGroup> groups = new ArrayList<SettingGroup>();
+        List<SettingGroup> groups = new ArrayList<>();
         groups.addAll( toGroups( 1, taskSettings ) );
         groups.addAll( toGroups( 1, globalSettings ) );
         groups.addAll( toGroups( 1, commonZoneSettings ) );
@@ -376,8 +340,8 @@ public class StiltsPlot {
             groups.addAll( toGroups( 2, addSuffixes( lsettings, lkey ) ) );
         }
         groups.addAll( toGroups( 1, trailSettings ) );
-        return new StiltsPlot( task, taskName,
-                               groups.toArray( new SettingGroup[ 0 ] ) );
+        return new PlotStiltsCommand( task, taskName,
+                                      groups.toArray( new SettingGroup[ 0 ] ) );
     }
 
     /**
@@ -484,7 +448,7 @@ public class StiltsPlot {
      */
     private static List<Setting> addSuffixes( List<Setting> settings,
                                               String suffix ) {
-        List<Setting> outList = new ArrayList<Setting>( settings.size() );
+        List<Setting> outList = new ArrayList<>( settings.size() );
         for ( Setting s : settings ) {
             outList.add( s == null ? null : s.appendSuffix( suffix ) );
         }
@@ -568,26 +532,6 @@ public class StiltsPlot {
     }
 
     /**
-     * Quotes a string as required for use as one of the arguments within
-     * a STILTS filter command.
-     *
-     * @param  txt  string to quote
-     * @return   text suitable for use within a stilts parameter value;
-     *           some quoting may have been added if required
-     */
-    private static String argQuote( String txt ) {
-        boolean hasSquot = txt.indexOf( '\'' ) >= 0;
-        boolean hasDquot = txt.indexOf( '"' ) >= 0;
-        boolean hasSpace = txt.indexOf( ' ' ) >= 0;
-        if ( hasSquot || hasDquot || hasSpace ) {
-            return "\"" + txt.replaceAll( "\"", "\\\\\"" ) + "\"";
-        }
-        else {
-            return txt;
-        }
-    }
-
-    /**
      * Extracts a list of settings corresponding to a given list of
      * config keys.  The entries appearing in the output depend
      * on the supplied list of keys, not the entries that have been
@@ -649,40 +593,6 @@ public class StiltsPlot {
     }
 
     /**
-     * Creates a Setting corresponding to a given task parameter.
-     *
-     * @param   param  task parameter
-     * @param   tval   typed value for parameter
-     * @return   setting object
-     */
-    private static <T> Setting createParamSetting( Parameter<T> param,
-                                                   T tval ) {
-        String key = param.getName();
-        String value;
-        try {
-            value = param.objectToString( new MapEnvironment(), tval );
-        }
-        catch ( TaskException e ) {
-            assert false;
-            throw new RuntimeException();
-        }
-        String dflt = param.getStringDefault();
-        return new Setting( key, value, dflt );
-    }
-
-    /**
-     * Creates a Setting corresponding to a given task parameter,
-     * set to its default value.
-     *
-     * @param   param  task parameter
-     * @return   setting object
-     */
-    private static Setting createDefaultParamSetting( Parameter<?> param ) {
-        String dflt = param.getStringDefault();
-        return new Setting( param.getName(), dflt, dflt );
-    }
-
-    /**
      * Sets the default value of a setting to its current value.
      * This has the effect of making it hidden in the (usual) case
      * where only non-default setting values are exported.
@@ -704,56 +614,22 @@ public class StiltsPlot {
      */
     private static List<Setting>
             createInputTableSettings( LayerSpec lspec, TableNamer namer ) {
-        List<Setting> settings = new ArrayList<Setting>();
+        List<Setting> settings = new ArrayList<>();
         StarTable table = lspec.getTable();
-        String suffix = "";
         if ( table != null ) {
-
-            /* Table name. */
+            CredibleString selection = lspec.getSelectExpr();
+            String suffix = "";
             InputTableParameter inParam =
                 AbstractPlot2Task.createTableParameter( suffix );
-            CredibleString naming = namer.nameTable( table );
-            Credibility nameCred = naming.getCredibility();
-            Setting tableSetting =
-                new Setting( inParam.getName(), naming.getValue(), null );
-            tableSetting.setObjectValue( table );
-            tableSetting.setCredibility( nameCred );
-            settings.add( tableSetting );
-
-            /* Input format. */
-            if ( nameCred == Credibility.YES ||
-                 nameCred == Credibility.MAYBE ) {
-                Parameter<String> fmtParam = inParam.getFormatParameter();
-                TableBuilder tfmt = namer.getTableFormat( table );
-                final Setting tfmtSetting;
-                if ( tfmt != null ) {
-                    String fmtName = tfmt.getFormatName();
-                    tfmtSetting = autoFormatNames_.contains( fmtName )
-                                ? createDefaultParamSetting( fmtParam )
-                                : createParamSetting( fmtParam, fmtName );
-                }
-                else {
-                    tfmtSetting = createDefaultParamSetting( fmtParam );
-                    tfmtSetting.setCredibility( Credibility.MAYBE );
-                }
-                settings.add( tfmtSetting );
-            }
-
-            /* Row selection. */
-            CredibleString selection = lspec.getSelectExpr();
-            if ( selection != null ) {
-                FilterParameter filterParam =
-                    AbstractPlot2Task.createFilterParameter( suffix, inParam );
-                String filterCmd = new SelectFilter().getName()
-                                 + " "
-                                 + argQuote( selection.getValue() );
-                Setting selectSetting =
-                    new Setting( filterParam.getName(), filterCmd, null );
-                selectSetting.setCredibility( selection.getCredibility() );
-                settings.add( selectSetting );
-            }
+            FilterParameter filterParam =
+                AbstractPlot2Task.createFilterParameter( suffix, inParam );
+            return StiltsCommand
+                  .createInputTableSettings( inParam, table, namer,
+                                             filterParam, selection );
         }
-        return settings;
+        else {
+            return Collections.emptyList();
+        }
     }
 
     /**
@@ -764,7 +640,7 @@ public class StiltsPlot {
      * @return   list of zero or more setting objects
      */
     private static List<Setting> createCoordSettings( LayerSpec lspec ) {
-        List<Setting> settings = new ArrayList<Setting>();
+        List<Setting> settings = new ArrayList<>();
 
         /* Add coordinate values if any. */
         for ( CoordSpec cspec : lspec.getCoordSpecs() ) {
@@ -892,55 +768,6 @@ public class StiltsPlot {
         else {
             return Collections.emptyList();
         }
-    }
-
-    /**
-     * Groups a list of settings into zero or more SettingGroups.
-     * A group is created for each non-empty run of Settings in the
-     * input list that does not contain a null value; nulls are
-     * effectively recognised as group terminators.
-     *
-     * @param  level  level for all returned groups
-     * @param  settings  input list of settings
-     * @return   list of groups containing all the input settings
-     */
-    private static List<SettingGroup> toGroups( int level,
-                                                List<Setting> settings ) {
-        List<Setting> inList = new ArrayList<>( settings );
-        inList.add( null );
-        List<SettingGroup> glist = new ArrayList<>();
-        List<Setting> slist = new ArrayList<>();
-        for ( Setting s : inList ) {
-            if ( s != null ) {
-                slist.add( s );
-            }
-            else if ( slist.size() > 0 ) {
-                Setting[] line = slist.toArray( new Setting[ 0 ] );
-                glist.add( new SettingGroup( level, line ) );
-                slist = new ArrayList<>();
-            }
-        }
-        return glist;
-    }
-
-    /**
-     * Returns the list of table input handlers that correspond to
-     * input formats which can be auto-detected.
-     * For these, the default "ifmt=(auto)" setting will work.
-     *
-     * @return  auto-detected format name list
-     */
-    private static Collection<String> getAutoFormatNames() {
-        Collection<String> list = new HashSet<String>();
-        for ( Object obj : new StarTableFactory().getDefaultBuilders() ) {
-            if ( obj instanceof TableBuilder ) {
-                list.add( ((TableBuilder) obj).getFormatName() );
-            }
-            else {
-                assert false;
-            }
-        }
-        return list;
     }
 
     /**

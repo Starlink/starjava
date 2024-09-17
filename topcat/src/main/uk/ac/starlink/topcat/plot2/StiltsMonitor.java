@@ -38,8 +38,8 @@ import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.plot2.task.PlotSpec;
+import uk.ac.starlink.ttools.plot2.task.PlotStiltsCommand;
 import uk.ac.starlink.ttools.plot2.task.StiltsPlotFormatter;
-import uk.ac.starlink.ttools.plot2.task.StiltsPlot;
 import uk.ac.starlink.ttools.task.LineInvoker;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
@@ -281,7 +281,8 @@ public class StiltsMonitor {
      * @return   dialogue ready to display
      */
     private static JDialog
-            createExecutionDialog( Component parent, final StiltsPlot plot,
+            createExecutionDialog( Component parent,
+                                   final PlotStiltsCommand plot,
                                    final StiltsPlotFormatter formatter,
                                    final boolean useCache ) {
 
@@ -420,9 +421,9 @@ public class StiltsMonitor {
     private static StiltsState
             createStiltsState( PlotSpec<?,?> plotSpec,
                                StiltsPlotFormatter formatter ) {
-        StiltsPlot sp;
+        PlotStiltsCommand plot;
         try {
-            sp = StiltsPlot.createPlot( plotSpec, formatter );
+            plot = PlotStiltsCommand.createPlot( plotSpec, formatter );
         }
         catch ( Exception err ) {
             String errtxt = "???";
@@ -430,7 +431,7 @@ public class StiltsMonitor {
                                     StiltsPlotFormatter
                                    .createBasicDocument( errtxt ) );
         }
-        StyledDocument doc = formatter.createShellDocument( sp );
+        StyledDocument doc = formatter.createShellDocument( plot );
         String txt;
         try {
             txt = doc.getText( 0, doc.getLength() );
@@ -441,20 +442,20 @@ public class StiltsMonitor {
         }
         Throwable err;
         try {
-            formatter.createExecutable( sp );
+            formatter.createExecutable( plot );
             err = null;
         }
         catch ( Throwable e ) {
             err = e;
         }
-        return new StiltsState( sp, formatter, txt, err, doc );
+        return new StiltsState( plot, formatter, txt, err, doc );
     }
 
     /**
      * Defines the result of trying to serialize a PlotSpec to a STILTS command.
      */
     private static class StiltsState {
-        final StiltsPlot plot_;
+        final PlotStiltsCommand plot_;
         final StiltsPlotFormatter formatter_;
         final String text_;
         final Throwable error_;
@@ -463,7 +464,7 @@ public class StiltsMonitor {
         /**
          * Constructor.
          *
-         * @param  plot  plot spedification
+         * @param  plot  plot specification
          * @param  formatter   formatting object
          * @param  text  text of the STILTS command, not null
          * @param  error   error produced when trying to regenerate a
@@ -472,7 +473,7 @@ public class StiltsMonitor {
          * @param  doc   styled document to display showing stilts command,
          *               or possibly error message
          */
-        StiltsState( StiltsPlot plot, StiltsPlotFormatter formatter,
+        StiltsState( PlotStiltsCommand plot, StiltsPlotFormatter formatter,
                      String text, Throwable error, StyledDocument doc ) {
             plot_ = plot;
             formatter_ = formatter;
