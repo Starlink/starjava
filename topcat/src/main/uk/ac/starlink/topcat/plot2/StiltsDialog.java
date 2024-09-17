@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxDialog;
 import uk.ac.starlink.topcat.MenuSelector;
+import uk.ac.starlink.topcat.TopcatTableNamer;
 import uk.ac.starlink.ttools.plot2.task.PlotCommandFormatter;
 import uk.ac.starlink.ttools.plot2.task.Suffixer;
 import uk.ac.starlink.ttools.task.CommandFormatter;
@@ -93,7 +94,7 @@ public class StiltsDialog extends AuxDialog {
                                         StiltsControl.LAYER_SUFFIXERS );
         tableNamerSelector_ =
             new MenuSelector<TableNamer>( "Table Names",
-                                          TopcatLayer.getLayerTableNamers() );
+                                          TopcatTableNamer.getTableNamers() );
         dfltsToggle_ = new JCheckBoxMenuItem( "Include Defaults" );
         lineEnderSelector_ =
             new MenuSelector<LineEnder>( "Line Endings", LineEnder.OPTIONS,

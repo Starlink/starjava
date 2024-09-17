@@ -19,6 +19,7 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.ToggleButtonModel;
+import uk.ac.starlink.topcat.TopcatTableNamer;
 import uk.ac.starlink.ttools.plot2.task.PlotCommandFormatter;
 import uk.ac.starlink.ttools.plot2.task.Suffixer;
 import uk.ac.starlink.ttools.task.CommandFormatter;
@@ -174,7 +175,7 @@ public class StiltsControl extends TabberControl {
             layerSuffixSelector_
                .setSelectedItem( layerSuffixSelector_.getItemAt( 0 ) );
             tableNamerSelector_ =
-                new JComboBox<TableNamer>( TopcatLayer.getLayerTableNamers() );
+                new JComboBox<TableNamer>( TopcatTableNamer.getTableNamers() );
             tableNamerSelector_
                .setSelectedItem( tableNamerSelector_.getItemAt( 0 ) );
             dfltsButton_ = new JCheckBox();
