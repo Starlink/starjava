@@ -2,9 +2,7 @@ package uk.ac.starlink.util;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -24,12 +22,11 @@ import java.util.logging.Logger;
 public class ObjectFactory<T> {
 
     private final Class<T> superClass_;
-    private Map<String,String> nameMap_ = new HashMap<String,String>();
-    private List<String> nameList_ = new ArrayList<String>();
+    private final Map<String,String> nameMap_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.util" );
- 
+
     /**
      * Constructor.  
      *
@@ -38,6 +35,7 @@ public class ObjectFactory<T> {
      */
     public ObjectFactory( Class<T> clazz ) {
         superClass_ = clazz;
+        nameMap_ = new LinkedHashMap<String,String>();
     }
 
     /**
@@ -57,7 +55,6 @@ public class ObjectFactory<T> {
      * @param className  fully-qualified class name
      */
     public void register( String nickName, String className ) {
-        nameList_.add( nickName );
         nameMap_.put( nickName, className );
     }
 
@@ -67,7 +64,7 @@ public class ObjectFactory<T> {
      * @return  nickname array
      */
     public String[] getNickNames() {
-        return nameList_.toArray( new String[ 0 ] );
+        return nameMap_.keySet().toArray( new String[ 0 ] );
     }
 
     /**
@@ -171,5 +168,23 @@ public class ObjectFactory<T> {
         }
         config.configBean( target );
         return target;
+    }
+
+    /**
+     * Returns the nickname corresponding to the no-arg constructor of
+     * the given class.
+     *
+     * @param   clazz  class to be constructed by this factory
+     * @return  nickname associated with no-arg constructor of supplied class,
+     *          or null
+     */
+    public String getNickName( Class<? extends T> clazz ) {
+        String cname = clazz.getName();
+        for ( Map.Entry<String,String> entry : nameMap_.entrySet() ) {
+            if ( entry.getValue().equals( cname ) ) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 }
