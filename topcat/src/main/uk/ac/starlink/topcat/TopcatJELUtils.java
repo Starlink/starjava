@@ -16,6 +16,7 @@ import gnu.jel.CompilationException;
 import gnu.jel.Library;
 import gnu.jel.Evaluator;
 import java.util.Date;
+import javax.swing.ComboBoxModel;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.gui.StarTableColumn;
@@ -409,6 +410,64 @@ public class TopcatJELUtils extends JELUtils {
     }
 
     /**
+     * Returns a JEL expression for the value given by a column selector.
+     * Converters are accounted for.
+     *
+     * @param  tcModel  topcat model
+     * @param  colSelector   column selector
+     * @return  JEL expression
+     */
+    public static String getDataExpression( TopcatModel tcModel,
+                                            ColumnSelector colSelector ) {
+        String colLabel = colSelector.getStringValue();
+        if ( colLabel == null || colLabel.trim().length() == 0 ) {
+            return null;
+        }
+        ComboBoxModel<ColumnConverter> converterModel =
+            colSelector.getModel().getConverterModel();
+        ColumnConverter converter =
+            (ColumnConverter)
+            colSelector.getModel().getConverterModel().getSelectedItem();
+        String dataExpr = getDataExpression( tcModel, colLabel );
+        return converter.convertExpression( dataExpr );
+    }
+
+    /**
+     * Returns a JEL expression for the value in a given angular unit
+     * represented by a column selector that reads angular data.
+     * The selector's ColumnConverter should be an AngleColumnConverter.
+     * If it's not, a strong warning will be issued through the logging system.
+     *
+     * @param   tcModel  topcat model
+     * @param  angleSelector  selector for an angular quantity
+     * @param  unit  required angular unit
+     * @return  JEL expression for selected value, in requested unit
+     */
+    public static String getAngleExpression( TopcatModel tcModel,
+                                             ColumnSelector angleSelector,
+                                             AngleColumnConverter.Unit unit ) {
+        String colLabel = angleSelector.getStringValue();
+        if ( colLabel == null || colLabel.trim().length() == 0 ) {
+            return null;
+        }
+        ComboBoxModel<ColumnConverter> converterModel =
+            angleSelector.getModel().getConverterModel();
+        ColumnConverter converter =
+            (ColumnConverter)
+            angleSelector.getModel().getConverterModel().getSelectedItem();
+        String dataExpr = getDataExpression( tcModel, colLabel );
+        if ( converter instanceof AngleColumnConverter ) {
+            return ((AngleColumnConverter) converter)
+                  .angleExpression( dataExpr, unit );
+        }
+        else {
+            logger.severe( "Programming error: "
+                         + "degrees sought from non-angle quantity" );
+            return dataExpr;
+        }
+    }
+
+    /**
      * Returns a single JEL-friendly expression which may be used to
      * reference a GuiCoordContent, if possible.
      * This will only succeed (return a non-null value) if the
@@ -454,8 +513,8 @@ public class TopcatJELUtils extends JELUtils {
      * @param  tcModel  topcat model
      * @param  label    textual identifier for data
      */
-    private static String getDataExpression( TopcatModel tcModel,
-                                             String label ) {
+    public static String getDataExpression( TopcatModel tcModel,
+                                            String label ) {
         if ( label == null ) {
             return null;
         }
