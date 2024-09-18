@@ -601,6 +601,49 @@ public class TopcatJELUtils extends JELUtils {
     }
 
     /**
+     * Provides grouping as required for a given JEL expression.
+     * The resulting string can have multiplication-like operations
+     * applied, for instance just adding "*x".
+     * Basically, it checks if the input has embedded "+" or "-" signs
+     * and if so wraps it in parentheses.
+     *
+     * <p>This is not bulletproof, but will generally do the right thing.
+     *
+     * @param  expr  input JEL expression
+     * @return  equivalent expression suitable for multiplication etc,
+     *          best efforts
+     */
+    public static String groupForMultiply( String expr ) {
+        expr = expr.trim();
+        return expr.replaceAll( "^[-+]", "" ).matches( ".*[-+].*" )
+             ? "(" + expr + ")"
+             : expr;
+    }
+
+    /**
+     * Returns a JEL expression multiplied by a factor.
+     *
+     * @param  expr  base JEL expression
+     * @param  factor  factor to multiply by
+     * @return   JEL expression representing expr * factor
+     */
+    public static String multiplyExpression( String expr, double factor ) {
+        expr = expr.trim();
+        if ( factor == 1.0 ) {
+            return expr;
+        }
+        if ( factor == 0.0 ) {
+            return "0";
+        }
+        return new StringBuffer()
+              .append( groupForMultiply( expr ) )
+              .append( "*" )
+              .append( factor == (long) factor ? Long.toString( (long) factor )
+                                               : Double.toString( factor ) )
+              .toString();
+    }
+
+    /**
      * Returns a JEL expression that characterises a univariate range of values.
      *
      * @param   expr  JEL expression whose value is to be constrained
