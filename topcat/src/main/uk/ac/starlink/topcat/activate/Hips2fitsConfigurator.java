@@ -14,6 +14,7 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.ActionForwarder;
+import uk.ac.starlink.topcat.AngleColumnConverter;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.ImageWindow;
 import uk.ac.starlink.topcat.IntSelector;
@@ -71,7 +72,8 @@ public abstract class Hips2fitsConfigurator extends SkyPosConfigurator {
             new ColumnSelector( tcModel_.getColumnSelectorModel( FOV_INFO ),
                                 false );
         boolean fovStatus =
-            fovSelector_.getModel().setTextValue( "1.0", "degrees" );
+            fovSelector_.getModel()
+           .setTextValue( "1.0", AngleColumnConverter.Unit.DEGREE.toString() );
         if ( ! fovStatus ) {
             logger_.warning( "FOV configuration failed" );
         }

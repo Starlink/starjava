@@ -1,8 +1,8 @@
 package uk.ac.starlink.topcat;
 
+import java.util.Arrays;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.ttools.func.CoordsRadians;
 
 /**
  * Performs unit conversions on data values based on a given ValueInfo.
@@ -12,6 +12,18 @@ import uk.ac.starlink.ttools.func.CoordsRadians;
  */
 public abstract class ColumnConverter {
 
+    private static final AngleColumnConverter[] LON_TO_RADIAN_CONVERTERS =
+        toRadianConverters( AngleColumnConverter.Unit.DEGREE,
+                            AngleColumnConverter.Unit.HOUR,
+                            AngleColumnConverter.Unit.RADIAN );
+    private static final AngleColumnConverter[] LAT_TO_RADIAN_CONVERTERS =
+        toRadianConverters( AngleColumnConverter.Unit.DEGREE,
+                            AngleColumnConverter.Unit.RADIAN );
+    private static final AngleColumnConverter[] ANGLE_TO_RADIAN_CONVERTERS =
+        toRadianConverters( AngleColumnConverter.Unit.ARCSEC,
+                            AngleColumnConverter.Unit.ARCMIN,
+                            AngleColumnConverter.Unit.DEGREE );
+
     /**
      * Converts a value from its raw value to the value required for
      * a particular purpose.
@@ -20,6 +32,15 @@ public abstract class ColumnConverter {
      * @return   converted value
      */
     public abstract Object convertValue( Object value );
+
+    /**
+     * Returns a JEL expression for the converted value of a supplied
+     * unconverted input expression.
+     *
+     * @param  inExpr  input unconverted expression, assumed JEL-friendly
+     * @return  JEL expression for converted value
+     */
+    public abstract String convertExpression( String inExpr );
 
     /**
      * Provides a user-understandable description of what this converter
@@ -46,11 +67,7 @@ public abstract class ColumnConverter {
              Number.class.isAssignableFrom( clazz ) &&
              ( "radians".equalsIgnoreCase( units ) ||
                "rad".equalsIgnoreCase( units ) ) ) {
-            return new ColumnConverter[] {
-                new FactorConverter( "degrees", CoordsRadians.DEGREE_RADIANS ),
-                new FactorConverter( "hours", CoordsRadians.HOUR_RADIANS ),
-                new UnitConverter( "radians" ),
-            };
+            return LON_TO_RADIAN_CONVERTERS;
         }
 
         /* Does the column represent a declination? */
@@ -58,10 +75,7 @@ public abstract class ColumnConverter {
                   Number.class.isAssignableFrom( clazz ) &&
                   ( "radians".equalsIgnoreCase( units ) ||
                     "rad".equalsIgnoreCase( units ) ) ) {
-            return new ColumnConverter[] {
-                new FactorConverter( "degrees", CoordsRadians.DEGREE_RADIANS ),
-                new UnitConverter( "radians" ),
-            };
+            return LAT_TO_RADIAN_CONVERTERS;
         }
 
         /* Does the column represent some other kind of angle?  If so, 
@@ -69,15 +83,7 @@ public abstract class ColumnConverter {
         else if ( Number.class.isAssignableFrom( clazz ) &&
                   ( "radians".equalsIgnoreCase( units ) ||
                     "rad".equalsIgnoreCase( units ) ) ) {
-            return new ColumnConverter[] {
-                new FactorConverter( "arcsec",
-                                     CoordsRadians.ARC_SECOND_RADIANS ),
-                new FactorConverter( "arcmin",
-                                     CoordsRadians.ARC_MINUTE_RADIANS ),
-                new FactorConverter( "degrees",
-                                     CoordsRadians.DEGREE_RADIANS ),
-                new UnitConverter( "radians" ),
-            };
+            return ANGLE_TO_RADIAN_CONVERTERS;
         }
 
         /* Currently, there are no other converters in use.  Return a 
@@ -85,6 +91,20 @@ public abstract class ColumnConverter {
         else {
             return new ColumnConverter[] { new UnitConverter( units ) };
         }
+    }
+
+    /**
+     * Creates an array of AngleColumnConverters that convert to radians,
+     * one for each element of the supplied Unit array.
+     *
+     * @param  units   unit array
+     * @return   array of converters from input unit to radians
+     */
+    private static AngleColumnConverter[]
+            toRadianConverters( AngleColumnConverter.Unit... units ) {
+        return Arrays.stream( units )
+              .map( AngleColumnConverter::toRadianConverter )
+              .toArray( n -> new AngleColumnConverter[ n ] );
     }
 
     /** 
@@ -113,6 +133,9 @@ public abstract class ColumnConverter {
         public Object convertValue( Object value ) {
             return value;
         }
+        public String convertExpression( String expr ) {
+            return expr;
+        }
         public String toString() {
             return name_;
         }
@@ -132,6 +155,9 @@ public abstract class ColumnConverter {
             return value instanceof Number 
                  ? Double.valueOf( ((Number) value).doubleValue() * factor_ )
                  : null;
+        }
+        public String convertExpression( String expr ) {
+            return TopcatJELUtils.multiplyExpression( expr, factor_ );
         }
         public String toString() {
             return name_;

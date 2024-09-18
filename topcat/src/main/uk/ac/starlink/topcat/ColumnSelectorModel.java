@@ -181,7 +181,7 @@ public class ColumnSelectorModel {
                 ColumnConverter convItem = null;
                 for ( int i = 0; i < convChooser_.getSize(); i++ ) {
                     ColumnConverter conv = convChooser_.getElementAt( i );
-                    if ( conv.toString().equals( convTxt ) ) {
+                    if ( conv.toString().equalsIgnoreCase( convTxt ) ) {
                         convItem = conv;
                     }
                 }
