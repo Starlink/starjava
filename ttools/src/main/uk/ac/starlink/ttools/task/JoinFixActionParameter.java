@@ -16,6 +16,47 @@ import uk.ac.starlink.task.TaskException;
 public class JoinFixActionParameter
              extends ChoiceParameter<JoinFixActionParameter.Fixer> {
 
+    /* Option which does not alter column names. */
+    public static final Fixer NONE =
+            new Fixer( "none", "columns are not renamed" ) {
+        public JoinFixAction createAction( Environment env,
+                                           StringParameter suffixParam )
+                throws TaskException {
+            return JoinFixAction.NO_ACTION;
+        }
+    };
+
+    /* Option which appends a suffix to duplicated column names. */
+    public static final Fixer DUPS =
+            new Fixer( "dups",
+                       "columns which would otherwise have duplicate "
+                     + "names in the output will be renamed "
+                     + "to indicate which table they came from" ) {
+        public JoinFixAction createAction( Environment env,
+                                           StringParameter suffixParam )
+                throws TaskException {
+            String suffix = suffixParam.stringValue( env );
+            return suffix == null || suffix.trim().length() == 0
+                 ? JoinFixAction.NO_ACTION
+                 : JoinFixAction.makeRenameDuplicatesAction( suffix );
+        }
+    };
+
+    /* Option which appends a suffix to all column names. */
+    public static final Fixer ALL =
+            new Fixer( "all",
+                       "all columns will be renamed to indicate "
+                     + "which table they came from" ) {
+        public JoinFixAction createAction( Environment env,
+                                           StringParameter suffixParam )
+                throws TaskException {
+            String suffix = suffixParam.stringValue( env );
+            return suffix == null || suffix.trim().length() == 0
+                 ? JoinFixAction.NO_ACTION
+                 : JoinFixAction.makeRenameAllAction( suffix );
+        }
+    };
+
     /**
      * Constructor.
      *
@@ -23,49 +64,9 @@ public class JoinFixActionParameter
      */
     @SuppressWarnings("this-escape")
     public JoinFixActionParameter( String name ) {
-        super( name, Fixer.class );
+        super( name, Fixer.class, new Fixer[] { NONE, DUPS, ALL } );
         setPrompt( "Whether and how to rename input columns" );
-        String dflt;
-
-        /* Option which does not alter column names. */
-        addOption( new Fixer( "none", "columns are not renamed" ) {
-            public JoinFixAction createAction( Environment env,
-                                               StringParameter suffixParam )
-                    throws TaskException {
-                return JoinFixAction.NO_ACTION;
-            }
-        } );
-
-        /* Option which appends a suffix to duplicated column names. */
-        addOption( new Fixer( dflt = "dups",
-                              "columns which would otherwise have duplicate "
-                            + "names in the output will be renamed "
-                            + "to indicate which table they came from" ) {
-            public JoinFixAction createAction( Environment env,
-                                               StringParameter suffixParam )
-                    throws TaskException {
-                String suffix = suffixParam.stringValue( env );
-                return suffix == null || suffix.trim().length() == 0
-                     ? JoinFixAction.NO_ACTION
-                     : JoinFixAction.makeRenameDuplicatesAction( suffix );
-            }
-        } );
-
-        /* Option which appends a suffix to all column names. */
-        addOption( new Fixer( "all",
-                              "all columns will be renamed to indicate "
-                            + "which table they came from" ) {
-            public JoinFixAction createAction( Environment env,
-                                               StringParameter suffixParam )
-                    throws TaskException {
-                String suffix = suffixParam.stringValue( env );
-                return suffix == null || suffix.trim().length() == 0
-                     ? JoinFixAction.NO_ACTION
-                     : JoinFixAction.makeRenameAllAction( suffix );
-            }
-        } );
-
-        setStringDefault( dflt );
+        setDefaultOption( DUPS );
         StringBuffer dbuf = new StringBuffer()
             .append( "<p>Determines how input columns are renamed before\n" )
             .append( "use in the output table.  The choices are:\n" )
@@ -168,7 +169,7 @@ public class JoinFixActionParameter
     /**
      * Helper class which defines how suffixes are turned into JoinFixActions.
      */
-    public abstract class Fixer {
+    public static abstract class Fixer {
 
         private final String name_;
         private final String description_;

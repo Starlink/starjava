@@ -9,6 +9,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import uk.ac.starlink.table.JoinFixAction;
+import uk.ac.starlink.ttools.task.JoinFixActionParameter;
 
 /**
  * Component for selecting a column renaming policy, used when joining tables.
@@ -47,10 +48,29 @@ public class JoinFixSelector extends JPanel {
      * @return  join fix action
      */
     public JoinFixAction getJoinFixAction() {
-        Scope scope =
-            scopeSelector_.getItemAt( scopeSelector_.getSelectedIndex() );
+        Scope scope = getScope();
         String suffix = suffixField_.getText();
         return scope.createFixAct( suffix );
+    }
+
+    /**
+     * Returns the STILTS parameter value
+     * corresponding to the current selection.
+     *
+     * @return  fixer
+     */
+    public JoinFixActionParameter.Fixer getFixer() {
+        return getScope().fixer_;
+    }
+
+    /**
+     * Returns the fixer suffix corresponding to the current selection,
+     * or null if the current selection doesn't make use of a suffix.
+     *
+     * @return   fixer suffix, or null if not applicable
+     */
+    public String getFixerSuffix() {
+        return getScope().usesSuffix_ ? suffixField_.getText() : null;
     }
 
     /**
@@ -60,6 +80,15 @@ public class JoinFixSelector extends JPanel {
      */
     public JTextField getSuffixField() {
         return suffixField_;
+    }
+
+    /**
+     * Returns the currently selected scope.
+     *
+     * @return  scope
+     */
+    private Scope getScope() {
+        return scopeSelector_.getItemAt( scopeSelector_.getSelectedIndex() );
     }
 
     @Override
@@ -73,37 +102,41 @@ public class JoinFixSelector extends JPanel {
     private enum Scope {
 
         /** Rename no columns. */
-        NONE( "None", false ) {
+        NONE( "None", false, JoinFixActionParameter.NONE ) {
             JoinFixAction createFixAct( String suffix ) {
                 return JoinFixAction.NO_ACTION;
             }
         },
 
         /** Rename columns with duplicate names. */
-        DUPS( "Duplicates", true ) {
+        DUPS( "Duplicates", true, JoinFixActionParameter.DUPS ) {
             JoinFixAction createFixAct( String suffix ) {
                 return JoinFixAction.makeRenameDuplicatesAction( suffix );
             }
         },
 
         /** Rename all columns. */
-        ALL( "All", true ) {
+        ALL( "All", true, JoinFixActionParameter.ALL ) {
             JoinFixAction createFixAct( String suffix ) {
                 return JoinFixAction.makeRenameAllAction( suffix );
             }
         };
         final String name_;
         final boolean usesSuffix_;
+        final JoinFixActionParameter.Fixer fixer_;
 
         /**
          * Constructor.
          *
          * @param  name  scope name, user-readable
          * @param  usesSuffix  true iff suffix is not ignored
+         * @param  fixer  STILTS parameter value corresponding to this scope
          */
-        Scope( String name, boolean usesSuffix ) {
+        Scope( String name, boolean usesSuffix,
+               JoinFixActionParameter.Fixer fixer ) {
             name_ = name;
             usesSuffix_ = usesSuffix;
+            fixer_ = fixer;
         }
 
         /**
