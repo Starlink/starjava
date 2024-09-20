@@ -60,20 +60,20 @@ import uk.ac.starlink.ttools.task.RowRunnerParameter;
  */
 public class MatchWindow extends AuxWindow implements ItemListener {
 
-    private final int nTable;
-    private final JComboBox<MatchEngine> engineSelector;
-    private final Map<MatchEngine,MatchSpec> matchSpecs;
-    private final CardLayout paramCards;
-    private final JComponent paramContainer;
-    private final JTextArea logArea;
-    private final JScrollPane logScroller;
-    private final JScrollPane specScroller;
-    private final Action startAct;
-    private final Action stopAct;
-    private final JProgressBar progBar;
-    private final ToggleButtonModel profileModel;
-    private final ToggleButtonModel parallelModel;
-    private MatchProgressIndicator currentIndicator;
+    private final int nTable_;
+    private final JComboBox<MatchEngine> engineSelector_;
+    private final Map<MatchEngine,MatchSpec> matchSpecs_;
+    private final CardLayout paramCards_;
+    private final JComponent paramContainer_;
+    private final JTextArea logArea_;
+    private final JScrollPane logScroller_;
+    private final JScrollPane specScroller_;
+    private final Action startAct_;
+    private final Action stopAct_;
+    private final JProgressBar progBar_;
+    private final ToggleButtonModel profileModel_;
+    private final ToggleButtonModel parallelModel_;
+    private MatchProgressIndicator currentIndicator_;
 
     /**
      * Constructs a new MatchWindow.
@@ -84,31 +84,31 @@ public class MatchWindow extends AuxWindow implements ItemListener {
     @SuppressWarnings("this-escape")
     public MatchWindow( Component parent, int nTable ) {
         super( "Match Tables", parent );
-        this.nTable = nTable;
-        matchSpecs = new HashMap<MatchEngine,MatchSpec>();
+        nTable_ = nTable;
+        matchSpecs_ = new HashMap<MatchEngine,MatchSpec>();
 
         /* Get the list of all the match engines we know about. */
         MatchEngine[] engines = getEngines();
         int nEngine = engines.length;
 
         /* Prepare specific parameter fields for each engine. */
-        paramCards = new CardLayout();
-        paramContainer = new JPanel( paramCards );
+        paramCards_ = new CardLayout();
+        paramContainer_ = new JPanel( paramCards_ );
         final ParameterPanel[] paramPanels = new ParameterPanel[ nEngine ];
         for ( int i = 0; i < nEngine; i++ ) {
             MatchEngine engine = engines[ i ];
             paramPanels[ i ] = new ParameterPanel( engine );
-            paramContainer.add( paramPanels[ i ], labelFor( engine ) );
+            paramContainer_.add( paramPanels[ i ], labelFor( engine ) );
         }
 
         /* Prepare a combo box which can select the engines. */
-        engineSelector = new JComboBox<MatchEngine>( engines );
-        engineSelector.addItemListener( this );
+        engineSelector_ = new JComboBox<MatchEngine>( engines );
+        engineSelector_.addItemListener( this );
 
         /* Set up an action to start the match. */
-        startAct = new MatchAction( "Go", null, "Perform the match" );
-        stopAct = new MatchAction( "Stop", null, "Cancel the calculation" );
-        stopAct.setEnabled( false );
+        startAct_ = new MatchAction( "Go", null, "Perform the match" );
+        stopAct_ = new MatchAction( "Stop", null, "Cancel the calculation" );
+        stopAct_.setEnabled( false );
 
         /* Set up an action to display tuning information. */
         final ToggleButtonModel tuningModel =
@@ -120,19 +120,19 @@ public class MatchWindow extends AuxWindow implements ItemListener {
                 for ( int i = 0; i < paramPanels.length; i++ ) {
                     paramPanels[ i ].setTuningVisible( showTuning );
                 }
-                paramContainer.revalidate();
+                paramContainer_.revalidate();
             }
         } );
 
         /* Set up an action to control parallel implementation. */
-        parallelModel =
+        parallelModel_ =
             new ToggleButtonModel( "Parallel execution", ResourceIcon.PARALLEL,
                                    "Set to run match using multithreaded "
                                  + "execution" );
-        parallelModel.setSelected( true );
+        parallelModel_.setSelected( true );
 
         /* Set up an action to perform profiling during match. */
-        profileModel =
+        profileModel_ =
             new ToggleButtonModel( "Full Profiling", ResourceIcon.PROFILE,
                                    "Determine and show timing and memory "
                                  + "profiling information in calculation log" );
@@ -140,9 +140,9 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         /* Place the components. */
         Box buttonBox = Box.createHorizontalBox();
         buttonBox.add( Box.createHorizontalGlue() );
-        buttonBox.add( new JButton( startAct ) );
+        buttonBox.add( new JButton( startAct_ ) );
         buttonBox.add( Box.createHorizontalStrut( 10 ) );
-        buttonBox.add( new JButton( stopAct ) );
+        buttonBox.add( new JButton( stopAct_ ) );
         buttonBox.add( Box.createHorizontalGlue() );
         getControlPanel().add( buttonBox );
 
@@ -150,18 +150,18 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         main.setLayout( new BorderLayout() );
         Box common = Box.createVerticalBox();
         main.add( common, BorderLayout.NORTH );
-        specScroller = new JScrollPane();
-        main.add( specScroller, BorderLayout.CENTER );
+        specScroller_ = new JScrollPane();
+        main.add( specScroller_, BorderLayout.CENTER );
 
         Box engineBox = Box.createVerticalBox();
         Box line;
         line = Box.createHorizontalBox();
         line.add( new JLabel( "Algorithm: " ) );
-        line.add( engineSelector );
+        line.add( engineSelector_ );
         line.add( Box.createHorizontalGlue() );
         engineBox.add( line );
         line = Box.createHorizontalBox();
-        line.add( paramContainer );
+        line.add( paramContainer_ );
         line.add( Box.createHorizontalGlue() );
         engineBox.add( line );
         engineBox.setBorder( makeTitledBorder( "Match Criteria" ) );
@@ -169,13 +169,13 @@ public class MatchWindow extends AuxWindow implements ItemListener {
 
         /* Place actions. */
         getToolBar().add( tuningModel.createToolbarButton() );
-        getToolBar().add( profileModel.createToolbarButton() );
-        getToolBar().add( parallelModel.createToolbarButton() );
+        getToolBar().add( profileModel_.createToolbarButton() );
+        getToolBar().add( parallelModel_.createToolbarButton() );
         JMenu tuningMenu = new JMenu( "Tuning" );
         tuningMenu.setMnemonic( KeyEvent.VK_T );
         tuningMenu.add( tuningModel.createMenuItem() );
-        tuningMenu.add( profileModel.createMenuItem() );
-        tuningMenu.add( parallelModel.createMenuItem() );
+        tuningMenu.add( profileModel_.createMenuItem() );
+        tuningMenu.add( parallelModel_.createMenuItem() );
         getJMenuBar().add( tuningMenu );
 
         /* Add standard help actions. */
@@ -193,15 +193,15 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         addHelp( helpTag );
 
         /* Set up components associated with logging calculation progress. */
-        logArea = new JTextArea();
-        logArea.setEditable( false );
-        logArea.setRows( 5 );
-        progBar = placeProgressBar();
-        logScroller = new JScrollPane( logArea );
-        main.add( logScroller, BorderLayout.SOUTH );
+        logArea_ = new JTextArea();
+        logArea_.setEditable( false );
+        logArea_.setRows( 5 );
+        progBar_ = placeProgressBar();
+        logScroller_ = new JScrollPane( logArea_ );
+        main.add( logScroller_, BorderLayout.SOUTH );
 
         /* Initialise to an active state. */
-        engineSelector.setSelectedIndex( 0 );
+        engineSelector_.setSelectedIndex( 0 );
         updateDisplay();
     }
 
@@ -214,10 +214,10 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      */
     private MatchSpec getMatchSpec() {
         MatchEngine engine = getMatchEngine();
-        if ( ! matchSpecs.containsKey( engine ) ) {
-            matchSpecs.put( engine, makeMatchSpec( engine ) );
+        if ( ! matchSpecs_.containsKey( engine ) ) {
+            matchSpecs_.put( engine, makeMatchSpec( engine ) );
         }
-        return matchSpecs.get( engine );
+        return matchSpecs_.get( engine );
     }
 
     /**
@@ -226,7 +226,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      * @return  match engine
      */
     private MatchEngine getMatchEngine() {
-        return engineSelector.getItemAt( engineSelector.getSelectedIndex() );
+        return engineSelector_.getItemAt( engineSelector_.getSelectedIndex() );
     }
 
     /**
@@ -237,16 +237,16 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      */
     private MatchSpec makeMatchSpec( MatchEngine engine ) {
         Supplier<RowRunner> runnerFact =
-            () -> parallelModel.isSelected()
+            () -> parallelModel_.isSelected()
                 ? RowRunnerParameter.DFLT_MATCH_RUNNER
                 : RowRunner.SEQUENTIAL;
-        switch( nTable ) {
+        switch( nTable_ ) {
             case 1:
                 return new IntraMatchSpec( engine, runnerFact );
             case 2:
                 return new PairMatchSpec( engine, runnerFact );
             default:
-                return new InterMatchSpec( engine, runnerFact, nTable );
+                return new InterMatchSpec( engine, runnerFact, nTable_ );
         }
     }
 
@@ -257,8 +257,8 @@ public class MatchWindow extends AuxWindow implements ItemListener {
     private void updateDisplay() {
         MatchEngine engine = getMatchEngine();
         if ( engine != null ) {
-            paramCards.show( paramContainer, labelFor( engine ) );
-            specScroller.setViewportView( getMatchSpec().getPanel() );
+            paramCards_.show( paramContainer_, labelFor( engine ) );
+            specScroller_.setViewportView( getMatchSpec().getPanel() );
         }
     }
 
@@ -279,10 +279,10 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      */
     public void setBusy( boolean busy ) {
         recursiveSetEnabled( getMainArea(), ! busy );
-        logScroller.setEnabled( true );
-        logArea.setEnabled( true );
-        stopAct.setEnabled( busy );
-        startAct.setEnabled( ! busy );
+        logScroller_.setEnabled( true );
+        logArea_.setEnabled( true );
+        stopAct_.setEnabled( busy );
+        startAct_.setEnabled( ! busy );
         super.setBusy( busy );
     }
 
@@ -292,16 +292,16 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      * @param   line  line to add (excluding terminal newline)
      */
     private void appendLogLine( String line ) {
-        logArea.append( line );
-        logArea.append( "\n" );
-        logArea.setCaretPosition( logArea.getDocument().getLength() );
+        logArea_.append( line );
+        logArea_.append( "\n" );
+        logArea_.setCaretPosition( logArea_.getDocument().getLength() );
     }
 
     /**
      * Extends the dispose method to interrupt any pending calculation.
      */
     public void dispose() {
-        stopAct.actionPerformed( null );
+        stopAct_.actionPerformed( null );
         super.dispose();
     }
 
@@ -338,24 +338,24 @@ public class MatchWindow extends AuxWindow implements ItemListener {
          * to the event dispatch thread.
          */
         public void run() {
-            currentIndicator =
-                new MatchProgressIndicator( profileModel.isSelected() );
+            currentIndicator_ =
+                new MatchProgressIndicator( profileModel_.isSelected() );
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     setBusy( true );
-                    logArea.setText( "" );
-                    progBar.setModel( currentIndicator );
+                    logArea_.setText( "" );
+                    progBar_.setModel( currentIndicator_ );
                 }
             } );
             try {
-                spec.calculate( currentIndicator );
+                spec.calculate( currentIndicator_ );
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         setBusy( false );
                         spec.matchSuccess( MatchWindow.this );
                         appendLogLine( "Match succeeded" );
-                        progBar.setValue( 0 );
-                        currentIndicator = null;
+                        progBar_.setValue( 0 );
+                        currentIndicator_ = null;
                     }
                 } );
             }
@@ -385,19 +385,19 @@ public class MatchWindow extends AuxWindow implements ItemListener {
             super( profile );
         }
         public void startStage( String stage ) {
-            if ( currentIndicator == this ) {
+            if ( currentIndicator_ == this ) {
                 scheduleAppendLogLine( stage + "..." );
             }
             super.startStage( stage );
         }
         public void logMessage( String msg ) {
-            if ( currentIndicator == this ) {
+            if ( currentIndicator_ == this ) {
                 scheduleAppendLogLine( msg );
             }
             super.logMessage( msg );
         }
         public void setLevel( double level ) throws InterruptedException {
-            if ( currentIndicator != this ) {
+            if ( currentIndicator_ != this ) {
                 throw new InterruptedException( "Interrupted by user" );
             }
             super.setLevel( level );
@@ -419,7 +419,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
             super( name, icon, description );
         }
         public void actionPerformed( ActionEvent evt ) {
-            if ( this == startAct ) {
+            if ( this == startAct_ ) {
                 MatchSpec spec = getMatchSpec();
                 MatchEngine engine = getMatchEngine();
                 try {
@@ -433,12 +433,12 @@ public class MatchWindow extends AuxWindow implements ItemListener {
                                        JOptionPane.WARNING_MESSAGE );
                 }
             }
-            else if ( this == stopAct ) {
-                if ( currentIndicator != null ) {
+            else if ( this == stopAct_ ) {
+                if ( currentIndicator_ != null ) {
                     appendLogLine( "Calculation interrupted" );
-                    progBar.setValue( 0 );
+                    progBar_.setValue( 0 );
                 }
-                currentIndicator = null;
+                currentIndicator_ = null;
             }
             else {
                 assert false;
