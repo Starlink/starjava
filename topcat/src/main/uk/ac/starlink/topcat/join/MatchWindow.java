@@ -4,8 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -58,7 +56,7 @@ import uk.ac.starlink.ttools.task.RowRunnerParameter;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class MatchWindow extends AuxWindow implements ItemListener {
+public class MatchWindow extends AuxWindow {
 
     private final int nTable_;
     private final JComboBox<MatchEngine> engineSelector_;
@@ -103,11 +101,33 @@ public class MatchWindow extends AuxWindow implements ItemListener {
 
         /* Prepare a combo box which can select the engines. */
         engineSelector_ = new JComboBox<MatchEngine>( engines );
-        engineSelector_.addItemListener( this );
+        engineSelector_.addItemListener( evt -> updateDisplay() );
 
-        /* Set up an action to start the match. */
-        startAct_ = new MatchAction( "Go", null, "Perform the match" );
-        stopAct_ = new MatchAction( "Stop", null, "Cancel the calculation" );
+        /* Set up actions to start and stop the match. */
+        progBar_ = placeProgressBar();
+        startAct_ = BasicAction.create( "Go", null, "Perform the match",
+                                        evt -> {
+            MatchSpec spec = getMatchSpec();
+            MatchEngine engine = getMatchEngine();
+            try {
+                spec.checkArguments();
+                new MatchWorker( spec, engine ).start();
+            }
+            catch ( IllegalStateException e ) {
+                JOptionPane
+               .showMessageDialog( MatchWindow.this, e.getMessage(),
+                                   "Invalid Match Arguments",
+                                   JOptionPane.WARNING_MESSAGE );
+            }
+        } );
+        stopAct_ = BasicAction.create( "Stop", null, "Cancel the calculation",
+                                       evt -> {
+            if ( currentIndicator_ != null ) {
+                appendLogLine( "Calculation interrupted" );
+                progBar_.setValue( 0 );
+            }
+            currentIndicator_ = null;
+        } );
         stopAct_.setEnabled( false );
 
         /* Set up an action to display tuning information. */
@@ -196,7 +216,6 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         logArea_ = new JTextArea();
         logArea_.setEditable( false );
         logArea_.setRows( 5 );
-        progBar_ = placeProgressBar();
         logScroller_ = new JScrollPane( logArea_ );
         main.add( logScroller_, BorderLayout.SOUTH );
 
@@ -260,14 +279,6 @@ public class MatchWindow extends AuxWindow implements ItemListener {
             paramCards_.show( paramContainer_, labelFor( engine ) );
             specScroller_.setViewportView( getMatchSpec().getPanel() );
         }
-    }
-
-    /**
-     * Implements ItemListener to update the GUI appearence when some of
-     * the selections are changed by the user.
-     */
-    public void itemStateChanged( ItemEvent evt ) {
-        updateDisplay();
     }
 
     /**
@@ -408,41 +419,6 @@ public class MatchWindow extends AuxWindow implements ItemListener {
                     appendLogLine( line );
                 }
             } );
-        }
-    }
-
-    /**
-     * Implements actions for this window.
-     */
-    private class MatchAction extends BasicAction {
-        MatchAction( String name, Icon icon, String description ) {
-            super( name, icon, description );
-        }
-        public void actionPerformed( ActionEvent evt ) {
-            if ( this == startAct_ ) {
-                MatchSpec spec = getMatchSpec();
-                MatchEngine engine = getMatchEngine();
-                try {
-                    spec.checkArguments();
-                    new MatchWorker( spec, engine ).start();
-                }
-                catch ( IllegalStateException e ) {
-                    JOptionPane
-                   .showMessageDialog( MatchWindow.this, e.getMessage(),
-                                       "Invalid Match Arguments",
-                                       JOptionPane.WARNING_MESSAGE );
-                }
-            }
-            else if ( this == stopAct_ ) {
-                if ( currentIndicator_ != null ) {
-                    appendLogLine( "Calculation interrupted" );
-                    progBar_.setValue( 0 );
-                }
-                currentIndicator_ = null;
-            }
-            else {
-                assert false;
-            }
         }
     }
 
