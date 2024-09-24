@@ -5,10 +5,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.MetaCopyStarTable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -58,6 +60,8 @@ public class TopcatTableNamer implements TableNamer {
     private static final ValueInfo FORMAT_INFO =
         new DefaultValueInfo( TopcatTableNamer.class.getName() + "TableBuilder",
                               TableBuilder.class );
+    private static final Set<String> SCHEME_NAMES =
+        ControlWindow.getInstance().getTableFactory().getSchemes().keySet();
 
     /**
      * Constructor.
@@ -165,6 +169,7 @@ public class TopcatTableNamer implements TableNamer {
         if ( file == null ) {
             file = new File( loc );
         }
+        String[] schemePair = StarTableFactory.parseSchemeLocation( loc );
         final CredibleString filename;
         final CredibleString pathname;
         if ( url != null ) {
@@ -175,6 +180,13 @@ public class TopcatTableNamer implements TableNamer {
             filename = new CredibleString( file.getName(), Credibility.MAYBE );
             pathname = new CredibleString( file.getAbsolutePath(),
                                            Credibility.YES );
+        }
+        else if ( schemePair != null ) {
+            Credibility cred = SCHEME_NAMES.contains( schemePair[ 0 ] )
+                             ? Credibility.YES
+                             : Credibility.MAYBE;
+            filename = new CredibleString( loc, cred );
+            pathname = filename;
         }
         else {
             filename = new CredibleString( loc, Credibility.NO );
