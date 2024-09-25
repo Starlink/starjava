@@ -381,7 +381,7 @@ public class DalMultiPanel extends JPanel {
     private void updateServiceCoverage() {
         if ( hasCoverage_ ) {
             if ( coverageModel_.isSelected() ) {
-                URL url = toUrl( urlField_.getText() );
+                URL url = URLUtils.makeURL( urlField_.getText() );
                 if ( ( url == null && lastCoverageUrl_ != null ) ||
                      ( url != null && ! url.equals( lastCoverageUrl_ ) ) ) {
                     Coverage cov = url == null ? null
@@ -454,26 +454,6 @@ public class DalMultiPanel extends JPanel {
                                                        (MocCoverage) scov } )
             : null;
         overlapCoverageView_.setCoverage( ocov );
-    }
-
-    /**
-     * Converts a string to a URL without exceptions.
-     *
-     * @param  surl  string representation
-     * @return  URL or null
-     */
-    private static URL toUrl( String surl ) {
-        if ( surl.startsWith( "http://" ) ) {
-            try {
-                return URLUtils.newURL( surl );
-            }
-            catch ( MalformedURLException e ) {
-                return null;
-            }
-        }
-        else {
-            return null;
-        }
     }
 
     /**
