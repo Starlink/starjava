@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.RowAccess;
@@ -50,7 +51,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
     private final StringParameter decParam_;
     private final StringParameter srParam_;
     private final StringParameter copycolsParam_;
-    private final ChoiceParameter<String> modeParam_;
+    private final ChoiceParameter<ConeFindMode> modeParam_;
     private final StringParameter distcolParam_;
     private final BooleanParameter ostreamParam_;
     private final IntegerParameter parallelParam_;
@@ -105,45 +106,29 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         /* Permit "best1" as an undocumented alternative to "best", since
          * it has the meaning of best1 in the pair match tasks. */
         modeParam_ =
-            new ChoiceParameter<String>( "find",
-                                         new String[] {
-                                             "best", "all", "each",
-                                         } ) {
+            new ChoiceParameter<ConeFindMode>( "find", ConeFindMode.values() ) {
             @Override
-            public String stringToObject( Environment env, String sval ) {
-                if ( "best1".equalsIgnoreCase( sval ) ) {
-                    return "best";
-                }
-                else {
-                    return sval;
-                }
+            public ConeFindMode stringToObject( Environment env, String sval )
+                    throws TaskException {
+                return "best1".equalsIgnoreCase( sval )
+                     ? ConeFindMode.BEST
+                     : super.stringToObject( env, sval );
             }
         };
-        modeParam_.setStringDefault( "all" );
+        modeParam_.setDefaultOption( ConeFindMode.ALL );
         modeParam_.setPrompt( "Type of match to perform" );
         modeParam_.setDescription( new String[] {
             "<p>Determines which matches are retained.",
             "<ul>",
-            "<li><code>best</code>:",
-                "Only the matching query table row closest to",
-                "the input table row will be output.",
-                "Input table rows with no matches will be omitted.",
-                "(Note this corresponds to the",
-                "<code>" + PairMode.BEST1.toString().toLowerCase() + "</code>",
-                "option in the pair matching commands, and <code>best1</code>",
-                "is a permitted alias).",
-                "</li>",
-            "<li><code>all</code>:",
-                "All query table rows which match",
-                "the input table row will be output.",
-                "Input table rows with no matches will be omitted.",
-                "</li>",
-            "<li><code>each</code>:",
-                "There will be one output table row for each input table row.",
-                "If matches are found, the closest one from the query table",
-                "will be output, and in the case of no matches,",
-                "the query table columns will be blank.",
-                "</li>",
+            Arrays.stream( ConeFindMode.values() )
+                  .map( mode -> new StringBuffer()
+                       .append( "<li><code>" )
+                       .append( mode.toString() )
+                       .append( "</code>:\n" )
+                       .append( mode.getXmlDescription() )
+                       .append( "</li>" )
+                       .toString() )
+                  .collect( Collectors.joining( "\n" ) ),
             "</ul>",
             "</p>",
         } );
@@ -323,25 +308,9 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
                     .createAdviceAbortPolicy( erract.toString(), advice );
         }
         String distanceCol = distcolParam_.stringValue( env );
-        boolean bestOnly;
-        boolean includeBlanks;
-        String mode = modeParam_.objectValue( env );
-        if ( mode.toLowerCase().equals( "best" ) ) {
-            bestOnly = true;
-            includeBlanks = false;
-        }
-        else if ( mode.toLowerCase().equals( "all" ) ) {
-            bestOnly = false;
-            includeBlanks = false;
-        }
-        else if ( mode.toLowerCase().equals( "each" ) ) {
-            bestOnly = true;
-            includeBlanks = true;
-        }
-        else {
-            throw new UsageException( "Unknown value of " +
-                                      modeParam_.getName() + "??" );
-        }
+        ConeFindMode mode = modeParam_.objectValue( env );
+        boolean bestOnly = mode.isBestOnly();
+        boolean includeBlanks = mode.isIncludeBlanks();
         TableProducer inProd = createInputProducer( env );
         ConeSearcher coneSearcher = coner_.createSearcher( env, bestOnly );
         final Coverage footprint;
