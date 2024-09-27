@@ -43,6 +43,7 @@ import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapeModePlotter;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
 import uk.ac.starlink.ttools.plot2.task.AbstractPlot2Task;
+import uk.ac.starlink.ttools.task.CommandFormatter;
 import uk.ac.starlink.ttools.task.CredibleString;
 import uk.ac.starlink.ttools.task.FilterParameter;
 import uk.ac.starlink.ttools.task.InputTableParameter;
@@ -54,9 +55,6 @@ import uk.ac.starlink.util.LoadException;
 
 /**
  * StiltsCommand subclass for plot2 commands.
- *
- * <p>Use a {@link StiltsPlotFormatter} instance to export this object into a
- * useful external form, such as a shell command line.
  *
  * @author   Mark Taylor
  * @since    15 Sep 2017
@@ -116,10 +114,14 @@ public class PlotStiltsCommand extends StiltsCommand {
      * It works on a best efforts basis.
      *
      * @param  plotSpec  programmatic representation of a plot
-     * @param  formatter  defines details of how formatting will take place
+     * @param  tableNamer  controls table naming
+     * @param  layerSuffixer  controls suffixes for layers
+     * @param  zoneSuffixer  cotrols suffixes for zones
+     * @return   new command
      */
     public static <P,A> PlotStiltsCommand
-            createPlot( PlotSpec<P,A> plotSpec, StiltsPlotFormatter formatter )
+            createPlotCommand( PlotSpec<P,A> plotSpec, TableNamer tableNamer,
+                               Suffixer layerSuffixer, Suffixer zoneSuffixer )
             throws LoadException {
         PlotType<P,A> plotType = plotSpec.getPlotType();
         Dimension extSize = plotSpec.getExtSize();
@@ -133,9 +135,6 @@ public class PlotStiltsCommand extends StiltsCommand {
         int nz = zoneConfigs.length;
         boolean isShadeGlobal = nz > 1 && shadeSpecs.length == 1;
         boolean isTrimGlobal = nz > 1 && trimSpecs.length == 1;
-        Suffixer zoneSuffixer = formatter.getZoneSuffixer();
-        Suffixer layerSuffixer = formatter.getLayerSuffixer();
-        TableNamer namer = formatter.getTableNamer();
 
         /* Work out which plot command to use. */
         String taskName = getPlotTaskName( plotType );
@@ -249,7 +248,7 @@ public class PlotStiltsCommand extends StiltsCommand {
             }
 
             /* Input table setting, if any. */
-            lsettings.addAll( createInputTableSettings( lspec, namer ) );
+            lsettings.addAll( createInputTableSettings( lspec, tableNamer ) );
             lsettings.add( null );
 
             /* DataGeom setting, if any. */

@@ -1,11 +1,9 @@
-package uk.ac.starlink.ttools.plot2.task;
+package uk.ac.starlink.ttools.task;
 
 import java.awt.Color;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -15,70 +13,38 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.Document;
 import javax.swing.text.StringContent;
-import javax.swing.text.StyleContext;
 import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 import uk.ac.starlink.task.Executable;
+import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.ttools.task.Credibility;
-import uk.ac.starlink.ttools.task.CredibleString;
-import uk.ac.starlink.ttools.task.TableNamer;
-import uk.ac.starlink.ttools.task.InputTableParameter;
-import uk.ac.starlink.ttools.task.LineEnder;
-import uk.ac.starlink.ttools.task.LineInvoker;
-import uk.ac.starlink.ttools.task.MapEnvironment;
-import uk.ac.starlink.ttools.task.Setting;
-import uk.ac.starlink.ttools.task.SettingGroup;
 
 /**
- * Handles export of PlotStiltsCommand objects to external
+ * Handles export of StiltsCommand objects to external
  * serialization formats.
  *
  * @author   Mark Taylor
- * @since    15 Sep 2017
+ * @since    27 Sep 2024
  */
-public class StiltsPlotFormatter {
+public class CommandFormatter {
 
     private final int continueIndent_;
     private final int levelIndent_;
     private final int cwidth_;
     private final CredibleString invocation_;
-    private final Suffixer zoneSuffixer_;
-    private final Suffixer layerSuffixer_;
     private final LineEnder lineEnder_;
     private final boolean includeDflts_;
-    private final TableNamer tableNamer_;
     private final Color syntaxColor_;
     private boolean forceError_;
+
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.ttools.plot2.task" );
-
-    /** List of suffixers suitable for per-zone parameters. */
-    public static final Suffixer[] ZONE_SUFFIXERS = new Suffixer[] {
-        Suffixer.createAlphaSuffixer( "-Alpha", "-", true, true ),
-        Suffixer.createAlphaSuffixer( "-alpha", "-", true, false ),
-        Suffixer.createNumericSuffixer( "-Numeric", "-", true ),
-        Suffixer.createNumericSuffixer( "Numeric", "", true ),
-        Suffixer.createAlphaSuffixer( "Alpha", "", true, true ),
-    };
-
-    /** List of suffixers suitable for per-layer parameters. */
-    public static final Suffixer[] LAYER_SUFFIXERS = new Suffixer[] {
-        Suffixer.createNumericSuffixer( "_Numeric", "_", true ),
-        Suffixer.createAlphaSuffixer( "_Alpha", "_", true, true ),
-        Suffixer.createAlphaSuffixer( "_alpha", "_", true, false ),
-        Suffixer.createNumericSuffixer( "Numeric", "", true ),
-        Suffixer.createAlphaSuffixer( "Alpha", "", true, true ),
-    };
+        Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
     /**
      * Constructor.
      *
      * @param  invocation     display text to introduce the STILTS command
-     * @param  zoneSuffixer   defines how per-zone parameter suffixes
-     *                        are generated
-     * @param  layerSuffixer  defines how per-layer parameter suffixes
-     *                        are generated
      * @param  includeDflts   if true, all parameters are included;
      *                        if false, only those with non-default values
      * @param  lineEnder      line end presentation policy
@@ -86,21 +52,15 @@ public class StiltsPlotFormatter {
      * @param  cwidth         nominal formatting width in characters;
      *                        this affects line wrapping, but actual
      *                        wrapping may depend on other factors too
-     * @param  tableNamer     determines how tables are named
      */
-    public StiltsPlotFormatter( CredibleString invocation,
-                                Suffixer zoneSuffixer, Suffixer layerSuffixer,
-                                boolean includeDflts, LineEnder lineEnder,
-                                int levelIndent, int cwidth,
-                                TableNamer tableNamer ) {
+    public CommandFormatter( CredibleString invocation, boolean includeDflts,
+                             LineEnder lineEnder, int levelIndent,
+                             int cwidth ) {
         invocation_ = invocation;
-        zoneSuffixer_ = zoneSuffixer;
-        layerSuffixer_ = layerSuffixer;
         includeDflts_ = includeDflts;
         lineEnder_ = lineEnder;
         levelIndent_ = levelIndent;
         cwidth_ = cwidth;
-        tableNamer_ = tableNamer;
         continueIndent_ = 1;
         syntaxColor_ = new Color( 0xa0a0ff );
     }
@@ -115,33 +75,6 @@ public class StiltsPlotFormatter {
     }
 
     /**
-     * Returns the policy for selecting per-zone parameter suffixes.
-     *
-     * @return  zone suffixer
-     */
-    public Suffixer getZoneSuffixer() {
-        return zoneSuffixer_;
-    }
-
-    /**
-     * Returns the policy for selecting per-layer parameter suffixes.
-     *
-     * @return  layer suffixer
-     */
-    public Suffixer getLayerSuffixer() {
-        return layerSuffixer_;
-    }
-
-    /**
-     * Returns the file naming policy.
-     *
-     * @return  table namer
-     */
-    public TableNamer getTableNamer() {
-        return tableNamer_;
-    }
-
-    /**
      * Sets whether the generated stilts commands will be made to
      * produce a gratuitous error.  This is only useful for debugging
      * purposes.
@@ -153,20 +86,21 @@ public class StiltsPlotFormatter {
     }
 
     /**
-     * Creates a task Executable based on the state of this PlotSpec.
+     * Creates a task Executable based on the state of this formatter.
      * Various exceptions may be thrown if there is some error.
      * Such errors are quite possible.
      *
      * <p>If this method returns without error there is a fair chance
-     * that the serializations prodiced from this object will produce
-     * a faithful reproduction of the specified plot.
+     * that the serializations predicted from this object will represent
+     * legal STILTS commands.
      *
+     * @param  command  command specification
      * @return  executable
      * @throws  TaskException  if there is some other error in setting up
      *                         the executable; probably incorrect parameter
      *                         assignments of some kind
      */
-    public Executable createExecutable( PlotStiltsCommand plot )
+    public Executable createExecutable( StiltsCommand command )
             throws TaskException {
 
         /* Populate an execution environment that will throw an
@@ -183,14 +117,14 @@ public class StiltsPlotFormatter {
             }
         };
         try {
-            populateEnvironment( plot, env );
+            populateEnvironment( command, env );
         }
         catch ( RuntimeException e ) {
             throw new TaskException( e.getMessage(), e );
         }
 
         /* Create the executable. */
-        AbstractPlot2Task task = plot.getTask();
+        Task task = command.getTask();
         Executable exec = task.createExecutable( env );
 
         /* Complain if any arguments are unused, otherwise return. */
@@ -204,29 +138,13 @@ public class StiltsPlotFormatter {
     }
 
     /**
-     * Attempts to create a PlotDisplay that re-creates the plot
-     * specified by this object.
-     *
-     * @param  caching  whether the plotted image is to be cached
-     * @return  plot display component
-     * @see   AbstractPlot2Task#createPlotComponent
-     */
-    public PlotDisplay<?,?> createPlotComponent( PlotStiltsCommand plot,
-                                                 boolean caching )
-            throws TaskException, IOException, InterruptedException {
-        MapEnvironment env = new MapEnvironment();
-        populateEnvironment( plot, env );
-        return plot.getTask().createPlotComponent( env, caching );
-    }
-
-    /**
      * Returns a Document, suitable for use with a JTextPane,
      * formatting the given plot specification.  This may include
      * coloured highlighting etc. depending on configuration.
      *
-     * @param   plot  plot speicification
+     * @param   command   command specification
      */
-    public StyledDocument createShellDocument( PlotStiltsCommand plot ) {
+    public StyledDocument createShellDocument( StiltsCommand command ) {
         StyleContext context = StyleContext.getDefaultStyleContext();
         AttributeSet plain = context.getEmptySet();
         AttributeSet faint =
@@ -252,8 +170,8 @@ public class StiltsPlotFormatter {
         if ( invokeTxt.length() > 16 ) {
             addText( doc, getPrefix( 0 ), faint );
         }
-        addText( doc, plot.getTaskName() + " ", plain );
-        for ( SettingGroup g : getGroups( plot ) ) {
+        addText( doc, command.getTaskName() + " ", plain );
+        for ( SettingGroup g : getGroups( command ) ) {
             List<Setting> settings = getSettings( g );
             if ( settings.size() > 0 ) {
                 String prefix = getPrefix( g.getLevel() );
@@ -302,7 +220,7 @@ public class StiltsPlotFormatter {
      * @return  settings to format
      */
     private List<Setting> getSettings( SettingGroup group ) {
-        List<Setting> list = new ArrayList<Setting>();
+        List<Setting> list = new ArrayList<>();
         for ( Setting s : group.getSettings() ) {
             if ( includeDflts_ || ! s.isDefaultValue() ) {
                 list.add( s );
@@ -314,43 +232,32 @@ public class StiltsPlotFormatter {
     /**
      * Remove words from the list of unused words that are harmless.
      *
-     * @param  task   plotting task
+     * <p>This is a hook for a hack.
+     * Some of the parameter settings can be unused when object values
+     * for other parameter settings are used.
+     * If that happens, it looks like there is a problem because settings
+     * have not been used.  This routine can pull them out so
+     * the warning goes away.
+     *
+     * @param  task   task
      * @param  words  input command word list
      * @return   list apart from any words that shouldn't be there
      */
-    private static String[] stripExpectedUnused( AbstractPlot2Task task,
-                                                 String[] words ) {
-
-        /* This is a hack.  Some of the parameter settings are unused
-         * when object values for other parameter settings are used.
-         * If that happens, it looks like there is a problem because
-         * settings have not been used.  This routine pulls them out
-         * so the warning goes away. */
-        InputTableParameter inParam =
-            AbstractPlot2Task.createTableParameter( "" );
-        String fmtName = inParam.getFormatParameter().getName();
-        String strmName = inParam.getStreamParameter().getName();
-        List<String> list = new ArrayList<String>();
-        for ( String word : words ) {
-            if ( ! word.startsWith( fmtName ) &&
-                 ! word.startsWith( strmName ) ) {
-                list.add( word );
-            }
-        }
-        return list.toArray( new String[ 0 ] );
+    protected String[] stripExpectedUnused( Task task, String[] words ) {
+        return words;
     }
 
     /**
      * Returns the groups associated with a given plot.
      *
-     * @param  plot   plot specification
-     * @return   groups in plot specification
+     * @param  command   command specification
+     * @return   groups in command specification
      */
-    private List<SettingGroup> getGroups( PlotStiltsCommand plot ) {
+    private List<SettingGroup> getGroups( StiltsCommand command ) {
         List<SettingGroup> list =
-            new ArrayList<SettingGroup>( Arrays.asList( plot.getGroups() ) );
+            new ArrayList<>( Arrays.asList( command.getGroups() ) );
         if ( forceError_ ) {
-            list.add( new SettingGroup( 0, new Setting[] { 
+            list.add( new SettingGroup( 0, new Setting[] {
                 new Setting( "force_error", "true", null ),
             } ) );
         }
@@ -361,12 +268,13 @@ public class StiltsPlotFormatter {
      * Adds entries to a supplied execution environment corresponding to
      * the STILTS parameters defined by this specification.
      *
+     * @param  command  command specification
      * @param  env  execution environment to populate;
      *              should probably be empty on entry
      */
-    private void populateEnvironment( PlotStiltsCommand plot,
-                                      MapEnvironment env ) {
-        for ( SettingGroup g : getGroups( plot ) ) {
+    public void populateEnvironment( StiltsCommand command,
+                                     MapEnvironment env ) {
+        for ( SettingGroup g : getGroups( command ) ) {
             for ( Setting s : getSettings( g ) ) {
                 String key = s.getKey();
                 Object objVal = s.getObjectValue();

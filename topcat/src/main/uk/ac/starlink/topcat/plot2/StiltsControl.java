@@ -19,8 +19,9 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.ToggleButtonModel;
-import uk.ac.starlink.ttools.plot2.task.StiltsPlotFormatter;
+import uk.ac.starlink.ttools.plot2.task.PlotCommandFormatter;
 import uk.ac.starlink.ttools.plot2.task.Suffixer;
+import uk.ac.starlink.ttools.task.CommandFormatter;
 import uk.ac.starlink.ttools.task.CredibleString;
 import uk.ac.starlink.ttools.task.LineEnder;
 import uk.ac.starlink.ttools.task.TableNamer;
@@ -40,6 +41,24 @@ public class StiltsControl extends TabberControl {
     private final boolean isMultiZone_;
     private final ToggleButtonModel windowToggle_;
     private boolean configured_;
+
+    /** List of suffixers suitable for per-zone parameters. */
+    public static final Suffixer[] ZONE_SUFFIXERS = new Suffixer[] {
+        Suffixer.createAlphaSuffixer( "-Alpha", "-", true, true ),
+        Suffixer.createAlphaSuffixer( "-alpha", "-", true, false ),
+        Suffixer.createNumericSuffixer( "-Numeric", "-", true ),
+        Suffixer.createNumericSuffixer( "Numeric", "", true ),
+        Suffixer.createAlphaSuffixer( "Alpha", "", true, true ),
+    };
+
+    /** List of suffixers suitable for per-layer parameters. */
+    public static final Suffixer[] LAYER_SUFFIXERS = new Suffixer[] {
+        Suffixer.createNumericSuffixer( "_Numeric", "_", true ),
+        Suffixer.createAlphaSuffixer( "_Alpha", "_", true, true ),
+        Suffixer.createAlphaSuffixer( "_alpha", "_", true, false ),
+        Suffixer.createNumericSuffixer( "Numeric", "", true ),
+        Suffixer.createAlphaSuffixer( "Alpha", "", true, true ),
+    };
 
     /**
      * Constructor.
@@ -148,12 +167,10 @@ public class StiltsControl extends TabberControl {
                 new JComboBox<StiltsInvoker>( StiltsInvoker.INVOKERS );
             invokerSelector_
                .setSelectedItem( StiltsInvoker.TOPCAT );
-            zoneSuffixSelector_ =
-                new JComboBox<Suffixer>( StiltsPlotFormatter.ZONE_SUFFIXERS );
+            zoneSuffixSelector_ = new JComboBox<Suffixer>( ZONE_SUFFIXERS );
             zoneSuffixSelector_
                .setSelectedItem( zoneSuffixSelector_.getItemAt( 0 ) );
-            layerSuffixSelector_ =
-                new JComboBox<Suffixer>( StiltsPlotFormatter.LAYER_SUFFIXERS );
+            layerSuffixSelector_ = new JComboBox<Suffixer>( LAYER_SUFFIXERS );
             layerSuffixSelector_
                .setSelectedItem( layerSuffixSelector_.getItemAt( 0 ) );
             tableNamerSelector_ =
@@ -215,11 +232,10 @@ public class StiltsControl extends TabberControl {
             int indent =
                 indentSpinner_.getNumber().intValue();
             int cwidth = monitor.getWidthCharacters();
-            StiltsPlotFormatter formatter =
-                new StiltsPlotFormatter( invocation, zoneSuffixer,
-                                         layerSuffixer, includeDflts,
-                                         lineEnder, indent, cwidth, namer );
-            monitor.setFormatter( formatter );
+            CommandFormatter formatter =
+                new PlotCommandFormatter( invocation, includeDflts, lineEnder,
+                                          indent, cwidth );
+            monitor.configure( formatter, namer, layerSuffixer, zoneSuffixer );
         }
 
         /**
