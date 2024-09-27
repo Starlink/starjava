@@ -11,6 +11,7 @@ import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -34,13 +35,18 @@ import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.ttools.task.CommandFormatter;
+import uk.ac.starlink.ttools.task.MapEnvironment;
+import uk.ac.starlink.ttools.plot2.task.PlotDisplay;
 import uk.ac.starlink.ttools.plot2.task.PlotSpec;
 import uk.ac.starlink.ttools.plot2.task.PlotStiltsCommand;
-import uk.ac.starlink.ttools.plot2.task.StiltsPlotFormatter;
+import uk.ac.starlink.ttools.plot2.task.Suffixer;
 import uk.ac.starlink.ttools.task.LineInvoker;
+import uk.ac.starlink.ttools.task.TableNamer;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
@@ -59,7 +65,10 @@ public class StiltsMonitor {
     private final Action errorAct_;
     private final Action executeAct_;
     private final Action[] actions_;
-    private StiltsPlotFormatter formatter_;
+    private CommandFormatter formatter_;
+    private TableNamer tableNamer_;
+    private Suffixer layerSuffixer_;
+    private Suffixer zoneSuffixer_;
     private PlotSpec<?,?> plotSpec_;
     private StiltsState state_;
 
@@ -140,14 +149,20 @@ public class StiltsMonitor {
     }
 
     /**
-     * Sets the object that controls the details of formatting stilts
-     * commands.  This can be assigned by the user to adjust formatting
-     * details.
+     * Sets the state that controls the details of formatting stilts commands.
+     * These can be assigned by the user to adjust formatting details.
      *
-     * @param  formatter  new formatter
+     * @param  formatter   formatter
+     * @param  tableNamer   table naming
+     * @param  layerSuffixer  controls suffixes for layer identification
+     * @param  zoneSuffixer   controls suffixes for zone identification
      */
-    public void setFormatter( StiltsPlotFormatter formatter ) {
+    public void configure( CommandFormatter formatter, TableNamer tableNamer,
+                           Suffixer layerSuffixer, Suffixer zoneSuffixer ) {
         formatter_ = formatter;
+        tableNamer_ = tableNamer;
+        layerSuffixer_ = layerSuffixer;
+        zoneSuffixer_ = zoneSuffixer;
         resetState();
     }
 
@@ -264,7 +279,9 @@ public class StiltsMonitor {
      */
     private StiltsState getStiltsState() {
         if ( state_ == null ) {
-            state_ = createStiltsState( plotSpec_, formatter_ );
+            state_ = createStiltsState( plotSpec_, tableNamer_,
+                                        layerSuffixer_, zoneSuffixer_,
+                                        formatter_ );
             errorAct_.setEnabled( state_.error_ != null );
             executeAct_.setEnabled( state_.plot_ != null );
         }
@@ -283,7 +300,7 @@ public class StiltsMonitor {
     private static JDialog
             createExecutionDialog( Component parent,
                                    final PlotStiltsCommand plot,
-                                   final StiltsPlotFormatter formatter,
+                                   final CommandFormatter formatter,
                                    final boolean useCache ) {
 
         /* Set up a dialog window with a dismissal button. */
@@ -324,7 +341,7 @@ public class StiltsMonitor {
                 JComponent display = null;
                 boolean repack;
                 try {
-                    display = formatter.createPlotComponent( plot, useCache );
+                    display = createPlotComponent( plot, formatter, useCache );
                     repack = true;
                 }
                 catch ( Exception err ) {
@@ -353,6 +370,25 @@ public class StiltsMonitor {
         /* Prepare and return the dialog window. */
         dialog.pack();
         return dialog;
+    }
+
+    /**
+     * Attempts to create a PlotDisplay that re-creates the plot
+     * specified by this object.
+     *
+     * @param  plot   plot command
+     * @param  formatter  command formatter
+     * @param  caching  whether the plotted image is to be cached
+     * @return  plot display component
+     * @see   AbstractPlot2Task#createPlotComponent
+     */
+    private static PlotDisplay<?,?>
+            createPlotComponent( PlotStiltsCommand plot,
+                                 CommandFormatter formatter, boolean caching )
+            throws TaskException, IOException, InterruptedException {
+        MapEnvironment env = new MapEnvironment();
+        formatter.populateEnvironment( plot, env );
+        return plot.getTask().createPlotComponent( env, caching );
     }
 
     /**
@@ -415,20 +451,26 @@ public class StiltsMonitor {
      * Creates a StiltsState object based on a given plot spec and formatter.
      *
      * @param  plotSpec  plot specification
+     * @param  tableNamer  controls table naming
+     * @param  layerSuffixer  controls suffixes for layers
+     * @param  zoneSuffixer   controls suffixes for zones
      * @param  formatter   command formatter
      * @return   state
      */
     private static StiltsState
-            createStiltsState( PlotSpec<?,?> plotSpec,
-                               StiltsPlotFormatter formatter ) {
+            createStiltsState( PlotSpec<?,?> plotSpec, TableNamer tableNamer,
+                               Suffixer layerSuffixer, Suffixer zoneSuffixer,
+                               CommandFormatter formatter ) {
         PlotStiltsCommand plot;
         try {
-            plot = PlotStiltsCommand.createPlot( plotSpec, formatter );
+            plot = PlotStiltsCommand
+                  .createPlotCommand( plotSpec, tableNamer,
+                                      layerSuffixer, zoneSuffixer );
         }
         catch ( Exception err ) {
             String errtxt = "???";
             return new StiltsState( null, formatter, errtxt, err,
-                                    StiltsPlotFormatter
+                                    CommandFormatter
                                    .createBasicDocument( errtxt ) );
         }
         StyledDocument doc = formatter.createShellDocument( plot );
@@ -455,8 +497,9 @@ public class StiltsMonitor {
      * Defines the result of trying to serialize a PlotSpec to a STILTS command.
      */
     private static class StiltsState {
+
         final PlotStiltsCommand plot_;
-        final StiltsPlotFormatter formatter_;
+        final CommandFormatter formatter_;
         final String text_;
         final Throwable error_;
         final StyledDocument doc_;
@@ -473,7 +516,7 @@ public class StiltsMonitor {
          * @param  doc   styled document to display showing stilts command,
          *               or possibly error message
          */
-        StiltsState( PlotStiltsCommand plot, StiltsPlotFormatter formatter,
+        StiltsState( PlotStiltsCommand plot, CommandFormatter formatter,
                      String text, Throwable error, StyledDocument doc ) {
             plot_ = plot;
             formatter_ = formatter;

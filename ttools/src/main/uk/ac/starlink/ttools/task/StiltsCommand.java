@@ -25,6 +25,9 @@ import uk.ac.starlink.ttools.filter.SelectFilter;
  * will correspond to a STILTS command that can actually be executed,
  * so care must be taken in assembling it.
  *
+ * <p>Use a {@link CommandFormatter} instance to export this object
+ * into a useful external form, such as a shell command line.
+ *
  * @author   Mark Taylor
  * @since    17 Sep 2024
  */

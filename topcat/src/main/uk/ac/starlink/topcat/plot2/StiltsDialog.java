@@ -19,8 +19,9 @@ import javax.swing.JPanel;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxDialog;
 import uk.ac.starlink.topcat.MenuSelector;
-import uk.ac.starlink.ttools.plot2.task.StiltsPlotFormatter;
+import uk.ac.starlink.ttools.plot2.task.PlotCommandFormatter;
 import uk.ac.starlink.ttools.plot2.task.Suffixer;
+import uk.ac.starlink.ttools.task.CommandFormatter;
 import uk.ac.starlink.ttools.task.CredibleString;
 import uk.ac.starlink.ttools.task.TableNamer;
 import uk.ac.starlink.ttools.task.LineEnder;
@@ -86,10 +87,10 @@ public class StiltsDialog extends AuxDialog {
                                              StiltsInvoker.TOPCAT );
         zoneSuffixSelector_ =
             new MenuSelector<Suffixer>( "Zone Suffixes",
-                                        StiltsPlotFormatter.ZONE_SUFFIXERS );
+                                        StiltsControl.ZONE_SUFFIXERS );
         layerSuffixSelector_ =
             new MenuSelector<Suffixer>( "Layer Suffixes",
-                                        StiltsPlotFormatter.LAYER_SUFFIXERS );
+                                        StiltsControl.LAYER_SUFFIXERS );
         tableNamerSelector_ =
             new MenuSelector<TableNamer>( "Table Names",
                                           TopcatLayer.getLayerTableNamers() );
@@ -174,10 +175,9 @@ public class StiltsDialog extends AuxDialog {
         LineEnder lineEnder = lineEnderSelector_.getSelectedItem();
         int indent = indentSelector_.getSelectedItem().intValue();
         int cwidth = monitor.getWidthCharacters();
-        StiltsPlotFormatter formatter =
-            new StiltsPlotFormatter( invocation, zoneSuffixer, layerSuffixer,
-                                     includeDflts, lineEnder, indent, cwidth,
-                                     tableNamer );
-        monitor.setFormatter( formatter );
+        CommandFormatter formatter =
+            new PlotCommandFormatter( invocation, includeDflts, lineEnder,
+                                      indent, cwidth );
+        monitor.configure( formatter, tableNamer, layerSuffixer, zoneSuffixer );
     }
 }
