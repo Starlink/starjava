@@ -19,6 +19,8 @@ import javax.swing.JPanel;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxDialog;
 import uk.ac.starlink.topcat.MenuSelector;
+import uk.ac.starlink.topcat.StiltsInvoker;
+import uk.ac.starlink.topcat.StiltsMonitor;
 import uk.ac.starlink.topcat.TopcatTableNamer;
 import uk.ac.starlink.ttools.plot2.task.PlotCommandFormatter;
 import uk.ac.starlink.ttools.plot2.task.Suffixer;
@@ -62,7 +64,7 @@ public class PlotStiltsDialog extends AuxDialog {
         final PlotStiltsMonitor monitor = new PlotStiltsMonitor( plotPanel );
 
         /* Add stilts command text panel. */
-        content.add( PlotStiltsMonitor.wrapTextPanel( monitor.getTextPanel() ),
+        content.add( StiltsMonitor.wrapTextPanel( monitor.getTextPanel() ),
                      BorderLayout.CENTER );
 
         /* Add a panel for action controls. */
