@@ -94,14 +94,14 @@ public class StiltsControl extends TabberControl {
      * lazily.
      */
     private void configure() {
-        final StiltsMonitor monitor = new StiltsMonitor( plotPanel_ );
+        final PlotStiltsMonitor monitor = new PlotStiltsMonitor( plotPanel_ );
 
         /* Set up panel for command format control. */
         final FormatPanel formatPanel = new FormatPanel( isMultiZone_ );
 
         /* Set up panel for command display. */
         JComponent cmdPanel = new JPanel( new BorderLayout() );
-        cmdPanel.add( StiltsMonitor.wrapTextPanel( monitor.getTextPanel() ),
+        cmdPanel.add( PlotStiltsMonitor.wrapTextPanel( monitor.getTextPanel() ),
                       BorderLayout.CENTER );
         JComponent actionLine = Box.createHorizontalBox();
         actionLine.add( Box.createHorizontalGlue() );
@@ -122,7 +122,7 @@ public class StiltsControl extends TabberControl {
         actionLine.setBorder( BorderFactory.createEmptyBorder( 5, 0, 0, 0 ) );
         cmdPanel.add( actionLine, BorderLayout.SOUTH );
 
-        /* Ensure that the StiltsMonitor is kept updated with the
+        /* Ensure that the PlotStiltsMonitor is kept updated with the
          * configured formatter. */
         formatPanel.forwarder_.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
@@ -207,11 +207,11 @@ public class StiltsControl extends TabberControl {
 
         /**
          * Interrogates the state of this control's GUI and updates the
-         * formatting configuration of a given StiltsMonitor.
+         * formatting configuration of a given PlotStiltsMonitor.
          *
          * @param  monitor to update
          */
-        void updateFormatter( StiltsMonitor monitor ) {
+        void updateFormatter( PlotStiltsMonitor monitor ) {
             CredibleString invocation =
                 invokerSelector_
                .getItemAt( invokerSelector_.getSelectedIndex() )

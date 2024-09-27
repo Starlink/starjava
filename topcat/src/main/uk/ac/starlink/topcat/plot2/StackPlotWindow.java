@@ -296,8 +296,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                    "Display this information "
                                  + "in a separate window" ) {
             protected Window createWindow() {
-                return new StiltsDialog( StackPlotWindow.this, plotPanel_,
-                                         isMultiZone );
+                return new PlotStiltsDialog( StackPlotWindow.this, plotPanel_,
+                                             isMultiZone );
             }
         };
         Control stiltsControl =
