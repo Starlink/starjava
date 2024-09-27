@@ -57,7 +57,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  * @author   Mark Taylor
  * @since    12 Sep 2017
  */
-public class StiltsMonitor {
+public class PlotStiltsMonitor {
 
     private final PlotPanel<?,?> plotPanel_;
     private final JTextComponent textPanel_;
@@ -77,7 +77,7 @@ public class StiltsMonitor {
      *
      * @param   plotPanel  panel to mirror
      */
-    public StiltsMonitor( PlotPanel<?,?> plotPanel ) {
+    public PlotStiltsMonitor( PlotPanel<?,?> plotPanel ) {
         plotPanel_ = plotPanel;
         plotSpec_ = plotPanel.getPlotSpec();
 

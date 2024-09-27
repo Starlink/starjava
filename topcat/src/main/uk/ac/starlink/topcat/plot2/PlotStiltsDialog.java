@@ -35,7 +35,7 @@ import uk.ac.starlink.util.gui.TallWrapper;
  * @author   Mark Taylor
  * @since    19 Sep 2017
  */
-public class StiltsDialog extends AuxDialog {
+public class PlotStiltsDialog extends AuxDialog {
 
     private final MenuSelector<StiltsInvoker> invokerSelector_;
     private final MenuSelector<Suffixer> zoneSuffixSelector_;
@@ -54,15 +54,15 @@ public class StiltsDialog extends AuxDialog {
      *                       should be accounted for in the command
      */
     @SuppressWarnings("this-escape")
-    public StiltsDialog( Window parent, PlotPanel<?,?> plotPanel,
-                         boolean isMultiZone ) {
+    public PlotStiltsDialog( Window parent, PlotPanel<?,?> plotPanel,
+                             boolean isMultiZone ) {
         super( "STILTS Export", parent );
         JComponent content = new JPanel( new BorderLayout() );
         getContentPane().add( content, BorderLayout.CENTER );
-        final StiltsMonitor monitor = new StiltsMonitor( plotPanel );
+        final PlotStiltsMonitor monitor = new PlotStiltsMonitor( plotPanel );
 
         /* Add stilts command text panel. */
-        content.add( StiltsMonitor.wrapTextPanel( monitor.getTextPanel() ),
+        content.add( PlotStiltsMonitor.wrapTextPanel( monitor.getTextPanel() ),
                      BorderLayout.CENTER );
 
         /* Add a panel for action controls. */
@@ -108,7 +108,7 @@ public class StiltsDialog extends AuxDialog {
                 Integer.valueOf( 8 ),
             }, Integer.valueOf( 3 ) );
 
-        /* Ensure that the StiltsMonitor is kept updated with the
+        /* Ensure that the PlotStiltsMonitor is kept updated with the
          * configured formatter. */
         ActionForwarder fmtForwarder = new ActionForwarder();
         invokerSelector_.addActionListener( fmtForwarder );
@@ -162,11 +162,11 @@ public class StiltsDialog extends AuxDialog {
 
     /**
      * Interrogates the state of this control's GUI and updates the
-     * formatting configuration of a given StiltsMonitor.
+     * formatting configuration of a given PlotStiltsMonitor.
      *
      * @param  monitor to update
      */
-    private void updateFormatter( StiltsMonitor monitor ) {
+    private void updateFormatter( PlotStiltsMonitor monitor ) {
         CredibleString invocation =
             invokerSelector_.getSelectedItem().getInvocation();
         Suffixer zoneSuffixer = zoneSuffixSelector_.getSelectedItem();
