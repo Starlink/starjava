@@ -18,6 +18,7 @@ import javax.swing.SpinnerNumberModel;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.StiltsInvoker;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatTableNamer;
 import uk.ac.starlink.ttools.plot2.task.PlotCommandFormatter;
@@ -105,8 +106,9 @@ public class StiltsControl extends TabberControl {
                       BorderLayout.CENTER );
         JComponent actionLine = Box.createHorizontalBox();
         actionLine.add( Box.createHorizontalGlue() );
-        actionLine.add( new TallWrapper(
-                            new JButton( monitor.getClipboardAction() ) ) );
+        JButton clipButton = new JButton( monitor.getClipboardAction() );
+        clipButton.setIcon( null );
+        actionLine.add( new TallWrapper( clipButton ) );
         actionLine.add( Box.createHorizontalStrut( 10 ) );
         actionLine.add( new TallWrapper(
                             new JButton( monitor.getExecuteAction() ) ) );

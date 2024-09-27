@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.plot2;
+package uk.ac.starlink.topcat;
 
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.task.Credibility;

@@ -123,6 +123,7 @@ public class ResourceIcon implements Icon {
         SCROLLER = makeIcon( "scroll2.png" ),
         PARALLEL = makeIcon( "parallel1.png" ),
         STILTS = makeIcon( "stilts.png" ),
+        STILTS_HELP = makeIcon( "stiltshelp.png" ),
         EDIT = makeIcon( "pencil.png" ),
         CLIPBOARD = makeIcon( "clipboard.png" ),
 
