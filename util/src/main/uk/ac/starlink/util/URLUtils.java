@@ -58,19 +58,6 @@ public class URLUtils {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.util" );
 
-    /* Set up a URL representing the default context (the current directory). */
-    private static final URI defaultContext;
-    static {
-        URI dc;
-        try {
-            dc = new URI( "file:." );
-        }
-        catch ( URISyntaxException e ) {
-            assert false;
-            dc = null;
-        }
-        defaultContext = dc;
-    }
     private static final Pattern FILE_URL_REGEX =
         Pattern.compile( "(file:)(/*)(.*)" );
 
@@ -146,21 +133,24 @@ public class URLUtils {
         if ( location == null || location.trim().length() == 0 ) {
             return null;
         }
+        URI uri;
         try {
-            URI uri = new URI( location );
-            if ( uri.isAbsolute() ) {
+            uri = new URI( location );
+        }
+        catch ( URISyntaxException e ) {
+            uri = null;
+        }
+        if ( uri != null && uri.isAbsolute() ) {
+            try {
                 return uri.toURL();
             }
+            catch ( MalformedURLException e ) {
+            }
         }
-        catch ( URISyntaxException | MalformedURLException e ) {
-        }
-
-        /* It's not a valid URI or doesn't have a valid URL scheme,
-         * interpret it as a filename. */
         try {
-            return new URI( "file:" + location ).toURL();
+            return new File( location ).toURI().toURL();
         }
-        catch ( MalformedURLException | URISyntaxException e ) {
+        catch ( MalformedURLException e ) {
             return null;
         }
     }
@@ -185,7 +175,7 @@ public class URLUtils {
     public static URL makeURL( String context, String location ) {
         URI contextURI;
         if ( context == null || context.trim().length() == 0 ) {
-            contextURI = defaultContext;
+            contextURI = new File( "." ).toURI();
         }
         else {
             try {
@@ -221,20 +211,6 @@ public class URLUtils {
             }
         }
         return makeURL( location );
-    }
-
-    /**
-     * Returns an Error which can be thrown when you can't make a URL even
-     * though you know you're using the "file:" protocol.  Although this
-     * is permitted by the URL class, we consider ourselves to be on
-     * an irretrievably broken system if it happens.
-     */
-    private static AssertionError 
-            protestFileProtocolIsLegal( MalformedURLException e ) {
-        AssertionError ae = 
-            new AssertionError( "Illegal \"file:\" protocol in URL??" );
-        ae.initCause( e );
-        return ae;
     }
 
     /**
