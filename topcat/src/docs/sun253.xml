@@ -33704,6 +33704,10 @@ introduced since the last version:
         vertical, not horizontal, axis.</li>
     <li>Fix regression bug (since v4.9) in HTTP 3xx redirect handling 
         that failed to cope with relative Location field values.</li>
+    <li>Fix regression issue (since v4.10) in URL construction
+        that meant (at least) use of the <code>-running</code>
+        <ref id="topcatArgs">command-line argument</ref>
+        didn't work properly with relative filenames.</li>
     </ul>
     </p></dd>
 
