@@ -36,6 +36,11 @@ public class URLUtilsTest extends junit.framework.TestCase {
             assertEquals(okpairs[i+1],
                          URLUtils.makeURL(okpairs[i]).toString());
         }
+
+        // Context defaults correctly?
+        File me = new File("wibble");
+        assertEquals("file:" + me.getAbsolutePath(),
+                     URLUtils.makeURL("wibble").toString());
         
         // Following should fail
         String[] badurls = {
@@ -160,9 +165,6 @@ public class URLUtilsTest extends junit.framework.TestCase {
                               .toString() );
         assertEquals( "https://foo.com/bar",
                       URLUtils.makeURL( null, "https://foo.com/bar" )
-                              .toString() );
-        assertEquals( "file:foo/bar",
-                      URLUtils.makeURL( null, "foo/bar" )
                               .toString() );
         assertEquals( "file:/etc/motd",
                       URLUtils.makeURL( null, "/etc/motd" )
