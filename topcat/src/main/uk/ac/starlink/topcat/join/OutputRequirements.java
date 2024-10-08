@@ -4,10 +4,8 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JRadioButton;
-import javax.swing.JToggleButton;
 import uk.ac.starlink.table.join.MultiJoinType;
 
 /**
@@ -20,33 +18,33 @@ import uk.ac.starlink.table.join.MultiJoinType;
  */
 public class OutputRequirements {
 
-    private final JComponent rowBox;
-    private final JToggleButton useCols;
-    private final ButtonGroup rowGrp;
-    private MatchOption rowOption;
+    private final JComponent rowBox_;
+    private final ButtonGroup rowGrp_;
+    private MatchOption rowOption_;
 
     /**
      * Constructs a new OutputRequirements object.
      */
     public OutputRequirements() {
 
-        /* Set up the component which holds the column requirement controls. */
-        useCols = new JCheckBox();
-        useCols.setSelected( true );
-
         /* Set up the component which holds the row requirement controls. */
-        rowBox = Box.createHorizontalBox();
-        rowGrp = new ButtonGroup();
+        rowBox_ = Box.createHorizontalBox();
+        rowGrp_ = new ButtonGroup();
         MatchOption[] options = new MatchOption[] { 
             MatchOption.MATCHED, MatchOption.ANY };
         for ( int i = 0; i < options.length; i++ ) {
+            final MatchOption opt = options[ i ];
             JRadioButton butt =
-                new JRadioButton( new OptionAction( options[ i ] ) );
+                    new JRadioButton( new AbstractAction( opt.toString() ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    rowOption_ = opt;
+                }
+            } );
             if ( i == 0 ) {
                 butt.doClick();
             }
-            rowGrp.add( butt );
-            rowBox.add( butt );
+            rowGrp_.add( butt );
+            rowBox_.add( butt );
         }
     }
 
@@ -57,17 +55,7 @@ public class OutputRequirements {
      * @return  selection window
      */
     public JComponent getRowLine() {
-        return rowBox;
-    }
-
-    /**
-     * Returns a button which allows the user to select which columns
-     * will be included in the output.
-     *
-     * @return  selection button
-     */
-    public JToggleButton getUseCols() {
-        return useCols;
+        return rowBox_;
     }
 
     /**
@@ -76,7 +64,7 @@ public class OutputRequirements {
      * @return  match option
      */
     public MatchOption getRowOption() {
-        return rowOption;
+        return rowOption_;
     }
 
     /**
@@ -85,24 +73,6 @@ public class OutputRequirements {
      * @return  join type
      */
     public MultiJoinType getJoinType() {
-        return rowOption.getJoinType();
-    }
-
-    private class OptionAction extends AbstractAction {
-        MatchOption option;
-        OptionAction( MatchOption opt ) {
-            super( opt.toString() );
-            this.option = opt;
-        }
-        public void actionPerformed( ActionEvent evt ) {
-            OutputRequirements.this.rowOption = option;
-            if ( option == MatchOption.UNMATCHED ) {
-                useCols.setEnabled( false );
-                useCols.setSelected( false );
-            }
-            else {
-                useCols.setEnabled( true );
-            }
-        }
+        return rowOption_.getJoinType();
     }
 }
