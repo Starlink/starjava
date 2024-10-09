@@ -27,6 +27,15 @@ public enum TapVersion {
     }
 
     /**
+     * Returns a numeric text string corresponding to this version.
+     *
+     * @return numeric string, for instance "1.0"
+     */
+    public String getNumber() {
+        return number_;
+    }
+
+    /**
      * True if this version is greater than or equal to TAP version 1.1.
      *
      * @return  true for v1.1+
