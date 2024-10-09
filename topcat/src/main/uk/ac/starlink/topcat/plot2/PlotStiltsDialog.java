@@ -87,7 +87,7 @@ public class PlotStiltsDialog extends AuxDialog {
         invokerSelector_ =
             new MenuSelector<StiltsInvoker>( "Invocation",
                                              StiltsInvoker.INVOKERS,
-                                             StiltsInvoker.TOPCAT );
+                                             StiltsInvoker.STILTS );
         zoneSuffixSelector_ =
             new MenuSelector<Suffixer>( "Zone Suffixes",
                                         StiltsControl.ZONE_SUFFIXERS );

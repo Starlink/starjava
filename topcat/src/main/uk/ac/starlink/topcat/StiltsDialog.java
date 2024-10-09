@@ -83,7 +83,7 @@ public class StiltsDialog extends AuxDialog {
         invokerSelector_ =
             new MenuSelector<StiltsInvoker>( "Invocation",
                                              StiltsInvoker.INVOKERS,
-                                             StiltsInvoker.TOPCAT );
+                                             StiltsInvoker.STILTS );
         tableNamerSelector_ =
             new MenuSelector<TopcatTableNamer>( "Table Names",
                                                 TopcatTableNamer
