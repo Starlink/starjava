@@ -14,6 +14,7 @@ import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.IOSupplier;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapService;
 import uk.ac.starlink.vo.UwsJob;
@@ -35,7 +36,7 @@ import uk.ac.starlink.votable.VOTableWriter;
  */
 public class TapUploadMatcher implements UploadMatcher {
 
-    private final TapService tapService_;
+    private final IOSupplier<TapService> tapServiceSupplier_;
     private final String tableName_;
     private final String raExpr_;
     private final String decExpr_;
@@ -56,7 +57,7 @@ public class TapUploadMatcher implements UploadMatcher {
     /**
      * Constructor.
      *
-     * @param  tapService  TAP service description
+     * @param  tapServiceSupplier  supplier of TAP service description
      * @param  tableName   name of table in TAP service to match against
      * @param  raExpr    column name (or ADQL expression) for RA
      *                   in decimal degrees in TAP table
@@ -71,13 +72,13 @@ public class TapUploadMatcher implements UploadMatcher {
      * @param  extraParams  map of additional parameters for TAP query
      * @param  coding     configures HTTP compression for result
      */
-    public TapUploadMatcher( TapService tapService, String tableName,
-                             String raExpr, String decExpr,
+    public TapUploadMatcher( IOSupplier<TapService> tapServiceSupplier,
+                             String tableName, String raExpr, String decExpr,
                              String radiusDegExpr, boolean isSync,
                              String[] tapCols, ServiceFindMode serviceMode,
                              Map<String,String> extraParams,
                              ContentCoding coding ) {
-        tapService_ = tapService;
+        tapServiceSupplier_ = tapServiceSupplier;
         tableName_ = tableName;
         raExpr_ = raExpr;
         decExpr_ = decExpr;
@@ -105,8 +106,9 @@ public class TapUploadMatcher implements UploadMatcher {
                                             ID_NAME, RA_NAME, DEC_NAME ) );
         VOTableWriter voWriter =
             new VOTableWriter( DataFormat.BINARY, true, VOTableVersion.V12 );
+        TapService tapService = tapServiceSupplier_.get();
         TapQuery tapQuery =
-            new TapQuery( tapService_, adql, extraParams_, uploadMap, -1,
+            new TapQuery( tapService, adql, extraParams_, uploadMap, -1,
                           voWriter );
         final URLConnection conn;
         if ( isSync_ ) {

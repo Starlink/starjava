@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.taplint.OutputReporter;
 import uk.ac.starlink.ttools.taplint.Stage;
 import uk.ac.starlink.ttools.taplint.TextOutputReporter;
 import uk.ac.starlink.ttools.taplint.TapLinter;
+import uk.ac.starlink.util.IOSupplier;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapService;
 
@@ -179,9 +180,9 @@ public class TapLint implements Task {
 
         /* Acquire the service, which may (depending on chosen interface type)
          * involve reading the capabilities document. */
-        TapService tapService;
+        IOSupplier<TapService> serviceSupplier;
         try {
-            tapService = tapserviceParams_.getTapService( env );
+            serviceSupplier = tapserviceParams_.getServiceSupplier( env );
         }
 
         /* The service acquisition may fail if the service just doesn't exist.
@@ -205,7 +206,7 @@ public class TapLint implements Task {
         }
 
         /* If we have a service, set up validation in the usual way. */
-        return tapLinter_.createExecutable( reporter, tapService, stageSet,
+        return tapLinter_.createExecutable( reporter, serviceSupplier, stageSet,
                                             maxTestTables, tableFilter );
     }
 

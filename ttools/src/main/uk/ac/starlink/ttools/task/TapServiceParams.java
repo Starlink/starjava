@@ -17,6 +17,7 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
+import uk.ac.starlink.util.IOSupplier;
 import uk.ac.starlink.vo.TapCapabilitiesDoc;
 import uk.ac.starlink.vo.TapService;
 import uk.ac.starlink.vo.TapServices;
@@ -196,13 +197,19 @@ public class TapServiceParams {
     }
 
     /**
-     * Acquires a TapService instance from the environment using the
-     * parameters managed by this object.
+     * Manages acquisition of a TapService instance from the environment
+     * using the parameters managed by this object.
+     *
+     * <p>The idea is that all the environment interaction is done by
+     * this method, and all the service interaction is done when using
+     * the supplier's {@link uk.ac.starlink.util.IOSupplier#get get} method.
+     * This may not be perfectly true because of difficulties in
+     * arranging dynamic parameter defaulting based on contacting the service.
      *
      * @param   env   execution environment
-     * @return   TAP service description
+     * @return   supplier for a TAP service description
      */
-    public TapService getTapService( final Environment env )
+    public IOSupplier<TapService> getServiceSupplier( final Environment env )
             throws TaskException {
         String intfkey = intfParam_.objectValue( env );
         final TapService baseService;
@@ -272,23 +279,8 @@ public class TapServiceParams {
             logger_.config( "TAP availability:   " + availabilityUrl );
         }
 
-        /* Perform pre-emptive authentication if so requested. */
-        if ( authParam_.booleanValue( env ) ) {
-            boolean isHead = true;
-            boolean forceLogin = true;
-            AuthStatus status;
-            try {
-                status = AuthManager.getInstance()
-                        .authcheck( capabilitiesUrl, isHead, forceLogin );
-            }
-            catch ( IOException e ) {
-                throw new ExecutionException( "Optional authentication failed",
-                                              e );
-            }
-        }
-
-        /* Return service. */
-        return new TapService() {
+        /* Create service. */
+        TapService service = new TapService() {
             public String getIdentity() {
                 return baseUrl;
             }
@@ -313,6 +305,25 @@ public class TapServiceParams {
             public TapVersion getTapVersion() {
                 return tapVersion;
             }
+        };
+
+        boolean isAuth = authParam_.booleanValue( env );
+
+        /* Return the supplier.  This should not have reference to the
+         * environment, and should do any time-consuming activities
+         * that happen at execution time rather than task preparation time. */
+        return () -> {
+
+            /* Perform pre-emptive authentication if so requested. */
+            if ( isAuth ) {
+                boolean isHead = true;
+                boolean forceLogin = true;
+                AuthManager.getInstance()
+                           .authcheck( capabilitiesUrl, isHead, forceLogin );
+            }
+
+            /* Return service object. */
+            return service;
         };
     }
 
