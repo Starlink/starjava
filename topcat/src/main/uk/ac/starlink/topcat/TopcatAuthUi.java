@@ -7,6 +7,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.concurrent.CountDownLatch;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -51,6 +52,7 @@ public class TopcatAuthUi extends UserInterface {
         /* This method should get called from a non-EDT thread.
          * Post the window asynchronously, then block until it has
          * been disposed. */
+        CountDownLatch latch = new CountDownLatch( 1 );
         AuthDialog dialog = new AuthDialog( window, msgLines );
         dialog.addWindowListener( new WindowListener() {
             public void windowClosed( WindowEvent evt ) {
@@ -72,18 +74,14 @@ public class TopcatAuthUi extends UserInterface {
                 dialog.initFocus();
             }
             private void done() {
-                synchronized( dialog ) {
-                    dialog.notifyAll();
-                }
+                latch.countDown();
             }
         } );
         SwingUtilities.invokeLater( () -> {
             dialog.setVisible( true );
         } );
         try {
-            synchronized ( dialog ) {
-                dialog.wait();
-            }
+            latch.await();
         }
         catch ( InterruptedException e ) {
             return null;
