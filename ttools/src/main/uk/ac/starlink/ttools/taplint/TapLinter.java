@@ -26,6 +26,7 @@ import uk.ac.starlink.auth.AuthManager;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
+import uk.ac.starlink.util.IOSupplier;
 import uk.ac.starlink.vo.StdCapabilityInterface;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapabilitiesDoc;
@@ -194,7 +195,7 @@ public class TapLinter {
      * Creates and returns an executable for TAP validation.
      *
      * @param  reporter  validation message destination
-     * @param  tapService   TAP service description
+     * @param  tapServiceSupplier  supplier of TAP service description
      * @param  stageCodeSet  unordered collection of code strings indicating
      *         which stages should be run
      * @param  maxTestTables  limit on the number of tables to test,
@@ -203,11 +204,11 @@ public class TapLinter {
      *                      or null for no restriction
      * @return   tap validator executable
      */
-    public Executable createExecutable( final OutputReporter reporter,
-                                        final TapService tapService,
-                                        Set<String> stageCodeSet,
-                                        int maxTestTables,
-                                        Predicate<TableMeta> tableFilter )
+    public Executable
+            createExecutable( OutputReporter reporter,
+                              IOSupplier<TapService> tapServiceSupplier,
+                              Set<String> stageCodeSet, int maxTestTables,
+                              Predicate<TableMeta> tableFilter )
             throws TaskException {
 
         /* Prepare a checked and ordered sequence of codes determining
@@ -234,7 +235,6 @@ public class TapLinter {
 
         /* Other initialisation. */
         tapSchemaMetadata_.setReporter( reporter );
-        capabilitiesReader_.init( reporter, tapService );
         colMetaStage_.setMaxTestTables( maxTestTables );
 
         /* Create and return an executable which will run the
@@ -243,6 +243,20 @@ public class TapLinter {
         return new Executable() {
             public void execute() {
                 String uaToken = UserAgentUtil.COMMENT_TEST;
+                TapService tapService;
+                try {
+                    tapService = tapServiceSupplier.get();
+                }
+                catch ( IOException e ) {
+                    reporter.start( TapLinter.getAnnouncements( false ) );
+                    reporter.startSection( "PRE", "Preparation" );
+                    reporter.report( FixedCode.E_TAP0,
+                                     "TAP service not present", e );
+                    reporter.endSection();
+                    reporter.end();
+                    return;
+                }
+                capabilitiesReader_.init( reporter, tapService );
                 UserAgentUtil.pushUserAgentToken( uaToken );
                 try {
                     reporter.start( announcements );

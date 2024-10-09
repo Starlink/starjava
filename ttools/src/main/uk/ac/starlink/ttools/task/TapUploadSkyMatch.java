@@ -26,6 +26,7 @@ import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.TapUploadMatcher;
 import uk.ac.starlink.ttools.cone.UploadMatcher;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.IOSupplier;
 import uk.ac.starlink.vo.TapService;
 
 /**
@@ -293,7 +294,8 @@ public class TapUploadSkyMatch extends SingleMapperTask {
         /* Interrogate environment for parameter values. */
         final String inlonString = inlonParam_.stringValue( env );
         final String inlatString = inlatParam_.stringValue( env );
-        TapService tapService = tapserviceParams_.getTapService( env );
+        final IOSupplier<TapService> tapServiceSupplier =
+            tapserviceParams_.getServiceSupplier( env );
         String taptable = taptableParam_.stringValue( env );
         String taplonString = taplonParam_.stringValue( env );
         String taplatString = taplatParam_.stringValue( env );
@@ -315,7 +317,7 @@ public class TapUploadSkyMatch extends SingleMapperTask {
         }
         ContentCoding coding = codingParam_.codingValue( env );
         TapUploadMatcher umatcher =
-            new TapUploadMatcher( tapService, taptable,
+            new TapUploadMatcher( tapServiceSupplier, taptable,
                                   taplonString, taplatString, srString,
                                   isSync, tapcols, serviceMode,
                                   extraParams, coding );

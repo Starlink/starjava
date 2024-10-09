@@ -20,6 +20,7 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.IOSupplier;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.AdqlValidator;
 import uk.ac.starlink.vo.TapQuery;
@@ -230,7 +231,8 @@ public class TapMapper implements TableMapper {
 
     public TableMapping createMapping( Environment env, final int nup )
             throws TaskException {
-        final TapService tapService = tapserviceParams_.getTapService( env );
+        final IOSupplier<TapService> tapServiceSupplier =
+            tapserviceParams_.getServiceSupplier( env );
         final String adql = adqlParam_.stringValue( env );
         if ( parseParam_.booleanValue( env ) ) {
             AdqlValidator validator = AdqlValidator.createValidator();
@@ -268,6 +270,7 @@ public class TapMapper implements TableMapper {
             return new TableMapping() {
                 public StarTable mapTables( InputTableSpec[] inSpecs )
                         throws TaskException, IOException {
+                    TapService tapService = tapServiceSupplier.get();
                     TapQuery tq =
                         createTapQuery( tapService, adql, extraParams, upNames,
                                         inSpecs, uploadLimit, vowriter );
@@ -286,6 +289,7 @@ public class TapMapper implements TableMapper {
             return new TableMapping() {
                 public StarTable mapTables( InputTableSpec[] inSpecs )
                         throws TaskException, IOException {
+                    TapService tapService = tapServiceSupplier.get();
                     TapQuery tq =
                         createTapQuery( tapService, adql, extraParams, upNames,
                                         inSpecs, uploadLimit, vowriter );
