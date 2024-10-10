@@ -6,6 +6,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import uk.ac.starlink.topcat.AuxWindow;
+import uk.ac.starlink.topcat.StiltsAction;
 
 /**
  * Window for doing upload sky matches using the CDS X-Match service.
@@ -32,6 +33,7 @@ public class CdsUploadMatchWindow extends AuxWindow {
         controls.add( new JButton( matchPanel.getStopAction() ) );
 
         getToolBar().add( matchPanel.getCoverageModel().createToolbarButton() );
+        getToolBar().add( new StiltsAction( matchPanel, () -> this ) );
         getToolBar().addSeparator();
         JMenu searchMenu = new JMenu( "Search" );
         searchMenu.add( matchPanel.getCoverageModel().createMenuItem() );

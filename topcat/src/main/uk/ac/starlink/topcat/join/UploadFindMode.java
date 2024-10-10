@@ -22,6 +22,7 @@ import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.RowMapper;
 import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.BlockUploader;
+import uk.ac.starlink.ttools.task.UserFindMode;
 
 /**
  * Mode for upload crossmatches corresponding to the user options.
@@ -34,23 +35,27 @@ public abstract class UploadFindMode {
 
     private final String name_;
     private final ServiceFindMode serviceMode_;
+    private final UserFindMode userMode_;
     private final boolean oneToOne_;
 
     /** All matches. */
     public static final UploadFindMode ALL =
-        new AddTableMode( "All", ServiceFindMode.ALL, false );
+        new AddTableMode( "All", ServiceFindMode.ALL, UserFindMode.ALL, false );
 
     /** Best match only. */
     public static final UploadFindMode BEST =
-        new AddTableMode( "Best", ServiceFindMode.BEST, false );
+        new AddTableMode( "Best", ServiceFindMode.BEST, UserFindMode.BEST,
+                          false );
 
     /** Best match in local table for each remote row. */
     public static final UploadFindMode BEST_REMOTE =
-        new AddTableMode( "Best Remote", ServiceFindMode.BEST_REMOTE, false );
+        new AddTableMode( "Best Remote", ServiceFindMode.BEST_REMOTE,
+                          UserFindMode.BEST_REMOTE, false );
 
     /** One output row per local table row, best match or blank. */
     public static final UploadFindMode EACH =
-        new AddTableMode( "Each", ServiceFindMode.BEST, true );
+        new AddTableMode( "Each", ServiceFindMode.BEST, UserFindMode.EACH,
+                          true );
 
     /** Just adds a match subset to the table. */
     public static final UploadFindMode ADD_SUBSET =
@@ -65,13 +70,15 @@ public abstract class UploadFindMode {
      * Constructor.
      *
      * @param  name  mode name
-     * @param  serviceMode   ServiceFindMode intance underlying this fucntion
+     * @param  serviceMode   ServiceFindMode instance underlying this fucntion
+     * @param  userMode   UserFindMode instance matching this function
      * @param  oneToOne   true iff output rows match 1:1 with input rows
      */
-    private UploadFindMode( String name,
-                            ServiceFindMode serviceMode, boolean oneToOne ) {
+    private UploadFindMode( String name, ServiceFindMode serviceMode,
+                            UserFindMode userMode, boolean oneToOne ) {
         name_ = name;
         serviceMode_ = serviceMode;
+        userMode_ = userMode;
         oneToOne_ = oneToOne;
         if ( oneToOne && ! serviceMode.supportsOneToOne() ) {
             throw new IllegalArgumentException();
@@ -85,6 +92,15 @@ public abstract class UploadFindMode {
      */
     public ServiceFindMode getServiceMode() {
         return serviceMode_;
+    }
+
+    /**
+     * Returns the stilts mode corresponding to this mode.
+     *
+     * @return  user mode
+     */
+    public UserFindMode getUserMode() {
+        return userMode_;
     }
 
     /**
@@ -143,11 +159,12 @@ public abstract class UploadFindMode {
          *
          * @param  name  mode name
          * @param  serviceMode   service upload mode
+         * @param  userMode   UserFindMode instance matching this function
          * @param  oneToOne   true iff output rows match 1:1 with input rows
          */
         AddTableMode( String name, ServiceFindMode serviceMode,
-                      boolean oneToOne ) {
-            super( name, serviceMode, oneToOne );
+                      UserFindMode userMode, boolean oneToOne ) {
+            super( name, serviceMode, userMode, oneToOne );
         }
 
         public void runMatch( BlockUploader blocker, StarTable inTable,
@@ -219,7 +236,7 @@ public abstract class UploadFindMode {
          * @param  name  mode name
          */
         AddSubsetMode( String name ) {
-            super( name, ServiceFindMode.BEST_SCORE, false );
+            super( name, ServiceFindMode.BEST_SCORE, UserFindMode.BEST, false );
         }
 
         public void runMatch( BlockUploader blocker, StarTable inTable,
