@@ -261,6 +261,88 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         getParameterList().addAll( paramList );
     }
 
+    /**
+     * Returns the parameter for acquiring the expression for Right Ascension.
+     *
+     * @return RA parameter
+     */
+    public Parameter<String> getRaParameter() {
+        return raParam_;
+    }
+
+    /**
+     * Returns the parameter for acquiring the expression for Declination.
+     *
+     * @return  declination parameter
+     */
+    public Parameter<String> getDecParameter() {
+        return decParam_;
+    }
+
+    /**
+     * Returns the parameter for acquiring the search radius in arcseconds.
+     *
+     * @return  radius parameter
+     */
+    public Parameter<Double> getRadiusArcsecParameter() {
+        return srParam_;
+    }
+
+    /**
+     * Returns the parameter for acquiring the name of the remote VizieR table.
+     *
+     * @return   CDS table name parameter
+     */
+    public Parameter<String> getCdsTableParameter() {
+        return cdstableParam_;
+    }
+
+    /**
+     * Returns the parameter for acquiring the whether a MOC should be
+     * sought and used to pre-filter rows before upload.
+     *
+     * @return  useMoc parameter
+     */
+    public Parameter<Boolean> getUseMocParameter() {
+        return usemocParam_;
+    }
+
+    /**
+     * Returns the parameter for acquiring the find mode.
+     *
+     * @return  find mode parameter
+     */
+    public Parameter<UserFindMode> getFindParameter() {
+        return findParam_;
+    }
+
+    /**
+     * Returns the parameter for acquiring upload block size.
+     *
+     * @return  block size parameter
+     */
+    public Parameter<Integer> getBlocksizeParameter() {
+        return chunkParam_;
+    }
+
+    /**
+     * Returns the parameter for acquiring the Fixer action.
+     *
+     * @return  column fixer parameter
+     */
+    public Parameter<JoinFixActionParameter.Fixer> getFixColsParameter() {
+        return fixcolsParam_;
+    }
+
+    /**
+     * Returns the parameter for acquiring the fixer suffix parameter.
+     *
+     * @return  fixer suffix parameter
+     */
+    public Parameter<String> getCdsSuffixParameter() {
+        return cdssuffixParam_;
+    }
+
     public TableProducer createProducer( Environment env )
             throws TaskException {
 
