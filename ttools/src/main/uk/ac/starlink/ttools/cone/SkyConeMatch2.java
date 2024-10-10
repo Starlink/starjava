@@ -292,7 +292,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             throws TaskException {
 
         /* Interrogate environment for parameter values. */
-        coner_.configureParams( env, srParam_ );
+        coner_.configureRadiusParam( env, srParam_ );
         boolean distFilter = coner_.useDistanceFilter( env );
         String copyColIdList = copycolsParam_.stringValue( env );
         String raString = raParam_.stringValue( env );

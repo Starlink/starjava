@@ -46,7 +46,7 @@ public interface Coner {
      * @param  env  execution environment
      * @param  srParam   search radius parameter
      */
-    void configureParams( Environment env, Parameter<?> srParam )
+    void configureRadiusParam( Environment env, Parameter<?> srParam )
             throws TaskException;
 
     /**

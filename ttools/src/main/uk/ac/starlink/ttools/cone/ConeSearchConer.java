@@ -178,7 +178,7 @@ public class ConeSearchConer implements Coner {
         return verbParam_;
     }
 
-    public void configureParams( Environment env, Parameter<?> srParam )
+    public void configureRadiusParam( Environment env, Parameter<?> srParam )
             throws TaskException {
         if ( Double.class.isAssignableFrom( srParam.getValueClass() ) ) {
             @SuppressWarnings("unchecked")
