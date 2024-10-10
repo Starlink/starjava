@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.Action;
@@ -109,6 +110,19 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
      */
     protected void setToolbarActions( Action[] acts ) {
         toolbarActions_ = acts;
+    }
+
+    /**
+     * Adds an action to the toolbar for this dialogue.
+     * Utility function.
+     *
+     * @param act  action to add
+     */
+    protected void addToolbarAction( Action act ) {
+        List<Action> toolActs =
+            new ArrayList<>( Arrays.asList( getToolbarActions() ) );
+        toolActs.add( act );
+        setToolbarActions( toolActs.toArray( new Action[ 0 ] ) );
     }
 
     /**
