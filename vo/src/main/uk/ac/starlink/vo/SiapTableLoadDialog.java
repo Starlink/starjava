@@ -109,10 +109,8 @@ public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
         final double ra = raField_.getValue();
         final double dec = decField_.getValue();
         final double size = sizeField_.getValue();
-        final SiaVersion siaVersion =
-            versionSelector_.getItemAt( versionSelector_.getSelectedIndex() );
-        final SiaFormatOption format =
-            SiaFormatOption.fromObject( formatSelector_.getSelectedItem() );
+        final SiaVersion siaVersion = getSiaVersion();
+        final SiaFormatOption format = getFormat();
 
         final List<DescribedValue> metadata = new ArrayList<DescribedValue>();
         metadata.addAll( Arrays.asList( new DescribedValue[] {
@@ -135,5 +133,56 @@ public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
                 return summary;
             }
         };
+    }
+
+    /**
+     * Returns the SIA version selected.
+     *
+     * @return  SIA version
+     */
+    public SiaVersion getSiaVersion() {
+        return versionSelector_
+              .getItemAt( versionSelector_.getSelectedIndex() );
+    }
+
+    /**
+     * Returns the format option selected.
+     *
+     * @return SIA format
+     */
+    public SiaFormatOption getFormat() {
+        return SiaFormatOption.fromObject( formatSelector_.getSelectedItem() );
+    }
+
+    /**
+     * Returns the size in degrees selected.
+     *
+     * @return  requested size in degrees
+     */
+    public double getSizeDeg() {
+        try {
+            return sizeField_.getValue();
+        }
+        catch ( RuntimeException e ) {
+            return Double.NaN;
+        }
+    }
+
+    /**
+     * Returns the format selector component.
+     *
+     * @return  format selector
+     */
+    public JComboBox<Object> getFormatSelector() {
+        return formatSelector_;
+    }
+
+    /**
+     * Returns the SIA version selector component.
+     *
+     * @return   version selector
+     */
+    public JComboBox<SiaVersion> getVersionSelector() {
+        return versionSelector_;
     }
 }
