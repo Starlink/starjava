@@ -10,19 +10,13 @@ import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
-import uk.ac.starlink.ttools.cone.ServiceConeSearcher;
-import uk.ac.starlink.ttools.cone.SiaConeSearcher;
-import uk.ac.starlink.ttools.cone.SsaConeSearcher;
+import uk.ac.starlink.ttools.cone.ConeServiceType;
 import uk.ac.starlink.ttools.convert.SkySystem;
 import uk.ac.starlink.util.ContentCoding;
-import uk.ac.starlink.vo.ConeSearch;
-import uk.ac.starlink.vo.SiaFormatOption;
-import uk.ac.starlink.vo.SiaVersion;
 
 /**
  * Executes a single cone-search-like query to an external DAL service.
@@ -37,7 +31,7 @@ public class TableCone extends ConsumerTask {
     private final DoubleParameter latParam_;
     private final DoubleParameter radiusParam_;
     private final ChoiceParameter<String> verbParam_;
-    private final ChoiceParameter<ServiceType> serviceParam_;
+    private final ChoiceParameter<ConeServiceType> serviceParam_;
     private final ContentCodingParameter codingParam_;
     private final ChoiceParameter<SkySystem> sysParam_;
     private final StringParameter formatParam_;
@@ -48,22 +42,6 @@ public class TableCone extends ConsumerTask {
         List<Parameter<?>> coneParams = new ArrayList<>();
 
         final String sysParamName = "skysys";
-        ServiceType[] serviceTypes = new ServiceType[] {
-            new ConeServiceType(),
-            new SsaServiceType(),
-            new SiaServiceType( SiaVersion.V10 ),
-            new SiaServiceType( SiaVersion.V20 ),
-            new SiaServiceType( SiaVersion.V10 ) {
-                @Override
-                public String toString() {
-                    return "sia";
-                }
-                @Override
-                public String getDescription() {
-                    return "alias for <code>" + super.toString() + "</code>";
-                }
-            },
-        };
 
         urlParam_ = new URLParameter( "serviceurl" );
         urlParam_.setPrompt( "Base URL for query returning VOTable" );
@@ -130,12 +108,12 @@ public class TableCone extends ConsumerTask {
         sysParam_.setDefaultOption( SkySystem.ICRS );
         coneParams.add( sysParam_ );
 
+        ConeServiceType[] serviceTypes = ConeServiceType.getAllTypes();
         serviceParam_ =
-            new ChoiceParameter<ServiceType>( "servicetype", serviceTypes );
+            new ChoiceParameter<ConeServiceType>( "servicetype", serviceTypes );
         serviceParam_.setPrompt( "Search service type" );
         StringBuffer typesDescrip = new StringBuffer();
-        for ( int i = 0; i < serviceTypes.length; i++ ) {
-            ServiceType stype = serviceTypes[ i ];
+        for ( ConeServiceType stype : serviceTypes ) {
             typesDescrip.append( "<li>" )
                         .append( "<code>" )
                         .append( stype )
@@ -177,7 +155,7 @@ public class TableCone extends ConsumerTask {
         formatParam_.setNullPermitted( true );
         StringBuffer formatsDescrip = new StringBuffer();
         for ( int i = 0; i < serviceTypes.length; i++ ) {
-            ServiceType stype = serviceTypes[ i ];
+            ConeServiceType stype = serviceTypes[ i ];
             formatsDescrip
                .append( "<li>" )
                .append( "<code>" )
@@ -208,8 +186,8 @@ public class TableCone extends ConsumerTask {
     public TableProducer createProducer( Environment env )
             throws TaskException {
         URL url = urlParam_.objectValue( env );
-        ServiceType serviceType = serviceParam_.objectValue( env );
-        serviceType.configureParams( radiusParam_ );
+        ConeServiceType serviceType = serviceParam_.objectValue( env );
+        serviceType.configureRadiusParam( radiusParam_ );
         double lon = lonParam_.doubleValue( env );
         double lat = latParam_.doubleValue( env );
         final double radius = radiusParam_.doubleValue( env );
@@ -233,7 +211,8 @@ public class TableCone extends ConsumerTask {
         }
         StarTableFactory tfact = LineTableEnvironment.getTableFactory( env );
         final ConeSearcher searcher =
-            serviceType.createSearcher( env, url.toString(), tfact, coding );
+            serviceType.createSingleSearcher( env, this, url.toString(), tfact,
+                                              coding );
         return new TableProducer() {
             public StarTable getTable() throws IOException {
                 return searcher.performSearch( raDeg, decDeg, radius );
@@ -242,235 +221,20 @@ public class TableCone extends ConsumerTask {
     }
 
     /**
-     * Describes the type of DAL service which is the basis of the cone.
+     * Returns the parameter used to acquire the DAL requested data format.
+     *
+     * @return  format parameter
      */
-    private abstract class ServiceType {
-        private final String name_;
-
-        /**
-         * Constructor.
-         *
-         * @param  informal, short name
-         */
-        ServiceType( String name ) {
-            name_ = name;
-        }
-
-        /**
-         * Returns XML description of this service type.
-         *
-         * @return  description
-         */
-        abstract String getDescription();
-
-        /**
-         * Returns XML documentation of the use of the format parameter
-         * for this service type.
-         *
-         * @return  formats info
-         */
-        abstract String getFormatDescription();
-
-        /**
-         * Provides this object with a chance to perform custom configuration
-         * on general cone search parameters.
-         *
-         * @param  srParam   search radius parameter
-         */
-        abstract void configureParams( Parameter<?> srParam );
-
-        /**
-         * Constructs a ConeSearcher instance suitable for this service type.
-         *
-         * @param  env  execution environment
-         * @param  url  service URL
-         * @param  tfact  table factory
-         * @param  coding  controls HTTP-level byte stream compression;
-         *                 implementations may choose to ignore this hint
-         * @return  cone searcher object
-         */
-        abstract ConeSearcher createSearcher( Environment env, String url,
-                                              StarTableFactory tfact,
-                                              ContentCoding coding )
-                throws TaskException;
-
-        @Override
-        public String toString() {
-            return name_;
-        }
-
-        /**
-         * Utility method to parse the verbosity level parameter.
-         *
-         * @param  env  execution environment
-         * @return  verbosity level
-         */
-        int getVerbosity( Environment env ) throws TaskException {
-            String sverb = verbParam_.stringValue( env );
-            if ( sverb == null ) {
-                return -1;
-            }
-            else {
-                try {
-                    return Integer.parseInt( sverb );
-                }
-                catch ( NumberFormatException e ) {
-                    assert false;
-                    throw new ParameterValueException( verbParam_,
-                                                       e.getMessage(), e );
-                }
-            }
-        }
+    public Parameter<String> getFormatParameter() {
+        return formatParam_;
     }
 
     /**
-     * ServiceType implementation for Cone Search protocol.
+     * Returns the parameter used to acquire the requested verbosity.
+     *
+     * @return   verbosity parameter
      */
-    private class ConeServiceType extends ServiceType {
-        ConeServiceType() {
-            super( "cone" );
-        }
-
-        String getDescription() {
-            return new StringBuffer()
-               .append( "Cone Search protocol " )
-               .append( "- returns a table of objects found " )
-               .append( "near each location.\n" )
-               .append( "See <webref url='" )
-               .append( "http://www.ivoa.net/Documents/latest/ConeSearch.html" )
-               .append( "'>Cone Search standard</webref>." )
-               .toString();
-        }
-
-        String getFormatDescription() {
-            return "not used";
-        }
-
-        public void configureParams( Parameter<?> srParam ) {
-            srParam.setNullPermitted( false );
-        }
-
-        public ConeSearcher createSearcher( Environment env, String url,
-                                            StarTableFactory tfact,
-                                            ContentCoding coding )
-                throws TaskException {
-            return new ServiceConeSearcher( new ConeSearch( url, coding ),
-                                            getVerbosity( env ), true, tfact );
-        }
-    }
-
-    /**
-     * ServiceType implementation for Simple Image Access.
-     */
-    private class SiaServiceType extends ServiceType {
-        final SiaVersion version_;
-
-        /**
-         * Constructor.
-         *
-         * @param  version   version of SIA protocol to use
-         */
-        SiaServiceType( SiaVersion version ) {
-            super( "sia" + version.getMajorVersion() );
-            version_ = version;
-        }
-
-        String getDescription() {
-            return new StringBuffer()
-               .append( "Simple Image Access protocol version " )
-               .append( version_.getMajorVersion() )
-               .append( " - returns a table of images near each location.\n" )
-               .append( "See <webref url='" )
-               .append( version_.getDocumentUrl() )
-               .append( "'>SIA " )
-               .append( version_ )
-               .append( " standard</webref>." )
-               .toString();
-        }
-
-        String getFormatDescription() {
-            StringBuffer sbuf = new StringBuffer()
-               .append( "gives the MIME type required for images/resources\n" )
-               .append( "referenced in the output table,\n" )
-               .append( "corresponding to the SIA FORMAT parameter.\n" )
-               .append( "The special values " )
-               .append( "\"<code>GRAPHIC</code>\" (all graphics formats) and " )
-               .append( "\"<code>ALL</code>\" (no restriction)\n" )
-               .append( "as defined by SIAv1 are also permissible.\n" );
-            if ( version_.getMajorVersion() == 1 ) {
-                sbuf.append( "For SIA version 1 only, this defaults to" )
-                    .append( "<code>\"image/fits\"</code>." );
-            }
-            return sbuf.toString();
-        }
-
-        public void configureParams( Parameter<?> srParam ) {
-
-            /* SIZE = 0 has a special meaning for SIA: it means any image
-             * containing the given image.  This is a sensible default in
-             * most cases. */
-            srParam.setStringDefault( "0" );
-            srParam.setNullPermitted( false );
-        }
-
-        public ConeSearcher createSearcher( Environment env, String url,
-                                            StarTableFactory tfact,
-                                            ContentCoding coding )
-                throws TaskException {
-            if ( version_.getMajorVersion() == 1 ) {
-                formatParam_.setStringDefault( "image/fits" );
-            }
-            String formatTxt = formatParam_.stringValue( env );
-            SiaFormatOption format = SiaFormatOption.fromObject( formatTxt );
-            return new SiaConeSearcher( url, version_, format, true,
-                                        tfact, coding );
-        }
-    }
-
-    /**
-     * ServiceType implementation for Simple Spectral Access.
-     */
-    private class SsaServiceType extends ServiceType {
-        SsaServiceType() {
-            super( "ssa" );
-        }
-
-        String getDescription() {
-            return new StringBuffer()
-               .append( "Simple Spectral Access protocol " )
-               .append( " - returns a table of spectra near each location.\n" )
-               .append( "See <webref url='" )
-               .append( "http://www.ivoa.net/Documents/latest/SSA.html" )
-               .append( "'>SSA standard</webref>." )
-               .toString();
-        }
-
-        String getFormatDescription() {
-            return new StringBuffer()
-               .append( "gives the MIME type of spectra referenced in the " )
-               .append( "output table, also special values " )
-               .append( "\"<code>votable</code>\", " )
-               .append( "\"<code>fits</code>\", " )
-               .append( "\"<code>compliant</code>\", " )
-               .append( "\"<code>graphic</code>\", " )
-               .append( "\"<code>all</code>\", and others\n" )
-               .append( "(value of the SSA FORMAT parameter)." )
-               .toString();
-        }
-
-        public void configureParams( Parameter<?> srParam ) {
-
-            /* SIZE param may be omitted in an SSA query; the service should
-             * use some appropriate default value. */
-            srParam.setNullPermitted( true );
-        }
-
-        public ConeSearcher createSearcher( Environment env, String url,
-                                            StarTableFactory tfact,
-                                            ContentCoding coding )
-                throws TaskException {
-            String format = formatParam_.stringValue( env );
-            return new SsaConeSearcher( url, format, true, tfact, coding );
-        }
+    public Parameter<String> getVerbosityParameter() {
+        return verbParam_;
     }
 }
