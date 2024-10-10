@@ -15,6 +15,9 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
 import uk.ac.starlink.ttools.cone.ConeServiceType;
+import uk.ac.starlink.ttools.cone.ServiceConeSearcher;
+import uk.ac.starlink.ttools.cone.SiaConeSearcher;
+import uk.ac.starlink.ttools.cone.SsaConeSearcher;
 import uk.ac.starlink.ttools.convert.SkySystem;
 import uk.ac.starlink.util.ContentCoding;
 
@@ -236,5 +239,59 @@ public class TableCone extends ConsumerTask {
      */
     public Parameter<String> getVerbosityParameter() {
         return verbParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the service URL.
+     *
+     * @return  service URL parameter
+     */
+    public Parameter<URL> getServiceUrlParameter() {
+        return urlParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the service type.
+     *
+     * @return  service type parameter
+     */
+    public Parameter<ConeServiceType> getServiceTypeParameter() {
+        return serviceParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the longitude in degrees.
+     *
+     * @return  longitude parameter
+     */
+    public Parameter<Double> getLongitudeParameter() {
+        return lonParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the latitude in degrees.
+     *
+     * @return  latitude parameter
+     */
+    public Parameter<Double> getLatitudeParameter() {
+        return latParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the search radius in degrees.
+     *
+     * @return  radius parameter
+     */
+    public Parameter<Double> getRadiusDegParameter() {
+        return radiusParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the sky system.
+     *
+     * @return  skysys parameter
+     */
+    public Parameter<SkySystem> getSkySystemParameter() {
+        return sysParam_;
     }
 }

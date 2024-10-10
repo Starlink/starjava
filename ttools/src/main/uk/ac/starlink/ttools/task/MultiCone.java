@@ -17,11 +17,18 @@ import uk.ac.starlink.ttools.cone.SkyConeMatch2;
 public class MultiCone extends SkyConeMatch2 {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
+
     public MultiCone() {
         super( "Crossmatches table on sky position against remote cone service",
                new ConeSearchConer(), 
                ParallelResultRowSequence.getMaxParallelism() );
     }
+
+    @Override
+    public ConeSearchConer getConer() {
+        return (ConeSearchConer) super.getConer();
+    }
+
     @Override
     public Executable createExecutable( Environment env ) throws TaskException {
         logger_.warning( "Multi-Cone is somewhat deprecated in favour of "

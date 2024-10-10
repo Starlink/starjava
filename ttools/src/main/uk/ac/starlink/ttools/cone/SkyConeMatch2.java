@@ -371,4 +371,76 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             }
         };
     }
+
+    /**
+     * Returns the coner used by this task.
+     *
+     * @return   coner
+     */
+    public Coner getConer() {
+        return coner_;
+    }
+
+    /**
+     * Returns the parameter used to acquire RA expression in degrees.
+     *
+     * @return  right ascension parameter
+     */
+    public Parameter<String> getRaParameter() {
+        return raParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire declination in degrees.
+     *
+     * @return  declination parameter
+     */
+    public Parameter<String> getDecParameter() {
+        return decParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire radius expression in degrees.
+     *
+     * @return  radius parameter
+     */
+    public Parameter<String> getRadiusDegreeParameter() {
+        return srParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the error policy.
+     *
+     * @return   error policy parameter
+     */
+    public Parameter<ConeErrorPolicy> getConeErrorPolicyParameter() {
+        return erractParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the find mode.
+     *
+     * @return   find mode parameter
+     */
+    public Parameter<ConeFindMode> getFindModeParameter() {
+        return modeParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the coverage usage flag.
+     *
+     * return   use coverage parameter
+     */
+    public Parameter<Boolean> getUseCoverageParameter() {
+        return usefootParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the parallelism level.
+     *
+     * @return  parallelism level parameter
+     */
+    public Parameter<Integer> getParallelParameter() {
+        return parallelParam_;
+    }
 }
