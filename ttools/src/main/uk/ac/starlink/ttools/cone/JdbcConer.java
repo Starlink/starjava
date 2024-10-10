@@ -177,7 +177,8 @@ public class JdbcConer implements Coner {
         return pList.toArray( new Parameter<?>[ 0 ] );
     }
 
-    public void configureParams( Environment env, Parameter<?> srParam ) {
+    public void configureRadiusParam( Environment env,
+                                      Parameter<?> srParam ) {
     }
 
     public boolean useDistanceFilter( Environment env ) {
