@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -34,16 +35,22 @@ import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.storage.MonitorStoragePolicy;
+import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AlignedBox;
+import uk.ac.starlink.topcat.AngleColumnConverter;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.Scheduler;
+import uk.ac.starlink.topcat.StiltsReporter;
 import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TopcatJELUtils;
+import uk.ac.starlink.topcat.TopcatListener;
+import uk.ac.starlink.topcat.TopcatTableNamer;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.cone.BlockUploader;
 import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
@@ -54,6 +61,13 @@ import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.UploadMatcher;
 import uk.ac.starlink.ttools.cone.WrapperQuerySequence;
+import uk.ac.starlink.ttools.task.CdsUploadSkyMatch;
+import uk.ac.starlink.ttools.task.FilterParameter;
+import uk.ac.starlink.ttools.task.InputTableParameter;
+import uk.ac.starlink.ttools.task.JoinFixActionParameter;
+import uk.ac.starlink.ttools.task.Setting;
+import uk.ac.starlink.ttools.task.SettingGroup;
+import uk.ac.starlink.ttools.task.StiltsCommand;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.ComboBoxBumper;
@@ -67,9 +81,10 @@ import uk.ac.starlink.vo.DoubleValueField;
  *
  * @author   Mark Taylor
  */
-public class UploadMatchPanel extends JPanel {
+public class UploadMatchPanel extends JPanel implements StiltsReporter {
 
     private final JProgressBar progBar_;
+    private final ActionForwarder forwarder_;
     private final CdsTableSelector cdsTableSelector_;
     private final ColumnSelector raSelector_;
     private final ColumnSelector decSelector_;
@@ -83,6 +98,7 @@ public class UploadMatchPanel extends JPanel {
     private final ToggleButtonModel coverageModel_;
     private final Downloader<CdsUploadMatcher.VizierMeta> metaDownloader_;
     private final ContentCoding coding_;
+    private final TopcatListener tcListener_;
     private TopcatModel tcModel_;
     private volatile MatchWorker matchWorker_;
 
@@ -102,6 +118,7 @@ public class UploadMatchPanel extends JPanel {
     @SuppressWarnings("this-escape")
     public UploadMatchPanel( JProgressBar progBar ) {
         super( new BorderLayout() );
+        forwarder_ = new ActionForwarder();
         coding_ = ContentCoding.GZIP;
         progBar_ = progBar;
         progBar_.setStringPainted( true );
@@ -115,6 +132,7 @@ public class UploadMatchPanel extends JPanel {
             BorderFactory.createCompoundBorder(
                 AuxWindow.makeTitledBorder( "Remote Table" ),
                 BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) );
+        cdsTableSelector_.getNameSelector().addActionListener( forwarder_ );
         cList.add( cdsTableSelector_ );
 
         /* Make sure the Start button is only enabled when there is metadata
@@ -153,12 +171,15 @@ public class UploadMatchPanel extends JPanel {
                               .getItemAt( tableSelector.getSelectedIndex() ) );
             }
         } );
+        tableSelector.addActionListener( forwarder_ );
         cList.add( tableSelector );
         Box tableLine = Box.createHorizontalBox();
         tableLine.add( new JLabel( "Input Table: " ) );
         tableLine.add( tableSelector );
         localBox.add( tableLine );
         localBox.add( Box.createVerticalStrut( 5 ) );
+        tcListener_ = evt ->
+            forwarder_.actionPerformed( new ActionEvent( this, 0, "table" ) );
 
         /* Fields for sky position parameters. */
         raSelector_ = new ColumnSelector( Tables.RA_INFO, true );
@@ -168,6 +189,7 @@ public class UploadMatchPanel extends JPanel {
         raLine.add( Box.createHorizontalGlue() );
         localBox.add( raLine );
         localBox.add( Box.createVerticalStrut( 5 ) );
+        raSelector_.addActionListener( forwarder_ );
         cList.add( raSelector_ );
         decSelector_ = new ColumnSelector( Tables.DEC_INFO, true );
         Box decLine = Box.createHorizontalBox();
@@ -176,6 +198,7 @@ public class UploadMatchPanel extends JPanel {
         decLine.add( Box.createHorizontalGlue() );
         localBox.add( decLine );
         localBox.add( Box.createVerticalStrut( 5 ) );
+        decSelector_.addActionListener( forwarder_ );
         cList.add( decSelector_ );
         TopcatUtils.alignComponents( new JComponent[] {
             raSelector_.getLabel(),
@@ -203,6 +226,8 @@ public class UploadMatchPanel extends JPanel {
         srField_.getEntryField().setText( "1.0" );
         paramBox.add( srLine );
         paramBox.add( Box.createVerticalStrut( 5 ) );
+        srField_.getEntryField().addActionListener( forwarder_ );
+        srField_.getConverterSelector().addActionListener( forwarder_ );
         cList.add( srField_.getEntryField() );
         cList.add( srField_.getConverterSelector() );
 
@@ -212,6 +237,7 @@ public class UploadMatchPanel extends JPanel {
         modeLine.add( new JLabel( "Find mode: " ) );
         modeLine.add( new ShrinkWrapper( modeSelector_ ) );
         modeLine.add( Box.createHorizontalGlue() );
+        modeSelector_.addActionListener( forwarder_ );
         cList.add( modeSelector_ );
         paramBox.add( modeLine );
         paramBox.add( Box.createVerticalStrut( 5 ) );
@@ -223,6 +249,7 @@ public class UploadMatchPanel extends JPanel {
         fixLine.add( new JLabel( "Rename columns: " ) );
         fixLine.add( fixSelector_ );
         fixLine.add( Box.createHorizontalGlue() );
+        fixSelector_.getSuffixField().addActionListener( forwarder_ );
         cList.add( fixSelector_ );
         paramBox.add( fixLine );
         paramBox.add( Box.createVerticalStrut( 5 ) );
@@ -240,6 +267,7 @@ public class UploadMatchPanel extends JPanel {
         blockLine.add( Box.createHorizontalStrut( 5 ) );
         blockLine.add( new ComboBoxBumper( blockSelector_ ) );
         blockLine.add( Box.createHorizontalGlue() );
+        blockSelector_.addActionListener( forwarder_ );
         cList.add( blockSelector_ );
         paramBox.add( blockLine );
 
@@ -247,6 +275,7 @@ public class UploadMatchPanel extends JPanel {
         startAction_ = new BasicAction( "Go", null,
                                         "Start upload crossmatch running" ) {
             public void actionPerformed( ActionEvent evt ) {
+                forwarder_.actionPerformed( evt );
                 startMatch();
             }
         };
@@ -266,6 +295,7 @@ public class UploadMatchPanel extends JPanel {
                                  + "where available to avoid unnecessary "
                                  + "queries" );
         coverageModel_.setSelected( true );
+        coverageModel_.addActionListener( forwarder_ );
 
         /* Initialise enabledness of controls etc. */
         components_ = cList.toArray( new JComponent[ 0 ] );
@@ -300,6 +330,121 @@ public class UploadMatchPanel extends JPanel {
         return coverageModel_;
     }
 
+    public void addStiltsListener( ActionListener listener ) {
+        forwarder_.addActionListener( listener );
+    }
+
+    public void removeStiltsListener( ActionListener listener ) {
+        forwarder_.removeActionListener( listener );
+    }
+
+    public StiltsCommand createStiltsCommand( TopcatTableNamer namer ) {
+        List<SettingGroup> groups = new ArrayList<>();
+        CdsUploadSkyMatch task = new CdsUploadSkyMatch();
+
+        /* Input table. */
+        if ( tcModel_ != null ) {
+            FilterParameter inFilterParam = task.getInputFilterParameter();
+            InputTableParameter inTableParam = task.getInputTableParameter();
+            List<Setting> tableSettings = new ArrayList<>();
+            tableSettings.addAll(
+                namer.createInputTableSettings( inTableParam, inFilterParam,
+                                                tcModel_ )
+            );
+            tableSettings.add( StiltsCommand
+                              .createProgressSetting( inFilterParam ) );
+            groups.add( new SettingGroup( 1, tableSettings
+                                            .toArray( new Setting[ 0 ] ) ) );
+        }
+        else {
+            return null;
+        }
+
+        /* Input table columns and radius. */
+        double srDeg;
+        try {
+            srDeg = srField_.getValue();
+        }
+        catch ( RuntimeException e ) {
+            return null;
+        }
+        AngleColumnConverter.Unit degreeUnit = AngleColumnConverter.Unit.DEGREE;
+        if ( raSelector_.getColumnData() != null &&
+             decSelector_.getColumnData() != null &&
+             srDeg > 0 ) {
+            Setting[] posSettings = new Setting[] {
+                StiltsCommand
+               .createParamSetting( task.getRaParameter(),
+                                    TopcatJELUtils
+                                   .getAngleExpression( tcModel_, raSelector_,
+                                                        degreeUnit ) ),
+                StiltsCommand
+               .createParamSetting( task.getDecParameter(),
+                                    TopcatJELUtils
+                                   .getAngleExpression( tcModel_, decSelector_,
+                                                        degreeUnit ) ),
+                StiltsCommand
+               .createParamSetting( task.getRadiusArcsecParameter(),
+                                    Double.valueOf( srDeg * 3600. ) ),
+            };
+            groups.add( new SettingGroup( 1, posSettings ) );
+        }
+        else {
+            return null;
+        }
+
+        /* Remote table. */
+        String cdsName = cdsTableSelector_.getCanonicalTableName();
+        if ( CdsUploadMatcher.toCdsId( cdsName ) == null ) {
+            return null;
+        }
+        UploadFindMode upMode =
+            modeSelector_.getItemAt( modeSelector_.getSelectedIndex() );
+        Setting[] cdsSettings = new Setting[] {
+            StiltsCommand.createParamSetting( task.getCdsTableParameter(),
+                                              cdsName ),
+            StiltsCommand.createParamSetting( task.getUseMocParameter(),
+                                              coverageModel_.isSelected() ),
+            StiltsCommand.createParamSetting( task.getFindParameter(),
+                                              upMode.getUserMode() ),
+        };
+        groups.add( new SettingGroup( 1, cdsSettings ) );
+
+        /* Options. */
+        int blocksize;
+        try {
+            blocksize =
+                Integer.parseInt( blockSelector_.getSelectedItem().toString() );
+        }
+        catch ( RuntimeException e ) {
+            // never mind
+            blocksize = -1;
+        }
+        List<Setting> otherSettings = new ArrayList<>();
+        JoinFixActionParameter.Fixer joinFixer = fixSelector_.getFixer();
+        String fixSuffix = fixSelector_.getFixerSuffix();
+        otherSettings.add( StiltsCommand
+                          .createParamSetting( task.getFixColsParameter(),
+                                               joinFixer ) );
+        if ( fixSuffix != null ) {
+            otherSettings.add( StiltsCommand
+                              .createParamSetting( task.getCdsSuffixParameter(),
+                                                   fixSuffix ) );
+        }
+        if ( blocksize > 0 ) {
+            otherSettings
+           .add( StiltsCommand
+                .createParamSetting( task.getBlocksizeParameter(),
+                                     Integer.valueOf( blocksize ) ) );
+        }
+        groups.add( new SettingGroup( 1, otherSettings
+                                        .toArray( new Setting[ 0 ] ) ) );
+
+        /* Create and return command. */
+        return StiltsCommand
+              .createCommand( task, groups.toArray( new SettingGroup[ 0 ] ) );
+    }
+
     /**
      * Attempts to start a match job.  If insufficient or incorrect
      * information is present in the component state, a popup error message
@@ -329,7 +474,13 @@ public class UploadMatchPanel extends JPanel {
      * @param  tcModel   input table
      */
     private void setInputTable( TopcatModel tcModel ) {
+        if ( tcModel_ != null ) {
+            tcModel_.removeTopcatListener( tcListener_ );
+        }
         tcModel_ = tcModel;
+        if ( tcModel_ != null ) {
+            tcModel_.addTopcatListener( tcListener_ );
+        }
         raSelector_.setTable( tcModel );
         decSelector_.setTable( tcModel );
     }

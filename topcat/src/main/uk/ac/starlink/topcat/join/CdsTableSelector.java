@@ -176,6 +176,20 @@ public class CdsTableSelector extends JPanel {
     }
 
     /**
+     * Attempts to return the non-alias name of the selected table.
+     * If not available, the selected (possibly alias) table name will be
+     * returned instead.
+     *
+     * @return  vizier name of selected table
+     */
+    public String getCanonicalTableName() {
+        String canonicalName = nameField_.getText();
+        return canonicalName == null || canonicalName.trim().length() == 0
+             ? tableName_ 
+             : canonicalName;
+    }
+
+    /**
      * Returns the coverage object for the currently selected table,
      * if available.
      *
@@ -183,6 +197,16 @@ public class CdsTableSelector extends JPanel {
      */
     public MocCoverage getCoverage() {
         return mocDownloader_.getData();
+    }
+
+    /**
+     * Returns the component which the user interacts with to select
+     * the CDS table.
+     *
+     * @return  name selector
+     */
+    public JComboBox<String> getNameSelector() {
+        return nameSelector_;
     }
 
     @Override
