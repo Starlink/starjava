@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.join;
 
 import java.awt.Component;
+import java.awt.event.ActionListener;
 import java.net.URL;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -13,6 +14,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
+import uk.ac.starlink.ttools.cone.ConeServiceType;
 import uk.ac.starlink.ttools.cone.Coverage;
 import uk.ac.starlink.ttools.cone.UrlMocCoverage;
 import uk.ac.starlink.ttools.cone.ServiceConeSearcher;
@@ -85,6 +87,10 @@ public class ConeMultiWindow extends DalMultiWindow {
             return Capability.CONE;
         }
 
+        public ConeServiceType getServiceType() {
+            return ConeServiceType.CONE;
+        }
+
         public String getResourceListType() {
             return "cone";
         }
@@ -119,9 +125,7 @@ public class ConeMultiWindow extends DalMultiWindow {
 
         public ConeSearcher createSearcher( URL url, StarTableFactory tfact,
                                             ContentCoding coding ) {
-            int verb = verbSelector_
-                      .getItemAt( verbSelector_.getSelectedIndex() )
-                      .getLevel();
+            int verb = getVerbosity().getLevel();
             return new ServiceConeSearcher( new ConeSearch( url.toString(),
                                                             coding ),
                                             verb, false, tfact );
@@ -133,6 +137,18 @@ public class ConeMultiWindow extends DalMultiWindow {
 
         public Coverage getCoverage( URL url ) {
             return UrlMocCoverage.getServiceMoc( url, -1 );
+        }
+
+        public ConeVerbosity getVerbosity() {
+            return verbSelector_.getItemAt( verbSelector_.getSelectedIndex() );
+        }
+
+        public void addActionListener( ActionListener l ) {
+            verbSelector_.addActionListener( l );
+        }
+
+        public void removeActionListener( ActionListener l ) {
+            verbSelector_.removeActionListener( l );
         }
     }
 }
