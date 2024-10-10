@@ -95,7 +95,7 @@ public class SsapTableLoadDialog extends SkyDalTableLoadDialog {
         final DalQuery query =
             new DalQuery( serviceUrl, "SSA", ra, dec, size, coding_ );
         query.addArgument( "REQUEST", "queryData" );
-        Object format = formatSelector_.getSelectedItem();
+        String format = getFormat();
         if ( format != null && format.toString().trim().length() > 0 ) {
             query.addArgument( "FORMAT", format.toString() );
         }
@@ -118,6 +118,39 @@ public class SsapTableLoadDialog extends SkyDalTableLoadDialog {
                 return summary;
             }
         };
+    }
+
+    /**
+     * Returns the requested search diameter.
+     *
+     * @return  search diameter
+     */
+    public double getSearchDiameter() {
+        try {
+            return sizeField_.getValue();
+        }
+        catch ( RuntimeException e ) {
+            return Double.NaN;
+        }
+    }
+
+    /**
+     * Returns the selected format variant.
+     *
+     * @return   format string
+     */
+    public String getFormat() {
+        Object format = formatSelector_.getSelectedItem();
+        return format == null ? null : format.toString();
+    }
+
+    /**
+     * Returns the format selector component.
+     *
+     * @return  format selector
+     */
+    public JComboBox<String> getFormatSelector() {
+        return formatSelector_;
     }
 
     /**

@@ -61,7 +61,7 @@ public class ConeSearchDialog extends SkyDalTableLoadDialog {
         JComponent verbLine = Box.createHorizontalBox();
         verbSelector_ = new JComboBox<>( ConeVerbosity.getOptions() );
         verbSelector_.setSelectedIndex( 1 );
-        assert getVerbosity().getLevel() == 2;
+        assert getVerbosity() == 2;
         verbLine.add( new JLabel( "Verbosity: " ) );
         verbLine.add( new ShrinkWrapper( verbSelector_ ) );
         verbLine.add( Box.createHorizontalGlue() );
@@ -77,7 +77,7 @@ public class ConeSearchDialog extends SkyDalTableLoadDialog {
         final double ra = raField_.getValue();
         final double dec = decField_.getValue();
         final double sr = srField_.getValue();
-        final int verb = getVerbosity().getLevel();
+        final int verb = getVerbosity();
         final List<DescribedValue> metadata = new ArrayList<DescribedValue>();
         metadata.addAll( Arrays.asList( new DescribedValue[] {
             raField_.getDescribedValue(),
@@ -103,9 +103,33 @@ public class ConeSearchDialog extends SkyDalTableLoadDialog {
     /**
      * Returns the currently selected verbosity level.
      *
-     * @return  verbosity, not null
+     * @return  verbosity level
      */
-    private ConeVerbosity getVerbosity() {
-        return verbSelector_.getItemAt( verbSelector_.getSelectedIndex() );
+    public int getVerbosity() {
+        return verbSelector_.getItemAt( verbSelector_.getSelectedIndex() )
+                            .getLevel();
+    }
+
+    /**
+     * Returns the verbosity selector component.
+     *
+     * @return  verbosity selector
+     */
+    public JComboBox<ConeVerbosity> getVerbositySelector() {
+        return verbSelector_;
+    }
+
+    /**
+     * Returns the search radius selected.
+     *
+     * @return  search radius value
+     */
+    public double getSearchRadius() {
+        try {
+            return srField_.getValue();
+        }
+        catch ( RuntimeException e ) {
+            return Double.NaN;
+        }
     }
 }

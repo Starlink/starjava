@@ -100,9 +100,8 @@ public abstract class DalTableLoadDialog
             public void valueChanged( ListSelectionEvent evt ) {
                 RegCapabilityInterface[] caps =
                     regPanel.getSelectedCapabilities();
-                urlField_.setText( caps.length == 1 ? caps[ 0 ].getAccessUrl()
-                                                    : null );
-                urlField_.setCaretPosition( 0 );
+                setServiceUrl( caps.length == 1 ? caps[ 0 ].getAccessUrl()
+                                                : null );
             }
         };
         regPanel.getResourceSelectionModel()
@@ -186,6 +185,8 @@ public abstract class DalTableLoadDialog
      */
     public void setServiceUrl( String url ) {
         urlField_.setText( url );
+        urlField_.setCaretPosition( 0 );
+        urlField_.postActionEvent();
     }
 
     /**

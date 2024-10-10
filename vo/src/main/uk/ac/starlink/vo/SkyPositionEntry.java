@@ -159,6 +159,7 @@ public class SkyPositionEntry extends JPanel {
     public void addActionListener( ActionListener listener ) {
         for ( DoubleValueField field : fieldList_ ) {
             field.getEntryField().addActionListener( listener );
+            field.getConverterSelector().addActionListener( listener );
         }
         actListeners_.add( listener );
     }
@@ -171,6 +172,7 @@ public class SkyPositionEntry extends JPanel {
     public void removeActionListener( ActionListener listener ) {
         for ( DoubleValueField field : fieldList_ ) {
             field.getEntryField().removeActionListener( listener );
+            field.getConverterSelector().removeActionListener( listener );
         }
         actListeners_.remove( listener );
     }
