@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.join;
 
 import java.awt.Component;
+import java.awt.event.ActionListener;
 import java.net.URL;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -15,11 +16,13 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
+import uk.ac.starlink.ttools.cone.ConeServiceType;
 import uk.ac.starlink.ttools.cone.Coverage;
 import uk.ac.starlink.ttools.cone.SiaConeSearcher;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.Capability;
+import uk.ac.starlink.vo.ConeVerbosity;
 import uk.ac.starlink.vo.RegCapabilityInterface;
 import uk.ac.starlink.vo.RegistryPanel;
 import uk.ac.starlink.vo.SiaFormatOption;
@@ -103,6 +106,21 @@ public class SiaMultiWindow extends DalMultiWindow {
             return Capability.SIA;
         }
 
+        public ConeServiceType getServiceType() {
+            SiaVersion version = 
+                versionSelector_
+               .getItemAt( versionSelector_.getSelectedIndex() );
+            switch ( version ) {
+                case V10:
+                    return ConeServiceType.SIA1;
+                case V20:
+                    return ConeServiceType.SIA2;
+                default:
+                    assert false;
+                    return ConeServiceType.SIA;
+            }
+        }
+
         public ValueInfo getSizeInfo() {
             DefaultValueInfo info =
                 new DefaultValueInfo( "Search Radius", Number.class,
@@ -166,6 +184,20 @@ public class SiaMultiWindow extends DalMultiWindow {
 
         public Coverage getCoverage( URL url ) {
             return null;
+        }
+
+        public ConeVerbosity getVerbosity() {
+            return null;
+        }
+
+        public void addActionListener( ActionListener l ) {
+            formatSelector_.addActionListener( l );
+            versionSelector_.addActionListener( l );
+        }
+
+        public void removeActionListener( ActionListener l ) {
+            formatSelector_.removeActionListener( l );
+            versionSelector_.removeActionListener( l );
         }
     }
 }

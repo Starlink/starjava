@@ -44,6 +44,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
+import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AlignedBox;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
@@ -59,6 +60,7 @@ import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.cone.ConeErrorPolicy;
+import uk.ac.starlink.ttools.cone.ConeFindMode;
 import uk.ac.starlink.ttools.cone.ConeMatcher;
 import uk.ac.starlink.ttools.cone.ConeQueryCoverage;
 import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
@@ -101,6 +103,7 @@ public class DalMultiPanel extends JPanel {
     private final TopcatListener tcListener_;
     private final ToggleButtonModel coverageModel_;
     private final JComponent urlLine_;
+    private final ActionForwarder forwarder_;
     private Coverage lastCoverage_;
     private URL lastCoverageUrl_;
     private TopcatModel tcModel_;
@@ -128,6 +131,7 @@ public class DalMultiPanel extends JPanel {
         super( new BorderLayout() );
         service_ = service;
         coding_ = ContentCoding.GZIP;
+        forwarder_ = new ActionForwarder();
         progBar_ = progBar;
         progBar.setStringPainted( true );
         JComponent main = AlignedBox.createVerticalBox();
@@ -136,6 +140,7 @@ public class DalMultiPanel extends JPanel {
 
         /* Field for service URL. */
         urlField_ = new JTextField();
+        urlField_.addActionListener( forwarder_ );
         JLabel urlLabel = new JLabel( service.getName() + " URL: " );
         urlLine_ = Box.createHorizontalBox();
         cList.add( urlField_ );
@@ -157,6 +162,7 @@ public class DalMultiPanel extends JPanel {
         JLabel tableLabel = new JLabel( "Input Table: " );
         cList.add( tableLabel );
         cList.add( tableSelector );
+        tableSelector.addActionListener( forwarder_ );
         Box tableLine = Box.createHorizontalBox();
         tableLine.add( tableLabel );
         tableLine.add( tableSelector );
@@ -174,6 +180,7 @@ public class DalMultiPanel extends JPanel {
         raLine.add( Box.createHorizontalGlue() );
         main.add( raLine );
         main.add( Box.createVerticalStrut( 5 ) );
+        raSelector_.addActionListener( forwarder_ );
         cList.add( raSelector_ );
         cList.add( raSysLabel );
         decSelector_ = new ColumnSelector( Tables.DEC_INFO, true );
@@ -184,6 +191,7 @@ public class DalMultiPanel extends JPanel {
         decLine.add( Box.createHorizontalGlue() );
         main.add( decLine );
         main.add( Box.createVerticalStrut( 5 ) );
+        decSelector_.addActionListener( forwarder_ );
         cList.add( decSelector_ );
         cList.add( decSysLabel );
         srSelector_ = new ColumnSelector( service.getSizeInfo(), true );
@@ -194,6 +202,7 @@ public class DalMultiPanel extends JPanel {
         srLine.add( srSysLabel );
         srLine.add( Box.createHorizontalGlue() );
         main.add( srLine );
+        srSelector_.addActionListener( forwarder_ );
         cList.add( srSelector_ );
         cList.add( srSysLabel );
 
@@ -223,6 +232,7 @@ public class DalMultiPanel extends JPanel {
         modeLine.add( modeLabel );
         modeLine.add( new ShrinkWrapper( modeSelector_ ) );
         modeLine.add( Box.createHorizontalGlue() );
+        modeSelector_.addActionListener( forwarder_ );
         cList.add( modeLabel );
         cList.add( modeSelector_ );
         main.add( modeLine );
@@ -271,6 +281,8 @@ public class DalMultiPanel extends JPanel {
                 public void modelChanged( TopcatEvent evt ) {
                     if ( evt.getCode() == TopcatEvent.CURRENT_SUBSET ) {
                         updateQueryCoverage();
+                        forwarder_.actionPerformed(
+                            new ActionEvent( evt, 0, "subset" ) );
                     }
                 }
             };
@@ -309,6 +321,7 @@ public class DalMultiPanel extends JPanel {
                 }
             }
         } );
+        coverageModel_.addActionListener( forwarder_ );
 
         /* Service access parameters. */
         int maxpar = ParallelResultRowSequence.getMaxParallelism();
@@ -316,11 +329,13 @@ public class DalMultiPanel extends JPanel {
             new SpinnerNumberModel( Math.min( 3, maxpar ), 1, maxpar, 1 );
         JLabel parallelLabel = new JLabel( "Parallelism: " );
         JSpinner parallelSpinner = new JSpinner( parallelModel_ );
+        parallelModel_.addChangeListener( forwarder_ );
         cList.add( parallelLabel );
         cList.add( parallelSpinner );
         erractSelector_ =
             new JComboBox<ConeErrorPolicy>( getConeErrorPolicies( service ) );
         JLabel erractLabel = new JLabel( ERRACT_LABEL + ": " );
+        erractSelector_.addActionListener( forwarder_ );
         cList.add( erractLabel );
         cList.add( erractSelector_ );
         Box accessLine = Box.createHorizontalBox();
@@ -336,6 +351,7 @@ public class DalMultiPanel extends JPanel {
         startAction_ = new BasicAction( "Go", null,
                                         "Start multiple query running" ) {
             public void actionPerformed( ActionEvent evt ) {
+                forwarder_.actionPerformed( evt );
                 startMatch();
             }
         };
@@ -375,13 +391,103 @@ public class DalMultiPanel extends JPanel {
     }
 
     /**
+     * Returns the table selected for this panel.
+     *
+     * @return  topcat model
+     */
+    public TopcatModel getTopcatModel() {
+        return tcModel_;
+    }
+
+    /**
+     * Returns the Right Ascension selector used by this panel.
+     *
+     * @return  RA selector
+     */
+    public ColumnSelector getRaSelector() {
+        return raSelector_;
+    }
+
+    /**
+     * Returns the Declination selector used by this panel.
+     *
+     * @return  dec selector
+     */
+    public ColumnSelector getDecSelector() {
+        return decSelector_;
+    }
+
+    /**
+     * Returns the search radius selector used by this panel.
+     *
+     * @return  radius selector
+     */
+    public ColumnSelector getRadiusSelector() {
+        return srSelector_;
+    }
+
+    /**
+     * Returns the cone search error policy currently selected.
+     *
+     * @return  error policy
+     */
+    public ConeErrorPolicy getConeErrorPolicy() {
+        return erractSelector_.getItemAt( erractSelector_.getSelectedIndex() );
+    }
+
+    /**
+     * Returns the find mode currently selected.
+     *
+     * @return   find mode
+     */
+    public ConeFindMode getConeFindMode() {
+        return getMulticoneMode().getFindMode();
+    }
+
+    /**
+     * Returns the service URL currently selected.
+     *
+     * @return   service URL
+     */
+    public URL getServiceUrl() {
+        return URLUtils.makeURL( urlField_.getText() );
+    }
+
+    /**
+     * Returns the parallelism level currently selected.
+     *
+     * @return  parallelism
+     */
+    public int getParallelism() {
+        Number parNum = parallelModel_.getNumber();
+        return parNum == null ? 1 : parNum.intValue();
+    }
+
+    public void addActionListener( ActionListener l ) {
+        forwarder_.addActionListener( l );
+    }
+
+    public void removeActionListener( ActionListener l ) {
+        forwarder_.removeActionListener( l );
+    }
+
+    /**
+     * Returns the currently selected multicone mode.
+     *
+     * @return  multicone mode
+     */
+    private MulticoneMode getMulticoneMode() {
+        return modeSelector_.getItemAt( modeSelector_.getSelectedIndex() );
+    }
+
+    /**
      * Update the service coverage component if the currently selected
      * service URL has changed.
      */
     private void updateServiceCoverage() {
         if ( hasCoverage_ ) {
             if ( coverageModel_.isSelected() ) {
-                URL url = URLUtils.makeURL( urlField_.getText() );
+                URL url = getServiceUrl();
                 if ( ( url == null && lastCoverageUrl_ != null ) ||
                      ( url != null && ! url.equals( lastCoverageUrl_ ) ) ) {
                     Coverage cov = url == null ? null
@@ -609,8 +715,7 @@ public class DalMultiPanel extends JPanel {
                                               + " URL syntax: " + sUrl )
                  .initCause( e );
         }
-        ConeErrorPolicy erract =
-            erractSelector_.getItemAt( erractSelector_.getSelectedIndex() );
+        ConeErrorPolicy erract = getConeErrorPolicy();
         TopcatModel tcModel = tcModel_;
         if ( tcModel == null ) {
             throw new NullPointerException( "No table selected" );
@@ -631,10 +736,8 @@ public class DalMultiPanel extends JPanel {
                                           + service_.getSizeInfo().getName()
                                           + " column given" );
         }
-        Number parNum = parallelModel_.getNumber();
-        int parallelism = parNum == null ? 1 : parNum.intValue();
-        MulticoneMode mcMode =
-            modeSelector_.getItemAt( modeSelector_.getSelectedIndex() );
+        int parallelism = getParallelism();
+        MulticoneMode mcMode = getMulticoneMode();
         StarTableFactory tfact = ControlWindow.getInstance().getTableFactory();
 
         /* Assemble objects based on this information. */
@@ -722,11 +825,11 @@ public class DalMultiPanel extends JPanel {
     private MulticoneMode[] getMulticoneModes() {
         return new MulticoneMode[] {
             new CreateTableMode( "New joined table with best matches",
-                                 true, false, service_ ),
+                                 ConeFindMode.BEST, service_ ),
             new CreateTableMode( "New joined table with all matches",
-                                 false, false, service_ ),
+                                 ConeFindMode.ALL, service_ ),
             new CreateTableMode( "New joined table, one row per input row",
-                                 true, true, service_ ),
+                                 ConeFindMode.EACH, service_ ),
             new AddSubsetMode( "Add subset for matched rows", service_ ),
         };
     }
@@ -1043,14 +1146,28 @@ public class DalMultiPanel extends JPanel {
      */
     private static abstract class MulticoneMode {
         private final String name_;
+        private final ConeFindMode findMode_;
 
         /**
          * Constructor.
          *
          * @param  name  mode name
+         * @param  findMode   stilts multicone find mode to which this
+         *                    mode most closely corresponds
          */
-        MulticoneMode( String name ) {
+        MulticoneMode( String name, ConeFindMode findMode ) {
             name_ = name;
+            findMode_ = findMode;
+        }
+
+        /**
+         * Returns the stilts multicone find mode to which this mode
+         * most closely corresponds.
+         *
+         * @return  stilts find mode
+         */
+        public ConeFindMode getFindMode() {
+            return findMode_;
         }
 
         /**
@@ -1221,18 +1338,14 @@ public class DalMultiPanel extends JPanel {
          * Constructor.
          *
          * @param  name  mode name
-         * @param  best  if true, only the best match for each input row
-         *               is included in the output (max 1 output row per
-         *               input row); if false all matches are included in
-         *               output
-         * @param  includeBlanks  if true, rows with no matches are included
-         *                        int the output
+         * @param  findMode  find mode
+         * @param  service   service
          */
-        CreateTableMode( String name, boolean best, boolean includeBlanks,
+        CreateTableMode( String name, ConeFindMode findMode,
                          DalMultiService service ) {
-            super( name );
-            best_ = best;
-            includeBlanks_ = includeBlanks;
+            super( name, findMode );
+            best_ = findMode.isBestOnly();
+            includeBlanks_ = findMode.isIncludeBlanks();
             service_ = service;
         }
 
@@ -1278,9 +1391,10 @@ public class DalMultiPanel extends JPanel {
          * Constructor.
          *
          * @param   subset name
+         * @param   service  service
          */
         AddSubsetMode( String name, DalMultiService service ) {
-            super( name );
+            super( name, ConeFindMode.BEST );
             service_ = service;
         }
 

@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.join;
 
+import java.awt.event.ActionListener;
 import java.net.URL;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.StarTableFactory;
@@ -7,9 +8,11 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
+import uk.ac.starlink.ttools.cone.ConeServiceType;
 import uk.ac.starlink.ttools.cone.Coverage;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.Capability;
+import uk.ac.starlink.vo.ConeVerbosity;
 import uk.ac.starlink.vo.RegistryPanel;
 
 /**
@@ -38,9 +41,16 @@ public interface DalMultiService {
     /**
      * Returns the capability defining this service type.
      *
-     * @return  capapbility type
+     * @return  capability type
      */
     Capability getCapability();
+
+    /**
+     * Returns the type of cone search service used.
+     *
+     * @return   service type
+     */
+    ConeServiceType getServiceType();
 
     /**
      * Returns the voresource subtype for this service as used in
@@ -123,4 +133,26 @@ public interface DalMultiService {
      * @return  coverage coverage object, or null
      */
     Coverage getCoverage( URL url );
+
+    /**
+     * Returns the verbosity for this service.
+     *
+     * @return  verbosity level
+     */
+    ConeVerbosity getVerbosity();
+
+    /**
+     * Adds a listener that will be updated if the service characteristics
+     * specified by this object may have changed.
+     *
+     * @param  l   listener to add
+     */
+    void addActionListener( ActionListener l );
+
+    /**
+     * Removes a previously added listener.
+     *
+     * @param  l  listener to remove
+     */
+    void removeActionListener( ActionListener l );
 }
