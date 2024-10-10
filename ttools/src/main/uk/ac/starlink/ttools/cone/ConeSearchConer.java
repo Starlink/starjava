@@ -161,6 +161,24 @@ public class ConeSearchConer implements Coner {
     }
 
     /**
+     * Returns the parameter used to acquire the service URL.
+     *
+     * @return  service URL parameter
+     */
+    public Parameter<URL> getServiceUrlParameter() {
+        return urlParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the service type.
+     *
+     * @return  service type parameter
+     */
+    public Parameter<ConeServiceType> getServiceTypeParameter() {
+        return serviceParam_;
+    }
+
+    /**
      * Returns the parameter used to acquire the DAL requested data format.
      *
      * @return  format parameter
