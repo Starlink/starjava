@@ -197,6 +197,20 @@ public class TapServiceParams {
     }
 
     /**
+     * Note this is also included in {@link #getInterfaceParameters}
+     */
+    public Parameter<Boolean> getAuthParameter() {
+        return authParam_;
+    }
+
+    /**
+     * Note this is also included in {@link #getInterfaceParameters}
+     */
+    public Parameter<String> getTapInterfaceParameter() {
+        return intfParam_;
+    }
+
+    /**
      * Manages acquisition of a TapService instance from the environment
      * using the parameters managed by this object.
      *

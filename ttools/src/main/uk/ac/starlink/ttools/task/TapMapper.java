@@ -312,6 +312,79 @@ public class TapMapper implements TableMapper {
     }
 
     /**
+     * Returns the TapServiceParams used by this mapper
+     * to acquire a TAP service.
+     *
+     * @return  tap service params
+     */
+    public TapServiceParams getTapServiceParams() {
+        return tapserviceParams_;
+    }
+
+    /**
+     * Returns the parameter used to acquire ADQL query text.
+     *
+     * @return  adql parameter
+     */
+    public Parameter<String> getAdqlParameter() {
+        return adqlParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the sync/async flag.
+     *
+     * @return  sync parameter
+     */
+    public Parameter<Boolean> getSyncParameter() {
+        return syncParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the query language variant.
+     *
+     * @return  language parameter
+     */
+    public Parameter<String> getLanguageParameter() {
+        return langParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the output record limit.
+     *
+     * @return  maxrec parameter
+     */
+    public Parameter<Long> getMaxrecParameter() {
+        return maxrecParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the content coding.
+     *
+     * @return  content coding parameter
+     */
+    public ContentCodingParameter getContentCodingParameter() {
+        return codingParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the table upload writer.
+     *
+     * @return  upload writer parameter
+     */
+    public Parameter<VOTableWriter> getVOTableWriterParameter() {
+        return vowriterParam_;
+    }
+
+    /**
+     * Returns the result reader used by this mapper.
+     *
+     * @return  result reader
+     */
+    public TapResultReader getResultReader() {
+        return resultReader_;
+    }
+
+    /**
      * Returns a new TapQuery object from values available at execution time.
      *
      * @param  tapService   TAP service description
@@ -351,7 +424,7 @@ public class TapMapper implements TableMapper {
      * @param   label  parameter suffix 
      * @return   upload name parameter
      */
-    private static Parameter<String> createUploadNameParameter( String label ) {
+    public static Parameter<String> createUploadNameParameter( String label ) {
         StringParameter upnameParam = new StringParameter( "upname" + label ) {
             @Override
             public String stringToObject( Environment env, String inval )
