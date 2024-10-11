@@ -83,6 +83,15 @@ public class JoinFixSelector extends JPanel {
     }
 
     /**
+     * Returns the selector for the fix type.
+     *
+     * @return  fix action selector
+     */
+    public JComboBox<?> getActionSelector() {
+        return scopeSelector_;
+    }
+
+    /**
      * Returns the currently selected scope.
      *
      * @return  scope

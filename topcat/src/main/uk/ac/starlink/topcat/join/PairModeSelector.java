@@ -76,6 +76,15 @@ public class PairModeSelector extends Box {
         return comboBox_.getItemAt( comboBox_.getSelectedIndex() );
     }
 
+    /**
+     * Returns the mode selector component.
+     *
+     * @return  mode selector combo box
+     */
+    public JComboBox<PairMode> getComboBox() {
+        return comboBox_;
+    }
+
     @Override
     public void setEnabled( boolean enabled ) {
         super.setEnabled( enabled );

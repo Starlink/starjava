@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.join;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
@@ -13,6 +14,8 @@ import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import uk.ac.starlink.table.join.Match1Type;
+import uk.ac.starlink.topcat.ActionForwarder;
+import uk.ac.starlink.ttools.join.Match1TypeParameter;
 
 /**
  * Component which allows the user to select a 
@@ -23,17 +26,21 @@ import uk.ac.starlink.table.join.Match1Type;
  */
 public class Match1TypeSelector extends JPanel {
 
+    private final ActionForwarder forwarder_;
     private TypeOption option_;
 
     private static final TypeOption IDENTIFY =
         new FixedTypeOption( "Mark Groups of Rows",
-                             Match1Type.createIdentifyType() );
+                             Match1Type.createIdentifyType(),
+                             Match1TypeParameter.IDENTIFY );
     private static final TypeOption ELIMINATE_0 =
         new FixedTypeOption( "Eliminate All Grouped Rows",
-                             Match1Type.createEliminateMatchesType( 0 ) );
+                             Match1Type.createEliminateMatchesType( 0 ),
+                             Match1TypeParameter.ELIMINATE_0 );
     private static final TypeOption ELIMINATE_1 =
         new FixedTypeOption( "Eliminate All But First of Each Group",
-                             Match1Type.createEliminateMatchesType( 1 ) );
+                             Match1Type.createEliminateMatchesType( 1 ),
+                             Match1TypeParameter.ELIMINATE_1 );
     private static final TypeOption WIDE =
         new WideTypeOption( "New Table With Groups of Size " );
 
@@ -48,6 +55,7 @@ public class Match1TypeSelector extends JPanel {
     @SuppressWarnings("this-escape")
     public Match1TypeSelector() {
         setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
+        forwarder_ = new ActionForwarder();
 
         /* Lay out one button for each option. */
         ButtonGroup buttGrp = new ButtonGroup();
@@ -56,6 +64,7 @@ public class Match1TypeSelector extends JPanel {
             Action buttAct = new AbstractAction() {
                 public void actionPerformed( ActionEvent evt ) {
                     option_ = opt;
+                    forwarder_.actionPerformed( evt );
                 }
             };
             JRadioButton butt = new JRadioButton( buttAct );
@@ -63,9 +72,10 @@ public class Match1TypeSelector extends JPanel {
             Box line = Box.createHorizontalBox();
             line.add( butt );
             line.add( new JLabel( " " + opt.getDescription() ) );
-            Component[] extras = opt.getExtras();
-            for ( int j = 0; j < extras.length; j++ ) {
-                line.add( extras[ j ] );
+            JSpinner extra = opt.getExtra();
+            if ( extra != null ) {
+                extra.addChangeListener( forwarder_ );
+                line.add( extra );
             }
             line.add( Box.createHorizontalGlue() );
             add( line );
@@ -90,8 +100,36 @@ public class Match1TypeSelector extends JPanel {
      *
      * @return  internal match type description, not null
      */
-    public String getType1Text() {
+    public String getType1Description() {
         return option_.getDescription();
+    }
+
+    /**
+     * Returns the word used in stilts commands to represent the
+     * currently selected option.
+     *
+     * @return  match type word
+     */
+    public String getType1Word() {
+        return option_.getType1Word();
+    }
+
+    /**
+     * Adds a listener to be notified when the selected type may have changed.
+     *
+     * @param  l  listener to add
+     */
+    public void addActionListener( ActionListener l ) {
+        forwarder_.addActionListener( l );
+    }
+
+    /**
+     * Removes a type change listener.
+     *
+     * @param  l  listener to remove
+     */
+    public void removeActionListener( ActionListener l ) {
+        forwarder_.removeActionListener( l );
     }
 
     /**
@@ -126,7 +164,7 @@ public class Match1TypeSelector extends JPanel {
          *
          * @return  array, possibly empty, of additional UI components
          */
-        public abstract Component[] getExtras();
+        abstract JSpinner getExtra();
 
         /**
          * Returns the internal match type selected by this option.
@@ -134,6 +172,13 @@ public class Match1TypeSelector extends JPanel {
          * @return  match type
          */
         public abstract Match1Type getType1();
+
+        /**
+         * Returns the word used in stilts commands to represent this option.
+         *
+         * @return  type word
+         */
+        public abstract String getType1Word();
     }
 
     /**
@@ -141,24 +186,32 @@ public class Match1TypeSelector extends JPanel {
      */
     private static class FixedTypeOption extends TypeOption {
         private final Match1Type type1_;
+        private final String word_;
 
         /**
          * Constructor.
          *
          * @param   option description
          * @param   match type
+         * @param   word  corresponding string value for
+         *                stilts Match1TypeParameter
          */
-        FixedTypeOption( String description, Match1Type type1 ) {
+        FixedTypeOption( String description, Match1Type type1, String word ) {
             super( description );
             type1_ = type1;
+            word_ = word;
         }
 
         public Match1Type getType1() {
             return type1_;
         }
 
-        public Component[] getExtras() {
-            return new Component[ 0 ];
+        public String getType1Word() {
+            return word_;
+        }
+
+        JSpinner getExtra() {
+            return null;
         }
     }
 
@@ -187,8 +240,13 @@ public class Match1TypeSelector extends JPanel {
             return Match1Type.createWideType( wideness );
         }
 
-        public Component[] getExtras() {
-            return new Component[] { widthSelector_, };
+        public String getType1Word() {
+            int wideness = ((Number) widthSelector_.getValue()).intValue();
+            return Match1TypeParameter.WIDE_PREFIX + wideness;
+        }
+
+        JSpinner getExtra() {
+            return widthSelector_;
         }
     }
 }

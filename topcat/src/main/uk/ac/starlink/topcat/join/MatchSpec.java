@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +27,11 @@ import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.ProgressIndicator;
+import uk.ac.starlink.task.Task;
+import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.topcat.TupleSelector;
+import uk.ac.starlink.ttools.task.Setting;
 import uk.ac.starlink.util.IconUtils;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
@@ -104,6 +109,46 @@ public abstract class MatchSpec extends JPanel {
      */
     public JComponent getPanel() {
         return this;
+    }
+
+    /**
+     * Returns the components used to supply input value expressions.
+     *
+     * @return  array of tuple selectors
+     */
+    public abstract TupleSelector[] getTupleSelectors();
+
+    /**
+     * Returns stilts command settings specific to this MatchSpec
+     * that control match output table generation.
+     *
+     * @param  task  stilts match task
+     * @return   output settings array
+     */
+    public abstract Setting[] getOutputSettings( Task task );
+
+    /**
+     * Adds a listener to be notified if the settings of this object
+     * change in a way that might change the details of the match being
+     * specified.
+     *
+     * @param  l  listener to add
+     */
+    public void addActionListener( ActionListener l ) {
+        for ( TupleSelector tupleSel : getTupleSelectors() ) {
+            tupleSel.addActionListener( l );
+        }
+    }
+
+    /**
+     * Removes a previously added listener.
+     *
+     * @param  l  listener to remove
+     */
+    public void removeActionListener( ActionListener l ) {
+        for ( TupleSelector tupleSel : getTupleSelectors() ) {
+            tupleSel.removeActionListener( l );
+        }
     }
 
     /**

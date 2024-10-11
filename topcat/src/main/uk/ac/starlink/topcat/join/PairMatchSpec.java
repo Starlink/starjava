@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.join;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,12 +32,20 @@ import uk.ac.starlink.table.join.PairMode;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.RowLink;
 import uk.ac.starlink.table.join.RowMatcher;
+import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.Task;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BitsRowSubset;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TupleSelector;
+import uk.ac.starlink.ttools.join.Match2Mapper;
+import uk.ac.starlink.ttools.join.SkyMatch2Mapper;
+import uk.ac.starlink.ttools.task.Setting;
+import uk.ac.starlink.ttools.task.SkyMatch2;
+import uk.ac.starlink.ttools.task.StiltsCommand;
+import uk.ac.starlink.ttools.task.TableMatch2;
 
 /**
  * MatchSpec for performing matches between pairs of tables.
@@ -94,6 +103,10 @@ public class PairMatchSpec extends MatchSpec {
         rowBox.add( Box.createVerticalStrut( 5 ) );
         rowBox.setBorder( AuxWindow.makeTitledBorder( "Output Rows" ) );
         main.add( rowBox );
+    }
+
+    public TupleSelector[] getTupleSelectors() {
+        return tupleSelectors_;
     }
 
     public void checkArguments() {
@@ -219,8 +232,47 @@ public class PairMatchSpec extends MatchSpec {
         }
     }
 
+    public Setting[] getOutputSettings( Task task ) {
+        final Parameter<PairMode> modeParam;
+        final Parameter<JoinType> joinParam;
+        if ( task instanceof SkyMatch2 ) {
+            SkyMatch2Mapper mapper = ((SkyMatch2) task).getMapper();
+            modeParam = mapper.getPairModeParameter();
+            joinParam = mapper.getJoinTypeParameter();
+        }
+        else if ( task instanceof TableMatch2 ) {
+            Match2Mapper mapper = ((TableMatch2) task).getMapper();
+            modeParam = mapper.getPairModeParameter();
+            joinParam = mapper.getJoinTypeParameter();
+        }
+        else {
+            assert false;
+            return new Setting[ 0 ];
+        }
+        return new Setting[] {
+            StiltsCommand
+           .createParamSetting( modeParam, pairModeSelector_.getMode() ),
+            StiltsCommand
+           .createParamSetting( joinParam, joinSelector_.getJoinType() ),
+        };
+    }
+
     public String getDescription() {
         return toString();
+    }
+
+    @Override
+    public void addActionListener( ActionListener l ) {
+        super.addActionListener( l );
+        pairModeSelector_.getComboBox().addActionListener( l );
+        joinSelector_.jCombo_.addActionListener( l );
+    }
+
+    @Override
+    public void removeActionListener( ActionListener l ) {
+        super.removeActionListener( l );
+        pairModeSelector_.getComboBox().removeActionListener( l );
+        joinSelector_.jCombo_.removeActionListener( l );
     }
 
     private static void addMatchMetadata( StarTable table, MatchEngine engine,
