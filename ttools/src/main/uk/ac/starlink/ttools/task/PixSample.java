@@ -376,6 +376,16 @@ public class PixSample extends MapperTask {
             };
             return new InputTableSpec[] { inSpec, pixSpec };
         }
+
+        public InputTableParameter getInputTableParameter( int i ) {
+            return (new InputTableParameter[] { inTableParam_,
+                                                pixTableParam_ })[ i ];
+        }
+
+        public FilterParameter getFilterParameter( int i ) {
+            return (new FilterParameter[] { inFilterParam_,
+                                            pixFilterParam_ })[ i ];
+        }
     }
 
     /**

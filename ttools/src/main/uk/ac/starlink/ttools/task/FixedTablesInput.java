@@ -82,6 +82,14 @@ public class FixedTablesInput implements TablesInput {
         return specs;
     }
 
+    public InputTableParameter getInputTableParameter( int i ) {
+        return inTableParams_[ i ];
+    }
+
+    public FilterParameter getFilterParameter( int i ) {
+        return inFilterParams_[ i ];
+    }
+
     /**
      * Returns the string representation of the ordinal number corresponding
      * to a given integer.

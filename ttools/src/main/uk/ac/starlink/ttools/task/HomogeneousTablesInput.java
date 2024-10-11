@@ -89,4 +89,12 @@ public class HomogeneousTablesInput implements TablesInput {
         }
         return specs;
     }
+
+    public InputTablesParameter getInputTableParameter( int i ) {
+        return inTablesParam_;
+    }
+
+    public FilterParameter getFilterParameter( int i ) {
+        return inFilterParam_;
+    }
 }
