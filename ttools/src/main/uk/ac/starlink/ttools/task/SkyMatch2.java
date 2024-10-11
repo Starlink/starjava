@@ -13,4 +13,8 @@ public class SkyMatch2 extends MapperTask {
         super( "Crossmatches 2 tables on sky position", new ChoiceMode(),
                false, new SkyMatch2Mapper(), new FixedTablesInput( 2, false ) );
     }
+    @Override
+    public SkyMatch2Mapper getMapper() {
+        return (SkyMatch2Mapper) super.getMapper();
+    }
 }

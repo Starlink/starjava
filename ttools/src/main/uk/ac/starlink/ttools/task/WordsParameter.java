@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.task;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import java.lang.reflect.Array;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
@@ -106,6 +108,13 @@ public class WordsParameter<W> extends Parameter<W[]> {
     public W[] stringToObject( Environment env, String sval )
             throws TaskException {
         return parseWords( stringToWords( sval ) );
+    }
+
+    @Override
+    public String objectToString( Environment env, W[] words ) {
+        return Arrays.stream( words )
+                     .map( String::valueOf )
+                     .collect( Collectors.joining( " " ) );
     }
 
     /**

@@ -16,6 +16,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.func.CoordsRadians;
 import uk.ac.starlink.ttools.task.RowRunnerParameter;
@@ -31,8 +32,8 @@ import uk.ac.starlink.ttools.task.TableMapping;
  */
 public class SkyMatch2Mapper implements TableMapper {
 
-    private final Parameter<?>[] raParams_;
-    private final Parameter<?>[] decParams_;
+    private final StringParameter[] raParams_;
+    private final StringParameter[] decParams_;
     private final DoubleParameter errorParam_;
     private final JoinTypeParameter joinParam_;
     private final FindModeParameter modeParam_;
@@ -43,8 +44,8 @@ public class SkyMatch2Mapper implements TableMapper {
      * Constructor.
      */
     public SkyMatch2Mapper() {
-        raParams_ = new Parameter<?>[ 2 ];
-        decParams_ = new Parameter<?>[ 2 ];
+        raParams_ = new StringParameter[ 2 ];
+        decParams_ = new StringParameter[ 2 ];
         for ( int i = 0; i < 2; i++ ) {
             int i1 = i + 1;
             raParams_[ i ] =
@@ -107,6 +108,62 @@ public class SkyMatch2Mapper implements TableMapper {
             modeParam_,
             runnerParam_,
         }; 
+    }
+
+    /**
+     * Returns the parameters used to acquire the RA value expressions
+     * in degrees for the two input tables.
+     *
+     * @return  2-element array of RA parameters
+     */
+    public StringParameter[] getRaParameters() {
+        return raParams_;
+    }
+
+    /**
+     * Returns the parameters used to acquire the Declination value expressions
+     * in degrees for the two input tables.
+     *
+     * @return  2-element array of declination parameters
+     */
+    public StringParameter[] getDecParameters() {
+        return decParams_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the match error in arcsec.
+     *
+     * @return  match error parameter
+     */
+    public Parameter<Double> getErrorArcsecParameter() {
+        return errorParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the pair mode.
+     *
+     * @return  pair mode parameter
+     */
+    public Parameter<PairMode> getPairModeParameter() {
+        return modeParam_;
+    } 
+
+    /**
+     * Returns the parameter used to acquire the join type.
+     *
+     * @return  join type parameter
+     */
+    public Parameter<JoinType> getJoinTypeParameter() {
+        return joinParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the HEALPix level.
+     *
+     * @return  healpix level parameter
+     */
+    public Parameter<Integer> getHealpixLevelParameter() {
+        return healpixkParam_;
     }
 
     public TableMapping createMapping( Environment env, int nin )

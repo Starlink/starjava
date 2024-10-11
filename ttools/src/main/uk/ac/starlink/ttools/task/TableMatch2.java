@@ -14,4 +14,8 @@ public class TableMatch2 extends MapperTask {
                new ChoiceMode(), true, new Match2Mapper(),
                new FixedTablesInput( 2, true ) );
     }
+    @Override
+    public Match2Mapper getMapper() {
+        return (Match2Mapper) super.getMapper();
+    }
 }
