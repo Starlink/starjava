@@ -68,13 +68,12 @@ public class VariableTablesInput implements TablesInput {
          * execution environment is available, and hence we know how
          * many of them there will be. */
         String numLabel = NUM_SUFFIX;
-        InputTableParameter inParam =
-            createInputParameter( numLabel, inNaming_ );
+        InputTableParameter inParam = createInputParameter( numLabel );
         paramList.add( inParam.getFormatParameter() );
         paramList.add( inParam );
         FilterParameter filterParam;
         if ( useInFilters ) {
-            filterParam = getFilterParameter( numLabel, inNaming_ );
+            filterParam = createFilterParameter( numLabel );
             paramList.add( filterParam );
         }
         else {
@@ -130,34 +129,39 @@ public class VariableTablesInput implements TablesInput {
         int nin = ninParam_.intValue( env );
         InputTableSpec[] inSpecs = new InputTableSpec[ nin ];
         for ( int i = 0; i < nin; i++ ) {
-            String label = String.valueOf( i + 1 );
-            InputTableParameter inParam =
-                createInputParameter( label, inNaming_ );
+            String label = indexToLabel( i );
+            InputTableParameter inParam = createInputParameter( label );
             StarTable table = inParam.tableValue( env );
             String tName = inParam.stringValue( env );
             ProcessingStep[] steps =
-                useInFilters_ ? getFilterParameter( label, inNaming_ )
-                               .stepsValue( env )
+                useInFilters_ ? createFilterParameter( label ).stepsValue( env )
                               : null;
             inSpecs[ i ] = InputTableSpec.createSpec( tName, steps, table );
         }
         return inSpecs;
     }
 
+    public InputTableParameter getInputTableParameter( int i ) {
+        return createInputParameter( indexToLabel( i ) );
+    }
+
+    public FilterParameter getFilterParameter( int i ) {
+        return createFilterParameter( indexToLabel( i ) );
+    }
+
     /**
      * Constructs an input table parameter with a given distinguishing label.
      *
      * @param  label  input identifier - typically "1", "2", etc
-     * @param  naming  parameter naming policy
      * @return  new input parameter
      */
-    private static InputTableParameter
-            createInputParameter( String label, Naming naming ) {
+    public InputTableParameter createInputParameter( String label ) {
         InputTableParameter inParam =
-            new InputTableParameter( naming.pName_ + label );
+            new InputTableParameter( inNaming_.pName_ + label );
         inParam.setUsage( "<table" + label + ">" );
-        inParam.setPrompt( "Location of " + naming.pWord_ + " table " + label );
-        inParam.setTableDescription( naming.pWord_ + " table #" + label );
+        inParam.setPrompt( "Location of " + inNaming_.pWord_ + " table "
+                         + label );
+        inParam.setTableDescription( inNaming_.pWord_ + " table #" + label );
         return inParam;
     }
 
@@ -165,18 +169,26 @@ public class VariableTablesInput implements TablesInput {
      * Constructs an input filter parameter with a given distinguishing label.
      *
      * @param  label  input identifier - typically "1", "2", etc
-     * @param  naming  parameter naming policy
      * @return  new filter parameter
      */
-    private static FilterParameter getFilterParameter( String label,
-                                                       Naming naming ) {
-        char chr = naming.pName_.charAt( 0 );
+    public FilterParameter createFilterParameter( String label ) {
+        char chr = inNaming_.pName_.charAt( 0 );
         FilterParameter filterParam =
             new FilterParameter( chr + "cmd" + label );
-        filterParam.setTableDescription( naming.pWord_ + " table #" + label,
-                                         createInputParameter( label, naming ),
+        filterParam.setTableDescription( inNaming_.pWord_ + " table #" + label,
+                                         createInputParameter( label ),
                                          Boolean.TRUE );
         return filterParam;
+    }
+
+    /**
+     * Returns the parameter suffix for a given input table number.
+     *
+     * @param   i   table index (0-based)
+     * @return  parameter suffix string
+     */
+    private static String indexToLabel( int i ) {
+        return String.valueOf( i + 1 );
     }
 
     /**
