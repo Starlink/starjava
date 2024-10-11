@@ -44,4 +44,15 @@ public class ContentCodingParameter extends BooleanParameter {
     public ContentCoding codingValue( Environment env ) throws TaskException {
         return booleanValue( env ) ? ContentCoding.GZIP : ContentCoding.NONE;
     }
+
+    /**
+     * Returns the value that this parameter should take to result in
+     * a given ContentCoding.
+     *
+     * @param   coding  input coding
+     * @return   boolean parameter value
+     */
+    public boolean fromCoding( ContentCoding coding ) {
+        return coding == ContentCoding.GZIP;
+    }
 }

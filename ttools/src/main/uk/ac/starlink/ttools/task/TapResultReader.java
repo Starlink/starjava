@@ -118,6 +118,16 @@ public class TapResultReader {
     }
 
     /**
+     * Returns the parameter used to acquire the deletion mode for
+     * async queries.
+     *
+     * @return  deletion mode parameter
+     */
+    public Parameter<DeleteMode> getDeleteParameter() {
+        return deleteParam_;
+    }
+
+    /**
      * Returns an object which can acquire a table from a TAP query object.
      *
      * @param  env  execution environment
