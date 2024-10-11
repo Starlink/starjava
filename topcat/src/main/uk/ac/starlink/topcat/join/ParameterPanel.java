@@ -3,6 +3,9 @@ package uk.ac.starlink.topcat.join;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Font;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -25,6 +28,7 @@ public class ParameterPanel extends JPanel {
 
     private JComponent tuningBox_;
     private JComponent tuningContainer_;
+    private ParameterEditor[] editors_;
 
     /**
      * Constructs a new ParameterPanel.
@@ -63,6 +67,12 @@ public class ParameterPanel extends JPanel {
             paramEds[ i ].addChangeListener( paramListener );
         }
 
+        /* Note all parameter editors. */
+        List<ParameterEditor> edList = new ArrayList<>();
+        edList.addAll( Arrays.asList( paramEds ) );
+        edList.addAll( Arrays.asList( tuningEds ) );
+        editors_ = edList.toArray( new ParameterEditor[ 0 ] );
+
         /* Place components. */
         Box mainBox = Box.createVerticalBox();
         tuningContainer_ = Box.createVerticalBox();
@@ -100,6 +110,29 @@ public class ParameterPanel extends JPanel {
         }
         else if ( ! tuningVisible && wasVisible ) {
             tuningContainer_.remove( tuningBox_ );
+        }
+    }
+
+    /**
+     * Adds a listener to be notified if the state of this panel
+     * may have changed.
+     *
+     * @param  l  listener to add
+     */
+    public void addChangeListener( ChangeListener l ) {
+        for ( ParameterEditor ed : editors_ ) {
+            ed.addChangeListener( l );
+        }
+    }
+
+    /**
+     * Removes state change listener.
+     *
+     * @param  l  listener to remove
+     */
+    public void removeChangeListener( ChangeListener l ) {
+        for ( ParameterEditor ed : editors_ ) {
+            ed.removeChangeListener( l );
         }
     }
 

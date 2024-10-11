@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.join;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -21,10 +22,16 @@ import uk.ac.starlink.table.join.MatchStarTables;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.RowLink;
 import uk.ac.starlink.table.join.RowMatcher;
+import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.Task;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TupleSelector;
+import uk.ac.starlink.ttools.join.Match1TypeParameter;
+import uk.ac.starlink.ttools.task.Setting;
+import uk.ac.starlink.ttools.task.StiltsCommand;
+import uk.ac.starlink.ttools.task.TableMatch1;
 
 /**
  * MatchSpec for matching between rows of a given table.
@@ -67,6 +74,10 @@ public class IntraMatchSpec extends MatchSpec {
         main.add( type1Selector_ );
     }
 
+    public TupleSelector[] getTupleSelectors() {
+        return new TupleSelector[] { tupleSelector_ };
+    }
+
     public void checkArguments() {
         tupleSelector_.getEffectiveTable();
     }
@@ -77,7 +88,7 @@ public class IntraMatchSpec extends MatchSpec {
 
         /* Interrogate components for tables to operate on. */
         Match1Type type1 = type1Selector_.getType1();
-        String type1txt = type1Selector_.getType1Text();
+        String type1txt = type1Selector_.getType1Description();
         StarTable effTable = tupleSelector_.getEffectiveTable();
         TopcatModel tcModel = tupleSelector_.getTable();
         StarTable appTable = tcModel.getApparentStarTable();
@@ -125,6 +136,34 @@ public class IntraMatchSpec extends MatchSpec {
 
         /* Alert the user that the matching is done. */
         JOptionPane.showMessageDialog( parent, msg, title, msgType );
+    }
+
+    public Setting[] getOutputSettings( Task task ) {
+        if ( task instanceof TableMatch1 ) {
+            Parameter<Match1Type> typeParam =
+                ((TableMatch1) task).getMatch1TypeParameter();
+            return new Setting[] {
+                new Setting( typeParam.getName(),
+                             type1Selector_.getType1Word(),
+                             Match1TypeParameter.IDENTIFY ),
+            };
+        }
+        else {
+            assert false;
+            return new Setting[ 0 ];
+        }
+    }
+
+    @Override
+    public void addActionListener( ActionListener l ) {
+        super.addActionListener( l );
+        type1Selector_.addActionListener( l );
+    }
+
+    @Override
+    public void removeActionListener( ActionListener l ) {
+        super.removeActionListener( l );
+        type1Selector_.removeActionListener( l );
     }
 
     /**

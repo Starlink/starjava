@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.join;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -28,12 +29,18 @@ import uk.ac.starlink.table.join.MultiJoinType;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.RowLink;
 import uk.ac.starlink.table.join.RowMatcher;
+import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.Task;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BitsRowSubset;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TupleSelector;
+import uk.ac.starlink.ttools.join.MatchMapper;
+import uk.ac.starlink.ttools.task.Setting;
+import uk.ac.starlink.ttools.task.StiltsCommand;
+import uk.ac.starlink.ttools.task.TableMatchN;
 
 /**
  * MatchSpec for performing matches between multiple tables.
@@ -97,6 +104,10 @@ public class InterMatchSpec extends MatchSpec {
         }
         rowBox.setBorder( AuxWindow.makeTitledBorder( "Output Rows" ) );
         main.add( rowBox );
+    }
+
+    public TupleSelector[] getTupleSelectors() {
+        return tupleSelectors;
     }
 
     public void checkArguments() {
@@ -209,8 +220,54 @@ public class InterMatchSpec extends MatchSpec {
         JOptionPane.showMessageDialog( parent, msg, title, msgType );
     }
 
+    public Setting[] getOutputSettings( Task task ) {
+        if ( task instanceof TableMatchN ) {
+            TableMatchN matchTask = (TableMatchN) task;
+            MatchMapper mapper = matchTask.getMapper();
+            MultiJoinType[] joinTypes = getJoinTypes();
+            String multimode = MatchMapper.GROUP_MODE;
+            List<Setting> settings = new ArrayList<>();
+            settings.add( StiltsCommand
+                         .createParamSetting( mapper.getMultiModeParameter(),
+                                              multimode ) );
+            settings.add( StiltsCommand
+                         .createParamSetting( matchTask.getTablesInput()
+                                                       .getCountParam(),
+                                              Integer.valueOf( nTable ) ) );
+            for ( int i = 0; i < nTable; i++ ) {
+                String label = String.valueOf( i + 1 );
+                Parameter<MultiJoinType> joinTypeParam =
+                    mapper.createMultiJoinTypeParameter( label );
+                settings.add( StiltsCommand
+                             .createParamSetting( joinTypeParam,
+                                                  joinTypes[ i ] ) );
+            }
+            return settings.toArray( new Setting[ 0 ] );
+        }
+        else {
+            assert false;
+            return new Setting[ 0 ];
+        }
+    }
+
     public String getDescription() {
         return "Multi-table match performed by TOPCAT";
+    }
+
+    @Override
+    public void addActionListener( ActionListener l ) {
+        super.addActionListener( l );
+        for ( OutputRequirements outReq : outReqs ) {
+            outReq.addActionListener( l );
+        }
+    }
+
+    @Override
+    public void removeActionListener( ActionListener l ) {
+        super.removeActionListener( l );
+        for ( OutputRequirements outReq : outReqs ) {
+            outReq.removeActionListener( l );
+        }
     }
 
     /**

@@ -4,9 +4,14 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import javax.swing.Action;
@@ -25,7 +30,9 @@ import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowRunner;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.AnisotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.CdsHealpixSkyPixellator;
 import uk.ac.starlink.table.join.CombinedMatchEngine;
@@ -38,17 +45,39 @@ import uk.ac.starlink.table.join.ErrorSummation;
 import uk.ac.starlink.table.join.EqualsMatchEngine;
 import uk.ac.starlink.table.join.FixedSkyMatchEngine;
 import uk.ac.starlink.table.join.HtmSkyPixellator;
+import uk.ac.starlink.table.join.HumanMatchEngine;
 import uk.ac.starlink.table.join.IsotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.RangeModelProgressIndicator;
 import uk.ac.starlink.table.join.SphericalPolarMatchEngine;
+import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.StringParameter;
+import uk.ac.starlink.task.Task;
+import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.topcat.StiltsAction;
+import uk.ac.starlink.topcat.StiltsReporter;
 import uk.ac.starlink.topcat.ToggleButtonModel;
+import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TopcatTableNamer;
+import uk.ac.starlink.topcat.TupleSelector;
 import uk.ac.starlink.ttools.func.CoordsRadians;
+import uk.ac.starlink.ttools.join.MatchEngineParameter;
+import uk.ac.starlink.ttools.join.SkyMatch2Mapper;
+import uk.ac.starlink.ttools.task.MapperTask;
 import uk.ac.starlink.ttools.task.RowRunnerParameter;
+import uk.ac.starlink.ttools.task.Setting;
+import uk.ac.starlink.ttools.task.SettingGroup;
+import uk.ac.starlink.ttools.task.SkyMatch2;
+import uk.ac.starlink.ttools.task.StiltsCommand;
+import uk.ac.starlink.ttools.task.TableMatch1;
+import uk.ac.starlink.ttools.task.TableMatch2;
+import uk.ac.starlink.ttools.task.TableMatchN;
+import uk.ac.starlink.ttools.task.TablesInput;
 
 /**
  * Window for selecting the characteristics of and invoking a match 
@@ -56,9 +85,10 @@ import uk.ac.starlink.ttools.task.RowRunnerParameter;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class MatchWindow extends AuxWindow {
+public class MatchWindow extends AuxWindow implements StiltsReporter {
 
     private final int nTable_;
+    private final ActionForwarder forwarder_;
     private final JComboBox<MatchEngine> engineSelector_;
     private final Map<MatchEngine,MatchSpec> matchSpecs_;
     private final CardLayout paramCards_;
@@ -69,8 +99,10 @@ public class MatchWindow extends AuxWindow {
     private final Action startAct_;
     private final Action stopAct_;
     private final JProgressBar progBar_;
+    private final ToggleButtonModel tuningModel_;
     private final ToggleButtonModel profileModel_;
     private final ToggleButtonModel parallelModel_;
+    private final Map<MatchEngine,String> engineMap_;
     private MatchProgressIndicator currentIndicator_;
 
     /**
@@ -84,9 +116,12 @@ public class MatchWindow extends AuxWindow {
         super( "Match Tables", parent );
         nTable_ = nTable;
         matchSpecs_ = new HashMap<MatchEngine,MatchSpec>();
+        forwarder_ = new ActionForwarder();
 
         /* Get the list of all the match engines we know about. */
-        MatchEngine[] engines = getEngines();
+        engineMap_ = getEngineMap();
+        MatchEngine[] engines =
+            engineMap_.keySet().toArray( new MatchEngine[ 0 ] );
         int nEngine = engines.length;
 
         /* Prepare specific parameter fields for each engine. */
@@ -97,16 +132,19 @@ public class MatchWindow extends AuxWindow {
             MatchEngine engine = engines[ i ];
             paramPanels[ i ] = new ParameterPanel( engine );
             paramContainer_.add( paramPanels[ i ], labelFor( engine ) );
+            paramPanels[ i ].addChangeListener( forwarder_ );
         }
 
         /* Prepare a combo box which can select the engines. */
         engineSelector_ = new JComboBox<MatchEngine>( engines );
         engineSelector_.addItemListener( evt -> updateDisplay() );
+        engineSelector_.addActionListener( forwarder_ );
 
         /* Set up actions to start and stop the match. */
         progBar_ = placeProgressBar();
         startAct_ = BasicAction.create( "Go", null, "Perform the match",
                                         evt -> {
+            forwarder_.actionPerformed( evt );
             MatchSpec spec = getMatchSpec();
             MatchEngine engine = getMatchEngine();
             try {
@@ -131,18 +169,17 @@ public class MatchWindow extends AuxWindow {
         stopAct_.setEnabled( false );
 
         /* Set up an action to display tuning information. */
-        final ToggleButtonModel tuningModel =
-            new ToggleButtonModel( "Tuning Parameters", ResourceIcon.TUNING,
-                                   "Display tuning parameters" );
-        tuningModel.addChangeListener( new ChangeListener() {
-            public void stateChanged( ChangeEvent evt ) {
-                boolean showTuning = tuningModel.isSelected();
-                for ( int i = 0; i < paramPanels.length; i++ ) {
-                    paramPanels[ i ].setTuningVisible( showTuning );
-                }
-                paramContainer_.revalidate();
+        tuningModel_ = new ToggleButtonModel( "Tuning Parameters",
+                                              ResourceIcon.TUNING,
+                                              "Display tuning parameters" );
+        tuningModel_.addChangeListener( evt -> {
+            boolean showTuning = tuningModel_.isSelected();
+            for ( int i = 0; i < paramPanels.length; i++ ) {
+                paramPanels[ i ].setTuningVisible( showTuning );
             }
+            paramContainer_.revalidate();
         } );
+        tuningModel_.addChangeListener( forwarder_ );
 
         /* Set up an action to control parallel implementation. */
         parallelModel_ =
@@ -150,12 +187,14 @@ public class MatchWindow extends AuxWindow {
                                    "Set to run match using multithreaded "
                                  + "execution" );
         parallelModel_.setSelected( true );
+        parallelModel_.addChangeListener( forwarder_ );
 
         /* Set up an action to perform profiling during match. */
         profileModel_ =
             new ToggleButtonModel( "Full Profiling", ResourceIcon.PROFILE,
                                    "Determine and show timing and memory "
                                  + "profiling information in calculation log" );
+        profileModel_.addChangeListener( forwarder_ );
 
         /* Place the components. */
         Box buttonBox = Box.createHorizontalBox();
@@ -188,12 +227,13 @@ public class MatchWindow extends AuxWindow {
         common.add( engineBox );
 
         /* Place actions. */
-        getToolBar().add( tuningModel.createToolbarButton() );
+        getToolBar().add( tuningModel_.createToolbarButton() );
         getToolBar().add( profileModel_.createToolbarButton() );
         getToolBar().add( parallelModel_.createToolbarButton() );
+        getToolBar().add( new StiltsAction( this, () -> this ) );
         JMenu tuningMenu = new JMenu( "Tuning" );
         tuningMenu.setMnemonic( KeyEvent.VK_T );
-        tuningMenu.add( tuningModel.createMenuItem() );
+        tuningMenu.add( tuningModel_.createMenuItem() );
         tuningMenu.add( profileModel_.createMenuItem() );
         tuningMenu.add( parallelModel_.createMenuItem() );
         getJMenuBar().add( tuningMenu );
@@ -234,7 +274,9 @@ public class MatchWindow extends AuxWindow {
     private MatchSpec getMatchSpec() {
         MatchEngine engine = getMatchEngine();
         if ( ! matchSpecs_.containsKey( engine ) ) {
-            matchSpecs_.put( engine, makeMatchSpec( engine ) );
+            MatchSpec matchSpec = makeMatchSpec( engine );
+            matchSpec.addActionListener( forwarder_ );
+            matchSpecs_.put( engine, matchSpec );
         }
         return matchSpecs_.get( engine );
     }
@@ -255,10 +297,7 @@ public class MatchWindow extends AuxWindow {
      * @return  new MatchSpec
      */
     private MatchSpec makeMatchSpec( MatchEngine engine ) {
-        Supplier<RowRunner> runnerFact =
-            () -> parallelModel_.isSelected()
-                ? RowRunnerParameter.DFLT_MATCH_RUNNER
-                : RowRunner.SEQUENTIAL;
+        Supplier<RowRunner> runnerFact = this::getRowRunner;
         switch( nTable_ ) {
             case 1:
                 return new IntraMatchSpec( engine, runnerFact );
@@ -267,6 +306,17 @@ public class MatchWindow extends AuxWindow {
             default:
                 return new InterMatchSpec( engine, runnerFact, nTable_ );
         }
+    }
+
+    /**
+     * Returns the row runner which will be used to execute the match.
+     *
+     * @return  currently selected row runner
+     */
+    private RowRunner getRowRunner() {
+        return parallelModel_.isSelected()
+             ? RowRunnerParameter.DFLT_MATCH_RUNNER
+             : RowRunner.SEQUENTIAL;
     }
 
     /**
@@ -314,6 +364,191 @@ public class MatchWindow extends AuxWindow {
     public void dispose() {
         stopAct_.actionPerformed( null );
         super.dispose();
+    }
+
+    public void addStiltsListener( ActionListener listener ) {
+        forwarder_.addActionListener( listener );
+    }
+
+    public void removeStiltsListener( ActionListener listener ) {
+        forwarder_.removeActionListener( listener );
+    }
+
+    public StiltsCommand createStiltsCommand( TopcatTableNamer tnamer ) {
+        final Task task;
+        final MatchEngine matcher = getMatchEngine();
+        MatchSpec matchSpec = getMatchSpec();
+        TupleSelector[] tupleSelectors = matchSpec.getTupleSelectors();
+        DescribedValue[] tuningDvals = matcher.getTuningParameters();
+        TopcatModel[] tcModels =
+            Arrays.stream( tupleSelectors )
+                  .map( t -> t.getTable() )
+                  .toArray( n -> new TopcatModel[ n ] );
+        if ( Arrays.stream( tcModels ).anyMatch( t -> t == null ) ) {
+            return null;
+        }
+
+        /* Determine what type of match task will be used depending on
+         * the number of input tables, and set up parameters for the
+         * input tables. */
+        List<Setting> tableSettings = new ArrayList<>();
+        if ( nTable_ == 1 ) {
+            TableMatch1 task1 = new TableMatch1();
+            task = task1;
+            tableSettings.addAll( tnamer.createInputTableSettings(
+                                      task1.getInputTableParameter(),
+                                      task1.getInputFilterParameter(),
+                                      tcModels[ 0 ] ) );
+        }
+        else {
+            final MapperTask mtask;
+            if ( nTable_ == 2 ) {
+                boolean hasSubsets =
+                     Arrays.stream( tcModels )
+                           .map( t -> t.getSelectedSubset() )
+                           .anyMatch( s -> s != null && s != RowSubset.ALL );
+                if ( matcher instanceof FixedSkyMatchEngine && ! hasSubsets ) {
+                    mtask = new SkyMatch2();
+                }
+                else {
+                    mtask = new TableMatch2();
+                }
+            }
+            else {
+                mtask = new TableMatchN();
+            }
+            task = mtask;
+            TablesInput tinput = mtask.getTablesInput();
+            for ( int i = 0; i < nTable_; i++ ) {
+                tableSettings.addAll( tnamer.createInputTableSettings(
+                                          tinput.getInputTableParameter( i ),
+                                          tinput.getFilterParameter( i ),
+                                          tcModels[ i ] ) );
+            }
+        }
+        SettingGroup tablesGroup =
+            new SettingGroup( 1, tableSettings.toArray( new Setting[ 0 ] ) );
+
+        /* Determine the MatchEngine to be used, and acquire settings
+         * specific to it. */
+        List<Setting> matcherSettings = new ArrayList<>();
+        final MatchEngineParameter matcherParam;
+        if ( task instanceof SkyMatch2 ) {
+            matcherParam = null;
+            SkyMatch2Mapper tmapper = ((SkyMatch2) task).getMapper();
+            DescribedValue errDval = matcher.getMatchParameters()[ 0 ];
+            ValueInfo errInfo = errDval.getInfo();
+            assert errInfo.getUnitString().startsWith( "rad" );
+            Object errVal = errDval.getValue();
+            if ( errVal instanceof Number ) {
+                double errDeg =
+                    Math.toDegrees( ((Number) errVal).doubleValue() );
+                Setting errSetting = pset( tmapper.getErrorArcsecParameter(),
+                                           Double.valueOf( errDeg * 3600 ) );
+                matcherSettings.add( errSetting );
+            }
+            if ( tuningModel_.isSelected() && tuningDvals.length == 1 ) {
+                DescribedValue dval = tuningDvals[ 0 ];
+                ValueInfo info = dval.getInfo();
+                if ( info.getName().toLowerCase().indexOf( "healpix" ) >= 0 &&
+                     dval.getValue() instanceof Integer ) {
+                    matcherSettings
+                   .add( pset( tmapper.getHealpixLevelParameter(),
+                               (Integer) dval.getValue() ) );
+                }
+            }
+        }
+        else {
+            String matcherName = engineMap_.get( matcher );
+            matcherParam =
+                (MatchEngineParameter)
+                StiltsCommand.getParameterByType( task, MatchEngine.class );
+
+            // dflt is sky, but probably shouldn't be, so pretend it's null
+            matcherSettings.add( new Setting( matcherParam.getName(),
+                                              matcherName, null ) );
+            DescribedValue[] matcherDvals = matcher.getMatchParameters();
+            if ( matcherDvals.length > 0 ) {
+                List<String> matcherConfigs = new ArrayList<>();
+                for ( DescribedValue dval : matcherDvals ) {
+                    String unit = dval.getInfo().getUnitString();
+                    Object val = dval.getValue();
+                    String sval;
+                    if ( unit != null && unit.startsWith( "rad" ) &&
+                         val instanceof Number ) {
+                        double valRad = ((Number) val).doubleValue();
+                        sval = Double.toString( Math.toDegrees( valRad )
+                                              * 3600 );
+                    }
+                    else {
+                        sval = String.valueOf( val );
+                    }
+                    matcherConfigs.add( sval );
+                }
+                matcherSettings.add( pset( matcherParam
+                                          .getMatchParametersParameter(),
+                                           matcherConfigs
+                                          .toArray( new String[ 0 ] ) ) );
+            }
+            if ( tuningModel_.isSelected() && tuningDvals.length > 0 ) {
+                List<String> tuningConfigs = new ArrayList<>();
+                for ( DescribedValue dval : tuningDvals ) {
+                    tuningConfigs.add( String.valueOf( dval.getValue() ) );
+                }
+                matcherSettings.add( pset( matcherParam
+                                          .getTuningParametersParameter(),
+                                           tuningConfigs
+                                          .toArray( new String[ 0 ] ) ) );
+            }
+        }
+        SettingGroup matcherGroup =
+            new SettingGroup( 1, matcherSettings.toArray( new Setting[ 0 ] ) );
+
+        /* Settings for the tuple match values. */
+        List<Setting> valuesSettings = new ArrayList<>();
+        HumanMatchEngine humanMatcher = new HumanMatchEngine( matcher );
+        if ( task instanceof SkyMatch2 ) {
+            SkyMatch2Mapper tmapper = ((SkyMatch2) task).getMapper();
+            StringParameter[] raParams = tmapper.getRaParameters();
+            StringParameter[] decParams = tmapper.getDecParameters();
+            for ( int it = 0; it < 2; it++ ) {
+                String[] exprs = tupleSelectors[ it ]
+                                .getStiltsTupleExpressions( humanMatcher );
+                valuesSettings.add( pset( raParams[ it ], exprs[ 0 ] ) );
+                valuesSettings.add( pset( decParams[ it ], exprs[ 1 ] ) );
+            }
+        }
+        else {
+            for ( int it = 0; it < nTable_; it++ ) {
+                TupleSelector tupleSelector = tupleSelectors[ it ];
+                String[] exprs = tupleSelector
+                                .getStiltsTupleExpressions( humanMatcher );
+                String label = nTable_ == 1 ? "" : Integer.toString( 1 + it );
+                valuesSettings.add( pset( matcherParam
+                                         .createMatchTupleParameter( label ),
+                                          exprs ) );
+            }
+        }
+        SettingGroup valuesGroup =
+            new SettingGroup( 1, valuesSettings.toArray( new Setting[ 0 ] ) );
+
+        /* Miscellaneous settings. */
+        SettingGroup outGroup =
+            new SettingGroup( 1, matchSpec.getOutputSettings( task ) );
+
+        Setting[] extraSettings = new Setting[] {
+            pset( StiltsCommand.getParameterByType( task, RowRunner.class ),
+                 getRowRunner() ),
+        };
+        SettingGroup extrasGroup =
+            new SettingGroup( 1, extraSettings );
+
+
+        /* Create and return the stilts command specification. */
+        SettingGroup[] groups = new SettingGroup[] {
+            matcherGroup, tablesGroup, valuesGroup, outGroup, extrasGroup,
+        };
+        return StiltsCommand.createCommand( task, groups );
     }
 
     /**
@@ -423,11 +658,13 @@ public class MatchWindow extends AuxWindow {
     }
 
     /**
-     * Returns a list of the known match engines.
+     * Returns a map from MatchEngine to (best effort) stilts matcher name
+     * of all the matchers offered by this window.
      *
-     * @return  match engine array
+     * @return  match engine map
+     * @see  uk.ac.starlink.ttools.join.MatchEngineParameter#createEngine
      */
-    private static MatchEngine[] getEngines() {
+    private static Map<MatchEngine,String> getEngineMap() {
         double someAngle = CoordsRadians.ARC_SECOND_RADIANS;
         double someLength = 1.0;
         double[] someLengths1 = new double[ 1 ];
@@ -467,31 +704,56 @@ public class MatchWindow extends AuxWindow {
                 return "HTM";
             }
         };
-        return new MatchEngine[] {
-            new FixedSkyMatchEngine( new CdsHealpixSkyPixellator(), someAngle ),
-            new ErrorSkyMatchEngine( new CdsHealpixSkyPixellator(), errSum,
-                                     someAngle ),
-            new EllipseSkyMatchEngine( new CdsHealpixSkyPixellator(),
-                                       someAngle ),
-            new SphericalPolarMatchEngine( someLength ),
-            new EqualsMatchEngine(),
-            new IsotropicCartesianMatchEngine( 1, someLength, false ),
-            new ErrorCartesianMatchEngine( 1, errSum, someLength ),
-            new IsotropicCartesianMatchEngine( 2, someLength, false ),
-            new AnisotropicCartesianMatchEngine( someLengths2 ),
-            new CuboidCartesianMatchEngine( someLengths2 ),
-            new ErrorCartesianMatchEngine( 2, errSum, someLength ),
-            new EllipseCartesianMatchEngine( someLength ),
-            new IsotropicCartesianMatchEngine( 3, someLength, false ),
-            new AnisotropicCartesianMatchEngine( someLengths3 ),
-            new CuboidCartesianMatchEngine( someLengths3 ),
-            new ErrorCartesianMatchEngine( 3, errSum, someLength ),
-            new AnisotropicCartesianMatchEngine( someLengths4 ),
-            skyPlus1Engine,
-            skyPlus1ErrEngine,
-            skyPlus2Engine,
-            htmEngine,
-        };
+
+        /* The names here come from the stilts MatchEngineParameter,
+         * in particular its createEngine(name) method. */
+        Map<MatchEngine,String> map = new LinkedHashMap<>();
+        map.put( new FixedSkyMatchEngine( new CdsHealpixSkyPixellator(),
+                                          someAngle ),
+                 "sky" );
+        map.put( new ErrorSkyMatchEngine( new CdsHealpixSkyPixellator(), errSum,
+                                          someAngle ),
+                 "skyerr" );
+        map.put( new EllipseSkyMatchEngine( new CdsHealpixSkyPixellator(),
+                                            someAngle ),
+                 "skyellipse" );
+        map.put( new SphericalPolarMatchEngine( someLength ),
+                 "sky3d" );
+        map.put( new EqualsMatchEngine(),
+                 "exact" );
+        map.put( new IsotropicCartesianMatchEngine( 1, someLength, false ),
+                 "1d" );
+        map.put( new ErrorCartesianMatchEngine( 1, errSum, someLength ),
+                 "1derr" );
+        map.put( new IsotropicCartesianMatchEngine( 2, someLength, false ),
+                 "2d" );
+        map.put( new AnisotropicCartesianMatchEngine( someLengths2 ),
+                 "2d_anisotropic" );
+        map.put( new CuboidCartesianMatchEngine( someLengths2 ),
+                 "2d_cuboid" );
+        map.put( new ErrorCartesianMatchEngine( 2, errSum, someLength ),
+                 "2derr" );
+        map.put( new EllipseCartesianMatchEngine( someLength ),
+                 "2d_ellipse" );
+        map.put( new IsotropicCartesianMatchEngine( 3, someLength, false ),
+                 "3d" );
+        map.put( new AnisotropicCartesianMatchEngine( someLengths3 ),
+                 "3d_anisotropic" );
+        map.put( new CuboidCartesianMatchEngine( someLengths3 ),
+                 "3d_cuboid" );
+        map.put( new ErrorCartesianMatchEngine( 3, errSum, someLength ),
+                 "3derr" );
+        map.put( new AnisotropicCartesianMatchEngine( someLengths4 ),
+                 "4d_anisotropic" );
+        map.put( skyPlus1Engine,
+                 "sky+1d" );
+        map.put( skyPlus1ErrEngine,
+                 "sky+1derr" );
+        map.put( skyPlus2Engine,
+                 "sky+2" );
+        map.put( htmEngine,
+                 "sky" );
+        return Collections.unmodifiableMap( map );
     }
 
     /**
