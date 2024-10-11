@@ -34,9 +34,13 @@ public class TapCapabilityPanel extends JPanel {
     private final JComboBox<Object> maxrecSelector_;
     private final JButton authButton_;
     private VersionedLanguage lastLang_;
+    private long lastMaxrec_ = -1;
 
     /** Name of property associated with currently selected language. */
     public static final String LANGUAGE_PROPERTY = "language";
+
+    /** Name of property associated with current MAXREC value. */
+    public static final String MAXREC_PROPERTY = "maxrec";
 
     private static final VersionedLanguage[] ADQLS =
         createDefaultVersionedLanguages();
@@ -72,6 +76,12 @@ public class TapCapabilityPanel extends JPanel {
         maxrecSelector_.setToolTipText( "Indicates and allows to set MAXREC, "
                                       + "the maximum row count for result "
                                       + "tables" );
+        maxrecSelector_.addActionListener( evt -> {
+            long maxrec = getMaxrec();
+            firePropertyChange( MAXREC_PROPERTY, Long.valueOf( lastMaxrec_ ),
+                                                 Long.valueOf( maxrec ) );
+            lastMaxrec_ = maxrec;
+        } );
         authButton_ = new JButton( authAction );
         authButton_.setHorizontalTextPosition( SwingConstants.LEFT );
         authButton_.setMargin( new Insets( 0, 5, 0, 5 ) );
