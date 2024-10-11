@@ -61,6 +61,15 @@ public class TableMatch1 extends SingleMapperTask {
         getParameterList().addAll( 0, paramList );
     }
 
+    /**
+     * Returns the parameter used to acquire the match type.
+     *
+     * @return   match type parameter
+     */
+    public Parameter<Match1Type> getMatch1TypeParameter() {
+        return type1Param_;
+    }
+
     public TableProducer createProducer( Environment env )
             throws TaskException {
 

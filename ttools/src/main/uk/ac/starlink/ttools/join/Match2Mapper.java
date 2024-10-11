@@ -71,6 +71,24 @@ public class Match2Mapper implements TableMapper {
         };
     }
 
+    /**
+     * Returns the parameter used to acquire the pair match mode.
+     *
+     * @return  pair mode parameter
+     */
+    public Parameter<PairMode> getPairModeParameter() {
+        return modeParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire the join type.
+     *
+     * @return  join type parameter
+     */
+    public Parameter<JoinType> getJoinTypeParameter() {
+        return joinParam_;
+    }
+
     public TableMapping createMapping( Environment env, int nin )
             throws TaskException {
 

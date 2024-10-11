@@ -43,8 +43,11 @@ public class MatchMapper implements TableMapper {
     private final ProgressIndicatorParameter progressParam_;
     private final Parameter<RowRunner> runnerParam_;
 
-    private static final String PAIRS_MODE = "pairs";
-    private static final String GROUP_MODE = "group";
+    /** MultiMode parameter value for pairs matching. */
+    public static final String PAIRS_MODE = "pairs";
+
+    /** MultiMode parameter value for group matching. */
+    public static final String GROUP_MODE = "group";
 
     /**
      * Constructor.
@@ -107,7 +110,8 @@ public class MatchMapper implements TableMapper {
             "</ul>",
             "Note that which rows actually appear in the output",
             "is also influenced by the", 
-            "<code>" + new MultiJoinTypeParameter( "N" ).getName() + "</code>",
+            "<code>" + createMultiJoinTypeParameter( "N" ).getName()
+                     + "</code>",
             "parameter.",
             "</p>",
         } );
@@ -126,7 +130,7 @@ public class MatchMapper implements TableMapper {
             matcherParam_.getMatchParametersParameter(),
             matcherParam_.getTuningParametersParameter(),
             matcherParam_.createMatchTupleParameter( "N" ),
-            new MultiJoinTypeParameter( "N" ),
+            createMultiJoinTypeParameter( "N" ),
             fixcolsParam_,
             fixcolsParam_.createSuffixParameter( "N" ),
             progressParam_,
@@ -161,7 +165,7 @@ public class MatchMapper implements TableMapper {
                 fixcolsParam_.createSuffixParameter( numLabel );
             fixActs[ i ] = fixcolsParam_.getJoinFixAction( env, suffixParam );
             joinTypes[ i ] =
-                new MultiJoinTypeParameter( numLabel ).objectValue( env );
+                createMultiJoinTypeParameter( numLabel ).objectValue( env );
         }
         ProgressIndicator progger =
             progressParam_.progressIndicatorValue( env );
@@ -177,6 +181,27 @@ public class MatchMapper implements TableMapper {
         else {
             throw new AssertionError( "Unknown multimode " + mmode + "???" );
         }
+    }
+
+    /**
+     * Returns the parameter used to acquire multi-table match type.
+     *
+     * @return   multimode parameter
+     */
+    public Parameter<String> getMultiModeParameter() {
+        return mmodeParam_;
+    }
+
+    /**
+     * Returns the parameter used to acquire join type
+     * for an input table identified by a given suffix.
+     *
+     * @param  suffix  input table suffix
+     * @return   join type parameter for one table
+     */
+    public Parameter<MultiJoinType>
+            createMultiJoinTypeParameter( String suffix ) {
+        return new MultiJoinTypeParameter( suffix );
     }
 
     /**

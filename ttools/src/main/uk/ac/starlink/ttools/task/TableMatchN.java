@@ -14,4 +14,12 @@ public class TableMatchN extends MapperTask {
                new ChoiceMode(), true, new MatchMapper(),
                new VariableTablesInput( true ) );
     }
+    @Override
+    public MatchMapper getMapper() {
+        return (MatchMapper) super.getMapper();
+    }
+    @Override
+    public VariableTablesInput getTablesInput() {
+        return (VariableTablesInput) super.getTablesInput();
+    }
 }

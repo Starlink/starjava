@@ -16,10 +16,17 @@ import uk.ac.starlink.task.TaskException;
  */
 public class Match1TypeParameter extends Parameter<Match1Type> {
 
-    private static final String IDENTIFY = "identify";
-    private static final String ELIMINATE_0 = "keep0";
-    private static final String ELIMINATE_1 = "keep1";
-    private static final String WIDE_PREFIX = "wide";
+    /** Parameter value for identify action. */
+    public static final String IDENTIFY = "identify";
+
+    /** Parameter value for keep0 action. */
+    public static final String ELIMINATE_0 = "keep0";
+
+    /** Parameter value for keep1 action. */
+    public static final String ELIMINATE_1 = "keep1";
+
+    /** Parameter value prefix for n-fold table output. */
+    public static final String WIDE_PREFIX = "wide";
 
     /**
      * Constructor.
