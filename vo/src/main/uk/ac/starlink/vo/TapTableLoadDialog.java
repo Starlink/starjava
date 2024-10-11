@@ -15,8 +15,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -73,6 +73,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
                                 implements DalLoader {
 
     private final Map<String,TapQueryPanel> tqMap_;
+    private final List<ActionListener> queryListeners_;
     private Consumer<URL> urlHandler_;
     private JTabbedPane tabber_;
     private JComponent tqContainer_;
@@ -127,6 +128,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         super( "Table Access Protocol (TAP) Query",
                "Query remote databases using SQL-like language" );
         tqMap_ = new HashMap<String,TapQueryPanel>();
+        queryListeners_ = new ArrayList<ActionListener>();
         metaPolicy_ = TapMetaPolicy.getDefaultInstance();
         coding_ = ContentCoding.GZIP;
         setIcon( ResourceIcon.TLD_TAP );
@@ -163,6 +165,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         /* Field containing URL of selected TAP service. */
         urlField_ = new ExampleSelectField( "Select service from panel above "
                                           + "or enter service URL here" );
+        urlField_.addActionListener( evt -> fireQueryChanged( evt ) );
 
         /* Prepare a panel to search the registry for TAP services. */
         searchPanel_ = new SearchPanel();
@@ -306,6 +309,8 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         tabber_.addChangeListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
                 updateForTab();
+                fireQueryChanged( new ActionEvent( evt.getSource(),
+                                                   0, "query" ) );
             }
         } );
         updateForTab();
@@ -412,6 +417,15 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
      */
     public void setVOTableWriter( VOTableWriter vowriter ) {
         vowriter_ = vowriter;
+    }
+
+    /**
+     * Returns the VOTableWriter used for uploading table used by this dialog.
+     *
+     * @return   table upload writer
+     */
+    public VOTableWriter getVOTableWriter() {
+        return vowriter_;
     }
 
     /**
@@ -564,7 +578,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
                 extraParams.put( responseformatParam, ofmtSpec );
             }
         }
-        final TapRunMode runMode = (TapRunMode) runModeModel_.getSelectedItem();
+        final TapRunMode runMode = getRunMode();
         final DescribedValue[] metas = new DescribedValue[ 0 ];
         TapQuery tq0;
         try {
@@ -611,6 +625,36 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
             qlw.setVisible( true );
             qlw.executeQuery();
             return null;
+        }
+    }
+
+    /**
+     * Adds a listener that will be informed if the effective TAP query
+     * specified by this dialogue may have changed.
+     *
+     * @param  l  listener to add
+     */
+    public void addQueryActionListener( ActionListener l ) {
+        queryListeners_.add( l );
+    }
+
+    /**
+     * Removes a listener for TAP query changes.
+     *
+     * @param  l  listener to remove
+     */
+    public void removeQueryActionListener( ActionListener l ) {
+        queryListeners_.remove( l );
+    }
+
+    /**
+     * Informs query listeners that a change may have occurred.
+     *
+     * @param  evt  action event
+     */
+    private void fireQueryChanged( ActionEvent evt ) {
+        for ( ActionListener listener : queryListeners_ ) {
+            listener.actionPerformed( evt );
         }
     }
 
@@ -671,6 +715,24 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
     }
 
     /**
+     * Returns the TAP query panel currently visible.
+     *
+     * @return  query panel
+     */
+    public TapQueryPanel getCurrentTapQueryPanel() {
+        return tabber_.getSelectedIndex() == tqTabIndex_ ? tqPanel_ : null;
+    }
+
+    /**
+     * Returns the currently selected run mode.
+     *
+     * @return  run mode
+     */
+    public TapRunMode getRunMode() {
+        return (TapRunMode) runModeModel_.getSelectedItem(); 
+    }
+
+    /**
      * Returns the registry panel for this window.
      *
      * @return  registry panel
@@ -726,12 +788,12 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
      * @param   adql  ADQL/S text
      * @return   collection of upload identifiers
      */
-    private static Set<String> getUploadLabels( String adql ) {
+    public static Set<String> getUploadLabels( String adql ) {
 
         /* Use of a regex for this partial parse is not bulletproof,
          * but you would have to have quite contrived ADQL to get a
          * false match here. */
-        Set<String> labelSet = new HashSet<String>();
+        Set<String> labelSet = new LinkedHashSet<String>();
         Matcher matcher = UPLOAD_REGEX.matcher( adql );
         while ( matcher.find() ) {
             labelSet.add( matcher.group( 1 ) );
@@ -779,9 +841,12 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
                 TapQueryPanel tqPanel = createTapQueryPanel();
                 if ( runModeModel_ != null && runModeModel_.getSize() > 1 ) {
                     JComponent modeLine = Box.createHorizontalBox();
+                    JComboBox<TapRunMode> runModeSelector =
+                        new JComboBox<>( runModeModel_ );
+                    runModeSelector
+                       .addActionListener( evt -> fireQueryChanged( evt ) );
                     modeLine.add( new JLabel( "Query Mode: " ) );
-                    modeLine.add( new ShrinkWrapper(
-                                      new JComboBox<>( runModeModel_ ) ) );
+                    modeLine.add( new ShrinkWrapper( runModeSelector ) );
                     modeLine.add( Box.createHorizontalStrut( 5 ) );
                     tqPanel.addControl( modeLine );
                 }
@@ -1030,9 +1095,9 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
 
         /** Synchronous load into application. */
         SYNC( true, true,
-               "Synchronous",
-               "Execute query in TAP synchronous mode"
-             + " and load result into application" ),
+              "Synchronous",
+              "Execute query in TAP synchronous mode"
+            + " and load result into application" ),
 
         /** Asynchronous load into application. */
         ASYNC( true, false,
@@ -1067,6 +1132,15 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
             isSync_ = isSync;
             name_ = name;
             description_ = description;
+        }
+
+        /**
+         * Indicates whether this run mode executes synchronously.
+         *
+         * @return  true for sync, false for async
+         */
+        public boolean isSynchronous() {
+            return isSync_;
         }
 
         @Override

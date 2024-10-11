@@ -486,6 +486,15 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
+     * Returns the current authentication status for this panel.
+     *
+     * @return  auth status
+     */
+    public AuthStatus getAuthStatus() {
+        return authAct_.authStatus_;
+    }
+
+    /**
      * Sets the TAP service access used by this panel.
      * Calling this will unconditionally initiate an asynchronous attempt
      * to fill in service metadata from the given service.
