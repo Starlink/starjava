@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -21,15 +22,28 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.ListModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import uk.ac.starlink.auth.AuthStatus;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.gui.TableLoader;
+import uk.ac.starlink.ttools.task.ContentCodingParameter;
+import uk.ac.starlink.ttools.task.Setting;
+import uk.ac.starlink.ttools.task.SettingGroup;
+import uk.ac.starlink.ttools.task.StiltsCommand;
+import uk.ac.starlink.ttools.task.TapMapper;
+import uk.ac.starlink.ttools.task.TapResultReader;
+import uk.ac.starlink.ttools.task.TapServiceParams;
+import uk.ac.starlink.ttools.task.TapQuerier;
+import uk.ac.starlink.ttools.task.VariableTablesInput;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.vo.AdqlExample;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.AdqlValidator;
@@ -37,11 +51,15 @@ import uk.ac.starlink.vo.AuxServiceFinder;
 import uk.ac.starlink.vo.GlotsServiceFinder;
 import uk.ac.starlink.vo.RegistryPanel;
 import uk.ac.starlink.vo.TapCapability;
+import uk.ac.starlink.vo.TapCapabilityPanel;
 import uk.ac.starlink.vo.TapMetaPolicy;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapQueryPanel;
+import uk.ac.starlink.vo.TapService;
+import uk.ac.starlink.vo.TapServiceKit;
 import uk.ac.starlink.vo.TapServiceFinder;
 import uk.ac.starlink.vo.TapTableLoadDialog;
+import uk.ac.starlink.vo.TapVersion;
 import uk.ac.starlink.vo.UwsJob;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.VOTableVersion;
@@ -53,9 +71,11 @@ import uk.ac.starlink.votable.VOTableWriter;
  * @author   Mark Taylor
  * @since    18 Jan 2011
  */
-public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
+public class TopcatTapTableLoadDialog extends TapTableLoadDialog
+                                      implements StiltsReporter {
 
     private final RegistryDialogAdjuster adjuster_;
+    private final ActionForwarder forwarder_;
     private AdqlExample[] uploadExamples_;
     private Consumer<URL> urlHandler_;
     private double[] skypos_;
@@ -67,11 +87,21 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
     @SuppressWarnings("this-escape")
     public TopcatTapTableLoadDialog() {
         adjuster_ = new RegistryDialogAdjuster( this, "tap", false );
+        forwarder_ = new ActionForwarder();
     }
 
     public Component createQueryComponent() {
         Component comp = super.createQueryComponent();
         adjuster_.adjustComponent();
+        addQueryActionListener( forwarder_ );
+
+        /* Add toolbar button for stilts report. */
+        List<Action> toolActs =
+            new ArrayList<>( Arrays.asList( getToolbarActions() ) );
+        toolActs.add( new StiltsAction( this,
+                                        () -> SwingUtilities
+                                             .getWindowAncestor( comp ) ) );
+        setToolbarActions( toolActs.toArray( new Action[ 0 ] ) );
 
         /* Add menus for TAP-specific items. */
         List<JMenu> menuList =
@@ -98,6 +128,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             Action act = new AbstractAction( delPolicy.name_ ) {
                 public void actionPerformed( ActionEvent evt ) {
                     deletionPolicy_ = delPolicy;
+                    forwarder_.actionPerformed( evt );
                 }
             };
             act.putValue( Action.SHORT_DESCRIPTION, delPolicy.description_ );
@@ -146,6 +177,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             Action act = new AbstractAction( optName ) {
                 public void actionPerformed( ActionEvent evt ) {
                     setPreferredOutputFormat( ofmtId );
+                    forwarder_.actionPerformed( evt );
                 }
             };
             act.putValue( Action.SHORT_DESCRIPTION,
@@ -177,6 +209,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             Action act = new AbstractAction( fname ) {
                 public void actionPerformed( ActionEvent evt ) {
                     setVOTableWriter( vowriter );
+                    forwarder_.actionPerformed( evt );
                 }
             };
             act.putValue( Action.SHORT_DESCRIPTION,
@@ -228,6 +261,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
                 setContentCoding( codingButton.isSelected()
                                       ? ContentCoding.GZIP
                                       : ContentCoding.NONE );
+                forwarder_.actionPerformed( evt );
             }
         } );
         codingButton.setToolTipText( "Determines whether HTTP-level compression"
@@ -252,6 +286,12 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         return comp;
     }
 
+    @Override
+    public TableLoader createTableLoader() {
+        forwarder_.actionPerformed( new ActionEvent( this, 0, "load" ) );
+        return super.createTableLoader();
+    }
+
     public boolean acceptResourceIdList( String[] ivoids, String msg ) {
         return adjuster_.acceptResourceIdLists()
             && super.acceptResourceIdList( ivoids, msg );
@@ -270,7 +310,13 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         return true;
     }
 
-    protected StarTable getUploadTable( String upLabel ) {
+    /**
+     * Returns the topcat model corresponding to a supplied tap_upload label.
+     *
+     * @param  upLabel  tap_upload label
+     * @return  topcat model for given label, or null if not found
+     */
+    private TopcatModel getUploadTopcatModel( String upLabel ) {
 
         /* Get list of loaded tables. */
         TopcatModel[] tcModels = getTopcatModels();
@@ -282,24 +328,34 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             String[] aliases = getUploadAliases( tcModel );
             for ( int ia = 0; ia < aliases.length; ia++ ) {
                 if ( upLabel.equalsIgnoreCase( aliases[ ia ] ) ) {
-                    return TopcatUtils.getSaveTable( tcModel );
+                    return tcModel;
                 }
             }
         }
+        return null;
+    }
 
-        /* Otherwise, reject with a helpful error message. */
-        StringBuffer sbuf = new StringBuffer()
-            .append( "No upload table available under the name " )
-            .append( upLabel )
-            .append( ".\n" );
-        if ( tcModels.length == 0 ) {
-            sbuf.append( "No tables are currently loaded" );
+    @Override
+    protected StarTable getUploadTable( String upLabel ) {
+        TopcatModel tcModel = getUploadTopcatModel( upLabel );
+        if ( tcModel != null ) {
+            return TopcatUtils.getSaveTable( tcModel );
         }
         else {
-            TopcatModel tcModel = tcModels[ 0 ];
-            sbuf.append( "Use either T<n> or <alphanumeric_name>" );
+
+            /* Otherwise, reject with a helpful error message. */
+            StringBuffer sbuf = new StringBuffer()
+                .append( "No upload table available under the name " )
+                .append( upLabel )
+                .append( ".\n" );
+            if ( getTopcatModels().length == 0 ) {
+                sbuf.append( "No tables are currently loaded" );
+            }
+            else {
+                sbuf.append( "Use either T<n> or <alphanumeric_name>" );
+            }
+            throw new IllegalArgumentException( sbuf.toString() );
         }
-        throw new IllegalArgumentException( sbuf.toString() );
     }
 
     @Override
@@ -356,8 +412,20 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             public double[] getSkyPos() {
                 return TopcatTapTableLoadDialog.this.skypos_;
             }
+            @Override
+            public void updateServiceKit( TapServiceKit serviceKit ) {
+                super.updateServiceKit( serviceKit );
+                forwarder_.actionPerformed( new ActionEvent( this, 0, "kit" ) );
+            }
         };
         tqp.addCustomExamples( "Upload", getUploadExamples() );
+        ActionEvent editEvt = new ActionEvent( tqp, 0, "edit" );
+        tqp.addCaretListener( evt -> forwarder_.actionPerformed( editEvt ) );
+        TapCapabilityPanel tcp = tqp.getCapabilityPanel();
+        ActionEvent propEvt = new ActionEvent( tcp, 0, "change" );
+        tqp.getCapabilityPanel()
+           .addPropertyChangeListener( evt -> forwarder_
+                                              .actionPerformed( propEvt ) );
 
         /* Make sure the panel is kept up to date with the list of
          * tables known by the application. */
@@ -491,6 +559,133 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         };
     }
 
+    public void addStiltsListener( ActionListener listener ) {
+        forwarder_.addActionListener( listener );
+    }
+
+    public void removeStiltsListener( ActionListener listener ) {
+        forwarder_.removeActionListener( listener );
+    }
+
+    public StiltsCommand createStiltsCommand( TopcatTableNamer tableNamer ) {
+        TapQuerier task = new TapQuerier();
+        TapMapper tapMapper = task.getMapper();
+        TapServiceParams serviceParams = tapMapper.getTapServiceParams();
+        TapResultReader resultReader = tapMapper.getResultReader();
+        VariableTablesInput upInput = task.getTablesInput();
+        boolean isOneLineAdql = true;
+        URL tapurl;
+        TapService service = getTapService();
+        if ( service == null ) {
+            return null;
+        }
+        try {
+            tapurl = URLUtils.newURL( service.getIdentity() );
+        }
+        catch ( MalformedURLException e ) {
+            tapurl = null;
+        }
+        if ( tapurl == null ) {
+            return null;
+        }
+        TapQueryPanel tqp = getCurrentTapQueryPanel();
+        if ( tqp == null ) {
+            return null;
+        }
+        TapRunMode runMode = getRunMode();
+        boolean isSync = runMode.isSynchronous();
+        AuthStatus authStatus = tqp.getAuthStatus();
+        boolean isAuth = authStatus != null && authStatus.isAuthenticated();
+        ContentCodingParameter codingParam =
+            tapMapper.getContentCodingParameter();
+        boolean isCompressed = codingParam.fromCoding( getContentCoding() );
+        TapCapabilityPanel tcp = tqp.getCapabilityPanel();
+        if ( tcp == null ) {
+            return null;
+        }
+        String adql = tqp.getAdql();
+        if ( adql == null || adql.trim().length() == 0 ) {
+            return null;
+        }
+        Long maxrecObj = tcp.getMaxrec();
+        long maxrec = maxrecObj == null ? -1 : maxrecObj.longValue();
+        String language = tcp.getSelectedLanguage().getVersionedName();
+
+        /* URL setting. */
+        SettingGroup urlGroup = new SettingGroup( 1, new Setting[] {
+            pset( serviceParams.getBaseParameter(), tapurl ),
+        } );
+
+        /* ADQL setting. */
+        SettingGroup adqlGroup = new SettingGroup( 1, new Setting[] {
+            pset( tapMapper.getAdqlParameter(),
+                  isOneLineAdql ? adql.trim().replaceAll( "\\s+", " " )
+                                : adql ),
+        } );
+
+        /* Option settings. */
+        List<Setting> optSettings =
+                new ArrayList<>( Arrays.asList( new Setting[] {
+            pset( tapMapper.getSyncParameter(), isSync ),
+            pset( serviceParams.getAuthParameter(), isAuth ),
+            pset( codingParam, isCompressed ),
+        } ) );
+        if ( !isSync ) {
+            optSettings.add( pset( resultReader.getDeleteParameter(),
+                                   deletionPolicy_.deleteMode_ ) );
+        }
+        TapVersion version = service.getTapVersion();
+        if ( version != null ) {
+            optSettings.add( pset( serviceParams.getTapInterfaceParameter(),
+                                   "TAP" + version.getNumber() ) );
+        }
+        if ( language != null && language.trim().length() > 0 ) {
+            optSettings
+           .add( pset( tapMapper.getLanguageParameter(), language ) );
+        }
+        if ( maxrec >= 0 ) {
+            optSettings.add( pset( tapMapper.getMaxrecParameter(),
+                                   Long.valueOf( maxrec ) ) );
+        }
+        SettingGroup optGroup =
+            new SettingGroup( 1, optSettings.toArray( new Setting[ 0 ] ) );
+
+        /* Upload settings. */
+        List<Setting> upSettings = new ArrayList<>();
+        String[] upLabels = getUploadLabels( adql ).toArray( new String[ 0 ] );
+        int nup = upLabels.length;
+        if ( nup > 0 ) {
+            upSettings.add( pset( upInput.getCountParam(),
+                                  Integer.valueOf( nup ) ) );
+            for ( int iup = 0; iup < nup; iup++ ) {
+                String upLabel = upLabels[ iup ];
+                String suffix = Integer.toString( iup + 1 );
+                TopcatModel upTcModel = getUploadTopcatModel( upLabels[ iup ] );
+                if ( upTcModel == null ) {
+                    return null;
+                }
+                upSettings.addAll( tableNamer
+                                  .createInputTableSettings(
+                                       upInput.createInputParameter( suffix ),
+                                       upInput.createFilterParameter( suffix ),
+                                       upTcModel ) );
+                upSettings.add( pset( TapMapper
+                                     .createUploadNameParameter( suffix ),
+                                      upLabel ) );
+            }
+            upSettings.add( pset( tapMapper.getVOTableWriterParameter(),
+                                  getVOTableWriter() ) );
+        }
+        SettingGroup upGroup =
+            new SettingGroup( 1, upSettings.toArray( new Setting[ 0 ] ) );
+
+        /* Create and return stilts command specification. */
+        SettingGroup[] groups = new SettingGroup[] {
+            urlGroup, upGroup, optGroup, adqlGroup,
+        };
+        return StiltsCommand.createCommand( task, groups );
+    }
+
     /**
      * Enumeration which codifies under what circumstances a UWS job should
      * be deleted.
@@ -500,13 +695,16 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         /** Delete when the job has finished. */
         FINISHED( "On Completion",
                   "Delete jobs on completion, either successful or failed",
-                  true, false ),
+                  true, false,
+                  TapResultReader.DeleteMode.finished ),
 
         /** Delete on application exit. */
-        EXIT( "On Exit", "Delete jobs on application exit", false, true ),
+        EXIT( "On Exit", "Delete jobs on application exit", false, true,
+              TapResultReader.DeleteMode.always ),
 
         /** Delete never. */
-        NEVER( "Never", "Do not delete jobs", false, false );
+        NEVER( "Never", "Do not delete jobs", false, false,
+               TapResultReader.DeleteMode.never );
 
         /** Default policy. */
         public static final DeletionPolicy DEFAULT = EXIT;
@@ -515,6 +713,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         private final String description_;
         private final boolean deleteOnCompletion_;
         private final boolean deleteOnExit_;
+        private final TapResultReader.DeleteMode deleteMode_;
 
         /**
          * Constructor.
@@ -525,14 +724,18 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
          *         has completed and its result table (if any) has been read
          * @param  deleteOnExit  true to attempt job deletion at application
          *         exit time
+         * @param  deleteMode  stilts deletion mode corresponding most closely
+         *         to this policy
          */
         private DeletionPolicy( String name, String description,
                                 boolean deleteOnCompletion,
-                                boolean deleteOnExit ) {
+                                boolean deleteOnExit,
+                                TapResultReader.DeleteMode deleteMode ) {
             name_ = name;
             description_ = description;
             deleteOnCompletion_ = deleteOnCompletion;
             deleteOnExit_ = deleteOnExit;
+            deleteMode_ = deleteMode;
         }
     }
 }
