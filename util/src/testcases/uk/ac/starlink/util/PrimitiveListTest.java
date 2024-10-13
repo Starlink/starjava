@@ -147,7 +147,7 @@ public class PrimitiveListTest extends TestCase {
         buf.add( (byte) 0x24 );
         buf.add( (byte) 0xc2 );
         buf.add( (byte) 0xa3 );
-        assertEquals( "$£", buf.decodeUtf8() );
+        assertEquals( "\u0024\u00a3", buf.decodeUtf8() );
     }
 
     private Object addList( PrimitiveList list1, PrimitiveList list2 ) {
