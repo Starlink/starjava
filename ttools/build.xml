@@ -1295,6 +1295,7 @@
     </java>
     <java classname="uk.ac.starlink.ttools.build.LayerTypeDoc"
           failonerror="yes"
+          fork="yes"
           output="${build.docs}/layertype-docs.xml"
           logerror="yes"
           classpathref="classpath">
@@ -1302,6 +1303,7 @@
     </java>
     <java classname="uk.ac.starlink.ttools.build.ShapeModeDoc"
           failonerror="yes"
+          fork="yes"
           output="${build.docs}/shapemode-docs.xml"
           logerror="yes"
           classpathref="classpath">
