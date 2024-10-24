@@ -36,9 +36,10 @@ public class StiltsDialog extends AuxDialog {
     private final BasicStiltsMonitor monitor_;
     private final MenuSelector<StiltsInvoker> invokerSelector_;
     private final MenuSelector<TopcatTableNamer> tableNamerSelector_;
-    private final JCheckBoxMenuItem dfltsToggle_;
     private final MenuSelector<LineEnder> lineEnderSelector_;
     private final MenuSelector<Integer> indentSelector_;
+    private final JCheckBoxMenuItem dfltsToggle_;
+    private final JCheckBoxMenuItem outToggle_;
     private final Action taskHelpAct_;
     private StiltsCommand command_;
 
@@ -87,7 +88,6 @@ public class StiltsDialog extends AuxDialog {
             new MenuSelector<TopcatTableNamer>( "Table Names",
                                                 TopcatTableNamer
                                                .getTableNamers() );
-        dfltsToggle_ = new JCheckBoxMenuItem( "Include Defaults" );
         lineEnderSelector_ =
             new MenuSelector<LineEnder>( "Line Endings", LineEnder.OPTIONS,
                                          LineEnder.BACKSLASH );
@@ -97,6 +97,9 @@ public class StiltsDialog extends AuxDialog {
                                                 .limit( 9 ).boxed()
                                       .toArray( n -> new Integer[ n ] ) );
         indentSelector_.setSelectedItem( Integer.valueOf( 3 ) );
+        dfltsToggle_ = new JCheckBoxMenuItem( "Include Defaults" );
+        outToggle_ = new JCheckBoxMenuItem( "Suggest Output File" );
+        outToggle_.setSelected( true );
 
         /* Ensure that the PlotStiltsMonitor is kept updated with the
          * configured formatter. */
@@ -104,9 +107,10 @@ public class StiltsDialog extends AuxDialog {
         ActionForwarder fmtForwarder = new ActionForwarder();
         invokerSelector_.addActionListener( fmtForwarder );
         tableNamerSelector_.addActionListener( fmtForwarder );
-        dfltsToggle_.addChangeListener( fmtForwarder );
         lineEnderSelector_.addActionListener( fmtForwarder );
         indentSelector_.addActionListener( fmtForwarder );
+        dfltsToggle_.addChangeListener( fmtForwarder );
+        outToggle_.addChangeListener( fmtForwarder );
         fmtForwarder.addActionListener( updateListener );
         content.addComponentListener( new ComponentAdapter() {
             @Override
@@ -156,9 +160,10 @@ public class StiltsDialog extends AuxDialog {
         JMenu formatMenu = new JMenu( "Formatting" );
         formatMenu.add( invokerSelector_.getMenuItem() );
         formatMenu.add( tableNamerSelector_.getMenuItem() );
-        formatMenu.add( dfltsToggle_ );
         formatMenu.add( lineEnderSelector_.getMenuItem() );
         formatMenu.add( indentSelector_.getMenuItem() );
+        formatMenu.add( dfltsToggle_ );
+        formatMenu.add( outToggle_ );
 
         /* Edit menu. */
         JMenu editMenu = new JMenu( "Edit" );
@@ -202,13 +207,14 @@ public class StiltsDialog extends AuxDialog {
     private void update() {
         CredibleString invocation =
             invokerSelector_.getSelectedItem().getInvocation();
-        boolean includeDflts = dfltsToggle_.isSelected();
         LineEnder lineEnder = lineEnderSelector_.getSelectedItem();
         int indent = indentSelector_.getSelectedItem().intValue();
         int cwidth = monitor_.getWidthCharacters();
+        boolean includeDflts = dfltsToggle_.isSelected();
+        boolean addSuggestions = outToggle_.isSelected();
         CommandFormatter formatter =
             new CommandFormatter( invocation, includeDflts, lineEnder,
-                                  indent, cwidth );
+                                  indent, cwidth, addSuggestions );
         StiltsCommand command = createStiltsCommand();
         monitor_.configure( command, formatter );
         monitor_.resetState();
