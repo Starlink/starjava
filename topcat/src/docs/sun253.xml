@@ -138,6 +138,7 @@
   <!ENTITY FIG.HapiTableLoadDialog '&figs;HapiTableLoadDialog.png'>
   <!ENTITY FIG.MemoryMonitor '&figs;MemoryMonitor.png'>
   <!ENTITY FIG.ParameterPanel '&figs;ParameterPanel.png'>
+  <!ENTITY FIG.StiltsDialog '&figs;StiltsDialog.png'>
   <!ENTITY FIG.TupleSelector '&figs;TupleSelector.png'>
   <!ENTITY FIG.IntraMatchSpec '&figs;IntraMatchSpec.png'>
   <!ENTITY FIG.PairMatchSpec '&figs;PairMatchSpec.png'>
@@ -5096,6 +5097,225 @@ exactly like the figure above.  However, if you can type into it
 as described above.  Some selectors however only take column names;
 if you can't type a value into it, you have to choose one of the 
 options given.
+</p>
+
+</subsubsect>
+
+<subsubsect id="StiltsDialog">
+<subhead><title>STILTS Window</title></subhead>
+
+<p>The <label>STILTS</label> button (&IMG.STILTS;) available in several windows
+opens a window displaying the command you would have to issue to the
+<webref url="http://www.starlink.ac.uk/stilts/">STILTS</webref>
+package to replicate the action of the current window.
+Its text is continually updated to reflect the current state of the window.
+</p>
+
+<figure>
+<caption><px>STILTS window for the
+             <ref id="CdsUploadMatchWindow">CDS Upload X-Match window</ref></px>
+</caption>
+<figureimage src="&FIG.StiltsDialog;"/>
+</figure>
+
+<p>STILTS is a command-line interface to much of the same functionality
+that TOPCAT provides from a Graphical User Interface.
+It is fully documented in <docxref doc="sun256">its manual</docxref>,
+but if you don't want to read that, you can set up the action you
+want in a TOPCAT window, hit the <label>STILTS</label> button,
+and copy/paste the displayed text into the shell or a script.
+Depending on configuration, the command may end with a parameter setting like
+"<code>out=result.fits</code>", which writes the result to the named file.
+You can change the filename, remove that parameter setting to display the
+results directly to standard output,
+or replace it with settings to postprocess the results using the extensive
+<docxref doc="sun256" loc="pipes">pipeline processing</docxref>
+offered by STILTS.
+</p>
+
+<p>TOPCAT itself contains the STILTS application, so you don't
+need to install any additional software to use it.
+You can run it by adding the "<code>-stilts</code>" flag
+to a topcat command, or on a Unix-like OS use the <code>stilts</code>
+script.  If you don't already have it, you can download
+<webref url="http://www.starlink.ac.uk/stilts/stilts"
+                                ><code>stilts</code></webref>
+to the directory containing your TOPCAT jar file;
+see also <docxref doc="sun256" loc="invoke"/>.
+The <label>Invocation</label> formatting menu options described below
+can also help.
+</p>
+
+<p>The STILTS window button is currently available from the following windows:
+<ref id="match-windows">Match</ref>,
+<ref id="TapTableLoadDialog">TAP</ref>,
+<ref id="CdsUploadMatchWindow">CDS Upload X-Match</ref>,
+and
+single
+   <ref id="ConeSearchDialog">cone</ref>,
+   <ref id="SiapTableLoadDialog">SIA</ref>,
+   <ref id="SsapTableLoadDialog">SSA</ref>
+and multiple
+   <ref id="ConeMultiWindow">cone</ref>,
+   <ref id="SiaMultiWindow">SIA</ref>,
+   <ref id="SsaMultiWindow">SSA</ref>
+windows.
+All the <ref id="plot2">Plot windows</ref>
+have similar functionality from their
+<ref id="StiltsControl">STILTS Control</ref> component.
+</p>
+
+<p><strong>NOTE:</strong>
+The STILTS command displayed in this panel is <strong>not guaranteed</strong>
+to work from the command line.
+There are a few reasons for this.
+The STILTS command tries to name the tables you have loaded into TOPCAT.
+If they have straightforward filenames this will probably work,
+but if a plotted table is for example the result of a match operation
+carried out in the current session, it will not exist on disk yet
+so it can't be named on the command line.
+Similarly, using the names of columns or non-algebraic Row Subsets
+created during the current session may result in command lines
+that won't work as written,
+since those values don't exist in the input files.
+Constructions that may cause trouble are flagged with text in blue,
+and ones that almost certainly won't work are written in red.
+In this case you can prepare a table corresponding to the
+current TOPCAT state, save that, and edit the STILTS command to
+use the name of that file for input
+(or you can reload the file and adjust the window to use that one).
+Subsets as such cannot be
+saved in this way, but you can achieve much the same thing by
+storing subset information in a boolean column
+using the <label>To Column</label> action (&IMG.TO_COLUMN;)
+from the <ref id="SubsetWindow">Subsets Window</ref>.
+Note STILTS does not understand TOPCAT's 
+<ref id="sessionSave">saved session</ref> format.
+There may also be bugs in the (rather complex) command-generation code
+that cause the command to fail.
+Hopefully there are not too many of these,
+but if you find one please report it.
+</p>
+
+<p>The following actions are available in the toolbar:
+<dl>
+<dt>&IMG.REDO; Update</dt>
+<dd><p>Updates the displayed text to match the current state of the window.
+    It is normally not necessary to use this action since the text
+    is generally updated whenever something in the window changes,
+    but in case they get out of sync this will ensure that the text is
+    up to date.
+    </p></dd>
+<dt>&IMG.CLIPBOARD; Copy</dt>
+<dd><p>Copy the displayed text to the system clipboard so it can be
+    pasted elsewhere.
+    You can alternatively copy the text using the mouse or
+    whatever is the normal way for your platform.
+    </p></dd>
+<dt>&IMG.STILTS_HELP; Help for Command</dt>
+<dd><p>Opens documentation for the particular STILTS command displayed
+    in a web browser.
+    Note this displays documentation for the most recent public release,
+    so it's not guaranteed to match parameter settings for the version
+    of STILTS that you have installed.
+    </p></dd>
+<dt>&IMG.WARNING; Show Error</dt>
+<dd><p>If a problem is detected in the displayed command,
+    this button will be enabled, and clicking on it will show more detail
+    about why the command is expected to fail.
+    If the command appears to be in good order, this button is disabled.
+    </p></dd>
+</dl>
+</p>
+
+<p>The <label>Formatting</label> menu controls details of how the
+command is laid out.
+Some of these options are cosmetic, and some may need to be changed
+according to your shell syntax
+(the default roughly corresponds to <code>bash</code>).
+<dl>
+<dt>Invocation</dt>
+<dd><p>Determines how the <code>stilts</code> command itself is introduced.
+    Options are:
+    <ul>
+    <li><label>stilts</label>:
+        Just the word "<code>stilts</code>", which will work if a
+        command with that name is on the execution path.
+        </li>
+    <li><label>topcat</label>:
+        The expression "<code>topcat -stilts</code>", which will work
+        if the <code>topcat</code> command is on the path.
+        </li>
+    <li><label>Class-path</label>:
+        A longer expression based on the location of the java class files
+        that the currently running TOPCAT application is using.
+        This should work as along as a <code>java</code> executable
+        is on the path.
+        </li>
+    </ul>
+    </p></dd>
+<dt>Table Names</dt>
+<dd><p>Determines how tables in TOPCAT are referenced in the generated
+    command line.
+    Options are:
+    <ul>
+    <li><label>Pathname</label>: Full pathname of the input table file,
+        where available.  Should be fairly robust for tables loaded
+        from files or, in most cases, URLs.</li>
+    <li><label>Filename</label>: Tail of filename only (no directory name)
+        of the input table file, where available.
+        More compact than Pathname, and should work if the STILTS command is
+        executed in the directory in which all files exist.</li>
+    <li><label>Label</label>: User-assigned label for the table,
+        as shown in the <ref id="ControlWindow">Control Window</ref>.</li>
+    <li><label>TNum</label>: "<code>T</code>" followed by the table identifier.
+        The identifier is the small integer shown in the table list in the
+        Control Window.</li>
+    </ul>
+    </p></dd>
+<dt>Line Endings</dt>
+<dd><p>STILTS commands can be quite long and are usually displayed
+    over several screen lines.
+    This control configures how lines breaks are displayed.
+    Options are:
+    <ul>
+    <li><label>plain</label>: just a new line character terminates lines</li>
+    <li><label>backslash</label>: a backslash ("<code>\</code>")
+        is added at the end of each line;
+        suitable for <code>bash</code> and other Unix-like shells.</li>
+    <li><label>caret</label>: a caret ("<code>^</code>")
+        is added at the end of each line;
+        suitable for Windows CMD/.bat scripts.</li>
+    <li><label>backtick</label>: a backtick ("<code>`</code>")
+        is added at the end of each line;
+        suitable for Windows PowerShell</li>
+    <li><label>none</label>: the command is displayed as one long line</li>
+    </ul>
+    </p></dd>
+<dt>Indent</dt>
+<dd><p>Configures the amount of whitespace by which groups of related
+    lines are indented.
+    </p></dd>
+<dt>Include Defaults</dt>
+<dd><p>Parameters in STILTS commands usually have default values,
+    and if the required values are equal to the defaults,
+    those can be omitted from the command line.
+    By default, parameters which take their default values are not
+    displayed in this window.
+    But if you set this checkbox true, even parameters taking their
+    default values are displayed as well.
+    Default-valued parameters are shown in a fainter colour than non-default
+    ones.
+    This may give you a better idea of the various options which are
+    available for the current command.
+    </p></dd>
+<dt>Suggest Output File</dt>
+<dd><p>If true, then where applicable a parameter something like
+    "<code>out=results.fits</code>" is added to the invocation.
+    This isn't necessary (without it the table will be written to
+    standard output), but it may make it more obvious how to use the command.
+    </p></dd>
+</dl>
 </p>
 
 </subsubsect>
@@ -33708,6 +33928,19 @@ introduced since the last version:
         that meant (at least) use of the <code>-running</code>
         <ref id="topcatArgs">command-line argument</ref>
         didn't work properly with relative filenames.</li>
+    <li>New <ref id="StiltsDialog">STILTS Window</ref> button available from
+        some windows:
+        <ref id="match-windows">Match</ref>,
+        <ref id="TapTableLoadDialog">TAP</ref>,
+        <ref id="CdsUploadMatchWindow">CDS Upload X-Match</ref>,
+        single
+           <ref id="ConeSearchDialog">cone</ref>,
+           <ref id="SiapTableLoadDialog">SIA</ref>,
+           <ref id="SsapTableLoadDialog">SSA</ref>,
+        and multiple
+           <ref id="ConeMultiWindow">cone</ref>,
+           <ref id="SiaMultiWindow">SIA</ref>,
+           <ref id="SsaMultiWindow">SSA</ref>.</li>
     </ul>
     </p></dd>
 
