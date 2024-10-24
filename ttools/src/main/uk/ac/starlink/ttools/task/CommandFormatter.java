@@ -19,6 +19,9 @@ import javax.swing.text.StyledDocument;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.mode.CopyMode;
+import uk.ac.starlink.ttools.mode.ProcessingMode;
+import uk.ac.starlink.ttools.task.ChoiceMode;
 
 /**
  * Handles export of StiltsCommand objects to external
@@ -36,6 +39,7 @@ public class CommandFormatter {
     private final LineEnder lineEnder_;
     private final boolean includeDflts_;
     private final Color syntaxColor_;
+    private final boolean addSuggestions_;
     private boolean forceError_;
 
     private static final Logger logger_ =
@@ -52,10 +56,12 @@ public class CommandFormatter {
      * @param  cwidth         nominal formatting width in characters;
      *                        this affects line wrapping, but actual
      *                        wrapping may depend on other factors too
+     * @param  addSuggestions  if true, some parameters that might be useful
+     *                         but are not necessary may be added
      */
     public CommandFormatter( CredibleString invocation, boolean includeDflts,
                              LineEnder lineEnder, int levelIndent,
-                             int cwidth ) {
+                             int cwidth, boolean addSuggestions ) {
         invocation_ = invocation;
         includeDflts_ = includeDflts;
         lineEnder_ = lineEnder;
@@ -63,6 +69,7 @@ public class CommandFormatter {
         cwidth_ = cwidth;
         continueIndent_ = 1;
         syntaxColor_ = new Color( 0xa0a0ff );
+        addSuggestions_ = addSuggestions;
     }
 
     /**
@@ -161,6 +168,9 @@ public class CommandFormatter {
         AttributeSet warning2 =
             context.addAttribute( plain, StyleConstants.Foreground,
                                   Color.RED );
+        AttributeSet suggestion =
+            context.addAttribute( plain, StyleConstants.Foreground,
+                                  new Color( 0xa0a000 ) );
         StyledDocument doc = new DefaultStyledDocument();
         AttributeSet invokeStyle =
                  getStyle( invocation_.getCredibility(),
@@ -206,6 +216,25 @@ public class CommandFormatter {
                     nc += wleng;
                 }
             }
+        }
+
+        /* For tasks that produce a table, add an extra suggestion parameter
+         * that writes to an output file.  This is a bit hacky, but it
+         * does make it clearer to the user how to make use of the command. */
+        if ( addSuggestions_ && command.getTask() instanceof ConsumerTask ) {
+            addText( doc, getPrefix( 1 ), faint );
+            if ( includeDflts_ ) {
+                ProcessingMode mode =
+                    ((ConsumerTask) command.getTask()).getOutputMode();
+                if ( mode instanceof ChoiceMode ) {
+                    String omodeName =
+                        ((ChoiceMode) mode).getOutputModeParameter().getName();
+                    addText( doc, omodeName + "=out", faint );
+                    addText( doc, " ", plain );
+                }
+            }
+            addText( doc, CopyMode.OUT_PARAM_NAME + "=result.fits",
+                     suggestion );
         }
         return doc;
     }

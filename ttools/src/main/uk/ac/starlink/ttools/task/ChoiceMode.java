@@ -51,6 +51,15 @@ public class ChoiceMode implements ProcessingMode {
         return params_;
     }
 
+    /**
+     * Returns the parameter used to acquire the chosen output mode.
+     *
+     * @return  output mode parameter
+     */
+    public OutputModeParameter getOutputModeParameter() {
+        return modeParam_;
+    }
+
     public String getDescription() {
         return new StringBuffer()
            .append( "Provides a choice of output mode options via the\n" )

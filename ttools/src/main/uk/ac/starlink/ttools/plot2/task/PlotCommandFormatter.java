@@ -32,7 +32,8 @@ public class PlotCommandFormatter extends CommandFormatter {
     public PlotCommandFormatter( CredibleString invocation,
                                  boolean includeDflts, LineEnder lineEnder,
                                  int levelIndent, int cwidth ) {
-        super( invocation, includeDflts, lineEnder, levelIndent, cwidth );
+        super( invocation, includeDflts, lineEnder, levelIndent, cwidth,
+               false );
     }
 
     @Override
