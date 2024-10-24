@@ -9,6 +9,7 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Formatter;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.TableConsumer;
+import uk.ac.starlink.ttools.mode.CopyMode;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
 import uk.ac.starlink.util.LoadException;
 import uk.ac.starlink.util.ObjectFactory;
@@ -32,7 +33,7 @@ public class OutputModeParameter
     public OutputModeParameter( String name ) {
         super( name, Stilts.getModeFactory() );
         setPrompt( "Output mode" );
-        setStringDefault( "out" );
+        setStringDefault( CopyMode.OUT_PARAM_NAME );
         setUsage( "<out-mode> <mode-args>" );
 
         StringBuffer sbuf = new StringBuffer();

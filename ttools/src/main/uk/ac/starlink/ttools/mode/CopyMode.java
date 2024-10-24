@@ -28,8 +28,11 @@ public class CopyMode implements ProcessingMode {
     private final OutputTableParameter locParam_;
     private final Parameter<?> formatParam_;
 
+    /** Name of output file parameter. */
+    public static final String OUT_PARAM_NAME = "out";
+
     public CopyMode() {
-        locParam_ = new OutputTableParameter( "out" );
+        locParam_ = new OutputTableParameter( OUT_PARAM_NAME );
         formatParam_ = locParam_.getFormatParameter();
     }
 
