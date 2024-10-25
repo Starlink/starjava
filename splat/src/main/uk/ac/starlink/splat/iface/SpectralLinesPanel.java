@@ -307,7 +307,8 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
   	  rangePanel = new JPanel();
 
       if (plot != null ) {
-     	 rangeList = new XGraphicsRangesView( plot.getPlot(), rangeMenu, Color.LIGHT_GRAY, true ); 
+     	 rangeList = new XGraphicsRangesView( plot.getPlot(), rangeMenu, Color.LIGHT_GRAY, true, null,  true ); 
+     	 
          rangeList.setPreferredSize(new Dimension(width-10,120));       
          rangePanel.add(rangeList, BorderLayout.PAGE_START);    	
      }
