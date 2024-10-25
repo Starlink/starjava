@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import javax.xml.bind.JAXBException;
+//import javax.xml.bind.JAXBException;
 
 import org.vamdc.dictionary.Restrictable;
 import org.vamdc.registry.client.Registry;
@@ -19,7 +19,7 @@ import jsky.util.Logger;
 import net.ivoa.xml.voresource.v1.Contact;
 import net.ivoa.xml.voresource.v1.Content;
 import net.ivoa.xml.voresource.v1.Resource;
-import shaded.parquet.it.unimi.dsi.fastutil.doubles.AbstractDouble2IntFunction;
+//import shaded.parquet.it.unimi.dsi.fastutil.doubles.AbstractDouble2IntFunction;
 import uk.ac.starlink.splat.data.ssldm.PhysicalQuantity;
 import uk.ac.starlink.splat.data.ssldm.SpectralLine;
 import uk.ac.starlink.splat.vo.SSAPRegResource;
@@ -128,12 +128,7 @@ public class VAMDCLib {
         try {
             xsams = new XSAMSParser(inps); 
             
-        } catch (JAXBException e) {
-          //  Logger.info(this, "JAXBException: "+e.getMessage());
-           // e.printStackTrace();
-            inps.close();
-            throw e;
-        }
+        } 
         catch (Exception e) {
             Logger.info(this, "Exception: "+e.getMessage());
            // e.printStackTrace();
