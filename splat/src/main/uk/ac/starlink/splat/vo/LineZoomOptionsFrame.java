@@ -34,7 +34,7 @@ public class LineZoomOptionsFrame extends JFrame implements ActionListener, Docu
 	private JPanel zPanel;
 	private JRadioButton probButton;
 	private JRadioButton tempButton;
-	private int temperature=-1;
+	private long temperature=-1;
 	private boolean ok=false;
 	private JButton submitButton;
 	
@@ -152,7 +152,7 @@ public class LineZoomOptionsFrame extends JFrame implements ActionListener, Docu
 	    String tempText=param.getText();
 	    ok=true;
 	    try{
-            temperature = Integer.parseInt(tempText);
+            temperature = Long.parseLong(tempText);
         }
         catch (NumberFormatException ex){
         	ok = false;
@@ -180,7 +180,7 @@ public class LineZoomOptionsFrame extends JFrame implements ActionListener, Docu
         if (source == submitButton) {
         	if ( temperature <0 && zoomOption == TEMP) {
         	   okLabel.setIcon(notOkImage);
-        	   infoLabel.setText("temperature must me set");
+        	   infoLabel.setText("temperature must be set");
         	}
         	else {
         		 okLabel.setIcon(okImage);        		
@@ -204,7 +204,7 @@ public class LineZoomOptionsFrame extends JFrame implements ActionListener, Docu
         
 	}
 	
-	public int getTemperature() {
+	public long getTemperature() {
 		if (ok)
 			return temperature;
 		else return -1;
