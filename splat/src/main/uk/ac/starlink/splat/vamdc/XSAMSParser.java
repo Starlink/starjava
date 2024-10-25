@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
+//import javax.xml.bind.JAXBException;
 
 import org.vamdc.xsams.io.JAXBContextFactory;
 import org.vamdc.xsams.schema.AccuracyType;
@@ -52,16 +52,12 @@ public class XSAMSParser  {
     XSAMSData xsams;
     HashMap <String,String> elements= new HashMap<String,String>();
 
-    public XSAMSParser(InputStream inps) throws JAXBException, Exception {
+    public XSAMSParser(InputStream inps) throws  Exception {
 
         try {
 
             xsams = (XSAMSData)JAXBContextFactory.getUnmarshaller().unmarshal(inps);
-        } catch (JAXBException e) {
-            // TODO Auto-generated catch block
-            Logger.info(this, "JABException when parsing XSAMS input ");
-            //e.printStackTrace();
-            throw e;
+        
         } catch (Exception e) {
             Logger.info(this, "Exception when parsing XSAMS input: "+e.getMessage());
             throw e;
