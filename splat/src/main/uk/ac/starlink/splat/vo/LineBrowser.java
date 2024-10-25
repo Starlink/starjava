@@ -160,33 +160,7 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
     }
 
 
-	/*
-    private void getSLAPServices() {
-                   
-            StarTable table = null;
-            try {
-                     
-                table =  TableLoadPanel.loadTable( this, new SSARegistryQueryDialog(SplatRegistryQuery.SLAP), new StarTableFactory() );
-             }
-            catch ( IOException e ) {
-                ErrorDialog.showError( this, "Registry query failed", e );
-                return;
-            }
-           // RowSorter<? extends TableModel> savedSorter = serverTable.getRowSorter();         
-           slapServices = new ServerPopupTable(new SLAPServerList(table));
-           slapServices.setComponentPopupMenu(makeServerPopup());            
-    }
-    
-    private void getVAMDCServices() {
-        
-        
-        StarTable vamdctab = VAMDCLib.queryRegistry(); 
 
-        vamdcServices = new ServerPopupTable(new VAMDCServerList(vamdctab));
-        vamdcServices.setComponentPopupMenu(makeServerPopup());
-        
-    }
- */   
     /**
      * Initialise frame properties (disposal, title, menus etc.).
      */
@@ -1149,7 +1123,7 @@ protected void displayOneLine(StarJTable table, int row) {
 	
 	
 
-	private JTable addTableEnergyColumn(StarJTable table, int energyIndex, int temp) {
+	private JTable addTableEnergyColumn(StarJTable table, int energyIndex, long temp) {
 
 		
 		int index = getZoomColumnIndex(table, "index");
@@ -1177,7 +1151,7 @@ protected void displayOneLine(StarJTable table, int row) {
 	}
 
 
-	private Double [] computeEnergyTemp(StarJTable table, int energycol, int temp) {
+	private Double [] computeEnergyTemp(StarJTable table, int energycol, long temp) {
 		if (temp < 0)
 			return null;
 		Double[] etd = new Double[table.getRowCount()];
