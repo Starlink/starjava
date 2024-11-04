@@ -15440,6 +15440,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         along the vertical instead of the horizontal axis.</li>
     <li>Fix regression bug (since v3.4-9) in HTTP 3xx redirect handling
         that failed to cope with relative Location field values.</li>
+    <li>Fix taplint bug that did not recognise ADQL 2.1 feature
+        <code>features-adql-conditional</code> but did recognise
+        <code>features-adql-bitwise</code>.</li>
     </ul>
     </p></dd>
 

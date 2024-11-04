@@ -24,8 +24,8 @@ public enum AdqlVersion {
          new String[] {
              "features-udf",
              "features-adqlgeo",
-             "features-adql-bitwise",
              "features-adql-common-table",
+             "features-adql-conditional",
              "features-adql-offset",
              "features-adql-sets",
              "features-adql-string",
