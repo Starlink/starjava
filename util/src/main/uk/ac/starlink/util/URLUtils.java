@@ -101,6 +101,7 @@ public class URLUtils {
      * @throws MalformedURLException  in case of syntax error
      */
     public static URL newURL( String spec ) throws MalformedURLException {
+        spec = spec.trim();
         URI uri;
         try {
             uri = new URI( spec );

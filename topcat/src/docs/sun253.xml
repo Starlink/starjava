@@ -33941,6 +33941,8 @@ introduced since the last version:
            <ref id="ConeMultiWindow">cone</ref>,
            <ref id="SiaMultiWindow">SIA</ref>,
            <ref id="SsaMultiWindow">SSA</ref>.</li>
+    <li>Cope with whitespace round input URLs better than previous
+        version (regression).</li>
     </ul>
     </p></dd>
 

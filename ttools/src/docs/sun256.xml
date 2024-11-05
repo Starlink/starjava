@@ -15443,6 +15443,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix taplint bug that did not recognise ADQL 2.1 feature
         <code>features-adql-conditional</code> but did recognise
         <code>features-adql-bitwise</code>.</li>
+    <li>Cope with whitespace round input URLs better than previous
+        version (regression).</li>
     </ul>
     </p></dd>
 
