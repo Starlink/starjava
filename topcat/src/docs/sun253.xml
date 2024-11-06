@@ -525,7 +525,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>7 August 2024</docdate>
+<docdate>6 November 2024</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -33898,52 +33898,67 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v4.10-1">Version 4.10-1 (6 November 2024)</dt>
 <dd><p>
-    <ul>
-    <li>Fix bug in TAP curl logging.</li>
-    <li>STC-S encoding in
-        <ref id="GangLayerControl_area">Area</ref>-like plots
-        now copes with UNIONs of all shapes, not just of POLYGONs.</li>
-    <li>Update JSON-java library to 20240303.
-        Behaviour is not expected to change in interesting ways,
-        but some vulnerabilities are addressed.</li>
-    <li>More units (seconds with SI prefixes) are now properly handled
-        in VOTable <code>TIMESYS</code>-referencing fields.</li>
-    <li>New <label>Tick Label Angles</label> configuration option
-        in <ref id="PlaneAxisControl_grid">Grid</ref> tab
-        of most plot type axis controls;
-        allows angled labels that can accommodate more major ticks
-        on crowded axes.
-        Cube/Sphere (sometimes) and &Matrix; plots
-        now use angled axis labels by default.</li>
-    <li>New config option <label>Sideways</label> in
-        Histogram Bins control
-        <ref id="ConfigControl_histobins_general">General</ref> tab.
-        This allows histogram-like plots to be accumulated on the
-        vertical, not horizontal, axis.</li>
-    <li>Fix regression bug (since v4.9) in HTTP 3xx redirect handling 
-        that failed to cope with relative Location field values.</li>
-    <li>Fix regression issue (since v4.10) in URL construction
-        that meant (at least) use of the <code>-running</code>
-        <ref id="topcatArgs">command-line argument</ref>
-        didn't work properly with relative filenames.</li>
-    <li>New <ref id="StiltsDialog">STILTS Window</ref> button available from
-        some windows:
-        <ref id="match-windows">Match</ref>,
-        <ref id="TapTableLoadDialog">TAP</ref>,
-        <ref id="CdsUploadMatchWindow">CDS Upload X-Match</ref>,
-        single
-           <ref id="ConeSearchDialog">cone</ref>,
-           <ref id="SiapTableLoadDialog">SIA</ref>,
-           <ref id="SsapTableLoadDialog">SSA</ref>,
-        and multiple
-           <ref id="ConeMultiWindow">cone</ref>,
-           <ref id="SiaMultiWindow">SIA</ref>,
-           <ref id="SsaMultiWindow">SSA</ref>.</li>
-    <li>Cope with whitespace round input URLs better than previous
-        version (regression).</li>
-    </ul>
+    <dl>
+    <dt>New functionality</dt>
+    <dd><p>
+        <ul>
+        <li>New <ref id="StiltsDialog">STILTS Window</ref> button available
+            from some windows:
+            <ref id="match-windows">Match</ref>,
+            <ref id="TapTableLoadDialog">TAP</ref>,
+            <ref id="CdsUploadMatchWindow">CDS Upload X-Match</ref>,
+            single
+               <ref id="ConeSearchDialog">cone</ref>,
+               <ref id="SiapTableLoadDialog">SIA</ref>,
+               <ref id="SsapTableLoadDialog">SSA</ref>,
+            and multiple
+               <ref id="ConeMultiWindow">cone</ref>,
+               <ref id="SiaMultiWindow">SIA</ref>,
+               <ref id="SsaMultiWindow">SSA</ref>.</li>
+        <li>New <label>Tick Label Angles</label> configuration option
+            in <ref id="PlaneAxisControl_grid">Grid</ref> tab
+            of most plot type axis controls;
+            allows angled labels that can accommodate more major ticks
+            on crowded axes.
+            Cube/Sphere (sometimes) and &Matrix; plots
+            now use angled axis labels by default.</li>
+        <li>New config option <label>Sideways</label> in
+            Histogram Bins control
+            <ref id="ConfigControl_histobins_general">General</ref> tab.
+            This allows histogram-like plots to be accumulated on the
+            vertical, not horizontal, axis.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>STC-S encoding in
+            <ref id="GangLayerControl_area">Area</ref>-like plots
+            now copes with UNIONs of all shapes, not just of POLYGONs.</li>
+        <li>More units (seconds with SI prefixes) are now properly handled
+            in VOTable <code>TIMESYS</code>-referencing fields.</li>
+        <li>Cope with whitespace round input URLs better than previous
+            version (regression).</li>
+        <li>Update JSON-java library to 20240303.
+            Behaviour is not expected to change in interesting ways,
+            but some vulnerabilities are addressed.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fix regression bug (since v4.9) in HTTP 3xx redirect handling 
+            that failed to cope with relative Location field values.</li>
+        <li>Fix regression issue (since v4.10) in URL construction
+            that meant (at least) use of the <code>-running</code>
+            <ref id="topcatArgs">command-line argument</ref>
+            didn't work properly with relative filenames.</li>
+        <li>Fix bug in TAP curl logging.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>

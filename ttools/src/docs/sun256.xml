@@ -187,7 +187,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>7 August 2024</docdate>
+<docdate>6 November 2024</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -15409,43 +15409,53 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v3.5-1">Version 3.5-1 (6 November 2024)</dt>
 <dd><p>
-    <ul>
-    <li>Fix bug in TAP curl logging.</li>
-    <li>STC-S encoding in
-        <ref id="layer-area"><code>area</code></ref>-like plots
-        now copes with UNIONs of all shapes, not just of POLYGONs.</li>
-    <li>Upgrade JSON-java library to 20240303.
-        Behaviour is not expected to change in interesting ways,
-        but some vulnerabilities are addressed.</li>
-    <li>More units (seconds with SI prefixes) are now properly handled
-        in VOTable <code>TIMESYS</code>-referencing fields.</li>
-    <li>New <code><ref id="plot2plane-labelangle">labelangle</ref></code>
-        configuration option in most plot types;
-        allows angled labels that can accommodate more major ticks
-        on crowded axes.
-        <code>plot2cube</code>/<code>plot2sphere</code> (sometimes)
-        and <code>plot2matrix</code> now use angled axis labels
-        by default.</li>
-    <li>Histogram-like plots
-        (<ref id="layer-histogram"><code>histogram</code></ref>,
-         <ref id="layer-kde"><code>kde</code></ref>,
-         <ref id="layer-knn"><code>knn</code></ref>,
-         <ref id="layer-densogram"><code>densogram</code></ref>,
-         <ref id="layer-gaussian"><code>gaussian</code></ref>)
-        have a new
-        <code><ref id="layer-histogram-sidewaysN">sideways</ref></code>
-        configuration option that draws the quantity being assessed
-        along the vertical instead of the horizontal axis.</li>
-    <li>Fix regression bug (since v3.4-9) in HTTP 3xx redirect handling
-        that failed to cope with relative Location field values.</li>
-    <li>Fix taplint bug that did not recognise ADQL 2.1 feature
-        <code>features-adql-conditional</code> but did recognise
-        <code>features-adql-bitwise</code>.</li>
-    <li>Cope with whitespace round input URLs better than previous
-        version (regression).</li>
-    </ul>
+    <dl>
+    <dt>Enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>STC-S encoding in
+            <ref id="layer-area"><code>area</code></ref>-like plots
+            now copes with UNIONs of all shapes, not just of POLYGONs.</li>
+        <li>More units (seconds with SI prefixes) are now properly handled
+            in VOTable <code>TIMESYS</code>-referencing fields.</li>
+        <li>New <code><ref id="plot2plane-labelangle">labelangle</ref></code>
+            configuration option in most plot types;
+            allows angled labels that can accommodate more major ticks
+            on crowded axes.
+            <code>plot2cube</code>/<code>plot2sphere</code> (sometimes)
+            and <code>plot2matrix</code> now use angled axis labels
+            by default.</li>
+        <li>Histogram-like plots
+            (<ref id="layer-histogram"><code>histogram</code></ref>,
+             <ref id="layer-kde"><code>kde</code></ref>,
+             <ref id="layer-knn"><code>knn</code></ref>,
+             <ref id="layer-densogram"><code>densogram</code></ref>,
+             <ref id="layer-gaussian"><code>gaussian</code></ref>)
+            have a new
+            <code><ref id="layer-histogram-sidewaysN">sideways</ref></code>
+            configuration option that can draw the quantity being assessed
+            along the vertical instead of the horizontal axis.</li>
+        <li>Cope with whitespace round input URLs better than previous
+            version (regression).</li>
+        <li>Upgrade JSON-java library to 20240303.
+            Behaviour is not expected to change in interesting ways,
+            but some vulnerabilities are addressed.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fix bug in TAP curl logging.</li>
+        <li>Fix regression bug (since v3.4-9) in HTTP 3xx redirect handling
+            that failed to cope with relative Location field values.</li>
+        <li>Fix <code>taplint</code> bug that did not recognise
+            ADQL 2.1 feature <code>features-adql-conditional</code>
+            but did recognise <code>features-adql-bitwise</code>.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
