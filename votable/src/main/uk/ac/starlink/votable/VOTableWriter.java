@@ -65,6 +65,7 @@ public class VOTableWriter
     private Charset encoding_;
     private boolean writeSchemaLocation_;
     private boolean writeDate_;
+    private ResourceType resourceType_;
     private String xmlDeclaration_ = DEFAULT_XML_DECLARATION;
 
     /** Default XML declaration in written documents. */
@@ -394,7 +395,7 @@ public class VOTableWriter
         writer.newLine();
 
         /* Output RESOURCE element start tag. */
-        writer.write( "<RESOURCE>" );
+        writer.write( createResourceStartTag() );
         writer.newLine();
     }
 
@@ -414,7 +415,7 @@ public class VOTableWriter
             throws IOException {
         writer.write( "</RESOURCE>" );
         writer.newLine();
-        writer.write( "<RESOURCE>" );
+        writer.write( createResourceStartTag() );
         writer.newLine();
     }
 
@@ -699,6 +700,26 @@ public class VOTableWriter
     }
 
     /**
+     * Sets the value of the "type" attribute on RESOURCE elements
+     * that contain output TABLE element(s).
+     *
+     * @param  resourceType  resource type value
+     */
+    public void setResourceType( ResourceType resourceType ) {
+        resourceType_ = resourceType;
+    }
+
+    /**
+     * Returns the value of the "type" attribute that will be written
+     * on RESOURCE elements containing output TABLE elements.
+     *
+     * @return  resource type attribute value
+     */
+    public ResourceType getResourceType() {
+        return resourceType_;
+    }
+
+    /**
      * Determines whether the schema location attribute will be written
      * on opening VOTABLE tags.
      *
@@ -728,6 +749,22 @@ public class VOTableWriter
         }
         sbuf.append( ",v" )
             .append( version_.getVersionNumber() );
+        return sbuf.toString();
+    }
+
+    /**
+     * Returns the start tag for the RESOURCE element that encloses
+     * the output TABLE element(s).
+     *
+     * @return   RESOURCE start tag text
+     */
+    protected String createResourceStartTag() {
+        StringBuffer sbuf = new StringBuffer( "<RESOURCE" );
+        if ( resourceType_ != null ) {
+            sbuf.append( VOSerializer
+                        .formatAttribute( "type", resourceType_.toString() ) );
+        }
+        sbuf.append( ">" );
         return sbuf.toString();
     }
 }
