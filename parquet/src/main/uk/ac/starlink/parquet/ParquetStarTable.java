@@ -53,8 +53,18 @@ public abstract class ParquetStarTable extends AbstractStarTable {
     /** Extra metadata key for table name. */
     public static final String NAME_KEY = "name";
 
+    /** Namespace used in metadata keys for VOParquet convention things. */
+    public static final String VOTMETA_NAMESPACE = "IVOA.VOTable-Parquet.";
+
     /** Extra metadata key for skeleton VOTable text. */
-    public static final String VOTMETA_KEY = "IVOA.VOTable-Parquet.content";
+    public static final String VOTMETA_KEY = VOTMETA_NAMESPACE + "content";
+
+    /** Extra metadata key for VOTable metadata version. */
+    public static final String VOTMETAVERSION_KEY =
+        VOTMETA_NAMESPACE + "version";
+
+    /** Required value for VOTable metadata version. */
+    public static final String REQUIRED_VOTMETAVERSION = "1.0";
 
     /**
      * Constructor.
@@ -87,6 +97,7 @@ public abstract class ParquetStarTable extends AbstractStarTable {
 
         /* Record VOTable metadata if present. */
         votmeta_ = metaMap.remove( VOTMETA_KEY );
+        String votmetaVersion = metaMap.remove( VOTMETAVERSION_KEY );
   
         /* Record remaining per-file metadata as parameters. */
         List<DescribedValue> params = getParameters();

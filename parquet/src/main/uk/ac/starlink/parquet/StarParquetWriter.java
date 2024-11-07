@@ -186,6 +186,8 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
                     createMetadataVOTable( outTable, votmetaVersion );
                 if ( votmeta != null ) {
                     metaMap_.put( ParquetStarTable.VOTMETA_KEY, votmeta );
+                    metaMap_.put( ParquetStarTable.VOTMETAVERSION_KEY,
+                                  ParquetStarTable.REQUIRED_VOTMETAVERSION );
                 }
             }
         }
