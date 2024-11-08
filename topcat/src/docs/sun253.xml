@@ -525,7 +525,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>6 November 2024</docdate>
+<docdate>8 November 2024</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -33962,7 +33962,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v4.10-2">Version 4.10-2 (8 November 2024)</dt>
 <dd><p>
     <dl>
     <dt>Bugfix</dt>
