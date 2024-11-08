@@ -27652,6 +27652,7 @@ Some of the notable contributers are these:
 <li>St&#x00e9;phane Erard (Observatoire de Paris)</li>
 <li>Jeremy Faden (Cottage Systems)</li>
 <li>Pierre Fernique (CDS)</li>
+<li>Boris G&#x00e4;nsicke (Warwick)</li>
 <li>Shashikiran Ganesh (PRL, India)</li>
 <li>Fedrico Garcia (RUG)</li>
 <li>Vincent G&#x00e9;not (IRAP)</li>
@@ -33956,6 +33957,20 @@ introduced since the last version:
             <ref id="topcatArgs">command-line argument</ref>
             didn't work properly with relative filenames.</li>
         <li>Fix bug in TAP curl logging.</li>
+        </ul>
+        </p></dd>
+    </dl>
+    </p></dd>
+
+<dt>Next version</dt>
+<dd><p>
+    <dl>
+    <dt>Bugfix</dt>
+    <dd><p>
+        <ul>
+        <li>Fix failure when using <ref id="StiltsDialog">STILTS window</ref>
+            in <ref id="match-windows">Match windows</ref>
+            for most matcher types other than Sky.</li>
         </ul>
         </p></dd>
     </dl>

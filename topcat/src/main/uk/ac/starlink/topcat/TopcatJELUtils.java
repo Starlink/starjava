@@ -426,10 +426,12 @@ public class TopcatJELUtils extends JELUtils {
         ComboBoxModel<ColumnConverter> converterModel =
             colSelector.getModel().getConverterModel();
         ColumnConverter converter =
-            (ColumnConverter)
-            colSelector.getModel().getConverterModel().getSelectedItem();
+              converterModel == null
+            ? null
+            : (ColumnConverter) converterModel.getSelectedItem();
         String dataExpr = getDataExpression( tcModel, colLabel );
-        return converter.convertExpression( dataExpr );
+        return converter == null ? dataExpr
+                                 : converter.convertExpression( dataExpr );
     }
 
     /**
