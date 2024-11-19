@@ -1434,18 +1434,15 @@ public class PolygonOutliner extends PixOutliner {
                     radius = Double.isNaN( radius ) ? 1.0 : radius;
                     if ( radius > 0 ) {
                         Area area = areaCoord_.readAreaCoord( tuple, icArea_ );
-                        Area.Type type = area.getType();
-                        if ( type != null ) {
-                            return createSphereAreaVertexData( area, radius );
-                        }
-                        else {
-                            assert false;
-                            return NO_VERTEX_DATA;
+                        if ( area != null ) {
+                            Area.Type type = area.getType();
+                            if ( type != null ) {
+                                return createSphereAreaVertexData( area,
+                                                                   radius );
+                            }
                         }
                     }
-                    else {
-                        return NO_VERTEX_DATA;
-                    }
+                    return NO_VERTEX_DATA;
                 }
                 public int getPosCoordIndex() {
                     return icArea_;
@@ -1548,6 +1545,14 @@ public class PolygonOutliner extends PixOutliner {
                 return toSphere( point[ 0 ], point[ 1 ], radius, dpos )
                      ? createPointVertexData( dpos )
                      : NO_VERTEX_DATA;
+            case MOC:
+                double[] duniqs = area.getDataArray();
+                return new MocVertexData( duniqs, HPX_INTERPOLATE_LEVEL ) {
+                    void copyLonlat( double lonRad, double latRad,
+                                     double[] dpos ) {
+                        CdsHealpixUtil.lonlatToVector( lonRad, latRad, dpos );
+                    }
+                };
             case MULTISHAPE:
                 VertexData[] vds =
                     Arrays

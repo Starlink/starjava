@@ -15461,6 +15461,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Values <code>MOC-ASCII</code> and <code>UNIQ</code>
+        for <code>areatype</code>
+        in <ref id="layer-area">area</ref>-like layers
+        are now supported in <ref id="plot2sphere">plot2sphere</ref>.</li>
     </ul>
     </p></dd>
 
