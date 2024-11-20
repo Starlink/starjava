@@ -16006,7 +16006,7 @@ tab of the <ref id="CubeAxisControl">Axes control</ref>.
 cube plot window has the following tabs:
 </p>
 
-<subdiv>
+<subdiv id="CubeAxisControl_coords">
 <subhead><title>Coords Tab</title></subhead>
 
 <figure>
@@ -16017,6 +16017,14 @@ cube plot window has the following tabs:
 <p>The <label>Coords</label> tab controls the axis coordinates.
 It has the following options:
 <dl>
+<dt>Isometric</dt>
+<dd><p>If selected, the scaling will be the same on the X, Y and Z axes,
+    so that positions will retain their natural position
+    in 3-d Cartesian space.
+    When unselected, the three axes will be scaled independently,
+    so that the positions may be squashed in some directions.
+    This option is ignored if there is a mix of linear and logarithmic axes.
+    </p></dd>
 <dt>X/Y/Z Log</dt>
 <dd><p>If selected, X/Y/Z axis coordinates are logarithmic,
     otherwise they are linear.
@@ -34047,6 +34055,8 @@ introduced since the last version:
     <li>TOPCAT now subscribes to the SAMP MType
         <code>coverage.load.moc.fits</code>.
         The MOC is loaded as a normal table.</li>
+    <li>Add <label>Isometric</label> option to
+        <ref id="CubeAxisControl_coords">Cube Axis Control</ref>.</li>
     </ul>
     </p></dd>
 

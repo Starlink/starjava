@@ -47,6 +47,7 @@ public class CubeAxisController
         if ( ! isIso ) {
             mainControl.addSpecifierTab( "Coords",
                                      new ConfigSpecifier( new ConfigKey<?>[] {
+                CubeSurfaceFactory.FORCEISO_KEY,
                 CubeSurfaceFactory.XLOG_KEY,
                 CubeSurfaceFactory.YLOG_KEY,
                 CubeSurfaceFactory.ZLOG_KEY,
@@ -181,6 +182,15 @@ public class CubeAxisController
     protected boolean logChanged( CubeSurfaceFactory.Profile prof1,
                                   CubeSurfaceFactory.Profile prof2 ) {
         return ! Arrays.equals( prof1.getLogFlags(), prof2.getLogFlags() );
+    }
+
+    @Override
+    protected boolean forceClearRange( CubeSurfaceFactory.Profile prof1,
+                                       CubeSurfaceFactory.Profile prof2 ) {
+        return ( ( prof1.isForceIso() ^ prof2.isForceIso() ) &&
+                 ! logChanged( prof1, prof2 ) &&
+                 CubeSurface.isIsometricPossible( prof1.getLogFlags() ) )
+            || super.forceClearRange( prof1, prof2 );
     }
 
     private static ConfigKey<String>[] createAxisLabelKeys() {
