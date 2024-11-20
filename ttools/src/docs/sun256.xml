@@ -15751,6 +15751,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New command <ref id="mocshape"><code>mocshape</code></ref>,
         generates MOCs from shape specifications in a table.</li>
     <li>Table scheme row counts can now contain embedded underscores.</li>
+    <li>Add new <ref id="plot2cube-isometric"><code>isometric</code></ref>
+        option to <code>plot2cube</code>.</li>
     </ul>
     </p></dd>
 

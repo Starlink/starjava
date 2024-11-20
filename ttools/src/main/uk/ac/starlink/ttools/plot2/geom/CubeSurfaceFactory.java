@@ -167,6 +167,23 @@ public class CubeSurfaceFactory
     public static final ConfigKey<Double> ZC_KEY =
         createIsoCenterKey( "Z" );
 
+    /** Config key for forcing isometric view in non-isotropic mode. */
+    public static final ConfigKey<Boolean> FORCEISO_KEY =
+        new BooleanConfigKey(
+            new ConfigMeta( "isometric", "Isometric" )
+           .setShortDescription( "Fix equal X/Y/Z scales" )
+           .setXmlDescription( new String[] {
+                "<p>If set true, the scaling will be the same on the",
+                "X, Y and Z axes, so that positions retain their",
+                "natural position in 3-d Cartesian space.",
+                "If false, the three axes will be scaled independently,",
+                "so that the positions may be squashed in some directions.",
+                "This option is ignored if there is a mix of linear",
+                "and logarithmic axes.",
+                "</p>",
+            } )
+        , false );
+
     /** Config key for cube edge length (isotropic only). */
     public static final ConfigKey<Double> SCALE_KEY =
         DoubleConfigKey.createTextKey(
@@ -308,7 +325,7 @@ public class CubeSurfaceFactory
                                   CubeAspect aspect ) {
         Profile p = profile;
         return CubeSurface
-              .createSurface( plotBounds, aspect,
+              .createSurface( plotBounds, aspect, p.forceiso_,
                               new boolean[] { p.xlog_, p.ylog_, p.zlog_ },
                               new boolean[] { p.xflip_, p.yflip_, p.zflip_ },
                               new String[] { p.xlabel_, p.ylabel_, p.zlabel_ },
@@ -327,6 +344,7 @@ public class CubeSurfaceFactory
                 XFLIP_KEY,
                 YFLIP_KEY,
                 ZFLIP_KEY,
+                FORCEISO_KEY,
                 XLABEL_KEY,
                 YLABEL_KEY,
                 ZLABEL_KEY,
@@ -365,6 +383,7 @@ public class CubeSurfaceFactory
         double ycrowd = config.get( isIso_ ? ISOCROWD_KEY : YCROWD_KEY );
         double zcrowd = config.get( isIso_ ? ISOCROWD_KEY : ZCROWD_KEY );
         OrientationPolicy orientpolicy = config.get( ORIENTATIONS_KEY );
+        boolean forceiso = config.get( FORCEISO_KEY );
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         boolean frame = config.get( FRAME_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
@@ -372,7 +391,7 @@ public class CubeSurfaceFactory
         return new Profile( xlog, ylog, zlog,
                             xflip, yflip, zflip,
                             xlabel, ylabel, zlabel,
-                            captioner, frame, xcrowd, ycrowd, zcrowd,
+                            forceiso, captioner, frame, xcrowd, ycrowd, zcrowd,
                             orientpolicy, minor, antialias );
     }
 
@@ -711,6 +730,7 @@ public class CubeSurfaceFactory
         private final String xlabel_;
         private final String ylabel_;
         private final String zlabel_;
+        private final boolean forceiso_;
         private final Captioner captioner_;
         private final boolean frame_;
         private final double xcrowd_;
@@ -732,6 +752,8 @@ public class CubeSurfaceFactory
          * @param  xlabel  text for labelling X axis
          * @param  ylabel  text for labelling Y axis
          * @param  zlabel  text for labelling Z axis
+         * @param  forceiso  if true, scaling is forced the same on all axes;
+         *                   only useful in non-isotropic mode
          * @param  captioner  text renderer for axis labels etc
          * @param  frame   whether to draw axis wire frame
          * @param  xcrowd  crowding factor for tick marks on X axis;
@@ -747,7 +769,7 @@ public class CubeSurfaceFactory
         public Profile( boolean xlog, boolean ylog, boolean zlog,
                         boolean xflip, boolean yflip, boolean zflip,
                         String xlabel, String ylabel, String zlabel,
-                        Captioner captioner, boolean frame,
+                        boolean forceiso, Captioner captioner, boolean frame,
                         double xcrowd, double ycrowd, double zcrowd,
                         OrientationPolicy orientpolicy, boolean minor,
                         boolean antialias ) {
@@ -760,6 +782,7 @@ public class CubeSurfaceFactory
             xlabel_ = xlabel;
             ylabel_ = ylabel;
             zlabel_ = zlabel;
+            forceiso_ = forceiso;
             captioner_ = captioner;
             frame_ = frame;
             xcrowd_ = xcrowd;
@@ -777,6 +800,16 @@ public class CubeSurfaceFactory
          */
         public boolean[] getLogFlags() {
             return new boolean[] { xlog_, ylog_, zlog_ };
+        }
+
+        /**
+         * Indicates whether isometric axis scaling is in force.
+         *
+         * @return  true if scaling is forced the same on all axes;
+         *          only useful in non-isotropic mode
+         */
+        public boolean isForceIso() {
+            return forceiso_;
         }
     }
 }

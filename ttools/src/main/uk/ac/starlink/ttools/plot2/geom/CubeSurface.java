@@ -1123,6 +1123,7 @@ public class CubeSurface implements Surface {
      *
      * @param  plotBounds  rectangle within which the plot should be drawn
      * @param  aspect   surface view configuration
+     * @param  forceIso  if true, scaling is forced the same on all axes
      * @param  logFlags  3-element array flagging log scaling on X,Y,Z axis
      * @param  flipFlags 3-element array flagging axis inversion for X,Y,Z
      * @param  labels  3-element array of X,Y,Z axis label strings
@@ -1137,6 +1138,7 @@ public class CubeSurface implements Surface {
      */
     public static CubeSurface createSurface( Rectangle plotBounds,
                                              CubeAspect aspect,
+                                             boolean forceIso,
                                              boolean[] logFlags,
                                              boolean[] flipFlags,
                                              String[] labels,
@@ -1159,6 +1161,28 @@ public class CubeSurface implements Surface {
         for ( int i = 0; i < 3; i++ ) {
             dlos[ i ] = limits[ i ][ 0 ];
             dhis[ i ] = limits[ i ][ 1 ];
+        }
+        if ( forceIso && isIsometricPossible( logFlags ) ) {
+            boolean isLog = logFlags[ 0 ];
+            double extent = isLog ? 1 : 0;
+            for ( int i = 0; i < 3; i++ ) {
+                extent = Math.max( extent, isLog ? dhis[ i ] / dlos[ i ]
+                                                 : dhis[ i ] - dlos[ i ] );
+            }
+            for ( int i = 0; i < 3; i++ ) {
+                if ( isLog ) {
+                    double pad = Math.sqrt( extent / ( dhis[i] / dlos[i] ) );
+                    dlos[ i ] /= pad;
+                    dhis[ i ] *= pad;
+                }
+                else {
+                    double pad = 0.5 * ( extent - ( dhis[ i ] - dlos[ i ] ) );
+                    dlos[ i ] -= pad;
+                    dhis[ i ] += pad;
+                }
+            }
+        }
+        for ( int i = 0; i < 3; i++ ) {
             TickRun tickRun =
                   ( logFlags[ i ] ? BasicTicker.LOG : BasicTicker.LINEAR )
                  .getTicks( dlos[ i ], dhis[ i ], minor, captioner,
@@ -1175,6 +1199,19 @@ public class CubeSurface implements Surface {
                                 logFlags, flipFlags, rotmat, zoom, xoff, yoff,
                                 ticks, orients, labels, captioner,
                                 frame, antialias );
+    }
+
+    /**
+     * Determines whether forced isometric scaling makes sense for a given
+     * set of axis logarithmic flags.
+     *
+     * @param  logFlags  3-element array indicating logarithmic status for
+     *                   X, Y, Z axes
+     * @return  true iff forced isometric scaling is a possibility
+     */
+    public static boolean isIsometricPossible( boolean[] logFlags ) {
+        return logFlags[ 0 ] == logFlags[ 1 ]
+            && logFlags[ 0 ] == logFlags[ 2 ];
     }
 
     /**
