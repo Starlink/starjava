@@ -276,7 +276,9 @@ public class InputColumns {
                                rdr -> rdr.getBinary().toStringUsingUTF8() );
                 }
                 else {
-                    return null;
+                    return new ScalarCol<byte[]>(
+                               byte[].class,
+                               rdr -> rdr.getBinary().getBytes() );
                 }
             case FIXED_LEN_BYTE_ARRAY:
                 // to-do: timestamps etc.

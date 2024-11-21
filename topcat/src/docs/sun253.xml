@@ -33993,6 +33993,9 @@ introduced since the last version:
         <label>TAP</label>|<label
               >Service Discovery</label>|<label
               >RegTAP 1.2</label>.</li>
+    <li>The parquet reader can now read data with the un-annotated 
+        BINARY (BYTE_ARRAY) type; 
+        it is interpreted as a byte array.</li>
     </ul>
     </p></dd>
 

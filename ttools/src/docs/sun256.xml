@@ -15465,6 +15465,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         for <code>areatype</code>
         in <ref id="layer-area">area</ref>-like layers
         are now supported in <ref id="plot2sphere">plot2sphere</ref>.</li>
+    <li>The parquet reader can now read data with the un-annotated 
+        BINARY (BYTE_ARRAY) type; 
+        it is interpreted as a byte array.</li>
     </ul>
     </p></dd>
 
