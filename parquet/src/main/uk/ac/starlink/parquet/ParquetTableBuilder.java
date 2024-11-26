@@ -72,6 +72,7 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
             "<p>Parquet is a columnar format developed within the Apache",
             "project.",
             "Data is compressed on disk and read into memory before use.",
+            readText( "parquet-format.xml" ),
             "</p>",
             "<p>This input handler will read columns representing",
             "scalars, strings and one-dimensional arrays of the same.",

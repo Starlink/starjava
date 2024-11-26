@@ -54,6 +54,7 @@ public class ParquetTableWriter
             "<p>Parquet is a columnar format developed within the Apache",
             "project.",
             "Data is compressed on disk and read into memory before use.",
+            readText( "parquet-format.xml" ),
             "</p>",
             "<p>At present, by default only rather limited metadata is written",
             "so that column units, descriptions, UCDs etc are lost.",

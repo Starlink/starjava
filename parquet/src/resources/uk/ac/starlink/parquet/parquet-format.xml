@@ -1,0 +1,3 @@
+The file format is described at
+<webref url="https://github.com/apache/parquet-format"/>.
+This software is written with reference to version 2.10.0 of the format.
