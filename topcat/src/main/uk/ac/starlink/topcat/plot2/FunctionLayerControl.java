@@ -122,7 +122,19 @@ public class FunctionLayerControl extends ConfigControl
         }
         else {
             PlotLayer[] plotLayers = new PlotLayer[ ganger.getZoneCount() ];
-            Arrays.fill( plotLayers, plotLayer );
+            if ( zsel_ == null ) {
+                Arrays.fill( plotLayers, plotLayer );
+            }
+            else {
+                ZoneId zid = zsel_.getSpecifiedValue();
+                int iz = zid.getZoneIndex( ganger );
+                if ( iz >= 0 ) {
+                    plotLayers[ iz ] = plotLayer;
+                }
+                else {
+                    return new TopcatLayer[ 0 ];
+                }
+            }
             LegendEntry[] legents = getLegendEntries();
             String leglabel = legents.length > 0
                             ? legents[ 0 ].getLabel()

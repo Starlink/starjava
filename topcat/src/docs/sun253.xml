@@ -33996,6 +33996,9 @@ introduced since the last version:
     <li>The parquet reader can now read data with the un-annotated 
         BINARY (BYTE_ARRAY) type; 
         it is interpreted as a byte array.</li>
+    <li>Fix the <ref id="FunctionLayerControl">Function</ref> layer
+        to appear in only a single zone of the
+        <ref id="TimePlotWindow">Time Plot</ref>.</li>
     </ul>
     </p></dd>
 
