@@ -161,7 +161,8 @@ public abstract class TimeFormat {
     public static double unixSecondsToDecimalYear( double unixSec ) {
 
         /* For sensible dates, get the leap seconds right. */
-        if ( Math.abs( unixSec ) < 1e10 ) {
+        double absUnixSec = Math.abs( unixSec );
+        if ( absUnixSec < 1e10 && absUnixSec > 1e-1) {
             Calendar cal = new GregorianCalendar( UTC, Locale.UK );
             cal.setTimeInMillis( (long) ( unixSec * 1000 ) );
             int year = cal.get( Calendar.YEAR );
