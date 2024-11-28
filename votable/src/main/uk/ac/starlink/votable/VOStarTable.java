@@ -58,7 +58,8 @@ public class VOStarTable extends AbstractStarTable {
 
     private final TableElement tableEl_;
     private final TabularData tdata_;
-    private final ColumnInfo[] colinfos_;
+    private ColumnInfo[] colinfos_;
+    private boolean doneParams_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.votable" );
 
@@ -166,22 +167,10 @@ public class VOStarTable extends AbstractStarTable {
         tableEl_ = tableEl;
         tdata_ = tdata;
         setName( calculateName( tableEl ) );
-
-        /* Construct column metadata. */
-        FieldElement[] fields = tableEl_.getFields();
-        int ncol = fields.length;
-        colinfos_ = new ColumnInfo[ ncol ];
-        for ( int i = 0; i < ncol; i++ ) {
-            colinfos_[ i ] = new ColumnInfo( getValueInfo( fields[ i ] ) );
-        }
-
-        /* Construct table metadata and add to superclass list. */
-        DescribedValue[] params = createParameters( tableEl, this );
-        super.getParameters().addAll( Arrays.asList( params ) );
     }
 
     public int getColumnCount() {
-        return colinfos_.length;
+        return tdata_.getColumnCount();
     }
 
     public long getRowCount() {
@@ -193,7 +182,132 @@ public class VOStarTable extends AbstractStarTable {
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
+
+        /* Lazily construct the columninfo list. */
+        if ( colinfos_ == null ) {
+            FieldElement[] fields = tableEl_.getFields();
+            int ncol = fields.length;
+            colinfos_ = new ColumnInfo[ ncol ];
+            for ( int i = 0; i < ncol; i++ ) {
+                FieldElement field = fields[ i ];
+                colinfos_[ i ] = new ColumnInfo( getValueInfo( field ) );
+            }
+        }
         return colinfos_[ icol ];
+    }
+
+    public List<DescribedValue> getParameters() {
+
+        /* Lazily construct parameter list.
+         * This can't easily be done at construction time because some
+         * of the parameters derive from DOM elements that may not have
+         * been encountered by the parser at the time the constructor
+         * is called (for instance sibling RESOURCEs containing service
+         * descriptors).  Hopefully the DOM will be sufficiently
+         * populated by the time somebody calls this method, though it's
+         * not guaranteed. */
+        if ( ! doneParams_ ) {
+            List<DescribedValue> params = new ArrayList<>();
+
+            /* DESCRIPTION child. */
+            String description = tableEl_.getDescription();
+            if ( description != null && description.trim().length() > 0 ) {
+                DefaultValueInfo descInfo = 
+                    new DefaultValueInfo( "Description", String.class );
+                params.add( new DescribedValue( descInfo,
+                                                description.trim() ) );
+            }
+
+            /* UCD attribute. */
+            if ( tableEl_.hasAttribute( "ucd" ) ) {
+                DescribedValue dval =
+                    new DescribedValue( UCD_INFO, 
+                                        tableEl_.getAttribute( "ucd" ) );
+                params.add( dval );
+            }
+
+            /* Utype attribute. */
+            if ( tableEl_.hasAttribute( "utype" ) ) {
+                DescribedValue dval =
+                    new DescribedValue( UTYPE_INFO,
+                                        tableEl_.getAttribute( "utype" ) );
+                params.add( dval );
+            }
+
+            /* Track back through ancestor elements to pick up parameter-
+             * like elements in this TABLE element and any ancestor 
+             * RESOURCE elements. */
+            List<VOElement> pelList = new ArrayList<VOElement>();
+            for ( VOElement ancestor = tableEl_; ancestor != null;
+                  ancestor = ancestor.getParent() ) {
+                addParamElements( ancestor, pelList );
+            }
+
+            /* Convert these elements into DescribedValue metadata objects. */
+            for ( VOElement el : pelList ) {
+                String tag = el.getVOTagName();
+                if ( el instanceof ParamElement ) {
+                    ParamElement pel = (ParamElement) el;
+                    params.add( new DescribedValue( getValueInfo( pel ),
+                                                    pel.getObject() ) );
+                }
+                else if ( el instanceof LinkElement ) {
+                    LinkElement lel = (LinkElement) el;
+                    params.add( getDescribedValue( lel ) );
+                }
+                else if ( "INFO".equals( tag ) ) {
+                    String content = DOMUtils.getTextContent( el );
+                    String descrip =
+                        ( content != null && content.trim().length() > 0 )
+                            ? content
+                            : null;
+                    ValueInfo info = new DefaultValueInfo( el.getHandle(),
+                                                           String.class,
+                                                           descrip );
+                    DescribedValue dval =
+                        new DescribedValue( info, el.getAttribute( "value" ) );
+                    params.add( dval );
+                }
+                else {
+                    assert false : el;
+                }
+            }
+
+            /* Datalink-style Service Descriptors. */
+            ServiceDescriptorFactory sdFact = new ServiceDescriptorFactory();
+            ServiceDescriptor[] servDescrips =
+                sdFact.readTableServiceDescriptors( tableEl_ );
+            int nsd = servDescrips.length;
+            for ( int isd = 0; isd < nsd; isd++ ) {
+                ServiceDescriptor sd = servDescrips[ isd ];
+                final String sdName;
+                if ( sd.getName() != null ) {
+                    sdName = "Service_" + sd.getName();
+                }
+                else {
+                    sdName = nsd == 1 ? "ServiceDescriptor"
+                                      : "ServiceDescriptor" + ( isd + 1 );
+                }
+                String sdDescrip = sd.getDescription() == null
+                                 ? null
+                                 : "Service Descriptor: " + sd.getDescription();
+                ValueInfo sdInfo =
+                    new ServiceDescriptorInfo( sdName, sdDescrip, this );
+                params.add( new DescribedValue( sdInfo, sd ) );
+            }
+
+            /* Post-process parameter list. */
+            adjustParams( params );
+
+            /* Append this list to the superclass list. */
+            synchronized ( this ) {
+                if ( ! doneParams_ ) {
+                    super.getParameters().addAll( params );
+                    doneParams_ = true;
+                }
+            }
+        }
+        return super.getParameters();
     }
 
     public List<ValueInfo> getColumnAuxDataInfos() {
@@ -242,109 +356,6 @@ public class VOStarTable extends AbstractStarTable {
      */
     public TableElement getTableElement() {
         return tableEl_;
-    }
-
-    /**
-     * Returns a list of table parameters corresponding to a given TABLE
-     * element in a VOTAble document.
-     *
-     * @param  tableEl  TABLE element
-     * @param  starTable   StarTable that these parameters will be attached to
-     * @return  items of per-table metadata
-     */
-    private static DescribedValue[] createParameters( TableElement tableEl,
-                                                      VOStarTable starTable ) {
-        List<DescribedValue> params = new ArrayList<>();
-
-        /* DESCRIPTION child. */
-        String description = tableEl.getDescription();
-        if ( description != null && description.trim().length() > 0 ) {
-            DefaultValueInfo descInfo = 
-                new DefaultValueInfo( "Description", String.class );
-            params.add( new DescribedValue( descInfo, description.trim() ) );
-        }
-
-        /* UCD attribute. */
-        if ( tableEl.hasAttribute( "ucd" ) ) {
-            DescribedValue dval =
-                new DescribedValue( UCD_INFO, tableEl.getAttribute( "ucd" ) );
-            params.add( dval );
-        }
-
-        /* Utype attribute. */
-        if ( tableEl.hasAttribute( "utype" ) ) {
-            DescribedValue dval =
-                new DescribedValue( UTYPE_INFO,
-                                    tableEl.getAttribute( "utype" ) );
-            params.add( dval );
-        }
-
-        /* Track back through ancestor elements to pick up parameter-
-         * like elements in this TABLE element and any ancestor 
-         * RESOURCE elements. */
-        List<VOElement> pelList = new ArrayList<VOElement>();
-        for ( VOElement ancestor = tableEl; ancestor != null;
-              ancestor = ancestor.getParent() ) {
-            addParamElements( ancestor, pelList );
-        }
-
-        /* Convert these elements into DescribedValue metadata objects. */
-        for ( VOElement el : pelList ) {
-            String tag = el.getVOTagName();
-            if ( el instanceof ParamElement ) {
-                ParamElement pel = (ParamElement) el;
-                params.add( new DescribedValue( getValueInfo( pel ),
-                                                pel.getObject() ) );
-            }
-            else if ( el instanceof LinkElement ) {
-                LinkElement lel = (LinkElement) el;
-                params.add( getDescribedValue( lel ) );
-            }
-            else if ( "INFO".equals( tag ) ) {
-                String content = DOMUtils.getTextContent( el );
-                String descrip =
-                    ( content != null && content.trim().length() > 0 )
-                        ? content
-                        : null;
-                ValueInfo info =
-                    new DefaultValueInfo( el.getHandle(), String.class,
-                                          descrip );
-                DescribedValue dval =
-                    new DescribedValue( info, el.getAttribute( "value" ) );
-                params.add( dval );
-            }
-            else {
-                assert false : el;
-            }
-        }
-
-        /* Datalink-style Service Descriptors. */
-        ServiceDescriptorFactory sdFact = new ServiceDescriptorFactory();
-        ServiceDescriptor[] servDescrips =
-            sdFact.readTableServiceDescriptors( tableEl );
-        int nsd = servDescrips.length;
-        for ( int isd = 0; isd < nsd; isd++ ) {
-            ServiceDescriptor sd = servDescrips[ isd ];
-            final String sdName;
-            if ( sd.getName() != null ) {
-                sdName = "Service_" + sd.getName();
-            }
-            else {
-                sdName = nsd == 1 ? "ServiceDescriptor"
-                                  : "ServiceDescriptor" + ( isd + 1 );
-            }
-            String sdDescrip = sd.getDescription() == null
-                             ? null
-                             : "Service Descriptor: " + sd.getDescription();
-            ValueInfo sdInfo =
-                new ServiceDescriptorInfo( sdName, sdDescrip, starTable );
-            params.add( new DescribedValue( sdInfo, sd ) );
-        }
-
-        /* Post-process parameter list. */
-        adjustParams( params );
-
-        return params.toArray( new DescribedValue[ 0 ] );
     }
 
     /**

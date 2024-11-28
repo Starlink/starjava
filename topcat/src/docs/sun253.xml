@@ -33999,6 +33999,9 @@ introduced since the last version:
     <li>Fix the <ref id="FunctionLayerControl">Function</ref> layer
         to appear in only a single zone of the
         <ref id="TimePlotWindow">Time Plot</ref>.</li>
+    <li>Fix regression bug since v4.10 that failed to pick up
+        Service Descriptors from VOTables loaded directly
+        (mostly didn't affect tables loaded from services).</li>
     </ul>
     </p></dd>
 
