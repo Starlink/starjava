@@ -4,9 +4,11 @@ import java.awt.Component;
 import java.awt.Window;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JFrame;
@@ -14,6 +16,7 @@ import javax.swing.SwingUtilities;
 import org.astrogrid.samp.Message;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.topcat.activate.SampSender;
 import uk.ac.starlink.topcat.activate.ViewDatalinkActivationType;
 import uk.ac.starlink.topcat.func.BasicImageDisplay;
@@ -64,7 +67,8 @@ public class UrlOptions {
         ControlWindow controlWin = ControlWindow.getInstance();
         UrlInvoker reportUrl = createReportInvoker();
         UrlInvoker viewImage = createViewImageInvoker();
-        UrlInvoker loadTable = createLoadTableInvoker( controlWin );
+        UrlInvoker loadTable = createLoadTableInvoker( controlWin, false );
+        UrlInvoker loadTables = createLoadTableInvoker( controlWin, true );
         UrlInvoker planePlotTable =
             createPlotTableInvoker( controlWin, PlotWindowType.PLANE,
                                     "Plane Plot Table" );
@@ -87,6 +91,7 @@ public class UrlOptions {
             reportUrl,
             viewImage,
             loadTable,
+            loadTables,
             planePlotTable,
             matrixPlotTable,
             viewDatalink,
@@ -131,40 +136,70 @@ public class UrlOptions {
      * Returns an invoker for loading a table into the application.
      *
      * @param  controlWin  application control window
+     * @param  isMultiple  true to load multiple tables if present,
+     *                     false to load only the first
      * @return  new invoker
      */
     private static UrlInvoker
-            createLoadTableInvoker( final ControlWindow controlWin ) { 
+            createLoadTableInvoker( final ControlWindow controlWin,
+                                    boolean isMultiple ) { 
         final boolean isSelect = true;
         final StarTableFactory tfact = controlWin.getTableFactory();
-        return new AbstractUrlInvoker( "Load Table",
+        return new AbstractUrlInvoker( isMultiple ? "Load Tables"
+                                                  : "Load Table",
                                        allowSystem_ ? Safety.UNSAFE
                                                     : Safety.SAFE ) {
             public Outcome invokeUrl( URL url ) {
                 final String loc = url.toString();
-                final StarTable table;
+                final List<StarTable> tables = new ArrayList<>();
                 try {
                     DataSource datsrc =
                         DataSource.makeDataSource( loc, allowSystem_ );
-                    table = tfact.makeStarTable( datsrc );
+                    if ( isMultiple ) {
+                        TableSequence tseq = tfact.makeStarTables( datsrc );
+                        for ( StarTable t; ( t = tseq.nextTable() ) != null; ) {
+                            tables.add( t );
+                        }
+                    }
+                    else {
+                        tables.add( tfact.makeStarTable( datsrc ) );
+                    }
                 }
                 catch ( IOException e ) {
                     return Outcome.failure( e );
                 }
-                final AtomicReference<TopcatModel> tcmref =
-                    new AtomicReference<TopcatModel>();
-                try {
-                    SwingUtilities.invokeAndWait( new Runnable() {
-                        public void run() {
+                if ( tables.size() == 0 ) {
+                    return Outcome.failure( "No tables loaded" );
+                }
+                else if ( tables.size() == 1 ) {
+                    StarTable table = tables.get( 0 );
+                    final AtomicReference<TopcatModel> tcmref =
+                        new AtomicReference<TopcatModel>();
+                    try {
+                        SwingUtilities.invokeAndWait( () ->
                             tcmref.set( controlWin
-                                       .addTable( table, loc, isSelect ) );
+                                       .addTable( table, loc, isSelect ) )
+                        );
+                    }
+                    catch ( Exception e ) {
+                        return Outcome.failure( e );
+                    }
+                    return Outcome.success( "Loaded table "
+                                          + tcmref.get().toString() );
+                }
+                else {
+                    SwingUtilities.invokeLater( () -> {
+                        int it = 0;
+                        for ( StarTable table : tables ) {
+                            String loc1 =
+                                loc + "#" + Integer.toString( it + 1 );
+                            controlWin.addTable( table, loc1,
+                                                 isSelect && it == 0 );
+                            it++;
                         }
                     } );
+                    return Outcome.success( tables.size() + " tables loaded" );
                 }
-                catch ( Exception e ) {
-                    return Outcome.failure( e );
-                }
-                return Outcome.success( tcmref.get().toString() );
             }
         };
     }

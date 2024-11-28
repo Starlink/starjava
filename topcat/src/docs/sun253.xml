@@ -7256,9 +7256,15 @@ listed resource.  The parts of this panel are:
         (like the <ref id="ViewImageActivationType">Display Image</ref> action)
         </li>
     <li><strong>Load Table:</strong>
-        loads the table from the linked resource (a FITS or VOTable table)
+        loads the first table from the linked resource (a FITS or VOTable table)
         into this TOPCAT application
         (like the <ref id="LoadTableActivationType">Load Table</ref> action)
+        </li>
+    <li><strong>Load Tables:</strong>
+        loads all tables from the linked resource (a FITS or VOTable table)
+        into this TOPCAT application
+        (like the <ref id="LoadTableActivationType">Load Table</ref> action
+        with Multiple Tables option selected)
         </li>
     <li><strong>Plane Plot Table:</strong>
         pops up a <ref id="PlanePlotWindow">plane plot window</ref>
@@ -25769,9 +25775,15 @@ activated row.
         (like <ref id="ViewImageActivationType">Display Image</ref> action)
         </li>
     <li><strong>Load Table:</strong>
-        loads the table from the linked resource (a FITS or VOTable table)
+        loads the first table from the linked resource (a FITS or VOTable table)
         into this TOPCAT application
         (like <ref id="LoadTableActivationType">Load Table</ref> action)
+        </li>
+    <li><strong>Load Tables:</strong>
+        loads all tables from the linked resource (a FITS or VOTable table)
+        into this TOPCAT application
+        (like <ref id="LoadTableActivationType">Load Table</ref> action
+        with Multiple Tables option selected)
         </li>
     <li><strong>View DataLink Table:</strong>
         displays the linked resource (a DataLink table)
@@ -34002,6 +34014,10 @@ introduced since the last version:
     <li>Fix regression bug since v4.10 that failed to pick up
         Service Descriptors from VOTables loaded directly
         (mostly didn't affect tables loaded from services).</li>
+    <li>Add <label>Load Tables</label> option alongside
+        <label>Load Table</label> in the Action selector for the
+        <ref id="ServiceActivationType">Invoke Service</ref> and
+        <ref id="DatalinkWindow">Datalink Window</ref>.</li>
     </ul>
     </p></dd>
 
