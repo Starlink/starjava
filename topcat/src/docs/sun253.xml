@@ -34018,6 +34018,9 @@ introduced since the last version:
         <label>Load Table</label> in the Action selector for the
         <ref id="ServiceActivationType">Invoke Service</ref> and
         <ref id="DatalinkWindow">Datalink Window</ref>.</li>
+    <li>Fix regression bug since v4.10 that caused broken COUNT
+        column in Import as Table result from
+        <ref id="HistogramPlotWindow">Histogram Plot</ref>.</li>
     </ul>
     </p></dd>
 

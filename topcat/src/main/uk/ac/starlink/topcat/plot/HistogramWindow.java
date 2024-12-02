@@ -775,8 +775,8 @@ public class HistogramWindow extends GraphicsWindow {
                             }
                             assert ( ! isInt ) || ( sum == (int) sum ) : sum;
                             row[ icol++ ] =
-                                isInt ? Integer.valueOf( (int) sum )
-                                      : Double.valueOf( sum );
+                                isInt ? (Number) Integer.valueOf( (int) sum )
+                                      : (Number) Double.valueOf( sum );
                         }
                         return row;
                     }

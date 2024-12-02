@@ -339,13 +339,14 @@ public class HistogramPlotWindow
                 if ( rowMap.containsKey( xmin ) ) {
                     int irow = rowMap.get( xmin ).intValue();
                     double y = bin.getY();
-                    data[ irow ] = isInt
-                                 ? Integer.valueOf( (int) Math.round( y ) )
-                                 : Double.valueOf( y );
+                    data[ irow ] =
+                          isInt
+                        ? (Number) Integer.valueOf( (int) Math.round( y ) )
+                        : (Number) Double.valueOf( y );
                 }
             }
-            Number zero = isInt ? Integer.valueOf( 0 )
-                                : Double.valueOf( 0 );
+            Number zero = isInt ? (Number) Integer.valueOf( 0 )
+                                : (Number) Double.valueOf( 0 );
             Number lastVal = zero;
             for ( int irow = 0; irow < nrow; irow++ ) {
                 int jrow = cumul.isReverse() ? nrow - irow - 1 : irow;

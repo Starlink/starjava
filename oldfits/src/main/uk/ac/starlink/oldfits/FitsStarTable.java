@@ -303,41 +303,41 @@ public class FitsStarTable extends RandomStarTable {
                 byte val = ((byte[]) base)[ 0 ];
                 return ( hasblank && val == (byte) blank ) 
                        ? null
-                       : ( scaled ? Double.valueOf( val * scale + zero )
-                                  : Byte.valueOf( val ) );
+                       : ( scaled ? (Number) Double.valueOf( val * scale + zero)
+                                  : (Number) Byte.valueOf( val ) );
             }
             else if ( cls == short.class ) {
                 short val = ((short[]) base )[ 0 ];
                 return ( hasblank && val == (short) blank )
                        ? null
-                       : ( scaled ? Double.valueOf( val * scale + zero )
-                                  : Short.valueOf( val ) );
+                       : ( scaled ? (Number) Double.valueOf( val * scale + zero)
+                                  : (Number) Short.valueOf( val ) );
             }
             else if ( cls == int.class ) {
                 int val = ((int[]) base )[ 0 ];
                 return ( hasblank && val == (int) blank )
                        ? null
-                       : ( scaled ? Double.valueOf( val * scale + zero )
-                                  : Integer.valueOf( val ) );
+                       : ( scaled ? (Number) Double.valueOf( val * scale + zero)
+                                  : (Number) Integer.valueOf( val ) );
             }
             else if ( cls == long.class ) {
                 long val = ((long[]) base )[ 0 ];
                 return ( hasblank && val == (long) blank )
                        ? null
-                       : ( scaled ? Double.valueOf( val * scale + zero )
-                                  : Long.valueOf( val ) );
+                       : ( scaled ? (Number) Double.valueOf( val * scale + zero)
+                                  : (Number) Long.valueOf( val ) );
             }
 
             /* Need to scale for floating point types. */
             else if ( cls == float.class ) {
                 float val = ((float[]) base )[ 0 ];
-                return scaled ? Double.valueOf( val * scale + zero )
-                              : Float.valueOf( val );
+                return scaled ? (Number) Double.valueOf( val * scale + zero )
+                              : (Number) Float.valueOf( val );
             }
             else if ( cls == double.class ) {
                 double val = ((double[]) base )[ 0 ];
-                return scaled ? Double.valueOf( val * scale + zero )
-                              : Double.valueOf( val );
+                return scaled ? (Number) Double.valueOf( val * scale + zero )
+                              : (Number) Double.valueOf( val );
             }
 
             /* Just dereference and wrap for boolean. */
