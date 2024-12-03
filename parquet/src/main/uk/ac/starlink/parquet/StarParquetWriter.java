@@ -210,6 +210,9 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
                 encoder_.addValue( typedValue, consumer );
                 consumer.endField( cname_, icOut_ );
             }
+            else {
+                encoder_.checkNull();
+            }
         }
 
         /**

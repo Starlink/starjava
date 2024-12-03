@@ -49,5 +49,18 @@ public class NullsTest extends TestCase {
         }
         Tables.checkTable( t2 );
         file.delete();
+
+        assertTrue( writer.isGroupArray() );
+        writer.setGroupArray( false );
+        try ( OutputStream out = new FileOutputStream( file ) ) {
+            writer.writeStarTable( t1, out );
+            fail();
+        }
+        catch ( IOException e ) {
+            assertTrue( e.getCause()
+                        instanceof NullsWithoutGroupArrayException );
+        }
+
+        file.delete();
     }
 }

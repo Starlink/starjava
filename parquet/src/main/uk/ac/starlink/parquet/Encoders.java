@@ -259,7 +259,8 @@ public class Encoders {
             }
         };
         PrimitiveType type = builder.named( cname );
-        return new DefaultEncoder<T>( cname, type, toTyped, consume );
+        Runnable checkNull = () -> {};
+        return new DefaultEncoder<T>( cname, type, toTyped, consume, checkNull);
     }
 
     /**
@@ -346,7 +347,9 @@ public class Encoders {
                 cns.endField( listName, 0 );
                 cns.endGroup();
             };
-            return new DefaultEncoder<T>( cname, listType, toTyped, consume );
+            Runnable checkNull = () -> {};
+            return new DefaultEncoder<T>( cname, listType, toTyped, consume,
+                                          checkNull );
         }
         else {
 
@@ -368,10 +371,21 @@ public class Encoders {
                 for ( int i = 0; i < nel; i++ ) {
                     WritableElement writable =
                         arrayReader.getWritable( val, i );
+                    if ( writable.isBlank() ) {
+                        String msg = "Null array elements not permitted"
+                                   + " for groupArray=false";
+                        throw new NullsWithoutGroupArrayException( msg );
+                    }
                     writable.writeToRecord( cns );
                 }
             };
-            return new DefaultEncoder<T>( cname, elType, toTyped, consume );
+            Runnable checkNull = () -> {
+                String msg =
+                    "Null array values not permitted for groupArray=false";
+                throw new NullsWithoutGroupArrayException( msg );
+            };
+            return new DefaultEncoder<T>( cname, elType, toTyped, consume,
+                                          checkNull );
         }
     }
 
@@ -384,6 +398,7 @@ public class Encoders {
         final Type type_;
         final Function<Object,T> toTyped_;
         final BiConsumer<T,RecordConsumer> consumeValue_;
+        final Runnable checkNull_;
 
         /**
          * Constructor.
@@ -395,14 +410,17 @@ public class Encoders {
          *                  the right class, or to null
          *                  if it's effectively blank
          * @param  consumeValue  passes a typed value to a record consumer
+         * @param  checkNull  called if null will be written
          */
         DefaultEncoder( String cname, Type type,
                         Function<Object,T> toTyped,
-                        BiConsumer<T,RecordConsumer> consumeValue ) {
+                        BiConsumer<T,RecordConsumer> consumeValue,
+                        Runnable checkNull ) {
             cname_ = cname;
             type_ = type;
             toTyped_ = toTyped;
             consumeValue_ = consumeValue;
+            checkNull_ = checkNull;
         }
         public String getColumnName() {
             return cname_;
@@ -415,6 +433,9 @@ public class Encoders {
         }
         public void addValue( T tValue, RecordConsumer consumer ) {
             consumeValue_.accept( tValue, consumer );
+        }
+        public void checkNull() {
+            checkNull_.run();
         }
     }
 

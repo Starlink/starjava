@@ -225,6 +225,9 @@ class ParquetIO {
                 }
             }
         }
+        catch ( NullsWithoutGroupArrayException e ) {
+            throw new IOException( e.getMessage(), e );
+        }
     }
 
     /**

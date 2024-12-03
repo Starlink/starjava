@@ -124,6 +124,9 @@ public class ParquetTableWriter
             + "annotations, no unannotated repeated types are allowed.\"\n"
             + "</em></blockquote>\n"
             + "</p>"
+            + "<p>If this option is set false and an attempt is made to write\n"
+            + "null arrays or arrays with null values, writing will fail.\n"
+            + "</p>"
     )
     public void setGroupArray( boolean groupArray ) {
         groupArray_ = groupArray;

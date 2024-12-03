@@ -59,4 +59,16 @@ public interface Encoder<T> {
      * @param   consumer  value consumer
      */
     void addValue( T value, RecordConsumer consumer );
+
+    /**
+     * Called if a null value will be written.
+     * This is a hook that allows an encoder to complain if it is unable
+     * to write nulls.  Implementations that can write null should
+     * implement as a no-op.
+     *
+     * <p>Really this should throw an IOException, but the parquet-mr
+     * classes that end up calling it don't, so it would only cause pain.
+     * You'll have to throw a RuntimeException if there's trouble.
+     */
+    void checkNull();
 }
