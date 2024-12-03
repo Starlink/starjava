@@ -226,6 +226,10 @@ public class SequentialParquetStarTable extends ParquetStarTable {
 
     /**
      * Creates a ColAccess for accessing a given column.
+     *
+     * @param   crstore  provides column data
+     * @param   incol   identifies column to read
+     * @return  column access object
      */
     private static <T> ColAccess<T>
             createColAccess( ColumnReadStore crstore,
@@ -276,15 +280,13 @@ public class SequentialParquetStarTable extends ParquetStarTable {
                 if ( ! hasValue_ ) {
                     decoder.clearValue();
                     do {
-                        if ( crdr.getCurrentDefinitionLevel() == cdefmax ) {
+                        int cdef = crdr.getCurrentDefinitionLevel();
+                        if ( cdef == cdefmax ) {
                             decoder.readItem( crdr );
                         }
-                        // I thought that I ought to be passing a null along
-                        // in this case.  However, it does the wrong thing
-                        // at least for some arrays.  Hmm.
-                        // else {
-                        //     decoder.readNull();
-                        // }
+                        else if ( cdef == cdefmax - 1 ) {
+                            decoder.readNull();
+                        }
                         crdr.consume();
                     } while ( crdr.getCurrentRepetitionLevel() > 0 );
                     value_ = decoder.getValue();

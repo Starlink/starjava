@@ -34021,6 +34021,8 @@ introduced since the last version:
     <li>Fix regression bug since v4.10 that caused broken COUNT
         column in Import as Table result from
         <ref id="HistogramPlotWindow">Histogram Plot</ref>.</li>
+    <li>Fix some significant parquet I/O bugs related to
+        array-valued columns.</li>
     </ul>
     </p></dd>
 

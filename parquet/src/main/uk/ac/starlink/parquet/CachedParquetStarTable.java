@@ -210,13 +210,13 @@ public class CachedParquetStarTable extends ParquetStarTable {
             for ( long ir = 0; ir < nr; ir++ ) {
                 decoder.clearValue();
                 do {
-                    if ( crdr.getCurrentDefinitionLevel() == cdefmax ) {
+                    int cdef = crdr.getCurrentDefinitionLevel();
+                    if ( cdef == cdefmax ) {
                         decoder.readItem( crdr );
                     }
-                    // I thought you should do this, but it seems not.
-                    // else {
-                    //     decoder.readNull();
-                    // }
+                    else if ( cdef == cdefmax - 1 ) {
+                       decoder.readNull();
+                    }
                     crdr.consume();
                 }
                 while ( crdr.getCurrentRepetitionLevel() > 0 );

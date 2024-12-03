@@ -15468,6 +15468,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>The parquet reader can now read data with the un-annotated 
         BINARY (BYTE_ARRAY) type; 
         it is interpreted as a byte array.</li>
+    <li>Fix some significant parquet I/O bugs related to
+        array-valued columns.</li>
     </ul>
     </p></dd>
 
