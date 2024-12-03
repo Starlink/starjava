@@ -23,6 +23,7 @@ public class ParquetTableWriter
     private Boolean useDict_;
 
     public ParquetTableWriter() {
+        groupArray_ = true;
     }
 
     public String getFormatName() {
@@ -83,8 +84,10 @@ public class ParquetTableWriter
      * If false, it's a top-level <code>repeated</code> primitive,
      * if true, it's an <code>optional group</code> containing a
      * <code>repeated group</code> containing a <code>optional</code>
-     * primitive.  The latter way seems unnecessarily complicated to me,
-     * but it seems to be what python writes.
+     * primitive.
+     *
+     * <p>True is the default, set it false with care, since that precludes
+     * null array values or array elements.
      *
      * @param  groupArray   true for grouped arrays,
      *                      false for repeated primitives
@@ -99,11 +102,27 @@ public class ParquetTableWriter
             + "<code>groupArray=false</code> will write it as\n"
             + "\"<code>repeated int32 IVAL</code>\"\n"
             + "while <code>groupArray=true</code> will write it as\n"
-            + "\"<code>optional group IVAL (LIST) { repeated group list\n"
-            + "{ optional int32 item} }</code>\".\n"
-            + "I don't know why you'd want to do it the latter way,\n"
-            + "but some other parquet writers seem to do that by default,\n"
-            + "so there must be some good reason.\n"
+            + "\"<code>optional group IVAL (LIST) {repeated group list\n"
+            + "{optional int32 element}}</code>\".\n"
+            + "</p>"
+            + "<p>Although setting it <code>false</code> may be slightly more\n"
+            + "efficient, the default is <code>true</code>,\n"
+            + "since if any of the columns have array values that either\n"
+            + "may be null or may have elements which are null,\n"
+            + "groupArray-style declarations for all columns are required\n"
+            + "by the <webref url='"
+                     + "https://github.com/apache/parquet-format/blob/"
+                     + "apache-parquet-format-2.10.0/"
+                     + "LogicalTypes.md'>Parquet file format</webref>:\n"
+            + "<blockquote><em>\n"
+            + "\"A repeated field that is neither contained by a LIST- or\n"
+            + "MAP-annotated group nor annotated by LIST or MAP should be\n"
+            + "interpreted as a required list of required elements where\n"
+            + "the element type is the type of the field.\n"
+            + "Implementations should use either LIST and MAP annotations\n"
+            + "or unannotated repeated fields, but not both. When using the\n"
+            + "annotations, no unannotated repeated types are allowed.\"\n"
+            + "</em></blockquote>\n"
             + "</p>"
     )
     public void setGroupArray( boolean groupArray ) {

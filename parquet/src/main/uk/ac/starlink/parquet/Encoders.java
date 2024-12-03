@@ -284,14 +284,45 @@ public class Encoders {
             value -> clazz.isInstance( value ) && Array.getLength( value ) > 0
                    ? clazz.cast( value )
                    : null;
+
+        /* There are two ways to write array-valued columns,
+         * as described by the file LogicalTypes.md from
+         * https://github.com/apache/parquet-format/.
+         * I'm looking at tag apache-parquet-format-2.10.0.
+         * Note that these cannot be mixed in a single file:
+         *
+         *   "Implementations should use either LIST and MAP annotations
+         *    or unannotated repeated fields, but not both. When using the
+         *    annotations, no unannotated repeated types are allowed."
+         */
         if ( groupArray ) {
+
+            /* Annotated LIST option:
+             *
+             *   "LIST must always annotate a 3-level structure:
+             *
+             *       <list-repetition> group <name> (LIST) {
+             *          repeated group list {
+             *             <element-repetition> <element-type> element;
+             *          }
+             *       }
+             *
+             *    The outer-most level must be a group annotated with LIST
+             *    that contains a single field named 'list'.
+             *    The repetition of this level must be either 'optional' or
+             *    'required' and determines whether the list is nullable.
+             *    The middle level, named 'list', must be a repeated group
+             *    with a single field named 'element'.  The 'element' field
+             *    encodes the list's element type and repetition.
+             *    Element repetition must be 'required' or 'optional'."
+             */
             Types.PrimitiveBuilder<PrimitiveType> elBuilder =
                 Types.optional( primType );
             if ( logType != null ) {
                 elBuilder = elBuilder.as( logType );
             }
-            final String elName = "item";
-            final String listName = "list";  // this one is magic
+            final String elName = "element";
+            final String listName = "list";
             PrimitiveType elType = elBuilder.named( elName );
             GroupType listType =
                 Types.optionalList()
@@ -318,6 +349,14 @@ public class Encoders {
             return new DefaultEncoder<T>( cname, listType, toTyped, consume );
         }
         else {
+
+            /* Repeated field option:
+             *
+             *   "A repeated field that is neither contained by a LIST- or
+             *    MAP-annotated group nor annotated by LIST or MAP should
+             *    be interpreted as a required list of required elements
+             *    where the element type is the type of the field."
+             */
             Types.PrimitiveBuilder<PrimitiveType> elBuilder =
                 Types.repeated( primType );
             if ( logType != null ) {
