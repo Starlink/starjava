@@ -103,7 +103,15 @@ public class Encoders {
                        byte[].class, cname,
                        PrimitiveType.PrimitiveTypeName.INT32,
                        LogicalTypeAnnotation.intType( 8, true ),
-                       (val, ix, cns) -> cns.addInteger( val[ ix ] ),
+                       (val, ix) -> new WritableElement() {
+                           byte el = val[ ix ];
+                           public boolean isBlank() {
+                               return false;
+                           }
+                           public void writeToRecord( RecordConsumer cns ) {
+                               cns.addInteger( el );
+                           }
+                       },
                        groupArray );
         }
         else if ( clazz.equals( short[].class ) ) {
@@ -111,35 +119,75 @@ public class Encoders {
                        short[].class, cname,
                        PrimitiveType.PrimitiveTypeName.INT32,
                        LogicalTypeAnnotation.intType( 16, true ),
-                       (val, ix, cns) -> cns.addInteger( val[ ix ] ),
+                       (val, ix) -> new WritableElement() {
+                           short el = val[ ix ];
+                           public boolean isBlank() {
+                               return false;
+                           }
+                           public void writeToRecord( RecordConsumer cns ) {
+                               cns.addInteger( el );
+                           }
+                       },
                        groupArray );
         }
         else if ( clazz.equals( int[].class ) ) {
             return createArrayEncoder(
                        int[].class, cname,
                        PrimitiveType.PrimitiveTypeName.INT32, null,
-                       (val, ix, cns) -> cns.addInteger( val[ ix ] ),
+                       (val, ix) -> new WritableElement() {
+                           int el = val[ ix ];
+                           public boolean isBlank() {
+                               return false;
+                           }
+                           public void writeToRecord( RecordConsumer cns ) {
+                               cns.addInteger( el );
+                           }
+                       },
                        groupArray );
         }
         else if ( clazz.equals( long[].class ) ) {
             return createArrayEncoder(
                        long[].class, cname,
                        PrimitiveType.PrimitiveTypeName.INT64, null,
-                       (val, ix, cns) -> cns.addLong( val[ ix ] ),
+                       (val, ix) -> new WritableElement() {
+                           long el = val[ ix ];
+                           public boolean isBlank() {
+                               return false;
+                           }
+                           public void writeToRecord( RecordConsumer cns ) {
+                               cns.addLong( el );
+                           }
+                       },
                        groupArray );
         }
         else if ( clazz.equals( float[].class ) ) {
             return createArrayEncoder(
                        float[].class, cname,
                        PrimitiveType.PrimitiveTypeName.FLOAT, null,
-                       (val, ix, cns) -> cns.addFloat( val[ ix ] ),
+                       (val, ix) -> new WritableElement() {
+                           float el = val[ ix ];
+                           public boolean isBlank() {
+                               return Float.isNaN( el );
+                           }
+                           public void writeToRecord( RecordConsumer cns ) {
+                               cns.addFloat( el );
+                           }
+                       },
                        groupArray );
         }
         else if ( clazz.equals( double[].class ) ) {
             return createArrayEncoder(
                        double[].class, cname,
                        PrimitiveType.PrimitiveTypeName.DOUBLE, null,
-                       (val, ix, cns) -> cns.addDouble( val[ ix ] ),
+                       (val, ix) -> new WritableElement() {
+                           double el = val[ ix ];
+                           public boolean isBlank() {
+                               return Double.isNaN( el );
+                           }
+                           public void writeToRecord( RecordConsumer cns ) {
+                               cns.addDouble( el );
+                           }
+                       },
                        groupArray );
         }
         else if ( clazz.equals( String[].class ) ) {
@@ -147,8 +195,15 @@ public class Encoders {
                        String[].class, cname,
                        PrimitiveType.PrimitiveTypeName.BINARY,
                        LogicalTypeAnnotation.stringType(),
-                       (val, ix, cns) ->
-                           cns.addBinary( Binary.fromString( val[ ix ] ) ),
+                       (val, ix) -> new WritableElement() {
+                           String el = val[ ix ];
+                           public boolean isBlank() {
+                               return el == null || el.length() == 0;
+                           }
+                           public void writeToRecord( RecordConsumer cns ) {
+                               cns.addBinary( Binary.fromString( el ) );
+                           }
+                       },
                        groupArray );
         }
         else {
@@ -233,9 +288,13 @@ public class Encoders {
                 int nel = Array.getLength( val );
                 for ( int i = 0; i < nel; i++ ) {
                     cns.startGroup();
-                    cns.startField( elName, 0 );
-                    arrayReader.consume( val, i, cns );
-                    cns.endField( elName, 0 );
+                    WritableElement writable =
+                        arrayReader.getWritable( val, i );
+                    if ( ! writable.isBlank() ) {
+                        cns.startField( elName, 0 );
+                        writable.writeToRecord( cns );
+                        cns.endField( elName, 0 );
+                    }
                     cns.endGroup();
                 }
                 cns.endField( listName, 0 );
@@ -253,7 +312,9 @@ public class Encoders {
             BiConsumer<T,RecordConsumer> consume = (val, cns) -> {
                 int nel = Array.getLength( val );
                 for ( int i = 0; i < nel; i++ ) {
-                    arrayReader.consume( val, i, cns );
+                    WritableElement writable =
+                        arrayReader.getWritable( val, i );
+                    writable.writeToRecord( cns );
                 }
             };
             return new DefaultEncoder<T>( cname, elType, toTyped, consume );
@@ -304,18 +365,39 @@ public class Encoders {
     }
 
     /**
+     * Defines field content for writing.
+     */
+    private interface WritableElement {
+
+        /**
+         * If true, the content corresponds to a null value.
+         *
+         * @return  true iff element is blank
+         */
+        boolean isBlank();
+
+        /**
+         * Passes this content to a record consumer for writing.
+         * This method will only be called if {@link #isBlank} returns false.
+         *
+         * @param  cns  record consumer
+         */
+        void writeToRecord( RecordConsumer cns );
+    }
+
+    /**
      * Handles typed array values.
      */
     @FunctionalInterface
     private interface ArrayReader<T> {
 
         /**
-         * Passes one element from an array to a given record consumer.
+         * Returns an object representing the value of an element
+         * from an array.
          *
-         * @param  value  array value
-         * @param  index  index of element to pass on
-         * @param  consumer  element value destination
+         * @param  value  array object
+         * @param  index  index of array element to write
          */
-        void consume( T value, int index, RecordConsumer consumer );
+        WritableElement getWritable( T value, int index );
     }
 }
