@@ -98,6 +98,21 @@ public class Encoders {
                        val -> val.length() == 0,
                        (val, cns) -> cns.addBinary( Binary.fromString( val ) ));
         }
+        else if ( clazz.equals( boolean[].class ) ) {
+            return createArrayEncoder(
+                       boolean[].class, cname,
+                       PrimitiveType.PrimitiveTypeName.BOOLEAN, null,
+                       (val, ix) -> new WritableElement() {
+                           boolean el = val[ ix ];
+                           public boolean isBlank() {
+                               return false;
+                           }
+                           public void writeToRecord( RecordConsumer cns ) {
+                               cns.addBoolean( el );
+                           }
+                       },
+                       groupArray );
+        }
         else if ( clazz.equals( byte[].class ) ) {
             return createArrayEncoder(
                        byte[].class, cname,
