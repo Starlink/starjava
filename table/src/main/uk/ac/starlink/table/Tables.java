@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.LongSupplier;
+import java.util.function.ToIntFunction;
 import java.util.zip.Adler32;
 import java.util.zip.Checksum;
 import uk.ac.starlink.table.StarTableOutput;
@@ -426,11 +427,50 @@ public class Tables {
     public static long checksumData( StarTable table, Checksum checksum )
             throws IOException {
         long lrow = 0;
+        int ncol = table.getColumnCount();
+        @SuppressWarnings("unchecked")
+        ToIntFunction<Object>[] hashers =
+            (ToIntFunction<Object>[]) new ToIntFunction<?>[ ncol ];
+        for ( int ic = 0; ic < ncol; ic++ ) {
+            final ToIntFunction<Object> hasher;
+            Class<?> clazz = table.getColumnInfo( ic ).getContentClass();
+            if ( clazz == boolean[].class ) {
+                hasher = a -> Arrays.hashCode( (boolean[]) a );
+            }
+            else if ( clazz == byte[].class ) {
+                hasher = a -> Arrays.hashCode( (byte[]) a );
+            }
+            else if ( clazz == short[].class ) {
+                hasher = a -> Arrays.hashCode( (short[]) a );
+            }
+            else if ( clazz == int[].class ) {
+                hasher = a -> Arrays.hashCode( (int[]) a );
+            }
+            else if ( clazz == long[].class ) {
+                hasher = a -> Arrays.hashCode( (long[]) a );
+            }
+            else if ( clazz == char[].class ) {
+                hasher = a -> Arrays.hashCode( (char[]) a );
+            }
+            else if ( clazz == float[].class ) {
+                hasher = a -> Arrays.hashCode( (float[]) a );
+            }
+            else if ( clazz == double[].class ) {
+                hasher = a -> Arrays.hashCode( (double[]) a );
+            }
+            else {
+                hasher = a -> a.hashCode();
+            }
+            hashers[ ic ] = hasher;
+        }
         try ( RowSequence rseq = table.getRowSequence() ) {
             while ( rseq.next() ) {
                 Object[] row = rseq.getRow();
-                for ( Object cell : row ) {
-                    int hash = isBlank( cell ) ? -654321 : cell.hashCode();
+                for ( int ic = 0; ic < ncol; ic++ ) {
+                    Object cell = row[ ic ];
+                    int hash = isBlank( cell )
+                             ? -654321
+                             : hashers[ ic ].applyAsInt( cell );
                     checksum.update( (byte) ( hash >>> 24 ) );
                     checksum.update( (byte) ( hash >>> 16 ) );
                     checksum.update( (byte) ( hash >>>  8 ) );
