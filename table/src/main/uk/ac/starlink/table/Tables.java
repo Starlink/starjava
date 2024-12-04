@@ -411,33 +411,33 @@ public class Tables {
      */
     public static int checksumData( StarTable table ) throws IOException {
         Checksum checksum = new Adler32();
-        try ( RowSequence rseq = table.getRowSequence() ) {
-            checksumData( rseq, checksum );
-        }
+        checksumData( table, checksum );
         return (int) checksum.getValue();
     }
 
     /**
      * Feeds the data from a row sequence to a supplied checksum accumulator.
      *
-     * @param  rseq  row sequence containing data
+     * @param  table  table containing data
      * @param  checksum   checksum accumulator
      * @return   number of rows checksummed
      *           (note this is <em>not</em> the checksum value)
      */
-    public static long checksumData( RowSequence rseq, Checksum checksum )
+    public static long checksumData( StarTable table, Checksum checksum )
             throws IOException {
         long lrow = 0;
-        while ( rseq.next() ) {
-            Object[] row = rseq.getRow();
-            for ( Object cell : row ) {
-                int hash = isBlank( cell ) ? -654321 : cell.hashCode();
-                checksum.update( (byte) ( hash >>> 24 ) );
-                checksum.update( (byte) ( hash >>> 16 ) );
-                checksum.update( (byte) ( hash >>>  8 ) );
-                checksum.update( (byte) ( hash >>>  0 ) );
+        try ( RowSequence rseq = table.getRowSequence() ) {
+            while ( rseq.next() ) {
+                Object[] row = rseq.getRow();
+                for ( Object cell : row ) {
+                    int hash = isBlank( cell ) ? -654321 : cell.hashCode();
+                    checksum.update( (byte) ( hash >>> 24 ) );
+                    checksum.update( (byte) ( hash >>> 16 ) );
+                    checksum.update( (byte) ( hash >>>  8 ) );
+                    checksum.update( (byte) ( hash >>>  0 ) );
+                }
+                lrow++;
             }
-            lrow++;
         }
         return lrow;
     }

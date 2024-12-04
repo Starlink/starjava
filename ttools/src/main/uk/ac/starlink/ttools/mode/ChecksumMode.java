@@ -54,8 +54,7 @@ public class ChecksumMode implements ProcessingMode {
             public void consume( StarTable table ) throws IOException {
                 Checksum checksum = checksumFactory_.get();
                 int ncol = table.getColumnCount();
-                long nrow =
-                    Tables.checksumData( table.getRowSequence(), checksum );
+                long nrow = Tables.checksumData( table, checksum );
                 long checkValue = checksum.getValue();
                 out.println( "Checksum: " + Long.toHexString( checkValue )
                            + " \tNcol: " + ncol + " \tNrow: " + nrow );
