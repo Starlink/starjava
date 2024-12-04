@@ -273,10 +273,14 @@ public class Tables {
         long lrow = 0L;
         RowAccess racc = isRandom ? table.getRowAccess() : null;
         RowSplittable rsplit = table.getRowSplittable();
+        RowSequence rseq2 = table.getRowSequence();
         while ( rseq.next() ) {
+            boolean isEven = lrow % 2 == 0;
             assertTrue( rsplit.next() );
+            assertTrue( rseq2.next() );
             Object[] row = rseq.getRow();
             Object[] rowSplit = rsplit.getRow(); 
+            Object[] row2 = isEven ? rseq2.getRow() : null;
             for ( int icol = 0; icol < ncol; icol++ ) {
 
                 /* Check that elements got in different ways look the same. */
@@ -287,6 +291,7 @@ public class Tables {
                 Object val4 = null;
                 Object val5 = rowSplit[ icol ];
                 Object val6 = rsplit.getCell( icol );
+                Object val7 = isEven ? row2[ icol ] : null;
                 if ( isRandom ) {
                     val3 = table.getCell( lrow, icol );
                     racc.setRowIndex( lrow );
@@ -302,6 +307,9 @@ public class Tables {
                         assertTrue( val3 == null );
                         assertTrue( val4 == null );
                     }
+                    if ( isEven ) {
+                        assertTrue( val7 == null );
+                    }
                 }
                 else {
                     ColumnInfo cinfo = colinfos[ icol ];
@@ -313,11 +321,16 @@ public class Tables {
                     assertTrue( s1.equals( cinfo
                                           .formatValue( val6, formatChars ) ) );
                     if ( isRandom ) {
-                        assertTrue( s1.equals( colinfos[ icol ]
+                        assertTrue( s1.equals( cinfo
                                               .formatValue( val3,
                                                             formatChars ) ) );
-                        assertTrue( s1.equals( colinfos[ icol ]
+                        assertTrue( s1.equals( cinfo
                                               .formatValue( val4,
+                                                            formatChars ) ) );
+                    }
+                    if ( isEven ) {
+                        assertTrue( s1.equals( cinfo
+                                              .formatValue( val7,
                                                             formatChars ) ) );
                     }
                 }
