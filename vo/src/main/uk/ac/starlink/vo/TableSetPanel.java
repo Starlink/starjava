@@ -20,6 +20,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -917,7 +918,7 @@ public class TableSetPanel extends JPanel {
         ColumnMeta[] oldCols = selectedColumns_;
 
         /* Get a list of all the columns in the current selection. */
-        Collection<ColumnMeta> curSet = new HashSet<ColumnMeta>();
+        Collection<ColumnMeta> curSet = new LinkedHashSet<ColumnMeta>();
         ListSelectionModel selModel = colTable_.getSelectionModel();
         if ( ! selModel.isSelectionEmpty() ) {
             ColumnMeta[] colmetas = colTableModel_.getItems();

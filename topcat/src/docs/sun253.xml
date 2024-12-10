@@ -34023,6 +34023,9 @@ introduced since the last version:
         <ref id="HistogramPlotWindow">Histogram Plot</ref>.</li>
     <li>Fix some significant parquet I/O bugs related to
         array-valued columns.</li>
+    <li>Retain column ordering when selecting multiple columns
+        at once for the <label>Insert Columns</label> action in the
+        <ref id="TapTableLoadDialog_query_text">TAP window</ref>.</li>
     </ul>
     </p></dd>
 
