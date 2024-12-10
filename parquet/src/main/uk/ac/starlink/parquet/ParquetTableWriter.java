@@ -227,7 +227,8 @@ public class ParquetTableWriter
         doc = "<p>If true, rich metadata for the table will be written out\n"
             + "in the form of a DATA-less VOTable that is stored in the\n"
             + "parquet extra metadata key-value list under the key\n"
-            + "<code>" + ParquetStarTable.VOTMETA_KEY + "</code>.\n"
+            + "<code>" + ParquetStarTable.VOTMETA_KEY + "</code>,\n"
+            + "according to the experimental \"VOParquet\" convention.\n"
             + "This enables items such as Units, UCDs and column descriptions, "
             + "that would otherwise be lost in the serialization,\n"
             + "to be stored in the output parquet file.\n"
@@ -241,6 +242,7 @@ public class ParquetTableWriter
 
     /**
      * Returns the flag that indicates storing metadata in a dummy VOTable.
+     * See the VOParquet convention.
      *
      * @return  if true, rich metadata will be stored as VOTable text
      */

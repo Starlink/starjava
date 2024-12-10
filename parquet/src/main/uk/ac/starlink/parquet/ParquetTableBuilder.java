@@ -21,6 +21,7 @@ import uk.ac.starlink.table.formats.DocumentedTableBuilder;
 import uk.ac.starlink.table.storage.AdaptiveByteStore;
 import uk.ac.starlink.table.storage.MonitorStoragePolicy;
 import uk.ac.starlink.util.ConfigMethod;
+import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.votable.TableElement;
@@ -87,7 +88,8 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
             "</p>",
             "<p>Parquet files typically do not contain rich metadata",
             "such as column units, descriptions, UCDs etc.",
-            "This reader supports an experimental convention to remedy that,",
+            "To remedy that, this reader supports the experimental",
+            "\"VOParquet\" convention,",
             "in which metadata is recorded in a DATA-less VOTable",
             "stored in the parquet file header.",
             "If such metadata is present it will by default be used,",
@@ -126,13 +128,15 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
             }
         }
 
-        /* Otherwise try to decorate it with VOTable metadata. */
+        /* Otherwise try to decorate it with VOTable metadata,
+         * according to VOParquet convention. */
         else {
             String failMsg;
             try {
-                TableElement tabEl = readTableElement( votmetaTxt );
+                TableElement tabEl = readVOParquetTableElement( votmetaTxt );
                 if ( tabEl == null ) {
-                    failMsg = "No TABLE element found in VOTable metadata";
+                    failMsg =
+                        "No suitable TABLE element found in VOTable metadata";
                 }
                 else {
                     try {
@@ -287,7 +291,8 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
         doc = "<p>If true, the content of the parquet extra metadata\n"
             + "key-value list item with key\n"
             + "<code>" + ParquetStarTable.VOTMETA_KEY + "</code>\n"
-            + "will be read to supply the metadata for the input table.\n"
+            + "will be read to supply the metadata for the input table,\n"
+            + "following the experimental \"VOParquet\" convention.\n"
             + "If false, any such VOTable metadata is ignored.\n"
             + "If set null, the default, then such VOTable metadata\n"
             + "will be used only if it is present and apparently consistent\n"
@@ -351,13 +356,16 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
     }
 
     /**
-     * Locates a TABLE element in a string containing VOTable XML content.
+     * Locates the first TABLE element in a string
+     * containing VOTable XML content.
+     * It is supposed to be DATA-less; if it has a DATA child a warning
+     * is logged but it gets returned anyway.
      *
      * @param  votTxt  VOTable document content
      * @return   the first TABLE element encountered
      * @throws  IOException  in case of trouble or if it can't be done
      */
-    private static TableElement readTableElement( String votTxt )
+    private static TableElement readVOParquetTableElement( String votTxt )
             throws IOException {
         VOElementFactory vofact = new VOElementFactory();
         final DOMSource domsrc;
@@ -373,10 +381,17 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
         VOElement topel = (VOElement) doc.getDocumentElement();
         NodeList tlist = topel.getElementsByVOTagName( "TABLE" );
         if ( tlist.getLength() > 0 ) {
-            return (TableElement) tlist.item( 0 );
+            TableElement tableEl = (TableElement) tlist.item( 0 );
+            if ( DOMUtils.getChildElementByName( tableEl, "DATA" ) != null ) {
+                String msg = "VOParquet: first TABLE element has illegal "
+                           + "DATA child (using it anyway)";
+                logger_.warning( msg );
+            }
+            return tableEl;
         }
         else {
-            throw new TableFormatException( "No TABLE element found" );
+            throw new TableFormatException( "VOParquet: "
+                                          + "no suitable TABLE element found" );
         }
     }
 
