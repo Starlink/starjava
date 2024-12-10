@@ -113,7 +113,7 @@
           <xsl:if test="name(.)='abstract'">
             <h2>Abstract</h2>
           </xsl:if>
-          <xsl:apply-templates select="subhead|p|px|figure"/>
+          <xsl:apply-templates select="subhead|p|px|figure|subdiv"/>
           <xsl:if test="&file.elements;">
             <ul>
               <xsl:apply-templates mode="toc" select="&file.elements;"/>

@@ -34026,6 +34026,9 @@ introduced since the last version:
     <li>Retain column ordering when selecting multiple columns
         at once for the <label>Insert Columns</label> action in the
         <ref id="TapTableLoadDialog_query_text">TAP window</ref>.</li>
+    <li>Restore a lot of content (boxed items) that had gone missing
+        from the documentation available from the
+        <ref id="HelpWindow">Help Window</ref>.</li>
     </ul>
     </p></dd>
 
