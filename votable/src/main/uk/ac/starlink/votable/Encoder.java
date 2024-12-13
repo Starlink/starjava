@@ -41,7 +41,7 @@ abstract class Encoder {
      *
      * @param  value  an object of the type handled by this encoder
      * @return  text representing the value suitable for inclusion in
-     *          an XML attribute value or CDATA element
+     *          an XML attribute value or CDATA element, not null
      */
     abstract public String encodeAsText( Object value );
 
@@ -727,7 +727,7 @@ abstract class Encoder {
                         return sbuf.toString();
                     }
                     else {
-                        return null;
+                        return "";
                     }
                 }
 
