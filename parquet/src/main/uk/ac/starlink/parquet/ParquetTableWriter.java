@@ -27,6 +27,7 @@ public class ParquetTableWriter
 
     public ParquetTableWriter() {
         groupArray_ = true;
+        votMeta_ = true;
     }
 
     public String getFormatName() {
@@ -223,7 +224,7 @@ public class ParquetTableWriter
      */
     @ConfigMethod(
         property = "votmeta",
-        example = "true",
+        example = "false",
         doc = "<p>If true, rich metadata for the table will be written out\n"
             + "in the form of a DATA-less VOTable that is stored in the\n"
             + "parquet extra metadata key-value list under the key\n"
