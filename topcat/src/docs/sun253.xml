@@ -217,6 +217,7 @@
   <!ENTITY FIG.mode_aux '&figs;mode_aux.png'>
   <!ENTITY FIG.mode_weighted '&figs;mode_weighted.png'>
   <!ENTITY FIG.mode_paux '&figs;mode_paux.png'>
+  <!ENTITY FIG.mode_pweighted '&figs;mode_pweighted.png'>
   <!ENTITY FIG.form_mark '&figs;form_mark.png'>
   <!ENTITY FIG.form_size '&figs;form_size.png'>
   <!ENTITY FIG.form_sizexy '&figs;form_sizexy.png'>
@@ -387,6 +388,7 @@
   <!ENTITY FIG.plot2-shading-aux '&figs;plot2-shading-aux.png'>
   <!ENTITY FIG.plot2-shading-weighted '&figs;plot2-shading-weighted.png'>
   <!ENTITY FIG.plot2-shading-paux '&figs;plot2-shading-paux.png'>
+  <!ENTITY FIG.plot2-shading-pweighted '&figs;plot2-shading-pweighted.png'>
   <!ENTITY FIG.colormaps-abs '&figs;colormaps-abs.svg'>
   <!ENTITY FIG.colormaps-noabs '&figs;colormaps-noabs.svg'>
 
@@ -14607,7 +14609,8 @@ layers will be completely obscured.
 
 <p>The <label>Weighted</label> shading mode (&IMG.MODE_WEIGHT;)
 paints markers using colours indicating density at each pixel like
-the Density mode, but with an optional weighting coordinate.
+the Density mode, but with an optional weighting coordinate,
+using a colour map shared with other layers in the plot.
 You can configure how the weighted coordinates are combined
 at each pixel to give the final weighted result.
 Depending on the configuration and actual point density,
@@ -14792,6 +14795,135 @@ For PostScript, transparent points are rendered as opaque.
 You can use <label>Force Bitmap</label> with PostScript which
 will get transparency right for this layer, but then any earlier
 layers will be completely obscured.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="mode-pweighted">
+<subhead><title>PWeighted Mode</title></subhead>
+
+<figure>
+<caption><px>Example PWeighted shading mode plot</px></caption>
+<figureimage src="&FIG.plot2-shading-pweighted;"/>
+</figure>
+
+<figure>
+<caption><px>PWeighted mode selection</px></caption>
+<figureimage src="&FIG.mode_pweighted;"/>
+</figure>
+
+<p>The <label>PWeighted</label> (private-weighted) shading mode
+(&IMG.MODE_PWEIGHT;)
+paints markers using colour indicating weighted density at each pixel,
+using a private colour map.
+</p>
+
+<p>This mode is like <ref id="mode-weighted">Weighted</ref> mode,
+except that the colour map is not shared with other layers,
+and the colour ramp is not displayed.
+So, by using this mode alongside
+<ref id="mode-aux">Aux</ref> or <label>Weighted</label> modes
+you can make a plot that uses multiple different colour maps,
+though only one can have an associated visible ramp.
+</p>
+
+<p>The options are:
+<dl>
+<dt>Weight</dt>
+<dd><p>The weight value applied to each plotted point.
+    Fill this in with a column name or expression from the table
+    just like for a positional coordinate.
+    The exact way this quantity is used depends on the setting of the
+    <label>Combine</label> control below.
+    If it's left blank, the weighting is considered to be unity
+    (all values are 1); this makes sense for some combination types
+    (e.g. sum) but not others (e.g. mean).
+    </p></dd>
+<dt>Combine</dt>
+<dd><p>Determines how the weight values associated with markers
+    plotted covering a given screen pixel are combined
+    to produce the numeric value used for that pixel's colour.
+    </p>
+    <p>
+    The following options (some are more useful than others)
+    are currently available:
+    <ul>
+    <li><code>sum</code>: the sum of all weights</li>
+    <li><code>mean</code>: the mean of all weights</li>
+    <li><code>median</code>: the median of all weights (may be slow)</li>
+    <li><code>q1</code>: the first quartile of all weights (may be slow)</li>
+    <li><code>q3</code>: the third quartile of all weights (may be slow)</li>
+    <li><code>min</code>: the minimum weight</li>
+    <li><code>max</code>: the maximum weight</li>
+    <li><code>stdev</code>: the sample standard deviation of all weights</li>
+    <li><code>count</code>: the number of points plotted
+        (weight value is ignored, this is like Density mode)</li>
+    <li><code>hit</code>: one if any point is plotted, blank otherwise
+        (weight value is ignored, this is like Flat mode)</li>
+    </ul>
+    </p></dd>
+<dt>Shader</dt>
+<dd><p>The colour map for displaying density values.
+    There are two types, relative and absolute.
+    Relative maps have names marked by a star ("*"), and alter the
+    basic dataset colour, for instance by darkening or lightening it,
+    while absolute maps (the rest) ignore the basic dataset colour altogether.
+    For a single-dataset plot, the absolute maps are best, but for
+    multiple subsets it may be less confusing to use a relative one.
+    Colour maps are listed in <ref id="Shaders"/>.
+    </p></dd>
+<dt>Shader Clip</dt>
+<dd><p>Select a sub-range of the full colour map above.
+    If the <label>Default</label> checkbox is checked, then all or most
+    of the colour ramp from the <label>Shader</label> control is used.
+    If you want to configure the range of colours from the map yourself,
+    uncheck the Default checkbox, and slide the handles in from the end
+    of the slider to choose exactly the range you want.
+    The default range is clipped at one end for colour maps that fade
+    to white, so that all the plotted colours will be distinguishable
+    against a white background.
+    If you don't want that, you can
+    uncheck Default and leave the handles at the extreme ends of the slider.
+    </p></dd>
+<dt>Shader Flip</dt>
+<dd><p>Whether the density scale should map forwards or backwards
+    into the colour map.
+    </p></dd>
+<dt>Shader Quantise</dt>
+<dd><p>Allows the colour map to be quantised.
+    By default, the colour map is effectively continuous.
+    If you slide the slider to the right,
+    or enter a value in the text field,
+    the map will be split into
+    a decreasing number of discrete colours.  This can be used to generate
+    a contour-like effect, and may make it easier to trace the boundaries
+    of regions of interest by eye.
+    </p></dd>
+<dt>Aux Subrange</dt>
+<dd><p>Adjusts the density range over which the colour
+    map is applied.  By default the colour map is scaled using limits
+    found from the aux coordinate in the plot,
+    but you can restrict the range using this slider.
+    </p></dd>
+<dt>Scaling</dt>
+<dd><p>Determines the function used to map the range of aux coordinate values
+    onto the colour map.
+    Options are <label>linear</label>,
+                <label>logarithmic</label>,
+                <label>histogram</label>,
+                <label>logarithmic histogram</label>,
+                <label>square</label> and
+                <label>square root</label>,
+                <label>arc cosine</label>,
+                <label>cosine</label>.
+    </p></dd>
+</dl>
+</p>
+
+<p><strong>Exporting:</strong>
+When exported to vector formats, the output is automatically forced to a
+bitmap for PWeighted-mode layers.
+In the case of PostScript, this completely obscures any previous layers.
 </p>
 
 </subsubsubsect>
@@ -34178,6 +34310,8 @@ introduced since the last version:
         <ref id="CubeAxisControl_coords">Cube Axis Control</ref>.</li>
     <li>Add new Private Auxiliary plot shading mode
         <ref id="mode-paux">PAux</ref>.</li>
+    <li>Add new Private Weighted plot shading mode
+        <ref id="mode-pweighted">PWeighted</ref>.</li>
     </ul>
     </p></dd>
 

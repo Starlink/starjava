@@ -15755,6 +15755,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         option to <code>plot2cube</code>.</li>
     <li>Add new Private Auxiliary plot shading mode
         <ref id="shading-paux"><code>paux</code></ref>.</li>
+    <li>Add new Private Weighted plot shading mode
+        <ref id="shading-pweighted"><code>pweighted</code></ref>.</li>
     </ul>
     </p></dd>
 

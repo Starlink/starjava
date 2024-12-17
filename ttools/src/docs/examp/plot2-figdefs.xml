@@ -54,6 +54,7 @@
   <!ENTITY FIG.plot2-shading-aux 'plot2-shading-aux.png'>
   <!ENTITY FIG.plot2-shading-weighted 'plot2-shading-weighted.png'>
   <!ENTITY FIG.plot2-shading-paux 'plot2-shading-paux.png'>
+  <!ENTITY FIG.plot2-shading-pweighted 'plot2-shading-pweighted.png'>
   <!ENTITY FIG.plot2-skysim 'plot2-skysim.png'>
   <!ENTITY FIG.plot2-clifford 'plot2-clifford.png'>
   <!ENTITY FIG.plot2-rampe 'plot2-rampe.png'>

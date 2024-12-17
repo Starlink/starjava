@@ -124,11 +124,15 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     /** Aux variable colouring mode with global colour map. */
     public static final ShapeMode AUX = new AuxShadingMode( true, false );
 
-    /** Weighted density mode. */
+    /** Weighted density mode with global colour map. */
     public static final ShapeMode WEIGHTED = new WeightedDensityMode( false );
 
     /* Aux mode with private colour map. */
     public static final ShapeMode AUX_PRIVATE = new PrivateAuxMode( true );
+
+    /* Weighted mode with private colour map. */
+    public static final ShapeMode WEIGHTED_PRIVATE =
+        new WeightedDensityMode( true );
 
     /** Flat RGB mode. */
     // For now this is not offered as one of the shading modes for 2D or 3D
@@ -146,6 +150,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         AUX,
         WEIGHTED,
         AUX_PRIVATE,
+        WEIGHTED_PRIVATE,
     };
 
     /** List of modes suitable for use with 3D plotting. */
@@ -157,6 +162,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         AUX,
         WEIGHTED,
         AUX_PRIVATE,
+        WEIGHTED_PRIVATE,
     };
 
     /** Report key for pixel X dimension in data coordinates. */
@@ -1583,11 +1589,11 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      */
     private static class WeightedDensityMode extends ShapeMode {
 
-        private final boolean reportAuxKeys_;
+        private final boolean isPrivate_;
 
-        private static final AuxScale SCALE = AuxScale.COLOR;
-        private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
-        private static final ConfigKey<Combiner> COMBINER_KEY =
+        private final AuxScale scale_;
+        private final RampKeySet rampKeys_;
+        private final ConfigKey<Combiner> COMBINER_KEY =
             createWeightCombinerKey();
         private static final FloatingCoord WEIGHT_COORD =
             FloatingCoord.createCoord(
@@ -1599,27 +1605,33 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         /**
          * Constructor.
          *
-         * <p>The reportAuxKeys flag ought normally to be false, since
-         * the same global aux colour ramp should be used for all layers,
-         * as only one ramp will be drawn on the axes.
-         * But in principle you could have different maps for different layers.
-         *
-         * @param   reportAuxKeys  if true, report global aux ramp config keys
+         * @param  isPrivate  if true, colour map is private to this layer;
+         *                    if false, colour map is AuxScale.COLOR shared
+         *                    between layers
          */
-        WeightedDensityMode( boolean reportAuxKeys ) {
-            super( "weighted", ResourceIcon.MODE_WEIGHT,
+        WeightedDensityMode( boolean isPrivate ) {
+            super( isPrivate ? "pweighted" : "weighted",
+                   isPrivate ? ResourceIcon.MODE_PWEIGHT
+                             : ResourceIcon.MODE_WEIGHT,
                    new Coord[] { WEIGHT_COORD }, true );
-            reportAuxKeys_ = reportAuxKeys;
+            isPrivate_ = isPrivate;
+            scale_ = isPrivate ? new AuxScale( "PWeight" ) : AuxScale.COLOR;
+            rampKeys_ = isPrivate ? StyleKeys.AUXLOCAL_RAMP
+                                  : StyleKeys.AUX_RAMP;
         }
 
         public String getModeDescription() {
             StringBuffer sbuf = new StringBuffer()
                 .append( "<p>Paints markers like the Density mode,\n" )
                 .append( "but with optional weighting by an additional\n" )
-                .append( "coordinate.\n" )
+                .append( "coordinate;\n" )
+                .append( "the colour map is\n" )
+                .append( isPrivate_ ? "private to this layer"
+                                    : "shared between layers" )
+                .append( ".\n" )
                 .append( "You can configure how the weighted coordinates\n" )
                 .append( "are combined to give the final weighted result.\n" );
-            if ( reportAuxKeys_ ) {
+            if ( isPrivate_ ) {
                 sbuf.append( "There are additional options to adjust\n" )
                     .append( "the way data values are mapped to colours.\n" );
             }
@@ -1630,22 +1642,37 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     .append( "rather than by per-layer configuration.\n" );
             }
             sbuf.append( "</p>\n" );
+            if ( isPrivate_ ) {
+                sbuf.append( "<p>This resembles\n" )
+                    .append( "<ref id='shading-weighted'><code>weighted</code>"
+                                 + "</ref> mode,\n" )
+                    .append( "but the colour map is not shared with other\n" )
+                    .append( "layers, and the colour ramp is not displayed.\n" )
+                    .append( "So by using this mode alongside\n" )
+                    .append( "<code>weighted</code> or\n" )
+                    .append( "<ref id='shading-aux'><code>aux</code></ref>\n" )
+                    .append( "you can make a plot that uses multiple\n" )
+                    .append( "different colour maps,\n" )
+                    .append( "though only one can have\n" )
+                    .append( "an associated visible ramp.\n" )
+                    .append( "</p>\n" );
+            }
             return sbuf.toString();
         }
 
         public ConfigKey<?>[] getConfigKeys() {
-            List<ConfigKey<?>> keyList = new ArrayList<ConfigKey<?>>();
+            List<ConfigKey<?>> keyList = new ArrayList<>();
             keyList.add( StyleKeys.COLOR );
             keyList.add( COMBINER_KEY );
-            if ( reportAuxKeys_ ) {
-                keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
+            if ( isPrivate_ ) {
+                keyList.addAll( Arrays.asList( rampKeys_.getKeys() ) );
             }
             return keyList.toArray( new ConfigKey<?>[ 0 ] );
         }
 
         public Stamper createStamper( ConfigMap config ) {
             Color baseColor = config.get( StyleKeys.COLOR );
-            RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
+            RampKeySet.Ramp ramp = rampKeys_.createValue( config );
             Shader baseShader = ramp.getShader();
             Shader shader =
                 Shaders.applyShader( baseShader, baseColor, COLOR_MAP_SIZE );
@@ -1659,7 +1686,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                                       DataGeom geom, DataSpec dataSpec,
                                       Outliner outliner, Stamper stamper ) {
             return new WeightLayer( plotter, geom, dataSpec, outliner,
-                                    (WeightStamper) stamper );
+                                    (WeightStamper) stamper, isPrivate_,
+                                    scale_ );
         }
 
         /**
@@ -1693,7 +1721,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              * Although we could come up with a physical bin size in some
              * cases (2d, linear axes), it can't really be done in others
              * (logarithmic axes, and especially 3d). */
-            List<Combiner> optionList = new ArrayList<Combiner>();
+            List<Combiner> optionList = new ArrayList<>();
             for ( Combiner c : Combiner.getKnownCombiners() ) {
                 if ( ! Combiner.Type.DENSITY.equals( c.getType() ) ) {
                     optionList.add( c );
@@ -1721,6 +1749,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             private final Outliner outliner_;
             private final WeightStamper wstamper_;
             private final int icWeight_;
+            private final boolean isPrivate_;
+            private final AuxScale scale_;
+            private final AuxReader scaleReader_;
 
             /**
              * Constructor.
@@ -1730,38 +1761,23 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              * @param  dataSpec  data specification
              * @param  outliner  outliner
              * @param  wstamper  stamper
+             * @param  isPrivate  true for private colour map, false for shared
+             * @param  scale   aux scale used for colour values
              */
             WeightLayer( ShapePlotter plotter, DataGeom geom, DataSpec dataSpec,
-                         Outliner outliner, WeightStamper wstamper ) {
+                         Outliner outliner, WeightStamper wstamper,
+                         boolean isPrivate, AuxScale scale ) {
                 super( plotter, geom, dataSpec,
                        new ShapeStyle( outliner, wstamper ),
                        isTransparent( wstamper ) ? LayerOpt.NO_SPECIAL
                                                  : LayerOpt.OPAQUE );
                 outliner_ = outliner;
                 wstamper_ = wstamper;
+                isPrivate_ = isPrivate;
+                scale_ = scale;
                 icWeight_ = plotter.getModeCoordsIndex( geom );
                 assert dataSpec.getCoord( icWeight_ ) == WEIGHT_COORD;
-            }
-
-            /**
-             * Indicates whether BinList.Result scaling is required.
-             * This is used in assertions, and should always return false,
-             * since no density-like combiners are in use by this mode.
-             * The idea is to provide evidence in the source code that
-             * bin scaling has not been overlooked.
-             *
-             * @return  whether BinList.Result values need to be scaled;
-             *          always false
-             */
-            boolean isBinFactorRequired() {
-                return wstamper_.combiner_.getType().getBinFactor( 0.01 ) != 1.;
-            }
-
-            @Override
-            public Map<AuxScale,AuxReader> getAuxRangers() {
-                Map<AuxScale,AuxReader> map = super.getAuxRangers();
-                map.putAll( outliner_.getAuxRangers( getDataGeom() ) );
-                map.put( SCALE, new AuxReader() {
+                scaleReader_ = new AuxReader() {
                     public int getCoordIndex() {
                         return icWeight_;
                     }
@@ -1799,8 +1815,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                         final BinList.Result binResult;
                         if ( wplan == null ) {
                             // no auxSpans - have to fake it.
-                            Map<AuxScale,Span> auxSpans =
-                                new HashMap<AuxScale,Span>();
+                            Map<AuxScale,Span> auxSpans = new HashMap<>();
                             binResult = readBinList( surface, dataSpec,
                                                      dataStore, auxSpans )
                                        .getResult();
@@ -1812,10 +1827,34 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                         for ( Iterator<Long> it = binResult.indexIterator();
                               it.hasNext(); ) {
                             long ibin = it.next().longValue();
-                            ranger.submitDatum( binResult.getBinValue( ibin ) );
+                            ranger.submitDatum( binResult
+                                               .getBinValue( ibin ) );
                         }
                     }
-                } );
+                };
+            }
+
+            /**
+             * Indicates whether BinList.Result scaling is required.
+             * This is used in assertions, and should always return false,
+             * since no density-like combiners are in use by this mode.
+             * The idea is to provide evidence in the source code that
+             * bin scaling has not been overlooked.
+             *
+             * @return  whether BinList.Result values need to be scaled;
+             *          always false
+             */
+            boolean isBinFactorRequired() {
+                return wstamper_.combiner_.getType().getBinFactor( 0.01 ) != 1.;
+            }
+
+            @Override
+            public Map<AuxScale,AuxReader> getAuxRangers() {
+                Map<AuxScale,AuxReader> map = super.getAuxRangers();
+                map.putAll( outliner_.getAuxRangers( getDataGeom() ) );
+                if ( ! isPrivate_ ) {
+                    map.put( scale_, scaleReader_ );
+                }
                 return map;
             }
 
@@ -1904,9 +1943,23 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                         BinList.Result binResult =
                             binList.getResult().compact();
                         DataGeom geom = getDataGeom();
+                        Scaling scaling = wstamper_.scaling_;
+                        final Span auxSpan;
+                        if ( isPrivate_ ) {
+                            Ranger ranger =
+                                Scalings
+                               .createRanger( new Scaling[] { scaling } );
+                            scaleReader_.adjustAuxRange( surface_, dataSpec,
+                                                         dataStore, knownPlans,
+                                                         ranger );
+                            auxSpan = ranger.createSpan();
+                        }
+                        else {
+                            auxSpan = null;
+                        }
                         return new WeightPlan( nbin, combiner, binResult,
                                                surface_, geom, dataSpec,
-                                               outliner_ );
+                                               outliner_, scaling, auxSpan );
                     }
                 }
 
@@ -1915,9 +1968,11 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     WeightPlan wplan = (WeightPlan) plan;
                     final int nbin = wplan.nbin_;
                     final BinList.Result binResult = wplan.binResult_;
+                    final Span auxSpan = isPrivate_ ? wplan.span_
+                                                    : auxSpans_.get( scale_ );
                     paperType_.placeDecal( paper, new Decal() {
                         public void paintDecal( Graphics g ) {
-                            paintBins( g, nbin, binResult );
+                            paintBins( g, nbin, binResult, auxSpan );
                         }
                         public boolean isOpaque() {
                             return ! isTransparent( wstamper_ );
@@ -1945,10 +2000,11 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                  * @param   g  graphics context
                  * @param   nbin  number of (potential) bins
                  * @param   binResult  bin values
+                 * @param   auxSpan   span of shading values
                  */
                 private void paintBins( Graphics g, int nbin,
-                                        BinList.Result binResult ) {
-                    Span auxSpan = auxSpans_.get( SCALE );
+                                        BinList.Result binResult,
+                                        Span auxSpan ) {
                     if ( auxSpan == null ) {
                         auxSpan = PlotUtil.EMPTY_SPAN;
                     }
@@ -2014,7 +2070,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     if ( plan instanceof WeightPlan ) {
                         WeightPlan wplan = (WeightPlan) plan;
                         if ( wplan.matches( wstamper_.combiner_, surface,
-                                            geom, dataSpec, outliner_ ) ) {
+                                            geom, dataSpec, outliner_,
+                                            wstamper_.scaling_, isPrivate_ ) ) {
                             return wplan;
                         }
                     }
@@ -2035,6 +2092,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             final DataGeom geom_;
             final DataSpec dataSpec_;
             final Outliner outliner_;
+            final Scaling scaling_;
+            final Span span_;
 
             /**
              * Constructor.
@@ -2046,10 +2105,12 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              * @param  geom     geom
              * @param  dataSpec   data specification
              * @param  outliner   defines shape of plotted points
+             * @param  scaling   scaling
+             * @param  span   aux span, non-null only for private colour map
              */
             WeightPlan( int nbin, Combiner combiner, BinList.Result binResult,
                         Surface surface, DataGeom geom, DataSpec dataSpec,
-                        Outliner outliner ) {
+                        Outliner outliner, Scaling scaling, Span span ) {
                 nbin_ = nbin;
                 combiner_ = combiner;
                 binResult_ = binResult;
@@ -2057,6 +2118,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 geom_ = geom;
                 dataSpec_ = dataSpec;
                 outliner_ = outliner;
+                scaling_ = scaling;
+                span_ = span;
             }
 
             /**
@@ -2068,16 +2131,21 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              * @param  geom     geom
              * @param  dataSpec   data specification
              * @param  outliner   defines shape of plotted points
+             * @param  scaling   scaling
+             * @param  span   aux span, only relevant for private colour map
              * @return  true iff this plan's data matches the requirements
              */
             public boolean matches( Combiner combiner, Surface surface,
                                     DataGeom geom, DataSpec dataSpec,
-                                    Outliner outliner ) {
+                                    Outliner outliner, Scaling scaling,
+                                    boolean isPrivate ) {
                 return combiner.equals( combiner_ )
                     && surface.equals( surface_ )
                     && PlotUtil.equals( geom, geom_ )
                     && dataSpec.equals( dataSpec_ )
-                    && outliner.equals( outliner_ );
+                    && outliner.equals( outliner_ )
+                    && scaling.equals( scaling_ )
+                    && ( span_ != null || !isPrivate );
             }
         }
 

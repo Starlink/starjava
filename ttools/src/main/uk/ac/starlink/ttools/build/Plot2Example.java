@@ -1745,6 +1745,15 @@ public class Plot2Example {
                 "leglabel1=QSO", "leglabel2=background", "legpos=.97,.97",
                 "seq=2,1",
             } ),
+            createShadingExample( "pweighted", c, new String[] {
+                "*weight1=z", "*pmap1=sunset", null,
+                "layer2=mark", "in2=:skysim:1_000_000", null,
+                "x2=gmag-rmag", "y2=b_r", null,
+                "shading2=weighted", "weight2=abs(b)",
+                "auxmap=pubu", "auxfunc=histogram",  null,
+                "leglabel1=QSO", "leglabel2=background", "legpos=.97,.97",
+                "seq=2,1",
+            } ),
             new Plot2Example( "skysim", c, PlotTask.SKY, new String[] {
                 "xpix=700", "ypix=600",
                 "datasys=equatorial", "viewsys=galactic", "layer1=mark", null,
