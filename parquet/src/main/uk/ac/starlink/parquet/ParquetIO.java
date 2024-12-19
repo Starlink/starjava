@@ -34,7 +34,7 @@ import uk.ac.starlink.votable.VOTableVersion;
  * @author   Mark Taylor
  * @since    9 Apr 2021
  */
-class ParquetIO {
+public class ParquetIO {
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.parquet" );
