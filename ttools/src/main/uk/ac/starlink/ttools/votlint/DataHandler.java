@@ -17,6 +17,7 @@ public class DataHandler extends ElementHandler {
          * elements which actually need to do the encoding. */
         TableHandler table = getAncestry().getAncestor( TableHandler.class );
         if ( table != null ) {
+            table.foundData();
             fields_ = table.getFields().toArray( new FieldHandler[ 0 ] );
             if ( fields_.length == 0 ) {
                 error( new VotLintCode( "ZCL" ),

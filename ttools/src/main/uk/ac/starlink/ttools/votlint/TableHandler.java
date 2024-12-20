@@ -13,14 +13,18 @@ public class TableHandler extends ElementHandler {
 
     private long nrowsSpecified_ = -1L;
     private long nrowsSeen_ = 0L;
+    private boolean dataSeen_;
     private List<FieldHandler> fields_ = new ArrayList<FieldHandler>();
 
     public void endElement() {
 
         /* If we had an nrows attribute, make sure it agrees with the
-         * number of rows that were present. */
+         * number of rows that were present.
+         * Don't do this check if the table is DATA-less, since it may be
+         * a metadata-only table decorating data in a different format
+         * such as FITS-plus. */
         if ( nrowsSpecified_ >= 0 ) {
-            if ( nrowsSeen_ != nrowsSpecified_ ) {
+            if ( dataSeen_ && nrowsSeen_ != nrowsSpecified_ ) {
                 error( new VotLintCode( "NRM" ),
                        "Row count (" + nrowsSeen_ + ") not equal to " +
                        "nrows attribute (" + nrowsSpecified_ +")" );
@@ -34,6 +38,13 @@ public class TableHandler extends ElementHandler {
      */
     public void foundRow() {
         nrowsSeen_++;
+    }
+
+    /**
+     * Called to register that a DATA child of this element has been seen.
+     */
+    public void foundData() {
+        dataSeen_ = true;
     }
 
     /**
