@@ -12,6 +12,7 @@ import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableFormatException;
@@ -24,6 +25,7 @@ import uk.ac.starlink.util.ConfigMethod;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.util.IntList;
 import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.votable.VODocument;
 import uk.ac.starlink.votable.VOElement;
@@ -114,61 +116,19 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
         }
         ParquetIO io = ParquetUtil.getIO();
         boolean useCache = useCache( datsrc, wantRandom, storage );
+
+        /* We have to include unsupported columns in the first instance
+         * so we can compare parquet and VOTable columns when (maybe)
+         * trying to apply VOTable metadata.  Once that's done,
+         * eliminate the unsupported columns before returning the result. */
         ParquetStarTable.Config config = new ParquetStarTable.Config() {
+            public boolean includeUnsupportedColumns() {
+                return true;
+            }
         };
         ParquetStarTable parquetTable =
             io.readParquet( datsrc, this, config, useCache, tryUrl_ );
-        String votmetaTxt = parquetTable.getVOTableMetadataText();
-
-        /* Return bare parquet table if appropriate. */
-        if ( votmetaTxt == null || Boolean.FALSE.equals( votMeta_ ) ) {
-            if ( Boolean.TRUE.equals( votMeta_ ) ) {
-                throw new TableFormatException( "No VOTable metadata found" );
-            }
-            else {
-                return parquetTable;
-            }
-        }
-
-        /* Otherwise try to decorate it with VOTable metadata,
-         * according to VOParquet convention. */
-        else {
-            String failMsg;
-            try {
-                TableElement tabEl = readVOParquetTableElement( votmetaTxt );
-                if ( tabEl == null ) {
-                    failMsg =
-                        "No suitable TABLE element found in VOTable metadata";
-                }
-                else {
-                    try {
-                        VOStarTable votTable =
-                            VOStarTable
-                           .createDecoratedTable( parquetTable, tabEl );
-                        return fixColumnTypes( parquetTable,  votTable );
-                    }
-                    catch ( IOException e ) {
-                        failMsg = "Cannot reconcile VOTable metadata "
-                                + "with parquet: " + e;
-                    }
-                }
-            }
-            catch ( IOException e ) {
-                failMsg = "Failed to read VOTable metadata: " + e;
-            }
-
-            /* Metadata decoration didn't work: depending on configuration,
-             * either fail, or log a warning and fall back to the
-             * bare parquet table. */
-            if ( Boolean.TRUE.equals( votMeta_ ) ) {
-                throw new TableFormatException( failMsg );
-            }
-            else {
-                assert votMeta_ == null;
-                logger_.warning( failMsg );
-                return parquetTable;
-            }
-        }
+        return hideUnsupportedColumns( applyVOTableMetadata( parquetTable ) );
     }
 
     public void streamStarTable( InputStream istrm, TableSink sink,
@@ -358,6 +318,104 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
     }
 
     /**
+     * Examines a ParquetStarTable and according to configuration
+     * decorates it with metadata from an attached VOTable file.
+     * See the VOParquet convention.
+     *
+     * @param  parquetTable  input table
+     * @return   table possibly decoraed with VOTable metadata
+     */
+    private StarTable applyVOTableMetadata( ParquetStarTable parquetTable )
+            throws TableFormatException {
+        String votmetaTxt = parquetTable.getVOTableMetadataText();
+
+        /* Return bare parquet table if appropriate. */
+        if ( votmetaTxt == null || Boolean.FALSE.equals( votMeta_ ) ) {
+            if ( Boolean.TRUE.equals( votMeta_ ) ) {
+                throw new TableFormatException( "VOParquet: "
+                                              + "No VOTable metadata found" );
+            }
+            else {
+                return parquetTable;
+            }
+        }
+
+        /* Otherwise try to decorate it with VOTable metadata,
+         * according to VOParquet convention. */
+        else {
+            String failMsg;
+            try {
+                TableElement tabEl = readVOParquetTableElement( votmetaTxt );
+                if ( tabEl == null ) {
+                    failMsg = "No suitable TABLE element found";
+                }
+                else {
+                    try {
+                        VOStarTable votTable =
+                            VOStarTable
+                           .createDecoratedTable( parquetTable, tabEl );
+                        return fixColumnTypes( parquetTable,  votTable );
+                    }
+                    catch ( IOException e ) {
+                        failMsg = "Cannot reconcile VOTable metadata "
+                                + "with parquet: " + e;
+                    }
+                }
+            }
+            catch ( IOException e ) {
+                failMsg = "Failed to read VOTable metadata: " + e;
+            }
+
+            /* Metadata decoration didn't work: depending on configuration,
+             * either fail, or log a warning and fall back to the
+             * bare parquet table. */
+            if ( Boolean.TRUE.equals( votMeta_ ) ) {
+                throw new TableFormatException( "VOParquet: " + failMsg );
+            }
+            else {
+                assert votMeta_ == null;
+                logger_.warning( "VOParquet: " + failMsg );
+                return parquetTable;
+            }
+        }
+    }
+    
+    /**
+     * Take an input table and remove any columns which have been marked
+     * by the parquet reader as unsupported.
+     *
+     * @param  table  input table
+     * @return   same or similar table, but with no unsupported columns
+     */
+    private StarTable hideUnsupportedColumns( StarTable table ) {
+        IntList icolList = new IntList();
+        for ( int icol = 0; icol < table.getColumnCount(); icol++ ) {
+            ColumnInfo cinfo = table.getColumnInfo( icol );
+            if ( Boolean.TRUE
+                .equals( cinfo
+                        .getAuxDatumValue( ParquetStarTable.UNSUPPORTED_INFO,
+                                           Boolean.class ) ) ) {
+                logger_.warning( "Ignoring parquet column with unsupported type"
+                               + ": " + cinfo.getName() );
+            }
+            else {
+                icolList.add( icol );
+            }
+        }
+        if ( icolList.size() == table.getColumnCount() ) {
+            return table;
+        }
+        else {
+            return new ColumnPermutedStarTable( table, icolList.toIntArray(),
+                                                true ) {
+                public URL getURL() {
+                    return table.getURL();
+                }
+            };
+        }
+    }
+
+    /**
      * Locates the first TABLE element in a string
      * containing VOTable XML content.
      * It is supposed to be DATA-less; if it has a DATA child a warning
@@ -435,6 +493,7 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
         for ( int ic = 0; ic < ncol; ic++ ) {
             ColumnInfo info = new ColumnInfo( vt.getColumnInfo( ic ) );
             info.setContentClass( pt.getColumnInfo( ic ).getContentClass() );
+            info.getAuxData().addAll( pt.getColumnInfo( ic ).getAuxData() );
             cinfos[ ic ] = info;
         }
 

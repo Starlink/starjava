@@ -63,6 +63,45 @@ public class InputColumns {
     }
 
     /**
+     * Returns an InputColumn instance that is unable to read any data
+     * from the parquet file, presumably because of an unsupported data type.
+     * The column has a type of String, but always returns null values.
+     *
+     * @param  cdesc  parquet column descriptor
+     * @return   dummy column
+     */
+    public static InputColumn<String>
+            createUnsupportedColumn( ColumnDescriptor cdesc ) {
+        return new InputColumn<String>() {
+            public ColumnDescriptor getColumnDescriptor() {
+                return cdesc;
+            }
+            public Class<String> getContentClass() {
+                return String.class;
+            }
+            public boolean isNullable() {
+                return true;
+            }
+            public Decoder<String> createDecoder() {
+                return new Decoder<String>() {
+                    public void clearValue() {
+                    }
+                    public Class<String> getContentClass() {
+                        return String.class;
+                    }
+                    public void readItem( ColumnReader crdr ) {
+                    }
+                    public void readNull() {
+                    }
+                    public String getValue() {
+                        return null;
+                    }
+                };
+            }
+        };
+    }
+
+    /**
      * Packages internally-generated column handling components
      * into an InputColumn for external use.
      *

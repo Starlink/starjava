@@ -2,12 +2,14 @@ package uk.ac.starlink.parquet;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.apache.parquet.column.ColumnReadStore;
+import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.column.impl.ColumnReadStoreImpl;
 import org.apache.parquet.column.page.PageReadStore;
 import org.apache.parquet.io.api.Converter;
@@ -21,6 +23,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.Bi;
 import uk.ac.starlink.util.IOSupplier;
 
 /**
@@ -49,6 +52,11 @@ public abstract class ParquetStarTable extends AbstractStarTable {
     public static final ValueInfo CREATEDBY_INFO =
         new DefaultValueInfo( "Parquet_Created_By", String.class,
                               "Parquet library source for file" );
+
+    /** Column metadata for dummy/unsupported columns. */
+    public static final ValueInfo UNSUPPORTED_INFO =
+        new DefaultValueInfo( "PARQUET_UNSUPPORTED", Boolean.class,
+                              "If set, STIL reader cannot retrieve data" );
 
     /** Extra metadata key for table name. */
     public static final String NAME_KEY = "name";
@@ -123,16 +131,32 @@ public abstract class ParquetStarTable extends AbstractStarTable {
             String cname = path[ 0 ];
             InputColumn<?> incol =
                 InputColumns.createInputColumn( schema_, path );
+            ColumnDescriptor cdesc = schema_.getColumnDescription( path );
+            final Bi<InputColumn<?>,ColumnInfo> col;
             if ( incol != null ) {
-                incols.add( incol );
                 ColumnInfo cinfo =
                     new ColumnInfo( cname, incol.getContentClass(), null );
                 cinfo.setNullable( incol.isNullable() );
-                cinfos.add( cinfo );
+                col = new Bi<InputColumn<?>,ColumnInfo>( incol, cinfo );
+            }
+            else if ( config.includeUnsupportedColumns() ) {
+                incol = InputColumns.createUnsupportedColumn( cdesc );
+                ColumnInfo cinfo =
+                    new ColumnInfo( cname, incol.getContentClass(), null );
+                cinfo.setNullable( true );
+                cinfo.setElementSize( 0 );
+                cinfo.setAuxDatum( new DescribedValue( UNSUPPORTED_INFO,
+                                                       Boolean.TRUE ) );
+                col = new Bi<InputColumn<?>,ColumnInfo>( incol, cinfo );
             }
             else {
                 logger_.warning( "Omitting unsupported Parquet column "
-                               + schema_.getColumnDescription( path ) );
+                               + cdesc );
+                col = null;
+            }
+            if ( col != null ) {
+                incols.add( col.getItem1() );
+                cinfos.add( col.getItem2() );
             }
             ic++;
         }
@@ -216,6 +240,17 @@ public abstract class ParquetStarTable extends AbstractStarTable {
      * Defines configuration options for reading parquet tables.
      */
     public interface Config {
+
+        /**
+         * Whether columns from the parquet table whose datatype is
+         * unsupported by STIL will be included (with null values)
+         * in the created ParquetStarTable, or simply ignored.
+         * If included, they will contain the {@link #UNSUPPORTED_INFO} 
+         * aux metadata item with value TRUE.
+         *
+         * @return  true to include unsupported column types, false to ignore
+         */
+        boolean includeUnsupportedColumns();
     }
 
     /**

@@ -45,6 +45,9 @@ public class ExampleTest extends TestCase {
     private void readCompressedFile( File file ) throws IOException {
         IOSupplier<ParquetFileReader> pfrSupplier = getPfrSupplier( file );
         ParquetStarTable.Config config = new ParquetStarTable.Config() {
+            public boolean includeUnsupportedColumns() {
+                return false;
+            }
         };
         checkExample( new SequentialParquetStarTable( pfrSupplier, config ) );
         checkExample( new CachedParquetStarTable( pfrSupplier, config, 2 ) );
