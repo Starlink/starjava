@@ -28,11 +28,12 @@ public class SequentialParquetStarTable extends ParquetStarTable {
      * Constructor.
      *
      * @param  pfrSupplier  access to parquet data file
+     * @param  config   table reading options
      */
     public SequentialParquetStarTable( IOSupplier<ParquetFileReader>
-                                       pfrSupplier )
+                                       pfrSupplier, Config config )
             throws IOException {
-        super( pfrSupplier );
+        super( pfrSupplier, config );
     }
 
     public boolean isRandom() {

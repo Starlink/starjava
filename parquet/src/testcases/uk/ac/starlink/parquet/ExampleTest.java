@@ -44,8 +44,10 @@ public class ExampleTest extends TestCase {
 
     private void readCompressedFile( File file ) throws IOException {
         IOSupplier<ParquetFileReader> pfrSupplier = getPfrSupplier( file );
-        checkExample( new SequentialParquetStarTable( pfrSupplier ) );
-        checkExample( new CachedParquetStarTable( pfrSupplier, 2 ) );
+        ParquetStarTable.Config config = new ParquetStarTable.Config() {
+        };
+        checkExample( new SequentialParquetStarTable( pfrSupplier, config ) );
+        checkExample( new CachedParquetStarTable( pfrSupplier, config, 2 ) );
     }
  
     private void checkExample( ParquetStarTable pex ) throws IOException {

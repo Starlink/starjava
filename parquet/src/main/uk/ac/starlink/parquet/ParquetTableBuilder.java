@@ -114,8 +114,10 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
         }
         ParquetIO io = ParquetUtil.getIO();
         boolean useCache = useCache( datsrc, wantRandom, storage );
+        ParquetStarTable.Config config = new ParquetStarTable.Config() {
+        };
         ParquetStarTable parquetTable =
-            io.readParquet( datsrc, this, useCache, tryUrl_ );
+            io.readParquet( datsrc, this, config, useCache, tryUrl_ );
         String votmetaTxt = parquetTable.getVOTableMetadataText();
 
         /* Return bare parquet table if appropriate. */

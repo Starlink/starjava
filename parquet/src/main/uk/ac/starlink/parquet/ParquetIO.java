@@ -44,12 +44,14 @@ public class ParquetIO {
      *
      * @param  datsrc  data source
      * @param  builder   handler providing configuration
+     * @param  config    table reading configuration
      * @param  useCache  true for column caching, false for sequential
      * @param  tryUrl    whether to attempt opening non-file URLs
      * @return  loaded table
      */
     public ParquetStarTable readParquet( DataSource datsrc,
                                          ParquetTableBuilder builder,
+                                         ParquetStarTable.Config config,
                                          boolean useCache, boolean tryUrl )
             throws IOException {
         IOSupplier<ParquetFileReader> pfrSupplier =
@@ -63,7 +65,8 @@ public class ParquetIO {
             logger_.info( "Caching parquet column data for " + datsrc
                         + " with " + nThread + " threads" );
             try {
-                return new CachedParquetStarTable( pfrSupplier, nThread );
+                return new CachedParquetStarTable( pfrSupplier, config,
+                                                   nThread );
             }
             catch ( IOException e ) {
                 logger_.log( Level.WARNING,
@@ -71,7 +74,7 @@ public class ParquetIO {
             }
         }
         logger_.info( "No parquet column caching for " + datsrc );
-        return new SequentialParquetStarTable( pfrSupplier );
+        return new SequentialParquetStarTable( pfrSupplier, config );
     }
 
     /**

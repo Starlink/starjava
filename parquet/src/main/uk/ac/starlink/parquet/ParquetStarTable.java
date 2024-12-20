@@ -70,9 +70,11 @@ public abstract class ParquetStarTable extends AbstractStarTable {
      * Constructor.
      *
      * @param  pfrSupplier  access to parquet data file
+     * @param  config  table reading options
      */
     @SuppressWarnings("this-escape")
-    public ParquetStarTable( IOSupplier<ParquetFileReader> pfrSupplier )
+    public ParquetStarTable( IOSupplier<ParquetFileReader> pfrSupplier,
+                             Config config )
             throws IOException {
         pfrSupplier_ = pfrSupplier;
 
@@ -208,6 +210,12 @@ public abstract class ParquetStarTable extends AbstractStarTable {
      */
     public InputColumn<?> getInputColumn( int icol ) {
         return incols_[ icol ];
+    }
+
+    /**
+     * Defines configuration options for reading parquet tables.
+     */
+    public interface Config {
     }
 
     /**

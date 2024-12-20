@@ -57,15 +57,16 @@ public class CachedParquetStarTable extends ParquetStarTable {
      * Constructor.
      *
      * @param  pfrSupplier  access to parquet data file
+     * @param  config   table reading configuration
      * @param  nthread   number of threads to use for concurrent column reads;
      *                   if &lt;=0, a value is chosen based on the number
      *                   of available processors
      */
     @SuppressWarnings("this-escape")
     public CachedParquetStarTable( IOSupplier<ParquetFileReader> pfrSupplier,
-                                   int nthread )
+                                   Config config, int nthread )
             throws IOException {
-        super( pfrSupplier );
+        super( pfrSupplier, config );
 
         /* Determine number of read threads. */
         if ( nthread <= 0 ) {
