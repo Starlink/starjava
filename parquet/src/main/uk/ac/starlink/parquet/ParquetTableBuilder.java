@@ -479,33 +479,44 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
         if ( vt.getColumnCount() != ncol ) {
             throw new TableFormatException( "Column count mismatch" );
         }
-        for ( int ic = 0; ic < ncol; ic++ ) {
-            ColumnInfo pinfo = pt.getColumnInfo( ic );
-            ColumnInfo vinfo = vt.getColumnInfo( ic );
-            if ( ! Objects.equals( pinfo.getName(), vinfo.getName() ) ) {
-                throw new TableFormatException( "Column name mismatch" );
-            }
-        }
 
         /* Looks OK, assemble ColumnInfos that pick the rich metadata from
          * the VOTable but content classes from parquet. */
         final ColumnInfo[] cinfos = new ColumnInfo[ ncol ];
+        int nMeta = 0;
         for ( int ic = 0; ic < ncol; ic++ ) {
-            ColumnInfo info = new ColumnInfo( vt.getColumnInfo( ic ) );
-            info.setContentClass( pt.getColumnInfo( ic ).getContentClass() );
-            info.getAuxData().addAll( pt.getColumnInfo( ic ).getAuxData() );
-            cinfos[ ic ] = info;
+            ColumnInfo vinfo = vt.getColumnInfo( ic );
+            ColumnInfo pinfo = pt.getColumnInfo( ic );
+            if ( vinfo.getName().equals( pinfo.getName() ) ) {
+                ColumnInfo info = new ColumnInfo( vinfo );
+                info.setContentClass( pinfo.getContentClass() );
+                info.getAuxData().addAll( pinfo.getAuxData() );
+                cinfos[ ic ] = info;
+                nMeta++;
+            }
+            else {
+                cinfos[ ic ] = pinfo;
+                logger_.warning( "Name mismatch for column " + ( ic + 1 ) + ": "
+                               + "\"" + pinfo.getName() + "\" != "
+                               + "\"" + vinfo.getName() + "\", "
+                               + "ignoring VOTable metadata" );
+            }
         }
 
         /* Return a table with adjusted metadata.  URL is from original
          * table as read. */
-        return new WrapperStarTable( vt ) {
-            public URL getURL() {
-                return pt.getURL();
-            }
-            public ColumnInfo getColumnInfo( int ic ) {
-                return cinfos[ ic ];
-            }
-        };
+        if ( nMeta > 0 ) {
+            return new WrapperStarTable( vt ) {
+                public URL getURL() {
+                    return pt.getURL();
+                }
+                public ColumnInfo getColumnInfo( int ic ) {
+                    return cinfos[ ic ];
+                }
+            };
+        }
+        else {
+            return pt;
+        }
     }
 }
