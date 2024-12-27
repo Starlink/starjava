@@ -1,0 +1,175 @@
+<!-- VOTABLE is the root element 
+.Version 1.1 Addition of GROUP utype
+-->
+<!ELEMENT VOTABLE (DESCRIPTION?, DEFINITIONS?, INFO*, RESOURCE*)>
+<!ATTLIST VOTABLE
+        ID ID #IMPLIED
+        version CDATA #IMPLIED
+>
+
+<!-- RESOURCEs can contain other RESOURCES,
+     together with TABLEs and other stuff -->
+<!ELEMENT RESOURCE (DESCRIPTION?, (INFO|PARAM|COOSYS)*, LINK*, TABLE*, RESOURCE*)>
+<!ATTLIST RESOURCE
+        name CDATA #IMPLIED
+        ID ID #IMPLIED
+        type (results | meta) "results"
+>
+
+<!ELEMENT DESCRIPTION (#PCDATA)>
+<!ELEMENT DEFINITIONS (COOSYS|PARAM)*>
+
+<!-- INFO is a name-value pair -->
+<!ELEMENT INFO (#PCDATA)>
+<!ATTLIST INFO
+        ID ID #IMPLIED
+        name CDATA #IMPLIED
+        value CDATA #IMPLIED
+>
+
+<!-- A PARAM is similar to a FIELD, but it also has a "value attribute -->
+<!ELEMENT PARAM (DESCRIPTION?, VALUES?, LINK*)>
+<!ATTLIST PARAM
+        ID   ID    #IMPLIED
+        unit CDATA #IMPLIED
+        datatype (boolean | bit | unsignedByte | short | int | long | char
+        | unicodeChar | float | double | floatComplex | doubleComplex) #REQUIRED
+        precision CDATA #IMPLIED
+        width CDATA #IMPLIED
+        ref   IDREF #IMPLIED
+        name  CDATA #IMPLIED
+        ucd   CDATA #IMPLIED
+	utype CDATA #IMPLIED
+        value CDATA #REQUIRED
+        arraysize CDATA #IMPLIED
+>
+
+<!-- A PARAMref is a reference to a PARAM -->
+<!ELEMENT PARAMref EMPTY>
+<!ATTLIST PARAMref
+	ref   IDREF  #REQUIRED
+>
+
+<!-- A TABLE is a sequence of FIELDS and LINKS and DESCRIPTION,
+     possibly followed by a DATA section -->
+<!-- ELEMENT TABLE (DESCRIPTION?, LINK*, FIELD*, DATA?) -->
+<!ELEMENT TABLE (DESCRIPTION?, (FIELD|GROUP|PARAM)*, LINK*, DATA?)>
+<!ATTLIST TABLE
+        ID ID #IMPLIED
+        name CDATA #IMPLIED
+        ref IDREF #IMPLIED
+        nrows CDATA #IMPLIED
+>
+
+<!-- GROUP can contain a description, fields/parameters and sub-groups -->
+<!ELEMENT GROUP (DESCRIPTION?, (FIELD+|PARAM|GROUP|FIELDref|PARAMref)*)>
+<!ATTLIST GROUP
+	ID    ID    #IMPLIED
+	name  CDATA #IMPLIED
+	ref   IDREF #IMPLIED
+	ucd   CDATA #IMPLIED
+	utype CDATA #IMPLIED
+>
+
+<!-- FIELD is the definition of what is in a column of the table -->
+<!-- ELEMENT FIELD (DESCRIPTION?, VALUES?, LINK?)* -->
+<!ELEMENT FIELD (DESCRIPTION?, VALUES*, LINK*)>
+<!ATTLIST FIELD
+        ID   ID    #IMPLIED
+        unit CDATA #IMPLIED
+        datatype (boolean | bit | unsignedByte | short | int | long | char
+        | unicodeChar | float | double | floatComplex | doubleComplex) #REQUIRED
+        precision CDATA #IMPLIED
+        width CDATA #IMPLIED
+        ref   IDREF #IMPLIED
+        name  CDATA #IMPLIED
+        ucd   CDATA #IMPLIED
+	utype CDATA #IMPLIED
+        arraysize CDATA #IMPLIED
+        type  (hidden | no_query | trigger) #IMPLIED
+>
+
+<!-- A FIELDref is a reference to a FIELD -->
+<!ELEMENT FIELDref EMPTY>
+<!ATTLIST FIELDref
+	ref   IDREF  #REQUIRED
+>
+
+<!-- VALUES expresses the values that can be taken by the data in a column. -->
+<!ELEMENT VALUES (MIN?, MAX?, OPTION*)>
+<!ATTLIST VALUES
+        ID   ID    #IMPLIED
+        multiple (yes | no) "no"
+        type (legal | actual) "legal"
+        null CDATA #IMPLIED
+        invalid CDATA #IMPLIED
+>
+<!ELEMENT MIN (#PCDATA)>
+<!ATTLIST MIN
+        value CDATA #REQUIRED
+        inclusive (yes | no) "yes"
+>
+<!ELEMENT MAX (#PCDATA)>
+<!ATTLIST MAX
+        value CDATA #REQUIRED
+        inclusive (yes | no) "yes"
+>
+<!ELEMENT OPTION (OPTION*)>
+<!ATTLIST OPTION
+        name CDATA #IMPLIED
+        value CDATA #REQUIRED
+>
+
+<!-- The link is a URL (href) or some other kind of reference (gref). -->
+<!ELEMENT LINK (#PCDATA)>
+<!ATTLIST LINK
+        ID ID #IMPLIED
+        content-role (query | hints | doc) #IMPLIED
+        content-type CDATA #IMPLIED
+        title CDATA #IMPLIED
+        value CDATA #IMPLIED
+        href CDATA #IMPLIED
+        gref CDATA #IMPLIED
+        action CDATA #IMPLIED
+>
+
+<!-- DATA is the actual table data, in one of three formats -->
+<!ELEMENT DATA (TABLEDATA | BINARY | FITS)>
+
+<!-- Pure XML data -->
+<!ELEMENT TABLEDATA (TR*)>
+<!ELEMENT TR (TD+)>
+<!ELEMENT TD (#PCDATA)>
+<!ATTLIST TD
+        ref IDREF #IMPLIED
+>
+
+<!-- FITS file, perhaps with specification of which extension to seek to -->
+<!ELEMENT FITS (STREAM)>
+<!ATTLIST FITS
+        extnum CDATA #IMPLIED
+>
+
+<!-- Binary data format -->
+<!ELEMENT BINARY (STREAM)>
+
+<!-- Stream can be lcoal or remote, encoded or not -->
+<!ELEMENT STREAM (#PCDATA)>
+<!ATTLIST STREAM
+        type (locator | other) "locator"
+        href CDATA #IMPLIED
+        actuate (onLoad | onRequest | other | none) "onRequest"
+        encoding (gzip | base64 | dynamic | none) "none"
+        expires CDATA #IMPLIED
+        rights CDATA #IMPLIED
+>
+
+<!-- Expresses the coordinate system we are using -->
+<!ELEMENT COOSYS (#PCDATA)>
+<!ATTLIST COOSYS
+        ID ID #IMPLIED
+        equinox CDATA #IMPLIED
+        epoch CDATA #IMPLIED
+        system (eq_FK4 | eq_FK5 | ICRS | ecl_FK4 | ecl_FK5 | galactic
+               | supergalactic | xy | barycentric | geo_app) "eq_FK5"
+>
