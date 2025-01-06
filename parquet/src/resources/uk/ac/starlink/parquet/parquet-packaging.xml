@@ -27,7 +27,7 @@ These arrangements may be revised in future releases, for instance if
 parquet usage becomes more mainstream.
 The required dependencies are a minimal subset of those required
 by the Parquet MR submodule
-<code>parquet-cli</code>,
+<code>parquet-cli</code> at version 1.13.1,
 in particular the files
 <code>aircompressor-0.21.jar</code>
 <code>commons-collections-3.2.2.jar</code>
