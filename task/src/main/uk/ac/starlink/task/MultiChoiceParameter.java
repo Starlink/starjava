@@ -19,6 +19,8 @@ public class MultiChoiceParameter<C> extends AbstractChoiceParameter<C[],C>
 
     private final Class<C> optClazz_;
     private final char valueSep_;
+    private final String allToken_;
+    private final C[] allOpts_;
     private boolean usageSet_;
 
     /**
@@ -29,28 +31,18 @@ public class MultiChoiceParameter<C> extends AbstractChoiceParameter<C[],C>
      * @param   valueSep   separator character for multiple values in a string
      * @param   options  initial array of legal element values
      *                   for this parameter
+     * @param   allToken  if non-blank, supplying this value will select
+     *                     all the available options
      */
     @SuppressWarnings("unchecked")
     public MultiChoiceParameter( String name, Class<C> optClazz, char valueSep,
-                                 C[] options ) {
+                                 C[] options, String allToken ) {
         super( name, (Class<C[]>) Array.newInstance( optClazz, 0 ).getClass(),
                optClazz, options );
         optClazz_ = optClazz;
         valueSep_ = valueSep;
-    }
-
-    /**
-     * Constructor with implicit element type.
-     *
-     * @param   name  parameter name
-     * @param   valueSep   separator character for multiple values in a string
-     * @param   options  initial array of legal element values
-     *                   for this parameter
-     */
-    @SuppressWarnings("unchecked")
-    public MultiChoiceParameter( String name, char valueSep, C[] options ) {
-        this( name, (Class<C>) options.getClass().getComponentType(),
-              valueSep, options );
+        allToken_ = allToken;
+        allOpts_ = allToken != null ? options.clone() : null;
     }
 
     public char getValueSeparator() {
@@ -59,6 +51,9 @@ public class MultiChoiceParameter<C> extends AbstractChoiceParameter<C[],C>
 
     public C[] stringToObject( Environment env, String sval )
             throws TaskException {
+        if ( allToken_ != null && allToken_.equalsIgnoreCase( sval ) ) {
+            return allOpts_.clone();
+        }
         String[] words = sval.split( Character.toString( valueSep_ ) );
         int nobj = words.length;
         @SuppressWarnings("unchecked")
@@ -82,12 +77,24 @@ public class MultiChoiceParameter<C> extends AbstractChoiceParameter<C[],C>
 
     @Override
     public String getUsage() {
-        return usageSet_
-             ? super.getUsage()
-             : getOptionValueList().stream()
-                                   .map( this::getName )
-                                   .collect( Collectors.joining( "|" ) )
-               + " ...";
+        if ( usageSet_ ) {
+            return super.getUsage();
+        }
+        else {
+            StringBuffer sbuf = new StringBuffer();
+            sbuf.append( "[" )
+                .append( getOptionValueList()
+                        .stream()
+                        .map( this::getName )
+                        .collect( Collectors.joining( "|" ) ) )
+                .append( ", ..." )
+                .append( "]" );
+            if ( allToken_ != null ) {
+                sbuf.append( " | " )
+                    .append( allToken_ );
+            }
+            return sbuf.toString();
+        }
     }
 
     /**
