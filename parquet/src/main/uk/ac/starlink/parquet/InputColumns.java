@@ -10,6 +10,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.column.ColumnReader;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
@@ -346,17 +347,13 @@ public class InputColumns {
                            Double.class,
                            rdr -> Double.valueOf( rdr.getDouble() ) );
             case BINARY:
-                if ( logType instanceof LogicalTypeAnnotation
-                                       .StringLogicalTypeAnnotation ) {
-                    return new ScalarCol<String>(
-                               String.class,
-                               rdr -> rdr.getBinary().toStringUsingUTF8() );
-                }
-                else {
-                    return new ScalarCol<byte[]>(
-                               byte[].class,
-                               rdr -> rdr.getBinary().getBytes() );
-                }
+                return isStringLikeBinary( logType )
+                     ? new ScalarCol<String>( String.class,
+                                             rdr -> rdr.getBinary()
+                                                   .toStringUsingUTF8() )
+                     : new ScalarCol<byte[]>( byte[].class,
+                                              rdr -> rdr.getBinary()
+                                                    .getBytes() );
             case FIXED_LEN_BYTE_ARRAY:
             case INT96:
             default:
@@ -438,13 +435,9 @@ public class InputColumns {
                            (rdr, list) -> list.add( rdr.getDouble() ),
                            list -> list.add( Double.NaN ) );
             case BINARY:
-                if ( logType instanceof LogicalTypeAnnotation
-                                       .StringLogicalTypeAnnotation ) {
-                    return createStringArrayCol();
-                }
-                else {
-                    return null;
-                }
+                return isStringLikeBinary( logType )
+                     ? createStringArrayCol()
+                     : null;
             case BOOLEAN:
                 return createBooleanArrayCol();
             case FIXED_LEN_BYTE_ARRAY:
@@ -452,6 +445,21 @@ public class InputColumns {
             default:
                 return null;
         }
+    }
+
+    /**
+     * Indicates whether a logical type attached to a BINARY PrimitiveTypeName
+     * should be treated as a string value.
+     *
+     * @param  logType  logical type corresponding to a BINARY primitive type
+     * @return   true iff type is string-like
+     */
+    private static boolean isStringLikeBinary( LogicalTypeAnnotation logType ) {
+        return Stream.of(
+            LogicalTypeAnnotation.StringLogicalTypeAnnotation.class,
+            LogicalTypeAnnotation.JsonLogicalTypeAnnotation.class,
+            LogicalTypeAnnotation.EnumLogicalTypeAnnotation.class
+        ).anyMatch( t -> t.isInstance( logType ) );
     }
 
     /**
