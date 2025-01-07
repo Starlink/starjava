@@ -84,6 +84,7 @@
   <!ENTITY coneskymatch-summary SYSTEM 'coneskymatch-summary.xml'>
   <!ENTITY datalinklint-summary SYSTEM 'datalinklint-summary.xml'>
   <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
+  <!ENTITY parqlook-summary SYSTEM 'parqlook-summary.xml'>
   <!ENTITY pixfoot-summary SYSTEM 'pixfoot-summary.xml'>
   <!ENTITY pixsample-summary SYSTEM 'pixsample-summary.xml'>
   <!ENTITY plot2cube-summary SYSTEM 'plot2cube-summary.xml'>
@@ -334,6 +335,7 @@ same ground as the STIL and TOPCAT user documents
 <dd><p>
     <ref id="calc" plaintextref="yes"><code>calc</code></ref>,
     <ref id="funcs" plaintextref="yes"><code>funcs</code></ref>,
+    <ref id="parqlook" plaintextref="yes"><code>parqlook</code></ref>,
     <ref id="server" plaintextref="yes"><code>server</code></ref> and
     <ref id="xsdvalidate" plaintextref="yes"><code>xsdvalidate</code></ref>.
     </p></dd>
@@ -557,6 +559,7 @@ the available tasks are:
 <li><code>coneskymatch</code></li>
 <li><code>datalinklint</code></li>
 <li><code>funcs</code></li>
+<li><code>parqlook</code></li>
 <li><code>pixfoot</code></li>
 <li><code>pixsample</code></li>
 <li><code>plot2corner</code></li>
@@ -5976,6 +5979,9 @@ Detailed descriptions and examples for each command can be found in
     <li><ref id="funcs" plaintextref="yes"><code>funcs</code></ref>:
         &funcs-purpose;
         </li>
+    <li><ref id="parqlook" plaintextref="yes"><code>parqlook</code></ref>:
+        &parqlook-purpose;
+        </li>
     <li><ref id="xsdvalidate" plaintextref="yes"><code>xsdvalidate</code></ref>:
         &xsdvalidate-purpose;
         </li>
@@ -6839,6 +6845,68 @@ There are no parameters.
 
 &funcs-summary;
 
+</subsect>
+
+<subsect id="parqlook" tocleaf="yes">
+<subhead><title><code>parqlook</code>: &parqlook-purpose;</title></subhead>
+
+<p><code>parqlook</code> is a utility to display information about
+parquet files.
+It can display the parquet schema,
+the file-level key-value metadata items,
+information about the organisation of row and column storage
+within the file,
+and the content of a VOTable file associated with the data
+according to the VOParquet convention.
+By default all of this information is displayed, but the
+<code>items</code> parameter can be used to define exactly
+what gets output.
+</p>
+
+<p>Other parquet file inspection utilities exist and may do a better job,
+but this tool may be convenient if you have STILTS installed.
+Note it does not provide facilities for examining the actual data content
+in a parquet file, but generic STILTS table commands such as
+<ref id="tpipe"><code>tpipe</code></ref> can be used to do that.
+</p>
+
+<p><em>Note: this command will only work if the parquet support
+libraries are on the classpath at runtime;
+depending on how you are running STILTS this may not be the case.
+See the note at <ref id="inParquet"/>.
+</em></p>
+
+<p><em>Note: This command is currently experimental and its behaviour
+may change in future releases.
+</em></p>
+
+&parqlook-summary;
+
+<subsubsect id="parqlook-examples">
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>parqlook</code>:
+<dl>
+
+<dt><verbatim>
+stilts parqlook ztf_000253_zg_c01_q1_dr6.parquet
+</verbatim></dt>
+<dd><p>Displays all available information about the named parquet file.
+    </p></dd>
+
+<dt><verbatim>
+stilts parqlook items=votable qat2s.parquet
+</verbatim></dt>
+<dd><p>Writes the data-less VOTable document from the named VOParquet file
+    to standard output.
+    If the file has no such VOTable (does not follow the VOParquet convention)
+    then nothing is output.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
 </subsect>
 
 <subsect id="pixfoot" tocleaf="yes">
@@ -15472,6 +15540,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         array-valued columns.</li>
     <li>Improve <ref id="mode-checksum"><code>checksum</code></ref> mode
         so it works reliably with array-valued cells.</li>
+    <li>New task <ref id="parqlook"><code>parqlook</code></ref> added
+        for examining parquet (including VOParquet) files.</li>
     </ul>
     </p></dd>
 
