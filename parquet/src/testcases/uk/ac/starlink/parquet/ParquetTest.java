@@ -3,6 +3,7 @@ package uk.ac.starlink.parquet;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.function.Function;
 import java.util.logging.Level;
 import junit.framework.TestCase;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
@@ -38,5 +39,15 @@ public class ParquetTest extends TestCase {
         double t1year = t1sec / ( 365.25 * 24 * 3600 );
         assertTrue( t1micro > 1e15 && t1micro < 2e15 );
         assertEquals( 2024-1970, t1year, 1.0 );
+    }
+
+    public void testDump() throws IOException {
+        URL url = ParquetTest.class.getResource( "example-zstd.parquet" );
+        ParquetStarTable table = ParquetDump.readParquetTable( url.toString() );
+        ParquetDump dump = new ParquetDump( table );
+        for ( Function<ParquetDump,String> dumpFunc :
+              ParquetDump.createDumpFunctionMap().values() ) {
+            dumpFunc.apply( dump );
+        }
     }
 }

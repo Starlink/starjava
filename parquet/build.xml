@@ -445,6 +445,8 @@
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" value="${jar.class.path}"/>
+        <attribute name="Main-Class"
+                   value="uk.ac.starlink.parquet.ParquetDump"/>
       </manifest>
     </jar>
 
