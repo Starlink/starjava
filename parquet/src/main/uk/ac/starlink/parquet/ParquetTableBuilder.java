@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javax.xml.transform.dom.DOMSource;
@@ -13,6 +16,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableFormatException;
@@ -491,6 +495,10 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
                 ColumnInfo info = new ColumnInfo( vinfo );
                 info.setContentClass( pinfo.getContentClass() );
                 info.getAuxData().addAll( pinfo.getAuxData() );
+                List<DomainMapper> dmappers = new ArrayList<>();
+                dmappers.addAll( Arrays.asList( pinfo.getDomainMappers() ) );
+                dmappers.addAll( Arrays.asList( vinfo.getDomainMappers() ) );
+                info.setDomainMappers( dmappers.toArray( new DomainMapper[0]) );
                 cinfos[ ic ] = info;
                 nMeta++;
             }

@@ -22,6 +22,7 @@ import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.Bi;
 import uk.ac.starlink.util.IOSupplier;
@@ -137,6 +138,10 @@ public abstract class ParquetStarTable extends AbstractStarTable {
                 ColumnInfo cinfo =
                     new ColumnInfo( cname, incol.getContentClass(), null );
                 cinfo.setNullable( incol.isNullable() );
+                DomainMapper dmapper = incol.getDomainMapper();
+                if ( dmapper != null ) {
+                    cinfo.setDomainMappers( new DomainMapper[] { dmapper } );
+                }
                 col = new Bi<InputColumn<?>,ColumnInfo>( incol, cinfo );
             }
             else if ( config.includeUnsupportedColumns() ) {

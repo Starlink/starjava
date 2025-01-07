@@ -1,6 +1,7 @@
 package uk.ac.starlink.parquet;
 
 import org.apache.parquet.column.ColumnDescriptor;
+import uk.ac.starlink.table.DomainMapper;
 
 /**
  * Provides information about a readable column in a parquet file.
@@ -30,6 +31,13 @@ public interface InputColumn<T> {
      * @return  false if the column is known to contain no null values
      */
     boolean isNullable();
+
+    /**
+     * Returns a domain mapper if there is one.
+     * 
+     * @return  domain mapper, or null
+     */
+    DomainMapper getDomainMapper();
 
     /**
      * Returns a decoder that can read column values from the file.

@@ -13,6 +13,7 @@ import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Type;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.util.ByteList;
 import uk.ac.starlink.util.DoubleList;
 import uk.ac.starlink.util.FloatList;
@@ -98,6 +99,9 @@ public class InputColumns {
                     }
                 };
             }
+            public DomainMapper getDomainMapper() {
+                return null;
+            }
         };
     }
 
@@ -125,6 +129,9 @@ public class InputColumns {
             }
             public boolean isNullable() {
                 return isNullable;
+            }
+            public DomainMapper getDomainMapper() {
+                return col.getDomainMapper();
             }
         };
     }
@@ -462,6 +469,9 @@ public class InputColumns {
                     }
                 };
             }
+            public DomainMapper getDomainMapper() {
+                return null;
+            }
         };
     }
 
@@ -503,6 +513,9 @@ public class InputColumns {
                     }
                 };
             }
+            public DomainMapper getDomainMapper() {
+                return null;
+            }
         };
     }
 
@@ -524,6 +537,13 @@ public class InputColumns {
          * @return   new decoder
          */
         Decoder<T> createDecoder();
+
+        /**
+         * Returns a domain mapper, if any.
+         *
+         * @return  domain mapper, or null
+         */
+        DomainMapper getDomainMapper();
     }
 
     /**
@@ -532,6 +552,21 @@ public class InputColumns {
     private static class ScalarCol<T> implements Col<T> {
         final Class<T> clazz_;
         final Function<ColumnReader,T> readFunc_;
+        final DomainMapper domainMapper_;
+
+        /**
+         * Constructor.
+         *
+         * @param   clazz  content class
+         * @param   readFunc   takes a typed primitive value from a ColumnReader
+         * @param   domainMapper  domain mapper, or null
+         */
+        ScalarCol( Class<T> clazz, Function<ColumnReader,T> readFunc,
+                   DomainMapper domainMapper ) {
+            clazz_ = clazz;
+            readFunc_ = readFunc;
+            domainMapper_ = domainMapper;
+        }
 
         /**
          * Constructor.
@@ -540,8 +575,7 @@ public class InputColumns {
          * @param   readFunc   takes a typed primitive value from a ColumnReader
          */
         ScalarCol( Class<T> clazz, Function<ColumnReader,T> readFunc ) {
-            clazz_ = clazz;
-            readFunc_ = readFunc;
+            this( clazz, readFunc, null );
         }
 
         public Class<T> getContentClass() {
@@ -568,6 +602,10 @@ public class InputColumns {
                     return value_;
                 }
             };
+        }
+
+        public DomainMapper getDomainMapper() {
+            return domainMapper_;
         }
     }
 
@@ -631,6 +669,10 @@ public class InputColumns {
                     return value_;
                 }
             };
+        }
+
+        public DomainMapper getDomainMapper() {
+            return null;
         }
     }
 }
