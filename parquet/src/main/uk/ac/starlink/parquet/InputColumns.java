@@ -355,6 +355,10 @@ public class InputColumns {
                                               rdr -> rdr.getBinary()
                                                     .getBytes() );
             case FIXED_LEN_BYTE_ARRAY:
+                // FLOAT16?  But no corresponding type in
+                // org.apache.parquet.schema.LogicalTypeAnnotation.
+                // Could maybe do it by looking at type name string,
+                // but wait till I find an example before testing it.
             case INT96:
             default:
                 return null;
@@ -441,6 +445,7 @@ public class InputColumns {
             case BOOLEAN:
                 return createBooleanArrayCol();
             case FIXED_LEN_BYTE_ARRAY:
+                // FLOAT16?
             case INT96:
             default:
                 return null;
