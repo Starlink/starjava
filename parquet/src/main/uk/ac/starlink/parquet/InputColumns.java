@@ -2,6 +2,9 @@ package uk.ac.starlink.parquet;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -14,6 +17,7 @@ import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.Type;
 import uk.ac.starlink.table.DomainMapper;
+import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.util.ByteList;
 import uk.ac.starlink.util.DoubleList;
 import uk.ac.starlink.util.FloatList;
@@ -34,6 +38,10 @@ public class InputColumns {
     public static final short BAD_SHORT = Short.MIN_VALUE;
     public static final int BAD_INT = Integer.MIN_VALUE;
     public static final long BAD_LONG = Long.MIN_VALUE;
+
+    static final Map<LogicalTypeAnnotation.TimeUnit,TimeMapper> TIME_MAPPERS =
+        createTimeMappers();
+    private static final TimeMapper DATE_MAPPER = createUnixDateMapper();
 
     /**
      * Private constructor prevents instantiation.
@@ -276,36 +284,59 @@ public class InputColumns {
                     nbit = 32;
                     isSigned = true;
                 }
+                TimeMapper dmapper =
+                      logType instanceof LogicalTypeAnnotation
+                                        .DateLogicalTypeAnnotation
+                    ? DATE_MAPPER
+                    : null;
                 if ( nbit == 8 && isSigned ) {
                     return new ScalarCol<Byte>(
                                Byte.class,
-                               rdr -> Byte.valueOf( (byte) rdr.getInteger() ) );
+                               rdr -> Byte.valueOf( (byte) rdr.getInteger() ),
+                               dmapper );
                 }
                 else if ( nbit == 16 && isSigned ||
                           nbit == 8 && ! isSigned ) {
                     return new ScalarCol<Short>(
                                Short.class,
-                               rdr -> Short.valueOf( (short) rdr.getInteger()));
+                               rdr -> Short.valueOf( (short) rdr.getInteger() ),
+                               dmapper );
                 }
                 else if ( nbit == 32 && isSigned ||
                           nbit == 16 && ! isSigned ) {
                     return new ScalarCol<Integer>(
                                Integer.class,
-                               rdr -> Integer.valueOf( rdr.getInteger() ) );
+                               rdr -> Integer.valueOf( rdr.getInteger() ),
+                               dmapper );
                 }
                 else if ( nbit == 32 || ! isSigned ) {
                     return new ScalarCol<Long>(
                         Long.class,
                         rdr -> Long.valueOf(
-                               Integer.toUnsignedLong( rdr.getInteger() ) ) );
+                               Integer.toUnsignedLong( rdr.getInteger() ) ),
+                               dmapper );
                 }
                 else {
                     return null;
                 }
             case INT64:
+                final DomainMapper tmapper;
+                if ( logType instanceof LogicalTypeAnnotation
+                                       .TimestampLogicalTypeAnnotation ) {
+                    LogicalTypeAnnotation.TimestampLogicalTypeAnnotation ttype =
+                        (LogicalTypeAnnotation.TimestampLogicalTypeAnnotation)
+                        logType;
+                    LogicalTypeAnnotation.TimeUnit tunit = ttype.getUnit();
+                    boolean isAdjusted = ttype.isAdjustedToUTC();
+                    tmapper = TIME_MAPPERS.get( ttype.getUnit() );
+                }
+                else {
+                    tmapper = null;
+                }
                 return new ScalarCol<Long>(
                            Long.class,
-                           rdr -> Long.valueOf( rdr.getLong() ) );
+                           rdr -> Long.valueOf( rdr.getLong() ),
+                           tmapper );
             case FLOAT:
                 return new ScalarCol<Float>(
                            Float.class,
@@ -327,7 +358,6 @@ public class InputColumns {
                                rdr -> rdr.getBinary().getBytes() );
                 }
             case FIXED_LEN_BYTE_ARRAY:
-                // to-do: timestamps etc.
             case INT96:
             default:
                 return null;
@@ -422,6 +452,60 @@ public class InputColumns {
             default:
                 return null;
         }
+    }
+
+    /**
+     * Returns a map from TimeUnit to time-domain mapper for each
+     * TimeUnit known by the parquet TIMESTAMP logical type.
+     *
+     * @return  time unit to mapper map
+     */
+    private static Map<LogicalTypeAnnotation.TimeUnit,TimeMapper>
+            createTimeMappers() {
+        Map<LogicalTypeAnnotation.TimeUnit,TimeMapper> map = new HashMap<>();
+        map.put( LogicalTypeAnnotation.TimeUnit.MILLIS,
+                 createUnixTimeMapper( "milli", 1_000 ) );
+        map.put( LogicalTypeAnnotation.TimeUnit.MICROS,
+                 createUnixTimeMapper( "micro", 1_000_000 ) );
+        map.put( LogicalTypeAnnotation.TimeUnit.NANOS,
+                 createUnixTimeMapper( "nano", 1_000_000_000 ) );
+        return Collections.unmodifiableMap( map );
+    }
+
+    /**
+     * Returns a time domain mapper for a second sub-division.
+     *
+     * @param  unit  unit prefix
+     * @param  perSec  number of this unit in a second
+     * @return  domain mapper
+     */
+    private static TimeMapper createUnixTimeMapper( String unit, long perSec ) {
+        final double factor = 1.0 / (double) perSec;
+        return new TimeMapper( Long.class, "Unix " + unit + "s",
+                               unit + "seconds since midnight 1 Jan 1970" ) {
+            public double toUnixSeconds( Object sourceValue ) {
+                return sourceValue instanceof Number
+                     ? ((double) ((Number) sourceValue).longValue()) * factor
+                     : Double.NaN;
+            }
+        };
+    }
+
+    /**
+     * Returns a time domain mapper for a day count.
+     *
+     * @return  domain mapper
+     */
+    private static TimeMapper createUnixDateMapper() {
+        final double factor = 3600 * 24;
+        return new TimeMapper( Integer.class, "Unix date",
+                               "Days since 1 Jan 1970" ) {
+            public double toUnixSeconds( Object sourceValue ) {
+                return sourceValue instanceof Number
+                     ? ((Number) sourceValue).intValue() * factor
+                     : Double.NaN;
+            }
+        };
     }
 
     /**
