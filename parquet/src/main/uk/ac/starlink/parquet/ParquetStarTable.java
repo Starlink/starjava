@@ -40,11 +40,12 @@ public abstract class ParquetStarTable extends AbstractStarTable {
     private final IOSupplier<ParquetFileReader> pfrSupplier_;
     private final MessageType schema_;
     private final String createdBy_;
-    private final String votmeta_;
     private final long nrow_;
     private final int ncol_;
     private final ColumnInfo[] cinfos_;
     private final InputColumn<?>[] incols_;
+    private final Map<String,String> extrametaMap_;
+    private String votmeta_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.parquet" );
@@ -99,6 +100,7 @@ public abstract class ParquetStarTable extends AbstractStarTable {
         Map<String,String> metaMap = kvmap == null
                                    ? new HashMap<String,String>()
                                    : new LinkedHashMap<String,String>( kvmap );
+        extrametaMap_ = new LinkedHashMap<String,String>( metaMap );
 
         /* Record table name if stored. */
         String tname = metaMap.remove( NAME_KEY );
@@ -107,8 +109,9 @@ public abstract class ParquetStarTable extends AbstractStarTable {
         }
 
         /* Record VOTable metadata if present. */
-        votmeta_ = metaMap.remove( VOTMETA_KEY );
+        String votmeta = metaMap.remove( VOTMETA_KEY );
         String votmetaVersion = metaMap.remove( VOTMETAVERSION_KEY );
+        setVOTableMetadataText( votmeta );
   
         /* Record remaining per-file metadata as parameters. */
         List<DescribedValue> params = getParameters();
@@ -202,6 +205,16 @@ public abstract class ParquetStarTable extends AbstractStarTable {
     }
 
     /**
+     * Returns the parquet key-value file-level metadata map
+     * associated with this parquet file.
+     *
+     * @return  extra metadata
+     */
+    public Map<String,String> getExtraMetadataMap() {
+        return extrametaMap_;
+    }
+
+    /**
      * Returns the text content of a VOTable intended to supply
      * metadata for this table.
      *
@@ -209,6 +222,19 @@ public abstract class ParquetStarTable extends AbstractStarTable {
      */
     public String getVOTableMetadataText() {
         return votmeta_;
+    }
+
+    /**
+     * Sets the text content of a VOTable intended to supply
+     * metadata for this table.
+     * This is called at construction time using key-value metadata map
+     * in accordance with the VOParquet convention, but it may be called
+     * subsequently to modify or reset the associated VOTable.
+     *
+     * @param   votmeta  VOTable metadata document
+     */
+    public void setVOTableMetadataText( String votmeta ) {
+        votmeta_ = votmeta;
     }
 
     /**
