@@ -177,6 +177,7 @@ public class Stilts {
         taskFactory_.register( "coneskymatch", taskPkg + "MultiCone" );
         taskFactory_.register( "datalinklint", taskPkg + "DatalinkLint" );
         taskFactory_.register( "funcs", taskPkg + "ShowFunctions" );
+        taskFactory_.register( "parqlint", taskPkg + "VOParquetLint" );
         taskFactory_.register( "parqlook", taskPkg + "ParquetTool" );
         taskFactory_.register( "pixfoot", taskPkg + "PixFootprint" );
         taskFactory_.register( "pixsample", taskPkg + "PixSample" );

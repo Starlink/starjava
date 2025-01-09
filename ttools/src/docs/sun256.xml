@@ -84,6 +84,7 @@
   <!ENTITY coneskymatch-summary SYSTEM 'coneskymatch-summary.xml'>
   <!ENTITY datalinklint-summary SYSTEM 'datalinklint-summary.xml'>
   <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
+  <!ENTITY parqlint-summary SYSTEM 'parqlint-summary.xml'>
   <!ENTITY parqlook-summary SYSTEM 'parqlook-summary.xml'>
   <!ENTITY pixfoot-summary SYSTEM 'pixfoot-summary.xml'>
   <!ENTITY pixsample-summary SYSTEM 'pixsample-summary.xml'>
@@ -335,6 +336,7 @@ same ground as the STIL and TOPCAT user documents
 <dd><p>
     <ref id="calc" plaintextref="yes"><code>calc</code></ref>,
     <ref id="funcs" plaintextref="yes"><code>funcs</code></ref>,
+    <ref id="parqlint" plaintextref="yes"><code>parqlint</code></ref>,
     <ref id="parqlook" plaintextref="yes"><code>parqlook</code></ref>,
     <ref id="server" plaintextref="yes"><code>server</code></ref> and
     <ref id="xsdvalidate" plaintextref="yes"><code>xsdvalidate</code></ref>.
@@ -559,6 +561,7 @@ the available tasks are:
 <li><code>coneskymatch</code></li>
 <li><code>datalinklint</code></li>
 <li><code>funcs</code></li>
+<li><code>parqlint</code></li>
 <li><code>parqlook</code></li>
 <li><code>pixfoot</code></li>
 <li><code>pixsample</code></li>
@@ -5979,6 +5982,9 @@ Detailed descriptions and examples for each command can be found in
     <li><ref id="funcs" plaintextref="yes"><code>funcs</code></ref>:
         &funcs-purpose;
         </li>
+    <li><ref id="parqlint" plaintextref="yes"><code>parqlint</code></ref>:
+        &parqlint-purpose;
+        </li>
     <li><ref id="parqlook" plaintextref="yes"><code>parqlook</code></ref>:
         &parqlook-purpose;
         </li>
@@ -6845,6 +6851,87 @@ There are no parameters.
 
 &funcs-summary;
 
+</subsect>
+
+<subsect id="parqlint" tocleaf="yes">
+<subhead><title><code>parqlint</code>: &parqlint-purpose;</title></subhead>
+
+<p><code>parqlint</code> is a utility to check compliance of
+parquet files against the (currently experimental) VOParquet convention.
+</p>
+
+<p>Specifically, the key-value metadata will be examined for an entry
+supplying a data-less VOTable document that is supposed to provide
+additional metadata for the parquet table.
+Any anomalies in entries within the VOParquet namespace
+(<code>IVOA.VOTable-Parquet</code>) will be reported.
+If such a data-less VOTable exists,
+it will be validated for compliance with the VOTable standard
+(as if by <ref id="votlint"><code>votlint</code></ref>)
+and consistency checks will be made between the columns declared
+in the parquet data table and the VOTable metadata table.
+</p>
+
+<p>Any items of interest shown up by these checks will be reported as
+<code>INFO</code>, <code>WARNING</code> or <code>ERROR</code> messages.
+Only <code>ERROR</code> reports indicate an actual violation of the
+VOTable standard or VOParquet convention.
+These reports can be suppressed by category using the
+<code>report</code> parameter.
+</p>
+
+<p><em>Note: this command will only work if the parquet support
+libraries are on the classpath at runtime;
+depending on how you are running STILTS this may not be the case.
+See the note at <ref id="inParquet"/>.
+</em></p>
+
+&parqlint-summary;
+
+<subsubsect id="parqlint-examples">
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>parqlint</code>:
+<dl>
+
+<dt><verbatim>
+stilts parqlint qat2s.parquet
+</verbatim></dt>
+<dd><p>Runs all checks on the named parquet file.
+    Reports will be written to standard output.
+    </p></dd>
+
+<dt><verbatim>
+stilts parqlint in=1909180027-all.parquet report=E voparquet=true
+       ucd=false unit=false
+</verbatim></dt>
+<dd><p>Runs checks on a parquet file expected to comply to the VOParquet
+    conventions, but only reporting Errors, not Warning or Info reports,
+    and ignoring reports about invalid <code>ucd</code> or
+    <code>unit</code> attributes in the VOTable.
+    The <code>voparquet=true</code> makes lack of a data-less VOTable
+    show up as an Error; if it was not specified a non-VOParquet file
+    would generate no output here.
+    </p></dd>
+
+<dt><verbatim>
+stilts parqlint in=op12.parquet votable=op12.vot
+</verbatim></dt>
+<dd><p>Runs checks on a parquet file but with the data-less VOTable
+    specified externally.
+    By doing this you can iteratively play around with the VOTable
+    annotations until you're happy with the validation output,
+    rather than having to keep generating a new VOParquet file
+    every time you want to make a test.
+    Note that the VOTable can be extracted
+    from an existing VOParquet file if required
+    using the <ref id="parqlook"><code>parqlook</code></ref> command.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
 </subsect>
 
 <subsect id="parqlook" tocleaf="yes">
@@ -15542,6 +15629,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         so it works reliably with array-valued cells.</li>
     <li>New task <ref id="parqlook"><code>parqlook</code></ref> added
         for examining parquet (including VOParquet) files.</li>
+    <li>New task <ref id="parqlint"><code>parqlint</code></ref> added
+        for validating parquet files against the VOParquet convention.</li>
     </ul>
     </p></dd>
 
