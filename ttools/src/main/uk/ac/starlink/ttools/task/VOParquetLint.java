@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.apache.parquet.column.ColumnDescriptor;
+import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.PrimitiveType;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -22,6 +23,7 @@ import uk.ac.starlink.parquet.ParquetUtil;
 import uk.ac.starlink.parquet.ParquetTableBuilder;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
@@ -30,13 +32,16 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.func.Times;
 import uk.ac.starlink.ttools.votlint.SaxMessager;
 import uk.ac.starlink.ttools.votlint.VersionDetector;
 import uk.ac.starlink.ttools.votlint.VotLintCode;
 import uk.ac.starlink.ttools.votlint.VotLintContext;
 import uk.ac.starlink.ttools.votlint.VotLinter;
+import uk.ac.starlink.util.Bi;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.votable.TableElement;
+import uk.ac.starlink.votable.Timesys;
 import uk.ac.starlink.votable.VODocument;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOStarTable;
@@ -55,12 +60,15 @@ public class VOParquetLint implements Task {
     private final Parameter<String> reportParam_;
     private final BooleanParameter ucdParam_;
     private final BooleanParameter unitParam_;
+    private final BooleanParameter timeParam_;
     private final StringParameter votableParam_;
     private final BooleanParameter voparquetParam_;
     private final Parameter<?>[] params_;
 
     private static final VOTableVersion DFLT_VOTABLE_VERSION =
         VOTableVersion.V15;
+    private static final double UNIX_EPOCH_AS_MJD =
+        Times.mjdToJd( Times.unixMillisToMjd( 0 ) );
 
     /**
      * Constructor.
@@ -147,6 +155,27 @@ public class VOParquetLint implements Task {
         } );
         paramList.add( unitParam_ );
 
+        timeParam_ = new BooleanParameter( "time" );
+        timeParam_.setBooleanDefault( true );
+        timeParam_.setPrompt( "Check TIMESTAMP/DATE columns" );
+        timeParam_.setDescription( new String[] {
+            "<p>If true, then parquet columns with the logical types",
+            "<code>TIMESTAMP</code> or <code>DATE</code>",
+            "will be checked against their VOTable counterparts",
+            "for suitable metadata.",
+            "Since parquet TIMESTAMP and DATE columns have an associated unit,",
+            "a Warning is reported when the corresponding VOTable FIELD",
+            "does not declare the same unit attribute.",
+            "Since parquet TIMESTAMP and DATE columns also have an implicit",
+            "zero point",
+            "(the Unix epoch 1970-01-01, equivalent to JD 2440587.5),",
+            "a Warning is also reported if no compatible TIMESYS element",
+            "is referenced by the corresponding VOTable FIELD.",
+            "If this parameter is set false, no such reports are made.",
+            "</p>",
+        } );
+        paramList.add( timeParam_ );
+
         votableParam_ = new StringParameter( "votable" );
         votableParam_.setNullPermitted( true );
         votableParam_.setPrompt( "Location of data-less VOTable" );
@@ -205,12 +234,16 @@ public class VOParquetLint implements Task {
         String votableLoc = votableParam_.stringValue( env );
         boolean checkUcd = ucdParam_.booleanValue( env );
         Boolean checkUnit = unitParam_.objectValue( env );
+        boolean checkTime = timeParam_.booleanValue( env );
         LintConfig lintConfig = new LintConfig() {
             public boolean isCheckUcd() {
                 return checkUcd;
             }
             public Boolean isCheckUnit() {
                 return checkUnit;
+            }
+            public boolean isCheckTime() {
+                return checkTime;
             }
         };
         return () -> {
@@ -243,9 +276,10 @@ public class VOParquetLint implements Task {
                 }
             }
             else {
-                VODocument vodoc =
-                    validatingParseVOTable( votableTxt, lintConfig,
-                                            reporter );
+                Bi<VODocument,VOTableVersion> parseResult =
+                    validatingParseVOTable( votableTxt, lintConfig, reporter );
+                VODocument vodoc = parseResult.getItem1();
+                VOTableVersion votVersion = parseResult.getItem2();
                 TableElement tableEl =
                     getVOParquetTableElement( vodoc, reporter );
                 if ( tableEl == null ) {
@@ -263,7 +297,8 @@ public class VOParquetLint implements Task {
                         votable = null;
                     }
                     if ( votable != null ) {
-                        compareMetadata( parquetTable, votable, reporter );
+                        compareMetadata( parquetTable, votable, votVersion,
+                                         lintConfig, reporter );
                     }
                 }
             }
@@ -344,11 +379,12 @@ public class VOParquetLint implements Task {
      * @param  votableTxt  string containing the VOTable XML
      * @param  config    validation configuration options
      * @param  reporter   message destination
-     * @return  parsed VOTable document, or null in case of error
+     * @return  pair of VOTable document and parse version;
+     *          document may be null in case of error
      */
-    private VODocument validatingParseVOTable( String votableTxt,
-                                               LintConfig config,
-                                               Reporter reporter ) {
+    private Bi<VODocument,VOTableVersion>
+            validatingParseVOTable( String votableTxt, LintConfig config,
+                                    Reporter reporter ) {
         SaxMessager messager = new SaxMessager() {
             public void reportMessage( SaxMessager.Level level,
                                        VotLintCode code, String msg,
@@ -409,7 +445,8 @@ public class VOParquetLint implements Task {
         catch ( IOException | SAXException e ) {
             reporter.error( "VOTable parsing failed: " + e );
         }
-        return domHandler.getDocument();
+        return new Bi<VODocument,VOTableVersion>( domHandler.getDocument(),
+                                                  version );
     }
 
     /**
@@ -442,9 +479,12 @@ public class VOParquetLint implements Task {
      *
      * @param  pTable  parquet table
      * @param  vTable  VOTable
+     * @param  votVersion  VOTable version of VOTable
+     * @param  config    linter configuration
      * @param  reporter  message destination
      */
     private void compareMetadata( ParquetStarTable pTable, VOStarTable vTable,
+                                  VOTableVersion votVersion, LintConfig config,
                                   Reporter reporter ) {
         int nc = pTable.getColumnCount();
         if ( vTable.getColumnCount() != nc ) {
@@ -460,6 +500,7 @@ public class VOParquetLint implements Task {
             ColumnDescriptor pDescriptor =
                 pTable.getInputColumn( ic ).getColumnDescriptor();
             PrimitiveType ptype = pDescriptor.getPrimitiveType();
+            LogicalTypeAnnotation ltype = ptype.getLogicalTypeAnnotation();
             String pName = pInfo.getName();
             String vName = vInfo.getName();
 
@@ -519,6 +560,108 @@ public class VOParquetLint implements Task {
                     }
                     else {
                         reporter.warning( msg );
+                    }
+                }
+
+                /* Report on TIMESTAMP and DATE columns, which in VOTable
+                 * should have particular unit attributes and ideally
+                 * associated TIMESYS elements. */
+                if ( config.isCheckTime() &&
+                     ( ltype instanceof LogicalTypeAnnotation
+                                       .TimestampLogicalTypeAnnotation ||
+                       ltype instanceof LogicalTypeAnnotation
+                                       .DateLogicalTypeAnnotation ) ) {
+                    String tunit;
+                    if ( ltype instanceof LogicalTypeAnnotation
+                                         .DateLogicalTypeAnnotation ) {
+                        tunit = "d";
+                    }
+                    else if ( ltype instanceof LogicalTypeAnnotation
+                                              .TimestampLogicalTypeAnnotation ){
+                        switch ( ((LogicalTypeAnnotation
+                                  .TimestampLogicalTypeAnnotation) ltype)
+                                 .getUnit() ) {
+                            case MILLIS:
+                               tunit = "ms";
+                               break;
+                            case MICROS:
+                               tunit = "us";
+                               break;
+                            case NANOS:
+                               tunit = "ns";
+                               break;
+                            default:
+                               assert false;
+                               tunit = null; 
+                        }
+                    }
+                    else {
+                        assert false;
+                        tunit = null;
+                    }
+                    String vunit = vInfo.getUnitString();
+                    String voriginTxt =
+                        Tables
+                       .getAuxDatumValue( vInfo,
+                                          VOStarTable.TIMESYS_TIMEORIGIN_INFO,
+                                          String.class );
+                    double vorigin = Timesys.decodeTimeorigin( voriginTxt );
+                    double torigin = UNIX_EPOCH_AS_MJD;
+                    if ( tunit != null ) {
+                        if ( vunit == null ) {
+                            String msg = new StringBuffer()
+                               .append( colTxt )
+                               .append( "missing VOTable units for " )
+                               .append( ltype )
+                               .append( "; suggest " )
+                               .append( "unit='" )
+                               .append( tunit )
+                               .append( "'" )
+                               .toString();
+                            reporter.warning( msg );
+                        }
+                        else if ( ! vunit.equals( tunit ) ) {
+                            String msg = new StringBuffer()
+                               .append( colTxt )
+                               .append( "unit mismatch, " )
+                               .append( "parquet " )
+                               .append( ltype )
+                               .append( ", votable unit='" )
+                               .append( vunit )
+                               .append( "', should be '" )
+                               .append( tunit )
+                               .append( "'" )
+                               .toString();
+                            reporter.error( msg );
+                        }
+                    }
+                    if ( ! Double.isNaN( torigin ) ) {
+                        if ( Double.isNaN( vorigin ) &&
+                             votVersion.allowTimesys() ) {
+                            String msg = new StringBuffer()
+                               .append( colTxt )
+                               .append( "missing TIMESYS for " )
+                               .append( ltype )
+                               .append( "; suggest " )
+                               .append( "<TIMESYS timeorigin='" )
+                               .append( torigin )
+                               .append( "' timescale='UTC' .../>" )
+                               .toString();
+                            reporter.warning( msg );
+                        }
+                        else if ( vorigin != torigin ) {
+                            String msg = new StringBuffer()
+                               .append( colTxt )
+                               .append( "time origin mismatch, " )
+                               .append( "parquet " )
+                               .append( ltype )
+                               .append( ", votable TIMESYS timeorigin=" )
+                               .append( vorigin )
+                               .append( ", should be Unix epoch in JD = " )
+                               .append( torigin )
+                               .toString();
+                            reporter.error( msg );
+                        }
                     }
                 }
             }
@@ -609,5 +752,12 @@ public class VOParquetLint implements Task {
          *        null to use (VOTable version-dependent) default behaviour
          */
         Boolean isCheckUnit();
+
+        /**
+         * Whether to validate TIMESTAMP/DATE metadata.
+         *
+         * @param  true to validate, false to ignore
+         */
+        boolean isCheckTime();
     }
 }
