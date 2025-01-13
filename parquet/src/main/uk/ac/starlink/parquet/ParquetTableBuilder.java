@@ -3,8 +3,11 @@ package uk.ac.starlink.parquet;
 import java.awt.datatransfer.DataFlavor;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.StringReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -48,6 +51,7 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
     private Boolean votMeta_;
     private int nThread_;
     private boolean tryUrl_;
+    private String votableLoc_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.parquet" );
@@ -132,6 +136,10 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
         };
         ParquetStarTable parquetTable =
             io.readParquet( datsrc, this, config, useCache, tryUrl_ );
+        if ( votableLoc_ != null ) {
+            String votTxt = readUtf8FromLocation( votableLoc_ );
+            parquetTable.setVOTableMetadataText( votTxt );
+        }
         return hideUnsupportedColumns( applyVOTableMetadata( parquetTable ) );
     }
 
@@ -278,6 +286,63 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
      */
     public Boolean getVOTableMetadata() {
         return votMeta_;
+    }
+
+    /**
+     * Sets the location of a data-less VOTable document that will be used
+     * to supply additional metadata for a parquet table being read.
+     * Normally not required, but if present it overrides any such metadata
+     * VOTable embedded within the parquet file.
+     * This value will only be used if {@link #getVOTableMetadata} returns
+     * a non-FALSE value.
+     *
+     * @param  votableLoc  filename or URL of UTF-8-encoded data-less VOTable
+     */
+    @ConfigMethod(
+        property = "votable",
+        doc = "<p>Location of a UTF-8-encoded data-less VOTable\n"
+            + "that will supply additional metadata for a parquet table\n"
+            + "being read, according to the VOParquet convention.\n"
+            + "This is normally not required, but if present it overrides\n"
+            + "any such metadata VOTable embedded within the parquet file.\n"
+            + "This value will only be used if the <code>votmeta</code>\n"
+            + "configuration is not false.\n"
+            + "</p>",
+        usage = "<filename-or-url>",
+        example = "./metadata.vot"
+    )
+    public void setVOTableLocation( String votableLoc ) {
+        votableLoc_ = votableLoc;
+    }
+
+    /**
+     * Returns the location of a data-less VOTable document that will be used
+     * to supply additional metadata for a parquet table being read.
+     *
+     * @return  override location for a UTF-8-encoded data-less VOTable
+     */
+    public String getVOTableLocation() {
+        return votableLoc_;
+    }
+
+    /**
+     * Reads all the characters from a given location into a string.
+     * UTF-8 encoding is assumed.
+     *
+     * @param   loc  filname or URL
+     * @return   content of stream
+     */
+    public static String readUtf8FromLocation( String loc ) throws IOException {
+        try ( InputStream in = DataSource.getInputStream( loc, false ) ) {
+            Reader rdr = new InputStreamReader( in, StandardCharsets.UTF_8 );
+            int bufsiz = 10240;
+            char[] buf = new char[ bufsiz ];
+            StringBuffer sbuf = new StringBuffer();
+            for ( int nc; ( nc = rdr.read( buf, 0, buf.length ) ) > 0; ) {
+                sbuf.append( buf, 0, nc );
+            }
+            return sbuf.toString();
+        }
     }
 
     /**
