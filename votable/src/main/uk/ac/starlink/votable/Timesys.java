@@ -9,7 +9,7 @@ import uk.ac.starlink.table.ValueInfo;
  * @author   Mark Taylor
  * @since    26 Apr 2019
  */
-class Timesys {
+public class Timesys {
 
     private final double timeorigin_;
     private final String timescale_;
