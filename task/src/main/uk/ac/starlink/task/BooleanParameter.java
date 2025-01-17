@@ -17,8 +17,13 @@ public class BooleanParameter extends Parameter<Boolean> {
     @SuppressWarnings("this-escape")
     public BooleanParameter( String name ) {
         super( name, Boolean.class, false );
-        setUsage( "true|false" );
         setNullPermitted( false );
+    }
+
+    @Override
+    public void setNullPermitted( boolean isNullPermitted ) {
+        super.setNullPermitted( isNullPermitted );
+        setUsage( isNullPermitted ? "true|false|null" : "true|false" );
     }
 
     /**
