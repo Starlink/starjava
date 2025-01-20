@@ -1,6 +1,6 @@
 package uk.ac.starlink.ttools.cone;
 
-import cds.moc.HealpixMoc;
+import cds.moc.SMoc;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -18,5 +18,5 @@ public interface MocFormat {
      * @param  moc  MOC
      * @param  out  destination stream
      */
-    public void writeMoc( HealpixMoc moc, OutputStream out ) throws IOException;
+    public void writeMoc( SMoc moc, OutputStream out ) throws IOException;
 }

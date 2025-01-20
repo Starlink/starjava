@@ -1,7 +1,7 @@
 package uk.ac.starlink.ttools.cone;
 
 import java.io.IOException;
-import cds.moc.HealpixMoc;
+import cds.moc.SMoc;
 
 /**
  * MOC coverage implementation which uses the ASCII serialization.
@@ -24,12 +24,9 @@ public class AsciiMocCoverage extends MocCoverage {
     }
 
     @Override
-    protected HealpixMoc createMoc() throws IOException {
-
-        /* Current version of Moc library does not recognise leading "s". */
-        String spatialMocTxt = asciiMoc_.replaceFirst( "\\s*s\\s*", "" );
+    protected SMoc createMoc() throws IOException {
         try {
-            return new HealpixMoc( spatialMocTxt );
+            return new SMoc( asciiMoc_ );
         }
         catch ( Exception e ) {
             throw new IOException( "MOC ASCII format error", e );

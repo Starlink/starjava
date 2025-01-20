@@ -15643,6 +15643,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         for validating parquet files against the
         <webref url="https://www.ivoa.net/documents/Notes/VOParquet/"
                 >VOParquet convention</webref>.</li>
+    <li>Upgrade CDS MOC library to v6.31; now reads MOC 2.0 compliant
+        FITS and ASCII representations.</li>
     <li><ref id="pixfoot"><code>pixfoot</code></ref> now allows
         <code>order=0</code>.</li>
     </ul>

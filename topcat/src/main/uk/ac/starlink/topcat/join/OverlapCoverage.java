@@ -1,6 +1,6 @@
 package uk.ac.starlink.topcat.join;
 
-import cds.moc.HealpixMoc;
+import cds.moc.SMoc;
 import java.io.IOException;
 import uk.ac.starlink.ttools.cone.MocCoverage;
 import uk.ac.starlink.ttools.cone.CdsHealpix;
@@ -29,14 +29,14 @@ public class OverlapCoverage extends MocCoverage {
     }
 
     @Override
-    protected HealpixMoc createMoc() throws IOException {
+    protected SMoc createMoc() throws IOException {
         MocCoverage cov0 = coverages_[ 0 ];
         cov0.initCoverage();
-        HealpixMoc moc = cov0.getMoc();
+        SMoc moc = cov0.getMoc();
         for ( int i = 1; i < coverages_.length; i++ ) {
             MocCoverage cov1 = coverages_[ i ];
             cov1.initCoverage();
-            HealpixMoc moc1 = cov1.getMoc();
+            SMoc moc1 = cov1.getMoc();
             if ( moc1 == null ) {
                 return null;
             }

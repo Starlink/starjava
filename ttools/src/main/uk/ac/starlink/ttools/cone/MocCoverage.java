@@ -3,7 +3,7 @@ package uk.ac.starlink.ttools.cone;
 import cds.healpix.Healpix;
 import cds.healpix.HealpixNestedBMOC;
 import cds.moc.HealpixImpl;
-import cds.moc.HealpixMoc;
+import cds.moc.SMoc;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 public abstract class MocCoverage implements Coverage {
 
     private final HealpixImpl hpi_;
-    private volatile HealpixMoc moc_;
+    private volatile SMoc moc_;
     private volatile Amount amount_;
 
     private static final Logger logger_ =
@@ -51,7 +51,7 @@ public abstract class MocCoverage implements Coverage {
      *
      * @return  new MOC defining footprint, or null
      */
-    protected abstract HealpixMoc createMoc() throws IOException;
+    protected abstract SMoc createMoc() throws IOException;
 
     public synchronized void initCoverage() throws IOException {
         if ( amount_ == null ) {
@@ -77,7 +77,7 @@ public abstract class MocCoverage implements Coverage {
         if ( knownResult != null ) {
             return knownResult.booleanValue();
         }
-        int mocOrder = moc_.getMaxOrder();
+        int mocOrder = moc_.getMocOrder();
         double alphaRad = Math.toRadians( alphaDeg );
         double deltaRad = Math.toRadians( deltaDeg );
         double radiusRad = Math.toRadians( radiusDeg );
@@ -133,7 +133,7 @@ public abstract class MocCoverage implements Coverage {
      *
      * @return  moc
      */
-    public HealpixMoc getMoc() {
+    public SMoc getMoc() {
         return moc_;
     }
 
@@ -152,16 +152,19 @@ public abstract class MocCoverage implements Coverage {
      * @param  moc  MOC
      * @return  string
      */
-    static String summariseMoc( HealpixMoc moc ) { 
+    static String summariseMoc( SMoc moc ) { 
         return new StringBuffer()
-           .append( "Amount: " )
+           .append( "Fraction: " )
            .append( (float) moc.getCoverage() )
            .append( ", " )
            .append( "Pixels: " )
-           .append( moc.getSize() )
+           .append( moc.getNbCoding() )
            .append( ", " )
            .append( "Bytes: " )
            .append( moc.getMem() )
+           .append( ", " )
+           .append( "Order: " )
+           .append( moc.getMocOrder() )
            .toString();
     }
 
@@ -171,7 +174,7 @@ public abstract class MocCoverage implements Coverage {
      * @param   moc, may be null
      * @return   amount category
      */
-    private static Amount determineAmount( HealpixMoc moc ) {
+    private static Amount determineAmount( SMoc moc ) {
         if ( moc == null ) {
             return Amount.NO_DATA;
         }

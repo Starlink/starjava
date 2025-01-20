@@ -1,6 +1,6 @@
 package uk.ac.starlink.ttools.cone;
 
-import cds.moc.HealpixMoc;
+import cds.moc.SMoc;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,8 +33,7 @@ public class UrlMocCoverage extends MocCoverage {
     public static final String FOOT_SERVICE_URL =
         "http://alasky.u-strasbg.fr/footprints";
 
-    private static final Map<String,HealpixMoc> mocMap_ =
-        new HashMap<String,HealpixMoc>();
+    private static final Map<String,SMoc> mocMap_ = new HashMap<>();
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
 
@@ -48,7 +47,7 @@ public class UrlMocCoverage extends MocCoverage {
     }
 
     @Override
-    protected HealpixMoc createMoc() throws IOException {
+    protected SMoc createMoc() throws IOException {
         return getMoc( mocUrl_ );
     }
 
@@ -107,11 +106,10 @@ public class UrlMocCoverage extends MocCoverage {
      * @param   URL of MOC
      * @return   MOC object, or null
      */
-    private static synchronized HealpixMoc getMoc( URL mocUrl )
-            throws IOException {
+    private static synchronized SMoc getMoc( URL mocUrl ) throws IOException {
         String urlKey = mocUrl.toString();
         if ( ! mocMap_.containsKey( urlKey ) ) {
-            HealpixMoc moc = null;
+            SMoc moc = null;
             try {
                 moc = readMoc( mocUrl );
             }
@@ -129,7 +127,7 @@ public class UrlMocCoverage extends MocCoverage {
      * @return  MOC object, or null
      * @throws  IOException if some unexpected error occurred
      */
-    private static HealpixMoc readMoc( URL mocUrl ) throws IOException {
+    private static SMoc readMoc( URL mocUrl ) throws IOException {
         logger_.info( "Attempt to acquire MOC from " + mocUrl );
         URLConnection conn = mocUrl.openConnection();
         conn.connect();
@@ -140,7 +138,7 @@ public class UrlMocCoverage extends MocCoverage {
         }
         InputStream in = new BufferedInputStream( conn.getInputStream() );
         try {
-            HealpixMoc moc = new HealpixMoc( in, HealpixMoc.FITS );
+            SMoc moc = new SMoc( in );
             if ( logger_.isLoggable( Level.INFO ) ) {
                 logger_.info( "Got MOC footprint: " + summariseMoc( moc ) );
             }

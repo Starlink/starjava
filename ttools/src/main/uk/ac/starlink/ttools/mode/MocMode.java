@@ -3,7 +3,7 @@ package uk.ac.starlink.ttools.mode;
 import cds.healpix.Healpix;
 import cds.healpix.HealpixNested;
 import cds.healpix.HealpixNestedBMOC;
-import cds.moc.HealpixMoc;
+import cds.moc.SMoc;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.logging.Level;
@@ -45,15 +45,15 @@ public class MocMode implements ProcessingMode {
 
     /** MocFormat implementation that writes MOC 1.0-compliant FITS files. */
     public static final MocFormat FITS_FORMAT = new CdsMocFormat( "fits" ) {
-        protected void doWrite( HealpixMoc moc, OutputStream out )
+        protected void doWrite( SMoc moc, OutputStream out )
                 throws Exception {
-            moc.writeFits( out );
+            moc.writeFITS( out );
         }
     };
 
     /** MocFormat implementation that writes JSON files. */
     public static final MocFormat JSON_FORMAT = new CdsMocFormat( "json" ) {
-        protected void doWrite( HealpixMoc moc, OutputStream out )
+        protected void doWrite( SMoc moc, OutputStream out )
                 throws Exception {
             moc.writeJSON( out );
         }
@@ -66,7 +66,7 @@ public class MocMode implements ProcessingMode {
         orderParam_ = new IntegerParameter( "order" );
         orderParam_.setPrompt( "MOC Healpix maximum order" );
         orderParam_.setMinimum( 0 );
-        orderParam_.setMaximum( HealpixMoc.MAXORDER );
+        orderParam_.setMaximum( SMoc.MAXORD_S );
         orderParam_.setDescription( new String[] {
             "<p>Maximum HEALPix order for the MOC.",
             "This defines the maximum resolution of the output coverage map.",
@@ -148,7 +148,7 @@ public class MocMode implements ProcessingMode {
         return new TableConsumer() {
             public void consume( StarTable table ) throws IOException {
                 ConeQueryRowSequence qseq = qsFact.createQuerySequence( table );
-                HealpixMoc moc;
+                SMoc moc;
                 try {
                     moc = createMoc( order, qseq );
                 }
@@ -156,7 +156,7 @@ public class MocMode implements ProcessingMode {
                     qseq.close();
                 }
                 if ( logger_.isLoggable( Level.INFO ) ) {
-                    logger_.info( "MOC: size=" + moc.getSize() 
+                    logger_.info( "MOC: size=" + moc.getNbCoding() 
                                 + ", coverage=" + moc.getCoverage() );
                 }
                 OutputStream out = dest.createStream();
@@ -176,11 +176,11 @@ public class MocMode implements ProcessingMode {
      * @param  order  MOC max order
      * @param  qseq  cone sequence
      */
-    private static HealpixMoc createMoc( int order, ConeQueryRowSequence qseq )
+    private static SMoc createMoc( int order, ConeQueryRowSequence qseq )
             throws IOException {
-        HealpixMoc moc;
+        SMoc moc;
         try {
-            moc = new HealpixMoc( order );
+            moc = new SMoc( order );
         }
         catch ( Exception e ) {
             throw (IOException) new IOException( "Error creating MOC"
@@ -190,7 +190,7 @@ public class MocMode implements ProcessingMode {
         logger_.info( "New MOC order=" + order
                     + ", resolution=" + (float) moc.getAngularRes() + "deg" );
         HealpixNested hpx = Healpix.getNested( order );
-        setChecked( moc, false );
+        moc.bufferOn();
         while ( qseq.next() ) {
             double raRad = Math.toRadians( qseq.getRa() );
             double decRad = Math.toRadians( qseq.getDec() );
@@ -213,29 +213,8 @@ public class MocMode implements ProcessingMode {
                 }
             }
         }
-        setChecked( moc, true );
+        moc.bufferOff();
         return moc;
-    }
-
-    /**
-     * Sets the continuous checking flag for the MOC object.
-     * When continuous checking is on, parent pixels are supposed to get
-     * weeded out as adds are done.  However, it's much slower.
-     *
-     * @param  moc  MOC to affect
-     * @param  checked   true iff continuous checking should be performed
-     */
-    public static void setChecked( HealpixMoc moc, boolean checked )
-            throws IOException {
-        try {
-            moc.setCheckConsistencyFlag( checked );
-            if ( checked ) {
-                moc.checkAndFix();
-            }
-        }
-        catch ( Exception e ) {
-            throw (IOException) new IOException( "MOC error" ).initCause( e );
-        }
     }
 
     /**
@@ -262,10 +241,10 @@ public class MocMode implements ProcessingMode {
          * @param  moc  MOC
          * @param  out  destination stream
          */
-        protected abstract void doWrite( HealpixMoc moc, OutputStream out )
+        protected abstract void doWrite( SMoc moc, OutputStream out )
                 throws Exception;
 
-        public void writeMoc( HealpixMoc moc, OutputStream out )
+        public void writeMoc( SMoc moc, OutputStream out )
                 throws IOException {
             try {
                 doWrite( moc, out );

@@ -34034,6 +34034,8 @@ introduced since the last version:
         <webref url="https://www.ivoa.net/documents/Notes/VOParquet/"
                 >VOParquet convention</webref> 
         for embedded metadata.</li>
+    <li>Upgrade CDS MOC library to v6.31; now reads MOC 2.0 compliant
+        FITS and ASCII representations.</li>
     </ul>
     </p></dd>
 

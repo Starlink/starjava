@@ -1,6 +1,6 @@
 package uk.ac.starlink.topcat.join;
 
-import cds.moc.HealpixMoc;
+import cds.moc.SMoc;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -350,12 +350,12 @@ public class CdsTableSelector extends JPanel {
     private void setMoc( MocCoverage coverage ) {
         String txt = null;
         if ( coverage != null ) {
-            HealpixMoc hmoc = coverage.getMoc();
-            if ( hmoc != null ) {
+            SMoc smoc = coverage.getMoc();
+            if ( smoc != null ) {
                 txt = new StringBuffer()
-                     .append( Float.toString( (float) hmoc.getCoverage() ) )
+                     .append( Float.toString( (float) smoc.getCoverage() ) )
                      .append( " (order " )
-                     .append( hmoc.getMaxOrder() )
+                     .append( smoc.getMocOrder() )
                      .append( ")" )
                      .toString();
             }

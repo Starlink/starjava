@@ -2,7 +2,7 @@ package uk.ac.starlink.ttools.cone;
 
 import cds.healpix.Healpix;
 import cds.moc.HealpixImpl;
-import cds.moc.HealpixMoc;
+import cds.moc.SMoc;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.logging.Level;
@@ -35,23 +35,23 @@ public class ConeQueryCoverage extends MocCoverage {
     }
 
     @Override
-    protected HealpixMoc createMoc() throws IOException {
+    protected SMoc createMoc() throws IOException {
 
         /* Initialise a MOC object with the right resolution. */
         Nsider nsider = new Nsider();
         int maxOrder = Math.min( nsider.calcOrder( resolutionDeg_ ),
-                                 HealpixMoc.MAXORDER );
-        HealpixMoc moc;
+                                 SMoc.MAXORD_S );
+        SMoc moc;
         try {
-            moc = new HealpixMoc( maxOrder );
+            moc = new SMoc( maxOrder );
         }
         catch ( Exception e ) {
-            throw (Error) new AssertionError( "Trouble creating HealpixMoc??" )
+            throw (Error) new AssertionError( "Trouble creating SMoc??" )
                          .initCause( e );
         }
 
         /* Add coverage for each item in the query sequence. */
-        MocMode.setChecked( moc, false );
+        moc.bufferOn();
         try {
             HealpixImpl healpix = CdsHealpix.getInstance();
             while ( qseq_.next() ) {
@@ -88,7 +88,7 @@ public class ConeQueryCoverage extends MocCoverage {
                     }
                 }
             }
-            MocMode.setChecked( moc, true );
+            moc.bufferOff();
             return moc;
         }
         finally {
@@ -129,7 +129,7 @@ public class ConeQueryCoverage extends MocCoverage {
            .createQuerySequence( new uk.ac.starlink.table.StarTableFactory()
                                 .makeStarTable( tname ) );
         long start = System.currentTimeMillis();
-        HealpixMoc moc = new ConeQueryCoverage( qseq, resDeg ).createMoc();
+        SMoc moc = new ConeQueryCoverage( qseq, resDeg ).createMoc();
         long time = System.currentTimeMillis() - start;
         System.out.println( summariseMoc( moc ) );
         System.out.println( "time: " + time + " ms" );
