@@ -15651,6 +15651,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="Coverage">Coverage</ref>: <code>mocUniq</code>,
         <code>mocUniqToOrder</code>, <code>mocUniqToIndex</code>,
         <code>mocSkyProportion</code>, <code>mocTileCount</code>.</li>
+    <li><ref id="pixfoot"><code>pixfoot</code></ref> can now write
+        ASCII MOCs.</li>
     </ul>
     </p></dd>
 

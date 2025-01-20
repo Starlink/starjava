@@ -44,19 +44,35 @@ public class MocMode implements ProcessingMode {
         Logger.getLogger( "uk.ac.starlink.ttools.mode" );
 
     /** MocFormat implementation that writes MOC 1.0-compliant FITS files. */
-    public static final MocFormat FITS_FORMAT = new CdsMocFormat( "fits" ) {
-        protected void doWrite( SMoc moc, OutputStream out )
-                throws Exception {
-            moc.writeFITS( out );
-        }
-    };
+    public static final MocFormat FITS_FORMAT;
 
     /** MocFormat implementation that writes JSON files. */
-    public static final MocFormat JSON_FORMAT = new CdsMocFormat( "json" ) {
-        protected void doWrite( SMoc moc, OutputStream out )
-                throws Exception {
-            moc.writeJSON( out );
-        }
+    public static final MocFormat JSON_FORMAT;
+
+    /** MocFormat implementation that writes MOC 2.0 ASCII output. */
+    public static MocFormat ASCII_FORMAT;
+
+    /** Available output formats. */
+    private static MocFormat[] FORMATS = new MocFormat[] {
+        FITS_FORMAT = new CdsMocFormat( "fits" ) {
+            protected void doWrite( SMoc moc, OutputStream out )
+                    throws Exception {
+                moc.writeFITS( out );
+            }
+        },
+        JSON_FORMAT = new CdsMocFormat( "json" ) {
+            protected void doWrite( SMoc moc, OutputStream out )
+                    throws Exception {
+                moc.writeJSON( out );
+            }
+        },
+        ASCII_FORMAT = new CdsMocFormat( "ascii" ) {
+            protected void doWrite( SMoc moc, OutputStream out )
+                    throws Exception {
+                moc.writeASCII( out );
+                out.write( '\n' );
+            }
+        },
     };
 
     /**
@@ -98,11 +114,9 @@ public class MocMode implements ProcessingMode {
         } );
         radiusParam_.setStringDefault( "0" );
 
-        mocfmtParam_ =
-            new ChoiceParameter<MocFormat>( "mocfmt", MocFormat.class,
-                                            new MocFormat[] {
-                                                FITS_FORMAT, JSON_FORMAT,
-                                            } );
+        mocfmtParam_ = new ChoiceParameter<MocFormat>( "mocfmt",
+                                                       MocFormat.class,
+                                                       FORMATS );
         mocfmtParam_.setPrompt( "Output format for MOC file" );
         mocfmtParam_.setDescription( new String[] {
             "<p>Determines the output format for the MOC file.",
@@ -128,9 +142,8 @@ public class MocMode implements ProcessingMode {
 
     public String getDescription() {
         return DocUtils.join( new String[] {
-            "<p>Generates a Multi-Order Coverage map from the sky positions",
-            "associated with the rows of the input table,",
-            "and writes it out to a FITS or JSON file.",
+            "<p>Generates and outputs a Multi-Order Coverage map from",
+            "the sky positions associated with the rows of the input table.",
             "</p>",
         } );
     }
