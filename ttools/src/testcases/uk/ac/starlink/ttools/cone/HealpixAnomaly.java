@@ -3,7 +3,6 @@ package uk.ac.starlink.ttools.cone;
 import cds.moc.Healpix;
 import cds.moc.HealpixImpl;
 import gov.fnal.eag.healpix.PixTools;
-import healpix.essentials.HealpixBase;
 import java.util.Arrays;
 import uk.ac.starlink.ttools.cone.PixtoolsHealpix;
 
