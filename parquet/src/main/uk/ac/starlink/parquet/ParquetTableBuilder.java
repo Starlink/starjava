@@ -41,6 +41,10 @@ import uk.ac.starlink.votable.VOStarTable;
 
 /**
  * TableBuilder for parquet files.
+ * As well as reading basic Parquet data and metadata,
+ * embedded metadata following the
+ * <a href="https://www.ivoa.net/documents/Notes/VOParquet/"
+ *    >VOParquet convention</a> is by default read and applied.
  *
  * @author   Mark Taylor
  * @since    25 Feb 2021
@@ -98,8 +102,9 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
             "</p>",
             "<p>Parquet files typically do not contain rich metadata",
             "such as column units, descriptions, UCDs etc.",
-            "To remedy that, this reader supports the experimental",
-            "\"VOParquet\" convention,",
+            "To remedy that, this reader supports the",
+            "<webref url='https://www.ivoa.net/documents/Notes/VOParquet/'",
+            ">VOParquet convention</webref> (version 1.0),",
             "in which metadata is recorded in a DATA-less VOTable",
             "stored in the parquet file header.",
             "If such metadata is present it will by default be used,",
@@ -266,7 +271,9 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
             + "key-value list item with key\n"
             + "<code>" + ParquetStarTable.VOTMETA_KEY + "</code>\n"
             + "will be read to supply the metadata for the input table,\n"
-            + "following the experimental \"VOParquet\" convention.\n"
+            + "following the\n"
+            + "<webref url='https://www.ivoa.net/documents/Notes/VOParquet/'"
+            + ">VOParquet convention</webref>.\n"
             + "If false, any such VOTable metadata is ignored.\n"
             + "If set null, the default, then such VOTable metadata\n"
             + "will be used only if it is present and apparently consistent\n"
@@ -302,7 +309,9 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
         property = "votable",
         doc = "<p>Location of a UTF-8-encoded data-less VOTable\n"
             + "that will supply additional metadata for a parquet table\n"
-            + "being read, according to the VOParquet convention.\n"
+            + "being read, according to the\n"
+            + "<webref url='https://www.ivoa.net/documents/Notes/VOParquet/'"
+            + ">VOParquet convention</webref>.\n"
             + "This is normally not required, but if present it overrides\n"
             + "any such metadata VOTable embedded within the parquet file.\n"
             + "This value will only be used if the <code>votmeta</code>\n"

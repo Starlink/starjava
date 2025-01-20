@@ -12,6 +12,9 @@ import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
 /**
  * TableWriter implementation for output to Parquet format.
+ * As well as writing a basic Parquet file, metadata following the
+ * <a href="https://www.ivoa.net/documents/Notes/VOParquet/"
+ *    >VOParquet convention</a> (currently at v1.0) is optionally written.
  *
  * @author   Mark Taylor
  * @since    25 Feb 2021
@@ -57,11 +60,16 @@ public class ParquetTableWriter
             "Data is compressed on disk and read into memory before use.",
             readText( "parquet-format.xml" ),
             "</p>",
-            "<p>At present, by default only rather limited metadata is written",
-            "so that column units, descriptions, UCDs etc are lost.",
-            "Setting the <code>votmeta</code> option below provides a way",
-            "to remedy that, but this is currently experimental",
-            "and may not be supported by other parquet I/O libraries.",
+            "<p>The parquet file format itself defines only rather limited",
+            "semantic metadata, so that there is no standard way to record",
+            "column units, descriptions, UCDs etc.",
+            "By default,",
+            "additional metadata is written in the form of a DATA-less VOTable",
+            "attached to the file footer, as described by the",
+            "<webref url='https://www.ivoa.net/documents/Notes/VOParquet/'",
+            ">VOParquet convention</webref>.",
+            "This additional metadata can then be retrieved by other",
+            "VOParquet-aware software.",
             "</p>",
             readText( "parquet-packaging.xml" ),
             ""
@@ -229,7 +237,9 @@ public class ParquetTableWriter
             + "in the form of a DATA-less VOTable that is stored in the\n"
             + "parquet extra metadata key-value list under the key\n"
             + "<code>" + ParquetStarTable.VOTMETA_KEY + "</code>,\n"
-            + "according to the experimental \"VOParquet\" convention.\n"
+            + "according to the\n"
+            + "<webref url='https://www.ivoa.net/documents/Notes/VOParquet/'"
+            + ">VOParquet convention</webref> (version 1.0).\n"
             + "This enables items such as Units, UCDs and column descriptions, "
             + "that would otherwise be lost in the serialization,\n"
             + "to be stored in the output parquet file.\n"

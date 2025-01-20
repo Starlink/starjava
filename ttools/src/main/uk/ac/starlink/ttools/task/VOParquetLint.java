@@ -50,9 +50,12 @@ import uk.ac.starlink.votable.VOTableVersion;
 
 /**
  * Checks compliance of a Parquet file with the VOParquet convention.
+ * This version complies with VOParquet 1.0.
  *
  * @author   Mark Taylor
  * @since    9 Jan 2024
+ * @see     <a href="https://www.ivoa.net/documents/Notes/VOParquet/"
+ *             >VOParquet Note</a>
  */
 public class VOParquetLint implements Task {
 
@@ -186,7 +189,9 @@ public class VOParquetLint implements Task {
             "that describes the parquet file under evaluation.",
             "Normally this is not necessary, since the VOTable is found in a",
             "well-known location in the metadata of the parquet file itself,",
-            "as specified by the VOParquet convention.",
+            "as specified by the",
+            "<webref url='https://www.ivoa.net/documents/Notes/VOParquet/'",
+            ">VOParquet convention</webref>.",
             "However if this parameter is set to a non-blank value then",
             "the internal VOTable, if any, will be ignored,",
             "and the UTF-8-encoded VOTable at the supplied location",

@@ -1,6 +1,3 @@
-<p>Parquet support is currently somewhat experimental.
-</p>
-
 <p><strong>Note:</strong>
 <blockquote>
 The parquet I/O handlers require large external libraries,

@@ -6857,7 +6857,10 @@ There are no parameters.
 <subhead><title><code>parqlint</code>: &parqlint-purpose;</title></subhead>
 
 <p><code>parqlint</code> is a utility to check compliance of
-parquet files against the (currently experimental) VOParquet convention.
+parquet files against the
+<webref url="https://www.ivoa.net/documents/Notes/VOParquet/"
+        >VOParquet convention</webref>.
+The checking is currently against version 1.0 of the VOParquet Note.
 </p>
 
 <p>Specifically, the key-value metadata will be examined for an entry
@@ -6944,7 +6947,9 @@ the file-level key-value metadata items,
 information about the organisation of row and column storage
 within the file,
 and the content of a VOTable file associated with the data
-according to the VOParquet convention.
+according to the 
+<webref url="https://www.ivoa.net/documents/Notes/VOParquet/"
+        >VOParquet convention</webref>.
 By default all of this information is displayed, but the
 <code>items</code> parameter can be used to define exactly
 what gets output.
@@ -15627,10 +15632,17 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         array-valued columns.</li>
     <li>Improve <ref id="mode-checksum"><code>checksum</code></ref> mode
         so it works reliably with array-valued cells.</li>
+    <li>Parquet <ref id="inParquet">input</ref> and
+        <ref id="outParquet">output</ref> handlers now support the
+        <webref url="https://www.ivoa.net/documents/Notes/VOParquet/"
+                >VOParquet convention</webref>
+        for embedded metadata.</li>
     <li>New task <ref id="parqlook"><code>parqlook</code></ref> added
         for examining parquet (including VOParquet) files.</li>
     <li>New task <ref id="parqlint"><code>parqlint</code></ref> added
-        for validating parquet files against the VOParquet convention.</li>
+        for validating parquet files against the
+        <webref url="https://www.ivoa.net/documents/Notes/VOParquet/"
+                >VOParquet convention</webref>.</li>
     </ul>
     </p></dd>
 

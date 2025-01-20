@@ -34029,6 +34029,11 @@ introduced since the last version:
     <li>Restore a lot of content (boxed items) that had gone missing
         from the documentation available from the
         <ref id="HelpWindow">Help Window</ref>.</li>
+    <li>Parquet <ref id="inParquet">input</ref> and
+        <ref id="outParquet">output</ref> handlers now support the
+        <webref url="https://www.ivoa.net/documents/Notes/VOParquet/"
+                >VOParquet convention</webref> 
+        for embedded metadata.</li>
     </ul>
     </p></dd>
 
