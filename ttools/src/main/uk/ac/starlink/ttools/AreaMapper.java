@@ -58,4 +58,9 @@ public abstract class AreaMapper implements DomainMapper {
      * @return   function that converts typed objects to Area instances
      */
     public abstract Function<Object,Area> areaFunction( Class<?> aclazz );
+
+    @Override
+    public String toString() {
+        return sourceName_;
+    }
 }

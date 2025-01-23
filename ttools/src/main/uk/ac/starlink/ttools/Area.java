@@ -1,8 +1,12 @@
 package uk.ac.starlink.ttools;
 
 import cds.healpix.Healpix;
+import cds.healpix.HealpixNestedBMOC;
+import cds.healpix.HealpixNestedPolygonComputer;
 import java.util.Arrays;
 import uk.ac.starlink.ttools.cone.CdsHealpixUtil;
+import uk.ac.starlink.ttools.func.Coverage;
+import uk.ac.starlink.util.LongList;
 
 /**
  * Coordinate value representing a two-dimensional shaped area.
@@ -76,6 +80,19 @@ public class Area {
      */
     public void writeSkyCoords3( double[] buffer ) {
         type_.writeSkyCoords3( dataArray_, buffer );
+    }
+
+    /**
+     * Returns an array of UNIQ values corresponding to this shape
+     * for a given maximum HEALPix level.
+     * Tiles may be returned at a higher level than requested,
+     * but the result should be at at least that resolution.
+     *
+     * @param  level  required HEALPix resolution level
+     * @return   array of MOC tile uniq values
+     */
+    public long[] toMocUniqs( int level ) {
+        return type_.toMocUniqs( dataArray_, level );
     }
 
     /**
@@ -234,6 +251,41 @@ public class Area {
                 buffer[ 1 ] = sy * fact;
                 buffer[ 2 ] = sz * fact;
             }
+            public long[] toMocUniqs( double[] data, int level ) {
+                LongList uniqList = new LongList();
+                int nc2 = data.length;
+                int ic2start = 0;
+                HealpixNestedPolygonComputer polyComputer =
+                    Healpix.getNested( level ).newPolygonComputer();
+                for ( int ic2 = 0; ic2 < nc2; ic2 += 2 ) {
+                    boolean isBreak = Double.isNaN( data[ ic2 + 0 ] )
+                                   || Double.isNaN( data[ ic2 + 1 ] );
+                    if ( isBreak || ic2 + 2 == nc2 ) {
+                        if ( ic2 > ic2start ) {
+                            int nv2 = isBreak ? ic2 - ic2start
+                                              : ic2 + 2 - ic2start;
+                            int nv = nv2 / 2;
+                            double[][] vertices = new double[ nv ][];
+                            for ( int iv = 0; iv < nv; iv++ ) {
+                                double lonDeg = data[ ic2start + 2 * iv + 0 ];
+                                double latDeg = data[ ic2start + 2 * iv + 1 ];
+                                vertices[ iv ] =
+                                    new double[] { Math.toRadians( lonDeg ),
+                                                   Math.toRadians( latDeg ), };
+                            }
+                            HealpixNestedBMOC bmoc =
+                                polyComputer.overlappingCells( vertices );
+                            for ( HealpixNestedBMOC.CurrentValueAccessor a :
+                                  bmoc ) {
+                                uniqList.add( Coverage.mocUniq( a.getDepth(),
+                                                                a.getHash() ) );
+                            }
+                        }
+                        ic2start = ic2 + 2;
+                    }
+                }
+                return uniqList.toLongArray();
+            }
         },
 
         /** Circle defined by central point and a radius (x, y, r). */
@@ -248,6 +300,24 @@ public class Area {
             public void writeSkyCoords3( double[] data, double[] buffer ) {
                 writeLonLatSky3( data[ 0 ], data[ 1 ], buffer );
             }
+            public long[] toMocUniqs( double[] data, int level ) {
+                double lonDeg = data[ 0 ];
+                double latDeg = data[ 1 ];
+                double rDeg = data[ 2 ];
+                HealpixNestedBMOC bmoc =
+                    Healpix.getNested( level )
+                           .newConeComputer( Math.toRadians( rDeg ) )
+                           .overlappingCells( Math.toRadians( lonDeg ),
+                                              Math.toRadians( latDeg ) );
+                long[] uniqs = new long[ bmoc.size() ];
+                int i = 0;
+                for ( HealpixNestedBMOC.CurrentValueAccessor access : bmoc ) {
+                    uniqs[ i++ ] = Coverage.mocUniq( access.getDepth(),
+                                                     access.getHash() );
+                }
+                assert i == bmoc.size();
+                return uniqs;
+            }
         },
 
         /** Point defined by two coordinates (x, y). */
@@ -261,6 +331,14 @@ public class Area {
             }
             public void writeSkyCoords3( double[] data, double[] buffer ) {
                 writeLonLatSky3( data[ 0 ], data[ 1 ], buffer );
+            }
+            public long[] toMocUniqs( double[] data, int level ) {
+                double lonDeg = data[ 0 ];
+                double latDeg = data[ 1 ];
+                long hash = Healpix.getNestedFast( level )
+                                   .hash( Math.toRadians( lonDeg ),
+                                          Math.toRadians( latDeg ) );
+                return new long[] { Coverage.mocUniq( level, hash ) };
             }
         },
 
@@ -303,6 +381,16 @@ public class Area {
                 buffer[ 0 ] = tx * scale;
                 buffer[ 1 ] = ty * scale;
                 buffer[ 2 ] = tz * scale;
+            }
+            public long[] toMocUniqs( double[] data, int level ) {
+                // Note this doesn't currently reduce the MOC to the requested
+                // level.  That's OK, given the semantics of the level argument.
+                int npix = data.length;
+                long[] moc = new long[ npix ];
+                for ( int i = 0; i < npix; i++ ) {
+                    moc[ i ] = Double.doubleToRawLongBits( data[ i ] );
+                }
+                return moc;
             }
         },
 
@@ -361,6 +449,14 @@ public class Area {
                 buffer[ 1 ] = sy * fact;
                 buffer[ 2 ] = sz * fact;
             }
+            public long[] toMocUniqs( double[] data, int level ) {
+                LongList uniqList = new LongList();
+                for ( Area shape : deserializeMultishape( data ) ) {
+                    uniqList.addAll( shape.getType()
+                                    .toMocUniqs( shape.getDataArray(), level ));
+                }
+                return uniqList.toLongArray();
+            }
         };
 
         private static final Type[] VALUES = values();
@@ -400,6 +496,19 @@ public class Area {
          *                 length &gt;=3
          */
         abstract void writeSkyCoords3( double[] data, double[] buffer );
+
+
+        /**
+         * Returns an array of UNIQ values corresponding to this shape
+         * for a given maximum HEALPix level.
+         * Tiles may be returned at a higher level than requested,
+         * but the result should be at at least that resolution.
+         *
+         * @param  data   data array containing shape details
+         * @param  level  maximum HEALPix resolution level
+         * @return   array of MOC tile uniq values
+         */
+        public abstract long[] toMocUniqs( double[] data, int level );
 
         /**
          * Retrieves an instance of this enum from its numeric code.
