@@ -34036,6 +34036,9 @@ introduced since the last version:
         for embedded metadata.</li>
     <li>Upgrade CDS MOC library to v6.31; now reads MOC 2.0 compliant
         FITS and ASCII representations.</li>
+    <li>New MOC handling functions added to class
+        <ref id="Coverage">Coverage</ref>: <code>mocUniq</code>,
+        <code>mocUniqToOrder</code>, <code>mocUniqToIndex</code>.</li>
     </ul>
     </p></dd>
 

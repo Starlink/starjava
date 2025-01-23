@@ -190,4 +190,51 @@ public class Coverage {
         logger_.warning( "Unknown MOC: " + mocTxt + " - assume no coverage" );
         return null;
     }
+
+    /**
+     * Converts a HEALPix order and and tile index into a UNIQ-encoded
+     * integer as used in MOC encoding.
+     * The result is <code>index + 4**(1+order)</code>.
+     *
+     * <p>If the order or index are out of bounds, behaviour is undefined.
+     *
+     * @param  order  HEALPix order, in range 0..29
+     * @param  index  tile index within the given level
+     * @return  uniq-encoded value
+     */
+    public static long mocUniq( int order, long index ) {
+        return ( 4L << ( 2 * order ) ) + index;
+    }
+
+    /**
+     * Extracts the HEALPix order from a UNIQ-encoded integer
+     * as used in MOC encoding.
+     *
+     * <p>If the supplied value is not a legal UNIQ integer,
+     * behaviour is undefined.
+     *
+     * @param  uniq  uniq-encoded value
+     * @return   HEALPix order
+     */
+    public static int uniqToOrder( long uniq ) {
+        // Copied from function from_uniq_ivoa in src/nested/mod.rs at
+        // https://github.com/cds-astro/cds-healpix-rust
+        return ( 61 - Long.numberOfLeadingZeros( uniq ) ) >> 1;
+    }
+
+    /**
+     * Extracts the HEALPix pixel index from a UNIQ-encoded integer
+     * as used in MOC encoding.
+     *
+     * <p>If the supplied value is not a legal UNIQ integer,
+     * behaviour is undefined.
+     *
+     * @param  uniq  uniq-encoded value
+     * @return  pixel index
+     */
+    public static long uniqToIndex( long uniq ) {
+        // Copied from function from_uniq_ivoa in src/nested/mod.rs at
+        // https://github.com/cds-astro/cds-healpix-rust
+        return uniq - ( 4L << ( uniqToOrder( uniq ) << 1 ) );
+    }
 }

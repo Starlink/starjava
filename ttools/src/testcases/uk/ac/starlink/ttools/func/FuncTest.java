@@ -538,6 +538,15 @@ public class FuncTest extends TestCase {
 
         assertFalse( Coverage.inMoc( "bad", 23, -12 ) );
         assertFalse( Coverage.nearMoc( "bad", 23, -12, 18 ) );
+
+        assertEquals( 4, Coverage.mocUniq( 0, 0 ) );
+        for ( int ilev = 0; ilev < 11; ilev++ ) {
+            for ( long ix = 0; ix < 12L << 2 * ilev; ix++ ) {
+                long uniq = Coverage.mocUniq( ilev, ix );
+                assertEquals( ilev, Coverage.uniqToOrder( uniq ) );
+                assertEquals( ix, Coverage.uniqToIndex( uniq ) );
+            }
+        }
     }
 
     public void testDistances() {

@@ -15647,6 +15647,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         FITS and ASCII representations.</li>
     <li><ref id="pixfoot"><code>pixfoot</code></ref> now allows
         <code>order=0</code>.</li>
+    <li>New MOC handling functions added to class
+        <ref id="Coverage">Coverage</ref>: <code>mocUniq</code>,
+        <code>mocUniqToOrder</code>, <code>mocUniqToIndex</code>.</li>
     </ul>
     </p></dd>
 
