@@ -21,16 +21,16 @@ import uk.ac.starlink.table.Tables;
  */
 public class FitsUtil {
 
-    /** FITS block length in bytes (@value). */
+    /** FITS block length in bytes ({@value}). */
     public static final int BLOCK_LENG = 2880;
 
-    /** FITS header card length in bytes (@value). */
+    /** FITS header card length in bytes ({@value}). */
     public static final int CARD_LENG = 80;
 
-    /** Number of header cards per FITS block (@value). */
+    /** Number of header cards per FITS block ({@value}). */
     public static final int CARDS_PER_BLOCK = BLOCK_LENG / CARD_LENG;
 
-    /** Maximum No. of columns in standard FITS BINTABLE extension (@value). */
+    /** Maximum No. of columns in standard FITS BINTABLE extension ({@value}).*/
     public static final int MAX_NCOLSTD = 999;
 
     /** Regex pattern matching floating point value, no grouping. */
