@@ -65,7 +65,7 @@ public class MocMode implements ProcessingMode {
     public MocMode() {
         orderParam_ = new IntegerParameter( "order" );
         orderParam_.setPrompt( "MOC Healpix maximum order" );
-        orderParam_.setMinimum( 1 );
+        orderParam_.setMinimum( 0 );
         orderParam_.setMaximum( HealpixMoc.MAXORDER );
         orderParam_.setDescription( new String[] {
             "<p>Maximum HEALPix order for the MOC.",
