@@ -8,7 +8,7 @@
 <RESOURCE>
 <TABLE nrows="4">
 <FIELD datatype="int" name="hpx_level"/>
-<FIELD arraysize="*" datatype="double" name="vertices"/>
+<FIELD arraysize="*" datatype="double" name="vertices" xtype="polygon"/>
 <FIELD arraysize="*" datatype="int" name="included_indices"/>
 <DATA>
 <TABLEDATA>

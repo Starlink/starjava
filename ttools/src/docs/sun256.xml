@@ -84,6 +84,7 @@
   <!ENTITY coneskymatch-summary SYSTEM 'coneskymatch-summary.xml'>
   <!ENTITY datalinklint-summary SYSTEM 'datalinklint-summary.xml'>
   <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
+  <!ENTITY mocshape-summary SYSTEM 'mocshape-summary.xml'>
   <!ENTITY parqlint-summary SYSTEM 'parqlint-summary.xml'>
   <!ENTITY parqlook-summary SYSTEM 'parqlook-summary.xml'>
   <!ENTITY pixfoot-summary SYSTEM 'pixfoot-summary.xml'>
@@ -306,6 +307,7 @@ same ground as the STIL and TOPCAT user documents
 <dt>Sky Pixel Operations</dt>
 <dd><p>
     <ref id="tskymap"><code>tskymap</code></ref>,
+    <ref id="mocshape"><code>mocshape</code></ref>,
     <ref id="pixfoot"><code>pixfoot</code></ref> and
     <ref id="pixsample"><code>pixsample</code></ref>.
     </p></dd>
@@ -561,6 +563,7 @@ the available tasks are:
 <li><code>coneskymatch</code></li>
 <li><code>datalinklint</code></li>
 <li><code>funcs</code></li>
+<li><code>mocshape</code></li>
 <li><code>parqlint</code></li>
 <li><code>parqlook</code></li>
 <li><code>pixfoot</code></li>
@@ -5899,6 +5902,9 @@ Detailed descriptions and examples for each command can be found in
     <li><ref id="tskymap" plaintextref="yes"><code>tskymap</code></ref>:
         &tskymap-purpose;
         </li>
+    <li><ref id="mocshape" plaintextref="yes"><code>mocshape</code></ref>:
+        &mocshape-purpose;
+        </li>
     <li><ref id="pixfoot" plaintextref="yes"><code>pixfoot</code></ref>:
         &pixfoot-purpose;
         </li>
@@ -6853,6 +6859,88 @@ There are no parameters.
 
 </subsect>
 
+<subsect id="mocshape" tocleaf="yes">
+<subhead><title><code>mocshape</code>: &mocshape-purpose;</title></subhead>
+
+<p><code>mocshape</code> takes a list of sky positions or shapes
+from an input table and generates a Multi-Order Coverage map
+(<webref url="http://www.ivoa.net/Documents/MOC/">MOC</webref>)
+that describes the union of their coverage on the sky.
+</p>
+
+<p>It does a similar job to the older
+<ref id="pixfoot"><code>pixfoot</code></ref> command,
+but it can cope with input shapes that are more general than just points or
+circles; it also understands polygons, STC-S strings and other MOC or UNIQ
+specifications.
+It is also implemented using some different and more flexible code.
+It offers more output options for the calculated MOC via the
+<code>mocfmt</code> parameter,
+and a choice of MOC construction implementations via the <code>mocimpl</code>
+parameter.
+In most cases you can ignore this flexibility, but performance
+characteristics may be different for the different choices,
+and it may be worthwhile to experiment when working with very large tables.
+</p>
+
+<p>See also the
+<ref id="Coverage">Coverage</ref> class
+for MOC-related functions.
+</p>
+
+&mocshape-summary;
+
+<subsubsect id="mocshape-examples">
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>mocshape</code>:
+<dl>
+
+<dt><verbatim>
+stilts mocshape in=survey.vot coords='array(alpha,delta)' shape=point
+                mocfmt=fits out=sfoot.fits
+</verbatim></dt>
+<dd><p>Generates a FITS MOC file
+    from the <code>alpha</code> and <code>delta</code> columns
+    of a table interpreted as points.
+    The <code>coords</code> parameter must be a 2-element array
+    for <code>shape=point</code>, and this is constructed
+    from the table's <code>alpha</code> and <code>delta</code> columns
+    using the <ref id="Arrays-array"><code>array</code></ref> function
+    of the expression language.
+    Since no <code>order</code> parameter is supplied,
+    the default HEALPix order is used.
+    This command does the same job as the
+    <ref id="pixfoot"><code>pixfoot</code></ref> command with parameters
+    <code>ra=alpha dec=delta</code>.
+    </p></dd>
+
+<dt><verbatim>
+stilts mocshape in=obscore.vot coords=s_region order=4 mocfmt=ascii
+</verbatim></dt>
+<dd><p>Generates an order 4 MOC describing the union of all the regions
+    described in the <code>s_region</code> column of an ObsCore table.
+    It is written to standard output in ASCII format.
+    Since the <code>shape</code> parameter is not specified,
+    the command will examine the column metadata for the
+    <code>s_region</code> column to determine the shape that it
+    specifies; for instance <code>xtype</code> values of
+    "<code>point</code>", "<code>circle</code>",
+    "<code>polygon</code>", "<code>stc-s</code>" or
+    "<code>moc</code>" will be understood.
+    If it can't determine from the metadata what kind of shape information
+    is held in the <code>s_region</code> column an error will result,
+    and you can run it with the <code>shape</code> parameter set
+    according to the actual shape type.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
 <subsect id="parqlint" tocleaf="yes">
 <subhead><title><code>parqlint</code>: &parqlint-purpose;</title></subhead>
 
@@ -7013,6 +7101,13 @@ Currently the output is to a format known as a
 which is a HEALPix-based format composed of a list of HEALPix pixels
 of different sizes, which can efficiently describe complex regions.
 Other output formats may be introduced in the future.
+</p>
+
+<p>The <ref id="mocshape"><code>mocshape</code></ref> command
+does a similar job, but can also work with input columns representing
+shapes that are not just points or circles,
+and offers different MOC generation implementations
+that may be more efficient when working with very large input tables.
 </p>
 
 <p>See also the
@@ -15653,6 +15748,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>mocSkyProportion</code>, <code>mocTileCount</code>.</li>
     <li><ref id="pixfoot"><code>pixfoot</code></ref> can now write
         ASCII MOCs.</li>
+    <li>New command <ref id="mocshape"><code>mocshape</code></ref>,
+        generates MOCs from shape specifications in a table.</li>
     </ul>
     </p></dd>
 
