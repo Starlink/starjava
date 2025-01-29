@@ -334,8 +334,9 @@ public class JELUtils {
         else {
             String name = expr.replaceAll( "\\s", "" )
                               .replaceAll( "[^A-Za-z0-9]+", "_" );
-            Class<?> exprClazz = getWrapperType( compEx.getTypeC() );
-            info = new DefaultValueInfo( name, exprClazz );
+            Class<?> exprClazz =
+                new Parser( calcExpr, lib ).parse( null ).resType;
+            info = new DefaultValueInfo( name, getWrapperType( exprClazz ) );
             if ( ! name.trim().equals( expr.trim() ) ) {
                 ((DefaultValueInfo) info).setDescription( expr );
             }
