@@ -58,6 +58,7 @@ public class JELUtils {
 
     private static List<Class<?>> staticClasses_;
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.ttools" );
+    private static final HashMap<String,Class<?>> CAST_MAP = createCastMap();
 
     /** 
      * System property name for adding colon-separated list of 
@@ -99,9 +100,8 @@ public class JELUtils {
                                          Class<?>[] dynamicLib,
                                          DVMap resolver ) {
         Class<?>[] dotClasses = new Class<?>[ 0 ];
-        HashMap<String,Class<?>> cnmap = null;
-        Library lib =
-            new Library( staticLib, dynamicLib, dotClasses, resolver, cnmap );
+        Library lib = new Library( staticLib, dynamicLib, dotClasses, resolver,
+                                   CAST_MAP );
         markStateDependentFunctions( lib, staticLib );
         return lib;
     }
@@ -538,5 +538,28 @@ public class JELUtils {
         else {
             return clazz;
         }
+    }
+
+    /**
+     * This allows to cast to primitive arrays, which otherwise is not
+     * possible.  Unfortunately type names containing square brackets
+     * are not permitted by the syntax.
+     * Since this is so ugly, it's not really documented,
+     * but it's available for runtime casts if really necessary;
+     * e.g. you can write "(doubleArray)arrayFunction(x)".
+     *
+     * @return  cast map for supply to library constructor
+     */
+    private static HashMap<String,Class<?>> createCastMap() {
+        HashMap<String,Class<?>> cnmap = new HashMap<>();
+        cnmap.put( "booleanArray", boolean[].class );
+        cnmap.put( "charArray", char[].class );
+        cnmap.put( "byteArray", byte[].class );
+        cnmap.put( "shortArray", short[].class );
+        cnmap.put( "intArray", int[].class );
+        cnmap.put( "longArray", long[].class );
+        cnmap.put( "floatArray", float[].class );
+        cnmap.put( "doubleArray", double[].class );
+        return cnmap;
     }
 }
