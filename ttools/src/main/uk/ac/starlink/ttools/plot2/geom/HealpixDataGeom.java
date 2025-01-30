@@ -3,7 +3,7 @@ package uk.ac.starlink.ttools.plot2.geom;
 import cds.healpix.Healpix;
 import cds.healpix.HealpixNested;
 import cds.healpix.VerticesAndPathComputer;
-import uk.ac.starlink.ttools.plot2.CdsHealpixUtil;
+import uk.ac.starlink.ttools.cone.CdsHealpixUtil;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.InputMeta;

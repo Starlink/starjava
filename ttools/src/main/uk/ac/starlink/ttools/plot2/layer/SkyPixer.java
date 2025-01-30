@@ -2,7 +2,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import cds.healpix.Healpix;
 import cds.healpix.HashComputer;
-import uk.ac.starlink.ttools.plot2.CdsHealpixUtil;
+import uk.ac.starlink.ttools.cone.CdsHealpixUtil;
 
 /**
  * Maps positions on the unit sphere to pixel indices using a given pixel

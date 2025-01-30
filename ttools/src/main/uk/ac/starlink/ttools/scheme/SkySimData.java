@@ -17,7 +17,7 @@ import uk.ac.starlink.table.RowAccess;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.ttools.plot2.CdsHealpixUtil;
+import uk.ac.starlink.ttools.cone.CdsHealpixUtil;
 
 /**
  * Stores information required to simulate a sky catalogue.

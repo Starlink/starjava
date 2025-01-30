@@ -2,7 +2,7 @@ package uk.ac.starlink.ttools.plot2.data;
 
 import cds.healpix.Healpix;
 import java.util.Arrays;
-import uk.ac.starlink.ttools.plot2.CdsHealpixUtil;
+import uk.ac.starlink.ttools.cone.CdsHealpixUtil;
 
 /**
  * Coordinate value representing a two-dimensional shaped area.

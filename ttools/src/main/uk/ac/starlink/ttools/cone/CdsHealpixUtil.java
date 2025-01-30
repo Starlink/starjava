@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.plot2;
+package uk.ac.starlink.ttools.cone;
 
 import cds.healpix.CompassPoint;
 import cds.healpix.FlatHashIterator;
