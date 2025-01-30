@@ -107,10 +107,12 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
     protected JMenuBar menuBar;
     
     /**
-     * Frame for adding a new server.
+     * Lines Query panel
      */
- //   protected AddNewServerFrame addServerWindow = null;
+ 
     private LinesQueryPanel linesQuery;
+    
+    // options - plot,zoom
 	private JComboBox activePlotBox;
 	private JPanel plotChoicePanel;
 	private boolean zoommode = false;
@@ -185,8 +187,8 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
         splitPane.setResizeWeight(0.8);
       
       
-        // initialize the right and left panels
-    //    JPanel leftPanel = new JPanel();
+        // initialize the plot  panel
+    
         plotChoicePanel = new JPanel();
        
         plotChoicePanel.setBorder(BorderFactory.createEtchedBorder() );
@@ -209,6 +211,8 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
             }
         });
         plotChoicePanel.add(activePlotBox);
+        
+        // Lines QUery panel
         
         linesQuery = new LinesQueryPanel(this);
       //  splitPane.setDividerLocation( 0.5); //linesQuery.getWidth() );
@@ -346,45 +350,43 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
    }
 
    private String makeLinetapQuery(String table, ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String name, String charge, String inchikey, String accessURL) {
-       String query = accessURL;
-       
-       String request="SELECT * from "+table+" WHERE ";
-     
-     
-       // frequency range from selection
-       String wlist="vacuum_wavelength";
-       for (int spec =0;spec<ranges.size();spec++) { 
-    	   int[] range=ranges.get(spec);
-    	   
-           for (int i=0;i<range.length;i+=2) {
-        	   double rangeval []  = getRanges(i, range, lambdas, spec);        	
-        		   wlist+=" between "+ rangeval[0]+" and "+rangeval[1];
-        	
-               if (i+1<rangeval.length-1)
-                   wlist+=" OR vacuum_wavelength ";
-           }
-           if (spec<ranges.size()-1)
-               wlist+=" OR vacuum_wavelength  ";
-       }
-       String and="";
-       if (!wlist.isEmpty()) {    
-           request+=wlist;
-           and=" AND ";
+	   String query = accessURL;
+
+	   String request="SELECT * from "+table+" WHERE ";
+
+	   String wlist="";
+	   if (ranges!= null && ranges.size()==0) {
+		   wlist="";
+	   } else {
+		   // frequency range from selection
+		   wlist="vacuum_wavelength";
+		   for (int spec =0;spec<ranges.size();spec++) { 
+			   int[] range=ranges.get(spec);
+
+			   for (int i=0;i<range.length;i+=2) {
+				   double rangeval []  = getRanges(i, range, lambdas, spec);        	
+				   wlist+=" between "+ rangeval[0]+" and "+rangeval[1];
+
+				   if (i+1<rangeval.length-1)
+					   wlist+=" OR vacuum_wavelength ";
+			   }
+			   if (spec<ranges.size()-1)
+				   wlist+=" OR vacuum_wavelength  ";
+		   }
+	   }
+	   String and="";
+	   if (!wlist.isEmpty()) {    
+		   request+=wlist;
+		   and=" AND ";
        }
        if (! inchikey.isEmpty()) {
            request += and+ "inchikey ILIKE '%"+inchikey+"%'";
        } else if ( !name.isEmpty()) {
     	   request += and+ "element ILIKE  '"+name+"'";
-       		if ( ! charge.isEmpty() && Integer.parseInt(charge) != 0 ) 
+    	   and="AND ";
+       	   if ( ! charge.isEmpty() && Integer.parseInt(charge) != 0 ) 
        			request += and+ "ion_charge ="+charge;
        }
-       
-
-   /*    try {
-           return query+URLEncoder.encode(request, "UTF-8");
-       } catch (UnsupportedEncodingException e) {
-           e.printStackTrace();
-       }*/
        
        return request;
 
@@ -941,12 +943,14 @@ protected void displayOneLine(StarJTable table, int row) {
     }
 
 	public void setPlot(PlotControl plotControl) {
-		plot=plotControl;
-		updatePlotList();
+		plot = plotControl;
+		//updatePlotList();
 		if (plot != null) {
-			activePlotBox.setSelectedIndex(globalList.getPlotIndex(plot)); 
+			int index = globalList.getPlotIndex(plot);
+			activePlotBox.setSelectedIndex(index); 
+			//activePlotBox.setSelectedItem(plot);
 			plot.addPropertyChangeListener(this);
-			linesQuery.updatePlot(plotControl);
+			linesQuery.updatePlot(plot);
 		}
 		
 	}
@@ -1047,7 +1051,8 @@ protected void displayOneLine(StarJTable table, int row) {
 
 	@Override
 	public void plotChanged(PlotChangedEvent e) {
-		//activePlotBox.setSelectedIndex(e.getIndex());
+	//updateplotlist
+		activePlotBox.setSelectedIndex(e.getIndex());
 		
 	}
 

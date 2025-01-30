@@ -111,7 +111,8 @@ public class LinesQueryPanel extends AbstractServerPanel implements ActionListen
           
          servTabPanel.setSelectedIndex(LINETAP_INDEX);
 
-         setServerTable(slapServices);
+         setServerTable(linetapServices);
+         
          servTabPanel.addChangeListener(new ChangeListener() {
              public void stateChanged(ChangeEvent e) {
                  if (isSLAPSelected()) {
