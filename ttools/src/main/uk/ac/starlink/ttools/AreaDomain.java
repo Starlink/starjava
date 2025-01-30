@@ -93,12 +93,12 @@ public class AreaDomain implements Domain<AreaMapper> {
 
     public AreaMapper[] getMappers() {
         return new AreaMapper[] {
-            STCS_MAPPER,
-            POLYGON_MAPPER,
-            CIRCLE_MAPPER,
             POINT_MAPPER,
+            CIRCLE_MAPPER,
+            POLYGON_MAPPER,
             ASCIIMOC_MAPPER,
             UNIQ_MAPPER,
+            STCS_MAPPER,
             TFCAT_MAPPER,
         };
     }

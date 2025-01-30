@@ -61,6 +61,6 @@ public abstract class AreaMapper implements DomainMapper {
 
     @Override
     public String toString() {
-        return sourceName_;
+        return sourceName_.toLowerCase();
     }
 }
