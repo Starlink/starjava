@@ -97,7 +97,7 @@ public class VoTableTranslator {
         for (int i=0;i<columns.length;i++) {
             if (datatypes[i].equals("char"))
                 tableLines.add("<FIELD ucd=\""+ucds[i]+"\" name=\""+columns[i]+"\" utype=\""+utypes[i]+"\" datatype=\""+datatypes[i]+"\" arraysize=\"*\"/>");  
-            else {
+            else {		
                 tableLines.add("<FIELD ucd=\""+ucds[i]+"\" name=\""+columns[i]+"\" utype=\""+utypes[i]+"\" datatype=\""+datatypes[i]+"\""+units[i]+"\"/>");  
             }
         }
@@ -126,22 +126,22 @@ public class VoTableTranslator {
             SpectralLine line = data.get(i);
             tableLines.add("<TR>");
             tableLines.add("<TD>"+ line.getTitle()+"</TD>"); 
-            tableLines.add("<TD>"+ line.getWavelength().getValue() +"</TD>"); 
-            tableLines.add("<TD>"+ line.getWavelength().getError() +"</TD>"); 
+            tableLines.add(String.format("<TD> %,.3f </TD>",  line.getWavelength().getValue())); 
+            tableLines.add(String.format("<TD> %,.3f </TD>", line.getWavelength().getError())); 
             tableLines.add("<TD>"+ line.getInitialElement().getElementName()+"</TD>"); 
-            tableLines.add("<TD>"+ line.getInitialLevel().getEnergy().getValue()+"</TD>"); 
-            tableLines.add("<TD>"+ line.getFinalLevel().getEnergy().getValue() +"</TD>");
+            tableLines.add(String.format("<TD> %,.5f </TD>", line.getInitialLevel().getEnergy().getValue())); 
+            tableLines.add(String.format("<TD> %,.5f </TD>", line.getFinalLevel().getEnergy().getValue() ));
             //if (line.getInitialElement().getIonizationStage() >= 0)
             //	tableLines.add("<TD>"+ line.getInitialElement().getIonizationStageRoman() +"</TD>");   
             tableLines.add("<TD>"+ line.getInitialElement().getIonizationStage() +"</TD>"); 
            // else tableLines.add("<TD></TD>");
-            tableLines.add("<TD>"+ line.getEinsteinA().getValue()+"</TD>"); 
+            tableLines.add(String.format("<TD> %,.5f </TD>", line.getEinsteinA().getValue())); 
             tableLines.add("<TD>"+ line.getInitialLevel().getConfiguration()+"</TD>"); 
             tableLines.add("<TD>"+ line.getFinalLevel().getConfiguration()+"</TD>"); 
-            tableLines.add("<TD>"+ line.getAirWavelength().getValue()+"</TD>"); 
-            tableLines.add("<TD>"+ line.getOscillatorStrength().getValue()+"</TD>"); 
-            tableLines.add("<TD>"+ line.getWeightedOscillatorStrength().getValue()+"</TD>"); 
-            tableLines.add("<TD>"+ line.getStrength().getValue()+"</TD>"); 
+            tableLines.add(String.format("<TD> %,.3f </TD>", line.getAirWavelength().getValue())); 
+            tableLines.add(String.format("<TD> %,.3f </TD>", line.getOscillatorStrength().getValue())); 
+            tableLines.add(String.format("<TD> %,.3f </TD>", line.getWeightedOscillatorStrength().getValue())); 
+            tableLines.add(String.format("<TD> %,.3f </TD>", line.getStrength().getValue())); 
       //      tableLines.add("<TD>"+ line.getIntensity().getValue()+"</TD>"); 
             tableLines.add("</TR>");
         }
