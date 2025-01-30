@@ -26,7 +26,7 @@ public class Level {
     String configuration ;// Human readable string representing the corresponding level configuration 
     
     String ucd = "phys.atmol.level";
-   
+    Double H_C=1.986445857148929e-23; //planck constant * velocity of light
     
     public Level() {
         // TODO Auto-generated constructor stub
@@ -90,11 +90,21 @@ public class Level {
     }
     
     public void setEnergy(double value, double error , String units) {
+    	if (units.equals("1/cm")) { //convert energy to Joules
+    		units="J";
+    		value=value*H_C;
+    	}
         this.energy = new PhysicalQuantity(value, error, units);  
+        
         energy.setUcd("phys.energy;"+this.ucd);
     }
     
     public void setEnergy(double value, String units) {
+
+    	 if (units.equals("1/cm")) { //convert energy to Joules 	 
+    		 units="J";
+    		 value=value*H_C;
+		} 
         this.energy = new PhysicalQuantity(value, units);           
     }
 
