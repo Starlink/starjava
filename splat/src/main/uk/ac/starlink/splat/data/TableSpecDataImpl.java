@@ -10,6 +10,8 @@ package uk.ac.starlink.splat.data;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.io.IOException;
 
 import org.apache.axis.utils.ArrayUtil;
@@ -383,11 +385,9 @@ public class TableSpecDataImpl
         //  is already random.
         try {
             this.starTable = Tables.randomTable( starTable );
-          //  if (starTable.getName().equals("SINGLE DISH")) { // read SDFITS format
-         //       readSDTable(-1);
-       //     } else {          
+            
                 readTable( -1 );
-       //     }
+           
         }
         catch (SEDSplatException e) {
             throw e;
@@ -914,7 +914,7 @@ public class TableSpecDataImpl
         //  Base frame. Indices of data values array.
         astref.setCurrent( base );
         if (dataColumn >=0)
-              guessUnitsDescription( dataColumn );
+              guessUnitsDescription( dataColumn);
 
         //  Set the units and label for data.
         setDataUnits( astref.getUnit( 1 ) );
@@ -924,19 +924,22 @@ public class TableSpecDataImpl
         astref.setCurrent( current );
         //if (dataColumn >=0)
         if (coordColumn >=0)
-            guessUnitsDescription( coordColumn );
+            guessUnitsDescription( coordColumn);
     }
 
     /**
      * Guess the unit and description of a given column and assign
      * then to the current frame of the AST frameset.
      */
-    protected void guessUnitsDescription( int column )
+    protected void guessUnitsDescription( int column)
     {
         // Units exist or not. If so apply the fixup heuristics.
         String unit = columnInfos[column].getUnitString();
+       
+        unit = checkUnits(unit);
         if ( unit != null && ! "".equals( unit ) ) {
             astref.setUnit( 1, UnitUtilities.fixUpUnits( unit ) );
+            
         }
 
         // If the description doesn't exist, then try for a UCD
@@ -963,4 +966,21 @@ public class TableSpecDataImpl
             astref.setLabel( 1, desc.trim() );
         } 
     }
+    private String checkUnits(String units) {
+		// units from type "Wavelength ( unit )"
+		
+		
+		// if a unit has a multiplication factor, parse it 
+		// from vounits standard (no whitespace) to AST (add whitespace)
+		Pattern pattern = Pattern.compile("([+-]?[0-9]*\\.?[0-9]+([eE][+-]?[0-9]+)?)(.*)");
+		Matcher matcher = pattern.matcher(units);
+		if (matcher.matches()) {
+			String floatPart = matcher.group(1); // First capturing group: Float part
+			String stringPart = matcher.group(3); // Second capturing group: String part
+			return ( floatPart+" "+stringPart );
+		} else {
+			return(units); // return the original
+		}
+
+	}
 }
