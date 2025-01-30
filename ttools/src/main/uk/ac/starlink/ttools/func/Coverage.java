@@ -59,6 +59,12 @@ public class Coverage {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.func" );
 
+    /** The number of steradians on the sphere, 4 PI. */
+    public static final double SPHERE_STERADIAN = 4 * Math.PI;
+
+    /** The number of square degrees on the sphere, approx 41253. */
+    public static final double SPHERE_SQDEG = 360 * 360 / Math.PI;
+
     /**
      * Private constructor prevents instantiation.
      */
@@ -116,6 +122,46 @@ public class Coverage {
         return cov == null || ( cov.getAmount() == Amount.NO_DATA )
              ? false
              : cov.discOverlaps( ra, dec, distanceDeg );
+    }
+
+    /**
+     * Returns the proportion of the sky covered by a given MOC.
+     *
+     * <p>If the given <code>moc</code> value does not represent a MOC
+     * (for instance no file exists or the file/string is not in MOC format)
+     * a warning will be issued the first time it's referenced, and
+     * the result will be NaN.
+     *
+     * @param  moc    a MOC identifier;
+     *                a filename, a URL, a VizieR table name,
+     *                or an ASCII MOC string
+     * @return   a fractional value in the range 0..1
+     */
+    public static double mocSkyProportion( String moc ) {
+        MocCoverage cov = getMocCoverage( moc );
+        return cov == null || ( cov.getAmount() == Amount.NO_DATA )
+             ? Double.NaN
+             : cov.getMoc().getCoverage();
+    }
+
+    /**
+     * Returns the number of unique tiles within a given MOC.
+     *
+     * <p>If the given <code>moc</code> value does not represent a MOC
+     * (for instance no file exists or the file/string is not in MOC format)
+     * a warning will be issued the first time it's referenced, and
+     * the result will be 0.
+     *
+     * @param  moc    a MOC identifier;
+     *                a filename, a URL, a VizieR table name,
+     *                or an ASCII MOC string
+     * @return  number of tiles in the MOC
+     */
+    public static long mocTileCount( String moc ) {
+        MocCoverage cov = getMocCoverage( moc );
+        return cov == null || ( cov.getAmount() == Amount.NO_DATA )
+             ? 0
+             : cov.getMoc().getNbCoding();
     }
 
     /**

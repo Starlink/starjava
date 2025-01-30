@@ -547,6 +547,11 @@ public class FuncTest extends TestCase {
                 assertEquals( ix, Coverage.uniqToIndex( uniq ) );
             }
         }
+
+        assertEquals( 10424, Coverage.mocTileCount( iphasUrl ) );
+        assertEquals( 9, Coverage.mocTileCount( asciiMoc ) );
+        assertEquals( 0.25, Coverage.mocSkyProportion( "0/0-2" ) );
+        assertEquals( Coverage.SPHERE_SQDEG, 41253.0, 0.5 );
     }
 
     public void testDistances() {

@@ -34038,7 +34038,8 @@ introduced since the last version:
         FITS and ASCII representations.</li>
     <li>New MOC handling functions added to class
         <ref id="Coverage">Coverage</ref>: <code>mocUniq</code>,
-        <code>mocUniqToOrder</code>, <code>mocUniqToIndex</code>.</li>
+        <code>mocUniqToOrder</code>, <code>mocUniqToIndex</code>,
+        <code>mocSkyProportion</code>, <code>mocTileCount</code>.</li>
     </ul>
     </p></dd>
 

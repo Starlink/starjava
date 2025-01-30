@@ -15649,7 +15649,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>order=0</code>.</li>
     <li>New MOC handling functions added to class
         <ref id="Coverage">Coverage</ref>: <code>mocUniq</code>,
-        <code>mocUniqToOrder</code>, <code>mocUniqToIndex</code>.</li>
+        <code>mocUniqToOrder</code>, <code>mocUniqToIndex</code>,
+        <code>mocSkyProportion</code>, <code>mocTileCount</code>.</li>
     </ul>
     </p></dd>
 
