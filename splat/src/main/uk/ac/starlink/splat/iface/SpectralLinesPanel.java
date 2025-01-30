@@ -5,47 +5,31 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.prefs.Preferences;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.KeyStroke;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import uk.ac.starlink.splat.ast.ASTJ;
+
 import uk.ac.starlink.ast.AstException;
-import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
-import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.splat.data.LineIDTableSpecDataImpl;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
@@ -53,11 +37,7 @@ import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.vo.LineBrowser;
 import uk.ac.starlink.splat.vo.LineTapParameters;
-import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ErrorDialog;
-import uk.ac.starlink.splat.iface.AutoFillCombo;
 
 
 
@@ -114,17 +94,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
     protected XGraphicsRangesView rangeList = null;
     protected XGraphicsRange range = null;
     
-    /**
-     *  View for showing the results of a query.
-     */
-//    protected JTextArea lineResults = new JTextArea();
-
-    
-    /**
-     *  ScrollPane for display results of a query
-     */
-  //  protected JScrollPane lineResultsPane = new JScrollPane();
-
+  
 
      /**
      *  Label for results area.
@@ -132,15 +102,10 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
     protected TitledBorder lineResultsTitle =
         BorderFactory.createTitledBorder( "Lines found:" );
 
-    /**
-     *  Reference to GlobalSpecPlotList object.
-     */
-  //  protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     protected LineBrowser browser;
 
-   // private SplatBrowser splatBrowser_;     
-//    int[] ranges = null;
+  
     double[] lambda2 = null;
 
     private JTextField chargeField;
@@ -163,18 +128,9 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
 
 	private JComboBox<String> energyUnitsCombo;
 	
-	private JComboBox<String>   speciesCombo;
-	
-	private JList returnParameters;
-
-	private JLabel inChiLabel;
-	
 	private LineTapParameters lineTap;
 
-	private JButton adqlButton;
-
 	private JButton queryButton;
-	private String chosenSpecies;
 
 
   
@@ -232,13 +188,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
      */
     protected void initUI(JComponent rPanel, JComponent qPanel)
     {
-  //     WIDTH=getWidth();
-   //    HEIGHT=getHeight(); 
-      // this.setPreferredSize(new Dimension(this.WIDTH,this.HEIGHT));
-//       setMinimumSize(new Dimension(width-100,height-300));
-//       setPreferredSize(new Dimension(width,height));
-   
-    
+ 
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridwidth=1;
@@ -334,15 +284,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
            gbc1.anchor = GridBagConstraints.LINE_START;
            gbc1.fill = GridBagConstraints.NONE;
          
-           /*
-         
-           // the species
-           JPanel elementPanel = makeLabelFieldPanel("element", elementField);
-           // the ionisation charge/charge
-           JPanel chargePanel = makeLabelFieldPanel("charge", chargeField);
-        
-  		   
-           */
+           
            gbc1.weightx=0;
            gbc1.weighty=0;
           // gbc1.gridwidth = GridBagConstraints.REMAINDER;
@@ -432,8 +374,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
         ArrayList<int []> ranges=new ArrayList<int[]>();
         SpecDataComp spectra = plot.getSpecDataComp();
         
-        //  for (int i=0;i<spectra.count();i++) {
-        //     if (spectra.count() >1) {// more than one spectrum in the plot
+      
      
         // all spectra in same plot = same ranges -> get first
             int i=0;
@@ -443,16 +384,22 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
 
                 boolean ok=true;
                 double [] lambda = spectrum.getXData();
+              
+                
                 // create a copy of the spectrum, so coordinate conversions won't affect the plot
-                //double[] fullrange = new double[2];      
-                //fullrange[0]=lambda[0]; fullrange[1]=lambda[lambda.length-1];
-               // SpecData sd=spectrum.getSect("copy", fullrange);
+              
                 SpecData sd=spectrum.getCopy("copy");
+                
+                
                 // convert X axis to angstrom
+                
+                
                 int msa = sd.getMostSignificantAxis();
                 try {
                     FrameSet frameSet = sd.getFrameSet();
                     String unit = frameSet.getUnit(msa);
+                   
+                   
                     
                     String sys = frameSet.getC("System");
                     logger.info("system=WAVE,unit("+msa+")=angstrom  "+ sys );
@@ -472,13 +419,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
                 }
                 
                 double[] lambda2 = sd.getXData();
-                double[] ranges1 = rangeList.getRanges(true);
-                FrameSet frameset = sd.getFrameSet();
-                Frame frame = frameset.getFrame(msa);
-                Mapping mapping = frameset.getMapping(i, msa);
-                double[] ranges4 = mapping.tran1(ranges1.length, ranges1, true);
-                double[] ranges3 = mapping.tran1(ranges1.length, ranges1, false);
-                
+          
                 
                 int[] ranges2 = rangeList.extractRanges( true, true, lambda);
                 if ( ok && ranges2 != null && ranges2.length > 0 && ranges2[0]!=ranges2[1]) {
@@ -495,12 +436,15 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
 //        }
    
         browser.makeQuery(ranges, lambdas, getSpecies(), getCharge(), getInChiKey());       
-    }
+	}
+
+
 	
-	
-    public void addRangeList() {
-      
-       
+
+
+	public void addRangeList() {
+
+
             rangeList = new XGraphicsRangesView( plot.getPlot(), rangeMenu );
            // rangeList.setPreferredSize(new Dimension(300,50));
             rangePanel.removeAll();
