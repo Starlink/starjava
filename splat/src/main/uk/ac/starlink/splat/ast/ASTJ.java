@@ -559,8 +559,8 @@ public class ASTJ
         // SpecFluxFrame).  Otherwise we use a plain Frame to just represent
         // the data values.
         Frame f2 = null;
-        if ( (haveSpecFrame || haveTimeFrame) &&
-             ! units.equals( "" ) && ! units.equals( "unknown" ) ) {
+        if ( (haveSpecFrame || haveTimeFrame) && ( 
+             ! units.equals( "" ) && ! units.equals( "unknown" ) )) {
             try {
                 f2 = createFluxFrame( units, null, true );
             }
