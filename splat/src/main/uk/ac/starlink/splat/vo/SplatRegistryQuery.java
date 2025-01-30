@@ -215,7 +215,7 @@ public class SplatRegistryQuery implements RegistryQuery {
         		//+ "NATURAL JOIN rr.resource "
         		+ "NATURAL JOIN rr.capability "
         		+ "NATURAL JOIN rr.interface WHERE "
-        		+ "table_utype LIKE 'ivo://ivoa.net/std/linetap#table-1.%' AND standard_id LIKE 'ivo://ivoa.net/std/tap#%' AND intf_role='std'" ;
+        		+ "table_utype LIKE 'ivo://ivoa.net/std/linetap#lines-1.0%' AND standard_id LIKE 'ivo://ivoa.net/std/tap#%' AND intf_role='std'" ;
     }
 
 
