@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.plot2.data;
+package uk.ac.starlink.ttools;
 
 import cds.healpix.Healpix;
 import java.util.Arrays;
@@ -68,6 +68,8 @@ public class Area {
      * Writes the characteristic (typically central) position of this area
      * to a buffer that can be interpreted as the positional coordinates
      * in the data space of a sky plot (3-element unit vector).
+     * If the input values are out of range, the 3 components of the
+     * returned vector will all be NaN.
      *
      * @param  buffer  output array for characteristic position,
      *                 length &gt;=3
@@ -146,6 +148,8 @@ public class Area {
     /**
      * Writes the unit vector corresponding to a latitude, longitude pair
      * into a supplied array.
+     * If the input values are out of range, the 3 components of the
+     * returned vector will all be NaN.
      *
      * @param  lonDeg  longitude in degrees
      * @param  latDeg  latitude in degrees
@@ -153,10 +157,22 @@ public class Area {
      */
     private static void writeLonLatSky3( double lonDeg, double latDeg,
                                          double[] buffer ) {
-        double[] v3 = SkyCoord.lonLatDegreesToDouble3( lonDeg, latDeg );
-        buffer[ 0 ] = v3[ 0 ];
-        buffer[ 1 ] = v3[ 1 ];
-        buffer[ 2 ] = v3[ 2 ];
+        if ( latDeg >= -90 && latDeg <= +90 ) {
+            double theta = Math.toRadians( 90 - latDeg );
+            double phi = Math.toRadians( lonDeg % 360. );
+            double z = Math.cos( theta );
+            double sd = Math.sin( theta );
+            double x = Math.cos( phi ) * sd;
+            double y = Math.sin( phi ) * sd;
+            buffer[ 0 ] = x;
+            buffer[ 1 ] = y;
+            buffer[ 2 ] = z;
+        }
+        else {
+            buffer[ 0 ] = Double.NaN;
+            buffer[ 1 ] = Double.NaN;
+            buffer[ 2 ] = Double.NaN;
+        }
     }
 
     /**
@@ -376,6 +392,8 @@ public class Area {
          * of this type to a buffer that can be interpreted
          * as the positional coordinates in the data space of
          * a sky plot (3-element unit vector).
+         * If the input values are out of range, the 3 components of the
+         * returned vector will all be NaN.
          * 
          * @param  data   data array containing shape details
          * @param  buffer  output array for characteristic position,

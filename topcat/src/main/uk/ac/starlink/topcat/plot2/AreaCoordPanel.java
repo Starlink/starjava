@@ -3,10 +3,10 @@ package uk.ac.starlink.topcat.plot2;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
+import uk.ac.starlink.ttools.AreaDomain;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.AreaCoord;
-import uk.ac.starlink.ttools.plot2.data.AreaDomain;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 
 /**

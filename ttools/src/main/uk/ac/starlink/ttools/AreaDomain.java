@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.plot2.data;
+package uk.ac.starlink.ttools;
 
 import java.util.ArrayList;
 import java.util.List;

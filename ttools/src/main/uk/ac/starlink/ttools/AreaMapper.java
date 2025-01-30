@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.plot2.data;
+package uk.ac.starlink.ttools;
 
 import java.util.function.Function;
 import uk.ac.starlink.table.DomainMapper;
