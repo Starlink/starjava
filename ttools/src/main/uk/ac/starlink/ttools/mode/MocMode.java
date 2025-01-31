@@ -81,17 +81,24 @@ public class MocMode implements ProcessingMode {
     public MocMode() {
         orderParam_ = new IntegerParameter( "order" );
         orderParam_.setPrompt( "MOC Healpix maximum order" );
+        orderParam_.setUsage( "0.." + SMoc.MAXORD_S );
         orderParam_.setMinimum( 0 );
         orderParam_.setMaximum( SMoc.MAXORD_S );
+        int orderDflt = 13;
+        orderParam_.setIntDefault( orderDflt );
+        int dfltResArcsec = 
+            (int) Math.round( 3520 * Math.pow( 2, -orderDflt ) * 60 );
         orderParam_.setDescription( new String[] {
             "<p>Maximum HEALPix order for the MOC.",
             "This defines the maximum resolution of the output coverage map.",
             "The angular resolution corresponding to order <em>k</em>",
-            "is approximately 180/sqrt(3.Pi)/2^<em>k</em>",
+            "is approximately 180/sqrt(3.Pi)/2^<em>k</em> degrees",
             "(3520*2^<em>-k</em> arcmin).",
+            "Permitted values are 0.." + SMoc.MAXORD_S + " inclusive.",
+            "The default value is " + orderDflt + ", which corresponds to",
+            "about " + dfltResArcsec + " arcsec.",
             "</p>",
         } );
-        orderParam_.setIntDefault( 13 );
 
         String system = null;
         String inDescrip = "the input table";

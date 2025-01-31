@@ -38,7 +38,7 @@ public class AreaDomain implements Domain<AreaMapper> {
     public static final AreaMapper CIRCLE_MAPPER =
         createSimpleNumericDaliMapper( Area.Type.CIRCLE,
                                        "3-element array (<code>x</code>, "
-                                     + "<code>y</code>,<code>r</code>)" );
+                                     + "<code>y</code>, <code>r</code>)" );
 
     /** Mapper for (xi,yi,...) polygons - see DALI 1.1 section 3.3.7. */
     public static final AreaMapper POLYGON_MAPPER = createPolygonMapper();
@@ -269,7 +269,7 @@ public class AreaDomain implements Domain<AreaMapper> {
             .append( "Region description using ASCII MOC syntax;\n" )
             .append( "see <webref " )
             .append( "url='http://www.ivoa.net/documents/MOC/'>" )
-            .append( "MOC 1.1</webref> 2.3.2.\n" )
+            .append( "MOC 2.0</webref> sec 4.3.2.\n" )
             .append( "Note there are currently a few issues\n" )
             .append( "with MOC plotting, especially for large pixels." )
             .toString();
@@ -297,8 +297,8 @@ public class AreaDomain implements Domain<AreaMapper> {
         String descrip = String.join( "\n",
             "Region description representing a single HEALPix cell",
             "as defined by an UNIQ value, see",
-            "<webref url='http://www.ivoa.net/documents/MOC/'>MOC 1.1</webref>",
-            "sec 2.3.1."
+            "<webref url='http://www.ivoa.net/documents/MOC/'>MOC 2.0</webref>",
+            "sec 4.3.1."
         );
         return new AreaMapper( "UNIQ", descrip, Number.class ) {
             public Function<Object,Area> areaFunction( Class<?> clazz ) {
