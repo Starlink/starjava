@@ -51,6 +51,19 @@ public abstract class AreaMapper implements DomainMapper {
     }
 
     /**
+     * Returns a version of the source description text that is
+     * suitable for use in the context of sky coordinates.
+     *
+     * <p>The default implementation simply calls
+     * {@link #getSourceDescription}.
+     *
+     * @return  sky description
+     */
+    public String getSkySourceDescription() {
+        return getSourceDescription();
+    }
+
+    /**
      * Returns a function that can map source objects of a given class
      * to corresponding Area instances.
      *

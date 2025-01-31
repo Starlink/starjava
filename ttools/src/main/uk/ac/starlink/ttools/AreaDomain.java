@@ -38,7 +38,9 @@ public class AreaDomain implements Domain<AreaMapper> {
     public static final AreaMapper CIRCLE_MAPPER =
         createSimpleNumericDaliMapper( Area.Type.CIRCLE,
                                        "3-element array (<code>x</code>, "
-                                     + "<code>y</code>, <code>r</code>)" );
+                                     + "<code>y</code>, <code>r</code>)",
+                                       "3-element array (<code>ra</code>, "
+                                     + "<code>dec</code>, <code>r</code>)" );
 
     /** Mapper for (xi,yi,...) polygons - see DALI 1.1 section 3.3.7. */
     public static final AreaMapper POLYGON_MAPPER = createPolygonMapper();
@@ -47,7 +49,9 @@ public class AreaDomain implements Domain<AreaMapper> {
     public static final AreaMapper POINT_MAPPER =
         createSimpleNumericDaliMapper( Area.Type.POINT,
                                        "2-element array "
-                                     + "(<code>x</code>,<code>y</code>)" );
+                                     + "(<code>x</code>,<code>y</code>)",
+                                       "2-element array "
+                                     + "(<code>ra</code>,<code>dec</code>)" );
 
     /** Mapper for ASCII format MOCs. */
     public static final AreaMapper ASCIIMOC_MAPPER = createAsciiMocMapper();
@@ -351,6 +355,10 @@ public class AreaDomain implements Domain<AreaMapper> {
                     return null;
                 }
             }
+            @Override
+            public String getSkySourceDescription() {
+                return null;
+            }
         };
     }
 
@@ -364,10 +372,11 @@ public class AreaDomain implements Domain<AreaMapper> {
      *
      * @param   areaType   area type
      * @param   descrip    description of mapping type
+     * @param   skyDescrip  description of mapping type suitable for sky
      */
     private static AreaMapper
             createSimpleNumericDaliMapper( final Area.Type areaType,
-                                           String descrip ) {
+                                           String descrip, String skyDescrip ) {
         return new AreaMapper( areaType.toString(), descrip, Object.class ) {
             public Function<Object,Area> areaFunction( Class<?> clazz ) {
                 if ( double[].class.equals( clazz ) ) {
@@ -403,6 +412,10 @@ public class AreaDomain implements Domain<AreaMapper> {
                     return null;
                 }
             }
+            @Override
+            public String getSkySourceDescription() {
+                return skyDescrip;
+            }
         };
     }
 
@@ -421,6 +434,11 @@ public class AreaDomain implements Domain<AreaMapper> {
                        + " <code>x2</code>,<code>y2</code>,...);\n"
                        + "a <code>NaN</code>,<code>NaN</code> pair "
                        + "can be used to delimit distinct polygons.";
+        String skyDescrip = "2n-element array "
+                          + "(<code>ra1</code>,<code>dec1</code>,"
+                          + " <code>ra2</code>,<code>dec2</code>,...);\n"
+                          + "a <code>NaN</code>,<code>NaN</code> pair "
+                          + "can be used to delimit distinct polygons.";
 
         /* In many cases the array length may be fixed but not filled up
          * with useful polygon data, so take steps to compact the arrays
@@ -499,6 +517,10 @@ public class AreaDomain implements Domain<AreaMapper> {
                 else {
                     return null;
                 }
+            }
+            @Override
+            public String getSkySourceDescription() {
+                return skyDescrip;
             }
         };
     }
