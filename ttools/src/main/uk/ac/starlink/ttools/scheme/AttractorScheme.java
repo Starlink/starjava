@@ -4,6 +4,7 @@ import uk.ac.starlink.table.Documented;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableScheme;
+import uk.ac.starlink.table.TestTableScheme;
 import uk.ac.starlink.ttools.DocUtils;
 
 /**
@@ -109,7 +110,8 @@ public class AttractorScheme implements TableScheme, Documented {
         sbuf.append( "<dl>\n" );
         int jex = 0;
         String[] nrows = new String[] {
-            "9999", "1e6", "65536", "1e7", "400", "4e6", "10e6", "4", "5.5e5",
+            "9999", "1_000_000", "65536", "1e7", "400", "4e6",
+            "10e6", "4", "5.5e5",
         };
         for ( AttractorFamily fam : families ) {
             String name = fam.getName();
@@ -184,7 +186,7 @@ public class AttractorScheme implements TableScheme, Documented {
         }
         try {
             if ( narg > 0 ) {
-                nrow = (long) Double.parseDouble( args[ 0 ] );
+                nrow = TestTableScheme.parseRowCount( args[ 0 ] );
             }
             if ( narg > 1 ) {
                 name = args[ 1 ];

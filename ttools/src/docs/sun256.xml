@@ -15750,6 +15750,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         ASCII MOCs.</li>
     <li>New command <ref id="mocshape"><code>mocshape</code></ref>,
         generates MOCs from shape specifications in a table.</li>
+    <li>Table scheme row counts can now contain embedded underscores.</li>
     </ul>
     </p></dd>
 

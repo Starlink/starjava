@@ -34042,6 +34042,7 @@ introduced since the last version:
         <code>mocSkyProportion</code>, <code>mocTileCount</code>.</li>
     <li>Opening Sky Plot window when a MOC table is selected
         now automatically plots it like a MOC.</li>
+    <li>Table scheme row counts can now contain embedded underscores.</li>
     </ul>
     </p></dd>
 
