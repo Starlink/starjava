@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ListModel;
+import uk.ac.starlink.table.HealpixTableInfo;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatListener;
@@ -65,6 +66,22 @@ public abstract class LayerControlAction extends BasicAction {
      * @return   new layer control
      */
     public abstract LayerControl createLayerControl();
+
+    /**
+     * Allows this action to provide a layer control for a particular table
+     * if it is specially suited for it.
+     * Under normal circumstances, this method should return null,
+     * which is what the default implementation does.
+     * However, if this control considers that it's likely to be more
+     * suitable than all other controls for plotting the given table,
+     * it should return a LayerControl instance configured to plot that table.
+     *
+     * @param  tcModel   table that could be plotted
+     * @return  null, or a control configured to plot the table
+     */
+    public LayerControl grabTable( TopcatModel tcModel ) {
+        return null;
+    }
 
     public void actionPerformed( ActionEvent evt ) {
         stack_.addControl( createLayerControl() );
@@ -143,12 +160,24 @@ public abstract class LayerControlAction extends BasicAction {
         else if ( plotter instanceof HealpixPlotter ) {
             final HealpixPlotter hPlotter = (HealpixPlotter) plotter;
             return new LayerControlAction( plotter, stack ) {
-                public LayerControl createLayerControl() {
+                public HealpixLayerControl createLayerControl() {
                     Specifier<ZoneId> zs0 = zfact.createZoneSpecifier();
                     Configger configger = baseConfigger.layerConfigger( zs0 );
                     Specifier<ZoneId> zsel = zfact.isSingleZone() ? null : zs0;
                     return new HealpixLayerControl( hPlotter, tablesModel,
                                                     zsel, configger );
+                }
+                @Override
+                public LayerControl grabTable( TopcatModel tcModel ) {
+                    if ( HealpixTableInfo.isHealpix( tcModel.getDataModel()
+                                                    .getParameters() ) ) {
+                        HealpixLayerControl control = createLayerControl();
+                        control.setTopcatModel( tcModel );
+                        return control;
+                    }
+                    else {
+                        return super.grabTable( tcModel );
+                    }
                 }
             };
         }

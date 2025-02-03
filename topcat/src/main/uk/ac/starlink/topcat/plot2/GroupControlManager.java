@@ -10,11 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ListModel;
 import uk.ac.starlink.table.ColumnData;
-import uk.ac.starlink.table.HealpixTableInfo;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ResourceIcon;
@@ -61,7 +59,7 @@ public class GroupControlManager<P,A> implements ControlManager {
     private final TopcatListener tcListener_;
     private final NextSupplier nextSupplier_;
     private final Map<CoordsType,List<Plotter<?>>> plotterMap_;
-    private final Action[] stackActs_;
+    private final LayerControlAction[] stackActs_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.plot2" );
@@ -104,7 +102,7 @@ public class GroupControlManager<P,A> implements ControlManager {
         nextSupplier_ = new NextSupplier();
         nextSupplier_.putValues( StyleKeys.COLOR,
                                  ColorConfigKey.getPlottingColors() );
-        List<Action> stackActList = new ArrayList<Action>();
+        List<LayerControlAction> stackActList = new ArrayList<>();
 
         /* Split the list up by the number of positional coordinates
          * they have. */
@@ -145,7 +143,7 @@ public class GroupControlManager<P,A> implements ControlManager {
         /* Add single controls for miscellaneous plotters. */
         assert CoordsType.MISC.getIcon() == null;
         for ( Plotter<?> plotter : plotterMap_.get( CoordsType.MISC ) ) {
-            Action stackAct =
+            LayerControlAction stackAct =
                 LayerControlAction
                .createPlotterAction( plotTypeGui_, plotter, stack, tablesModel_,
                                      zfact_, nextSupplier_, tcListener_,
@@ -158,48 +156,33 @@ public class GroupControlManager<P,A> implements ControlManager {
                                + plotter.getPlotterName() );
             }
         }
-        stackActs_ = stackActList.toArray( new Action[ 0 ] );
+        stackActs_ = stackActList.toArray( new LayerControlAction[ 0 ] );
     }
 
-    public Action[] getStackActions() {
+    public LayerControlAction[] getStackActions() {
         return stackActs_;
     }
 
     public Control createDefaultControl( TopcatModel tcModel ) {
 
-        /* For the special case where the table is known to contain HEALPix
-         * indices, and one of the layer controls can plot those, use that
-         * control.  In most cases, the other controls will not be appropriate
-         * for such a table. */
-        if ( tcModel != null &&
-             HealpixTableInfo.isHealpix( tcModel.getDataModel()
-                                                .getParameters() ) ) {
-            for ( Action stackAct : stackActs_ ) {
-                if ( stackAct instanceof LayerControlAction ) {
-                    LayerControlAction cact = (LayerControlAction) stackAct;
-                    if ( cact.getPlotter() instanceof HealpixPlotter ) {
-                        LayerControl control = cact.createLayerControl();
-                        assert control instanceof HealpixLayerControl;
-                        if ( control instanceof HealpixLayerControl ) {
-                            ((HealpixLayerControl) control)
-                                                  .setTopcatModel( tcModel );
-                            return control;
-                        }
-                    }
+        /* If one of the controls particularly wants to plot the table,
+         * let it do so. */
+        if ( tcModel != null ) {
+            for ( LayerControlAction stackAct : stackActs_ ) {
+                LayerControl control = stackAct.grabTable( tcModel );
+                if ( control != null ) {
+                    return control;
                 }
             }
         }
 
         /* Otherwise, just pick the first control. */
-        for ( Action stackAct : stackActs_ ) {
-            if ( stackAct instanceof LayerControlAction ) {
-                LayerControl control =
-                    ((LayerControlAction) stackAct).createLayerControl();
-                if ( control instanceof FormLayerControl ) {
-                    ((FormLayerControl) control).setTopcatModel( tcModel );
-                }
-                return control;
+        for ( LayerControlAction stackAct : stackActs_ ) {
+            LayerControl control = stackAct.createLayerControl();
+            if ( control instanceof FormLayerControl ) {
+                ((FormLayerControl) control).setTopcatModel( tcModel );
             }
+            return control;
         }
         return null;
     }
