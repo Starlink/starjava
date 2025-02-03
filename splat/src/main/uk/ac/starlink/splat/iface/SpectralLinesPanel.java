@@ -47,7 +47,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
 	
 	private String SPECIESDB_URL = "http://dc.zah.uni-heidelberg.de/tap";
 	private String SPECIES_TABLE = "species.main";
- 
+	private String chosenSpecies;
     /** UI preferences. */
     protected static Preferences prefs =
         Preferences.userNodeForPackage( SpectralLinesPanel.class );
