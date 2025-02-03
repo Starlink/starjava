@@ -34040,6 +34040,8 @@ introduced since the last version:
         <ref id="Coverage">Coverage</ref>: <code>mocUniq</code>,
         <code>mocUniqToOrder</code>, <code>mocUniqToIndex</code>,
         <code>mocSkyProportion</code>, <code>mocTileCount</code>.</li>
+    <li>Opening Sky Plot window when a MOC table is selected
+        now automatically plots it like a MOC.</li>
     </ul>
     </p></dd>
 

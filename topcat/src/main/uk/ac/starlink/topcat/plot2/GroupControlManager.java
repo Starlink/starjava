@@ -13,12 +13,14 @@ import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ListModel;
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.AreaDomain;
 import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -133,8 +135,23 @@ public class GroupControlManager<P,A> implements ControlManager {
                                                           actDescrip,
                                                           (Plotter) null,
                                                           stack_ ) {
-                    public LayerControl createLayerControl() {
+                    public MultiFormLayerControl createLayerControl() {
                         return createGroupControl( ctyp0, true );
+                    }
+                    @Override
+                    public LayerControl grabTable( TopcatModel tcModel ) {
+                        if ( ctyp == CoordsType.AREA &&
+                             tcModel.getDataModel().getColumnCount() == 1 ) {
+                            ValueInfo info0 =
+                                tcModel.getDataModel().getColumnInfo( 0 );
+                            if ( AreaDomain.INSTANCE.getProbableMapper( info0 )
+                                 != null ) {
+                                FormLayerControl control = createLayerControl();
+                                control.setTopcatModel( tcModel );
+                                return control;
+                            }
+                        }
+                        return super.grabTable( tcModel );
                     }
                 } );
             }
