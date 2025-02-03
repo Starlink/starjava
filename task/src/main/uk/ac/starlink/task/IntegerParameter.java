@@ -20,7 +20,7 @@ public class IntegerParameter extends Parameter<Integer> {
             throws ParameterValueException {
         int intval;
         try {
-            intval = Integer.parseInt( stringval );
+            intval = Integer.parseInt( stringval.replaceAll( "_", "" ) );
         }
         catch ( NumberFormatException e ) {
             throw new ParameterValueException( this, "Not an integer" );

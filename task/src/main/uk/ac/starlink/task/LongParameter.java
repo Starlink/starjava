@@ -25,7 +25,7 @@ public class LongParameter extends Parameter<Long> {
             throws ParameterValueException {
         long longval;
         try {
-            longval = Long.parseLong( stringval );
+            longval = Long.parseLong( stringval.replaceAll( "_", "" ) );
         }
         catch ( NumberFormatException e ) {
             throw new ParameterValueException( this, e.getMessage() );
