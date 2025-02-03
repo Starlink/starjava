@@ -34,7 +34,7 @@ public class SchemeTest extends TestCase {
         failCreateTable( tfact, ":loop:a,b,c" );
         failCreateTable( tfact, ":loop:one" );
         StarTable t1 = createTable( tfact, ":loop:10" );
-        StarTable t2 = createTable( tfact, ":loop:1000,1010" );
+        StarTable t2 = createTable( tfact, ":loop:1_000,1_010" );
         StarTable t3 = createTable( tfact, ":loop:0,100,10" );
         for ( int i = 0; i < 10; i++ ) {
             assertEquals( i, t1.getCell( i, 0 ) );
@@ -68,7 +68,7 @@ public class SchemeTest extends TestCase {
         assertEquals( 99, iTable.getRowCount() );
         assertEquals( 1, iTable.getColumnCount() );
 
-        assertTrue( createTable( tfact, ":test:10000" ).getColumnCount() >= 3 );
+        assertTrue( createTable( tfact, ":test:10_000" ).getColumnCount() >= 3);
 
         assertNull( createTable( tfact, ":test:10,s" )
                    .getColumnInfo( 0 )
@@ -83,7 +83,7 @@ public class SchemeTest extends TestCase {
                       .getContentClass()
                       .getComponentType() );
 
-        StarTable t1k = createTable( tfact, ":test:1000,*" );
+        StarTable t1k = createTable( tfact, ":test:1e3,*" );
         assertEquals( 1000, t1k.getRowCount() );
         assertTrue( t1k.getColumnCount() >= 30 );
         Tables.checkTable( t1k );

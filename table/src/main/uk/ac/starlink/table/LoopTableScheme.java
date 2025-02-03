@@ -80,14 +80,14 @@ public class LoopTableScheme implements TableScheme, Documented {
         }
         try {
             if ( narg == 1 ) {
-                end = Double.parseDouble( args[ 0 ] );
+                end = Double.parseDouble( args[ 0 ].replaceAll( "_", "" ) );
             }
             else if ( narg >= 2 ) {
-                start = Double.parseDouble( args[ 0 ] );
-                end = Double.parseDouble( args[ 1 ] );
+                start = Double.parseDouble( args[ 0 ].replaceAll( "_", "" ) );
+                end = Double.parseDouble( args[ 1 ].replaceAll( "_", "" ) );
             }
             if ( narg > 2 ) {
-                step = Double.parseDouble( args[ 2 ] );
+                step = Double.parseDouble( args[ 2 ].replaceAll( "_", "" ) );
             }
         }
         catch ( NumberFormatException e ) {
