@@ -54,6 +54,7 @@ public class PlotStiltsMonitor
      *
      * @param   plotPanel  panel to mirror
      */
+    @SuppressWarnings("this-escape")
     public PlotStiltsMonitor( PlotPanel<?,?> plotPanel ) {
         plotPanel_ = plotPanel;
         plotSpec_ = plotPanel.getPlotSpec();

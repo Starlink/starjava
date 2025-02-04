@@ -45,6 +45,7 @@ public abstract class StiltsMonitor<S extends StiltsMonitor.State> {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     protected StiltsMonitor() {
 
         /* Set up a text component to display the stilts command.
