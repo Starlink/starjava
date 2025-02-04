@@ -3612,8 +3612,9 @@ unless you are a tool developer you can probably ignore these.
        <code>table.load.votable</code>,
        <code>table.load.fits</code>,
        <code>table.load.cdf</code>,
-       <code>table.load.pds4</code> or
-       <code>table.load.stil</code>
+       <code>table.load.pds4</code>,
+       <code>table.load.stil</code> or
+       <code>coverage.load.moc.fits</code>.
     </p>
     <p>PLASTIC Message ID:
        <code>ivo://votech.org/votable/load</code> or
@@ -34043,6 +34044,9 @@ introduced since the last version:
     <li>Opening Sky Plot window when a MOC table is selected
         now automatically plots it like a MOC.</li>
     <li>Table scheme row counts can now contain embedded underscores.</li>
+    <li>TOPCAT now subscribes to the SAMP MType
+        <code>coverage.load.moc.fits</code>.
+        The MOC is loaded as a normal table.</li>
     </ul>
     </p></dd>
 
