@@ -199,7 +199,7 @@ public class MatchMapper implements TableMapper {
      * @param  suffix  input table suffix
      * @return   join type parameter for one table
      */
-    public Parameter<MultiJoinType>
+    public static Parameter<MultiJoinType>
             createMultiJoinTypeParameter( String suffix ) {
         return new MultiJoinTypeParameter( suffix );
     }

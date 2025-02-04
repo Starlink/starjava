@@ -237,7 +237,7 @@ public class InterMatchSpec extends MatchSpec {
             for ( int i = 0; i < nTable; i++ ) {
                 String label = String.valueOf( i + 1 );
                 Parameter<MultiJoinType> joinTypeParam =
-                    mapper.createMultiJoinTypeParameter( label );
+                    MatchMapper.createMultiJoinTypeParameter( label );
                 settings.add( StiltsCommand
                              .createParamSetting( joinTypeParam,
                                                   joinTypes[ i ] ) );
