@@ -68,12 +68,13 @@ public class VariableTablesInput implements TablesInput {
          * execution environment is available, and hence we know how
          * many of them there will be. */
         String numLabel = NUM_SUFFIX;
-        InputTableParameter inParam = createInputParameter( numLabel );
+        InputTableParameter inParam =
+            createInputParameter( numLabel, inNaming_ );
         paramList.add( inParam.getFormatParameter() );
         paramList.add( inParam );
         FilterParameter filterParam;
         if ( useInFilters ) {
-            filterParam = createFilterParameter( numLabel );
+            filterParam = createFilterParameter( numLabel, inNaming_ );
             paramList.add( filterParam );
         }
         else {
@@ -156,15 +157,8 @@ public class VariableTablesInput implements TablesInput {
      * @return  new input parameter
      */
     public InputTableParameter createInputParameter( String label ) {
-        InputTableParameter inParam =
-            new InputTableParameter( inNaming_.pName_ + label );
-        inParam.setUsage( "<table" + label + ">" );
-        inParam.setPrompt( "Location of " + inNaming_.pWord_ + " table "
-                         + label );
-        inParam.setTableDescription( inNaming_.pWord_ + " table #" + label );
-        return inParam;
+        return createInputParameter( label, inNaming_ );
     }
-
     /**
      * Constructs an input filter parameter with a given distinguishing label.
      *
@@ -172,11 +166,42 @@ public class VariableTablesInput implements TablesInput {
      * @return  new filter parameter
      */
     public FilterParameter createFilterParameter( String label ) {
-        char chr = inNaming_.pName_.charAt( 0 );
+         return createFilterParameter( label, inNaming_ );
+    }
+
+    /**
+     * Constructs an input table parameter with a given distinguishing label
+     * and naming policy.
+     *
+     * @param  label  input identifier - typically "1", "2", etc
+     * @param  naming  naming policy
+     * @return  new input parameter
+     */
+    private static InputTableParameter createInputParameter( String label,
+                                                             Naming naming ) {
+        InputTableParameter inParam =
+            new InputTableParameter( naming.pName_ + label );
+        inParam.setUsage( "<table" + label + ">" );
+        inParam.setPrompt( "Location of " + naming.pWord_ + " table " + label );
+        inParam.setTableDescription( naming.pWord_ + " table #" + label );
+        return inParam;
+    }
+
+    /**
+     * Constructs an input filter parameter with a given distinguishing label
+     * and naming policy.
+     *
+     * @param  label  input identifier - typically "1", "2", etc
+     * @param  naming  naming policy
+     * @return  new filter parameter
+     */
+    private static FilterParameter createFilterParameter( String label,
+                                                          Naming naming ) {
+        char chr = naming.pName_.charAt( 0 );
         FilterParameter filterParam =
             new FilterParameter( chr + "cmd" + label );
-        filterParam.setTableDescription( inNaming_.pWord_ + " table #" + label,
-                                         createInputParameter( label ),
+        filterParam.setTableDescription( naming.pWord_ + " table #" + label,
+                                         createInputParameter( label, naming ),
                                          Boolean.TRUE );
         return filterParam;
     }
