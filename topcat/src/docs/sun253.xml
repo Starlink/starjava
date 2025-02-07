@@ -216,6 +216,7 @@
   <!ENTITY FIG.mode_density '&figs;mode_density.png'>
   <!ENTITY FIG.mode_aux '&figs;mode_aux.png'>
   <!ENTITY FIG.mode_weighted '&figs;mode_weighted.png'>
+  <!ENTITY FIG.mode_paux '&figs;mode_paux.png'>
   <!ENTITY FIG.form_mark '&figs;form_mark.png'>
   <!ENTITY FIG.form_size '&figs;form_size.png'>
   <!ENTITY FIG.form_sizexy '&figs;form_sizexy.png'>
@@ -385,6 +386,7 @@
   <!ENTITY FIG.plot2-shading-translucent '&figs;plot2-shading-translucent.png'>
   <!ENTITY FIG.plot2-shading-aux '&figs;plot2-shading-aux.png'>
   <!ENTITY FIG.plot2-shading-weighted '&figs;plot2-shading-weighted.png'>
+  <!ENTITY FIG.plot2-shading-paux '&figs;plot2-shading-paux.png'>
   <!ENTITY FIG.colormaps-abs '&figs;colormaps-abs.svg'>
   <!ENTITY FIG.colormaps-noabs '&figs;colormaps-noabs.svg'>
 
@@ -14544,8 +14546,8 @@ In the case of PostScript, this completely obscures any previous layers.
 
 <p>The <label>Aux</label> shading mode (&IMG.MODE_AUX;)
 colours each point according to the value of an additional
-data coordinate.
-The point colours then represent an additional dimension of the plot.
+data coordinate, using a colour map shared with other layers in the plot.
+The point colours then represent an additional dimension.
 There is an additional option to draw the points with a fixed transparency.
 </p>
 
@@ -14672,6 +14674,124 @@ range, ramp display etc.
 When exported to vector formats, the output is automatically forced to a
 bitmap for Density-mode layers.
 In the case of PostScript, this completely obscures any previous layers.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="mode-paux">
+<subhead><title>PAux Mode</title></subhead>
+
+<figure>
+<caption><px>Example PAux shading mode plot</px></caption>
+<figureimage src="&FIG.plot2-shading-paux;"/>
+</figure>
+
+<figure>
+<caption><px>PAux mode selection</px></caption>
+<figureimage src="&FIG.mode_paux;"/>
+</figure>
+
+<p>The <label>PAux</label> (private-auxiliary) shading mode (&IMG.MODE_PAUX;)
+colours each point according to the value of an additional data coordinate,
+but using a private colour map.
+The point colours then represent an additional dimension.
+There is an additional option to draw the points with a fixed transparency.
+</p>
+
+<p>This mode is like <ref id="mode-aux">Aux</ref> mode,
+except that the colour map is not shared with other layers,
+and the colour ramp is not displayed.
+So, by using this mode alongside <label>Aux</label>
+or <ref id="mode-weighted">Weighted</ref> modes
+you can make a plot that uses multiple different colour maps,
+though only one can have an associated visible ramp.
+</p>
+
+<p>The options are:
+<dl>
+<dt>PAux</dt>
+<dd><p>The auxiliary coordinate data values.
+    Fill this in with a column name or expression from the table
+    just like for a positional coordinate.
+    </p></dd>
+<dt>Shader</dt>
+<dd><p>The colour map for displaying density values.
+    There are two types, relative and absolute.
+    Relative maps have names marked by a star ("*"), and alter the
+    basic dataset colour, for instance by darkening or lightening it,
+    while absolute maps (the rest) ignore the basic dataset colour altogether.
+    For a single-dataset plot, the absolute maps are best, but for
+    multiple subsets it may be less confusing to use a relative one.
+    Colour maps are listed in <ref id="Shaders"/>.
+    </p></dd>
+<dt>Shader Clip</dt>
+<dd><p>Select a sub-range of the full colour map above.
+    If the <label>Default</label> checkbox is checked, then all or most
+    of the colour ramp from the <label>Shader</label> control is used.
+    If you want to configure the range of colours from the map yourself,
+    uncheck the Default checkbox, and slide the handles in from the end
+    of the slider to choose exactly the range you want.
+    The default range is clipped at one end for colour maps that fade
+    to white, so that all the plotted colours will be distinguishable
+    against a white background.
+    If you don't want that, you can
+    uncheck Default and leave the handles at the extreme ends of the slider.
+    </p></dd>
+<dt>Shader Flip</dt>
+<dd><p>Whether the density scale should map forwards or backwards
+    into the colour map.
+    </p></dd>
+<dt>Shader Quantise</dt>
+<dd><p>Allows the colour map to be quantised.
+    By default, the colour map is effectively continuous.
+    If you slide the slider to the right,
+    or enter a value in the text field,
+    the map will be split into
+    a decreasing number of discrete colours.  This can be used to generate
+    a contour-like effect, and may make it easier to trace the boundaries
+    of regions of interest by eye.
+    </p></dd>
+<dt>Aux Subrange</dt>
+<dd><p>Adjusts the density range over which the colour
+    map is applied.  By default the colour map is scaled using limits
+    found from the aux coordinate in the plot,
+    but you can restrict the range using this slider.
+    </p></dd>
+<dt>Scaling</dt>
+<dd><p>Determines the function used to map the range of aux coordinate values
+    onto the colour map.
+    Options are <label>linear</label>,
+                <label>logarithmic</label>,
+                <label>histogram</label>,
+                <label>logarithmic histogram</label>,
+                <label>square</label> and
+                <label>square root</label>,
+                <label>arc cosine</label>,
+                <label>cosine</label>.
+    </p></dd>
+<dt>Null Colour</dt>
+<dd><p>What colour should be used to represent points with a null value
+    for the aux data coordinate. 
+    If the associated <label>Hide</label> option is selected,
+    then those points will not appear in the plot at all.
+    </p></dd>
+<dt>Opaque Limit</dt>
+<dd><p>Determines transparency of the points.
+    By default, they are fully opaque, but if you slide the slider to
+    the right, they will become progressively more transparent.
+    </p></dd>
+</dl>
+</p>
+
+<p><strong>Exporting:</strong>
+Transparent points are rendered in PDF output, though the
+transparency levels may not be exactly the same as on the screen.
+This can be fixed by using the <label>Force Bitmap</label> option
+in the <ref id="plot2-export" plaintextref="yes">Plot Export</ref> dialogue.
+For PostScript, transparent points are rendered as opaque.
+You can use <label>Force Bitmap</label> with PostScript which
+will get transparency right for this layer, but then any earlier
+layers will be completely obscured.
 </p>
 
 </subsubsubsect>
@@ -34056,6 +34176,8 @@ introduced since the last version:
         The MOC is loaded as a normal table.</li>
     <li>Add <label>Isometric</label> option to
         <ref id="CubeAxisControl_coords">Cube Axis Control</ref>.</li>
+    <li>Add new Private Auxiliary plot shading mode
+        <ref id="mode-paux">PAux</ref>.</li>
     </ul>
     </p></dd>
 

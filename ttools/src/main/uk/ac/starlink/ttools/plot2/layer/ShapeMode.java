@@ -121,11 +121,14 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     /** Configurable density mode. */
     public static final ShapeMode DENSITY = new CustomDensityMode();
 
-    /** Aux variable colouring mode. */
+    /** Aux variable colouring mode with global colour map. */
     public static final ShapeMode AUX = new AuxShadingMode( true, false );
 
     /** Weighted density mode. */
     public static final ShapeMode WEIGHTED = new WeightedDensityMode( false );
+
+    /* Aux mode with private colour map. */
+    public static final ShapeMode AUX_PRIVATE = new PrivateAuxMode( true );
 
     /** Flat RGB mode. */
     // For now this is not offered as one of the shading modes for 2D or 3D
@@ -142,6 +145,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         DENSITY,
         AUX,
         WEIGHTED,
+        AUX_PRIVATE,
     };
 
     /** List of modes suitable for use with 3D plotting. */
@@ -152,6 +156,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         DENSITY,
         AUX,
         WEIGHTED,
+        AUX_PRIVATE,
     };
 
     /** Report key for pixel X dimension in data coordinates. */
@@ -1197,7 +1202,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     }
 
     /**
-     * Mode for colouring shapes according to an additional data coordinate.
+     * Mode for colouring shapes according to an additional data coordinate,
+     * using the shared AuxScale.COLOR map.
      */
     private static class AuxShadingMode extends ShapeMode {
         private final boolean transparent_;
@@ -1234,7 +1240,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         public String getModeDescription() {
             StringBuffer sbuf = new StringBuffer()
                 .append( "<p>Paints markers in a colour determined by\n" )
-                .append( "the value of an additional data coordinate.\n" )
+                .append( "the value of an additional data coordinate,\n" )
+                .append( "using a colour map shared between\n" )
+                .append( "all similar layers.\n" )
                 .append( "The marker colours then represent an additional\n" )
                 .append( "dimension of the plot.\n" );
             if ( transparent_ ) {
@@ -1347,6 +1355,226 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     return drawSpec.createDrawing( kitFact );
                 }
             };
+        }
+    }
+
+    /**
+     * Mode for colouring shapes according to an additional data coordinate,
+     * using a colour map private to the layer.
+     */
+    private static class PrivateAuxMode extends ShapeMode {
+        private final boolean transparent_;
+
+        private static final RampKeySet RAMP_KEYS = StyleKeys.AUXLOCAL_RAMP;
+        private static final ConfigKey<Color> NULLCOLOR_KEY =
+            StyleKeys.AUXLOCAL_NULLCOLOR;
+        private static final ConfigKey<Double> OPAQUE_KEY =
+            StyleKeys.AUX_OPAQUE;
+        private static final AuxScale SCALE = new AuxScale( "PAux" );
+        private static final String scaleName = SCALE.getName();
+        private static final FloatingCoord SHADE_COORD =
+            FloatingCoord.createCoord(
+                new InputMeta( "aux", "Aux" )
+               .setShortDescription( "Colour coordinate for " + scaleName
+                                   + " shading" )
+            , false );
+
+        /**
+         * Constructor.
+         *
+         * @param   transparent   if true, allow variable transparency
+         */
+        PrivateAuxMode( boolean transparent ) {
+            super( "paux", ResourceIcon.MODE_PAUX,
+                   new Coord[] { SHADE_COORD }, false );
+            transparent_ = transparent;
+        }
+
+        public String getModeDescription() {
+            StringBuffer sbuf = new StringBuffer()
+                .append( "<p>Paints markers in a colour determined by\n" )
+                .append( "the value of an additional data coordinate,\n" )
+                .append( "using a colour map private to this layer.\n" )
+                .append( "The marker colours then represent an additional\n" )
+                .append( "dimension of the plot.\n" );
+            if ( transparent_ ) {
+                sbuf.append( "You can also adjust the transparency\n" )
+                    .append( "of the colours used.\n" );
+            }
+            sbuf.append( "There are additional options to adjust\n" )
+                .append( "the way data values are mapped to colours.\n" )
+                .append( "</p>\n" )
+                .append( "<p>This resembles\n" )
+                .append( "<ref id='shading-aux'><code>aux</code></ref>\n" )
+                .append( "mode, but the colour map is not shared with other\n" )
+                .append( "layers, and the colour ramp is not displayed.\n" )
+                .append( "So by using this mode alongside\n" )
+                .append( "<code>aux</code> or\n" )
+                .append( "<ref id='shading-weighted'><code>weighted</code>"
+                               + "</ref>\n" )
+                .append( "you can make a plot that uses multiple\n" )
+                .append( "different colour maps,\n" )
+                .append( "though only one can have\n" )
+                .append( "an associated visible ramp.\n" )
+                .append( "</p>\n" );
+            return sbuf.toString();
+        }
+
+        public ConfigKey<?>[] getConfigKeys() {
+            List<ConfigKey<?>> list = new ArrayList<>();
+            list.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
+            list.add( NULLCOLOR_KEY );
+            if ( transparent_ ) {
+                list.add( OPAQUE_KEY );
+            }
+            return list.toArray( new ConfigKey<?>[ 0 ] );
+        }
+
+        public Stamper createStamper( ConfigMap config ) {
+            RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
+            Shader shader = ramp.getShader();
+            Scaling scaling = ramp.getScaling();
+            Subrange dataclip = ramp.getDataClip();
+            Color nullColor = config.get( NULLCOLOR_KEY );
+            double opaque = transparent_ ? config.get( OPAQUE_KEY ) : 1.0;
+            float scaleAlpha = 1f / (float) opaque;
+            Color baseColor = config.get( StyleKeys.COLOR );
+            return new ShadeStamper( shader, scaling, dataclip, baseColor,
+                                     nullColor, scaleAlpha );
+        }
+
+        public PlotLayer createLayer( ShapePlotter plotter, ShapeForm form,
+                                      DataGeom geom, DataSpec dataSpec,
+                                      Outliner outliner, Stamper stamper ) {
+            int iShadeCoord = plotter.getModeCoordsIndex( geom );
+            assert dataSpec.getCoord( iShadeCoord ) == SHADE_COORD;
+            ShadeStamper shStamper = (ShadeStamper) stamper;
+            Shader shader = shStamper.shader_;
+            Scaling scaling = shStamper.scaling_;
+            Subrange dataclip = shStamper.dataclip_;
+            Color baseColor = shStamper.baseColor_;
+            Color nullColor = shStamper.nullColor_;
+            float scaleAlpha = shStamper.scaleAlpha_;
+            Style style = new ShapeStyle( outliner, stamper );
+            AuxReader auxReader =
+                new FloatingCoordAuxReader( SHADE_COORD, iShadeCoord, geom,
+                                            true, scaling );
+            LayerOpt opt = scaleAlpha < 1f || Shaders.isTransparent( shader )
+                         ? LayerOpt.NO_SPECIAL
+                         : LayerOpt.OPAQUE;
+            return new AbstractPlotLayer( plotter, geom, dataSpec,
+                                          style, opt ) {
+                @Override
+                public Map<AuxScale,AuxReader> getAuxRangers() {
+                    Map<AuxScale,AuxReader> map = super.getAuxRangers();
+                    map.putAll( outliner.getAuxRangers( geom ) );
+                    return map;
+                }
+                public Drawing createDrawing( Surface surface,
+                                              Map<AuxScale,Span> auxSpans,
+                                              PaperType paperType ) {
+                    DrawSpec drawSpec =
+                        new DrawSpec( surface, geom, dataSpec, outliner,
+                                      auxSpans, paperType );
+                    return new Drawing() {
+                        public Object calculatePlan( Object[] knownPlans,
+                                                     DataStore dataStore ) {
+                            for ( Object plan : knownPlans ) {
+                                if ( plan instanceof SpanPlan ) {
+                                    SpanPlan splan = (SpanPlan) plan;
+                                    if ( splan.matches( scaling, surface,
+                                                        geom, dataSpec ) ) {
+                                        return splan;
+                                     }
+                                }
+                            }
+                            Ranger ranger =
+                                Scalings
+                               .createRanger( new Scaling[] { scaling } );
+                            auxReader.adjustAuxRange( surface, dataSpec,
+                                                      dataStore, knownPlans,
+                                                      ranger );
+                            Span shadeSpan = ranger.createSpan();
+                            return new SpanPlan( shadeSpan, scaling, surface,
+                                                 geom, dataSpec );
+                        }
+                        public void paintData( Object plan, Paper paper,
+                                               DataStore dataStore ) {
+                            Span shadeSpan = ((SpanPlan) plan).span_;
+                            Scaler scaler =
+                                shadeSpan.createScaler( scaling, dataclip );
+                            BiConsumer<TupleSequence,Paper> tuplePainter =
+                                    (tseq, p) -> {
+                                ShapePainter painter = drawSpec.createPainter();
+                                ColorKit colorKit =
+                                    new AuxColorKit( iShadeCoord, shader,
+                                                     scaler, baseColor,
+                                                     nullColor, scaleAlpha );
+                                while ( tseq.next() ) {
+                                    Color color = colorKit.readColor( tseq );
+                                    if ( color != null ) {
+                                        painter.paintPoint( tseq, color, p );
+                                    }
+                                }
+                            };
+                            dataStore.getTupleRunner()
+                                     .paintData( tuplePainter, paper, dataSpec,
+                                                 dataStore );
+                        }
+                        public ReportMap getReport( Object plan ) {
+                            return outliner.getReport( plan );
+                        }
+                    };
+                }
+            };
+        }
+
+        /**
+         * Aggregates a Span with information that characterises its
+         * scope of applicability.
+         */
+        private static class SpanPlan {
+            final Span span_;
+            final Scaling scaling_;
+            final Surface surface_;
+            final DataGeom geom_;
+            final DataSpec dataSpec_;
+
+            /**
+             * Constructor.
+             *
+             * @param  span  calculated span
+             * @param  scaling  scaling type
+             * @param  surface  plot surface
+             * @param  geom  data geom
+             * @param  dataSpec   data spec
+             */
+            SpanPlan( Span span, Scaling scaling, Surface surface,
+                      DataGeom geom, DataSpec dataSpec ) {
+                span_ = span;
+                scaling_ = scaling;
+                surface_ = surface;
+                geom_ = geom;
+                dataSpec_ = dataSpec;
+            }
+
+            /**
+             * Indicates whether this plan can be used for a given set
+             * of drawing requirements.
+             *
+             * @param  scaling  scaling type
+             * @param  surface  plot surface
+             * @param  geom  data geom
+             * @param  dataSpec   data spec
+             * @return true iff this plan's data matches the requirements
+             */
+            public boolean matches( Scaling scaling, Surface surface,
+                                    DataGeom geom, DataSpec dataSpec ) {
+                return scaling.equals( scaling_ )
+                    && surface.equals( surface_ )
+                    && geom.equals( geom_ )
+                    && dataSpec.equals( dataSpec_ );
+            }
         }
     }
 
