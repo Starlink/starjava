@@ -1799,12 +1799,12 @@ public class Plot2Example {
         List<String> paramList = new ArrayList<String>();
         paramList.addAll( Arrays.asList( new String[] {
             "layer1=mark", "in1=" + TName.QSO, null,
+            "x1=psfmag_g-psfmag_r", "y1=psfmag_u-psfmag_g", "size1=2", null,
             "*shading1=" + shading,
         } ) );
         paramList.addAll( Arrays.asList( extraParams ) );
         paramList.addAll( Arrays.asList( new String[] {
             null,
-            "x1=psfmag_g-psfmag_r", "y1=psfmag_u-psfmag_g", "size1=2", null,
             "xmin=-0.5", "xmax=2.5", "ymin=-1", "ymax=6",
         } ) );
         return new Plot2Example( "shading-" + shading, context, PlotTask.PLANE,

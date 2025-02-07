@@ -38,8 +38,8 @@ public class AuxColorKit implements ColorKit {
      * @param  scaleAlpha  alpha scaling for output colours;
      *                     1 means opaque
      */
-    AuxColorKit( int icShade, Shader shader, Scaler scaler,
-                 Color baseColor, Color nullColor, float scaleAlpha ) {
+    public AuxColorKit( int icShade, Shader shader, Scaler scaler,
+                        Color baseColor, Color nullColor, float scaleAlpha ) {
         icShade_ = icShade;
         shader_ = shader;
         scaler_ = scaler;

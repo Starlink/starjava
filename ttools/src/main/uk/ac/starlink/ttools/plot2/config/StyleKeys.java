@@ -124,7 +124,7 @@ public class StyleKeys {
             } )
         , false );
 
-    /** Config key for the opacity limit of auxiliary shaded plots. */
+    /** Config key for the opacity limit of global auxiliary shaded plots. */
     public static final ConfigKey<Double> AUX_OPAQUE =
         DoubleConfigKey.createSliderKey(
             new ConfigMeta( "opaque", "Opaque limit" )
@@ -466,26 +466,30 @@ public class StyleKeys {
                                                ErrorMode.SYMMETRIC,
                                                ErrorMode.SYMMETRIC } );
 
-    /** Config key for aux axis tick crowding. */
+    /** Config key for global aux axis tick crowding. */
     public static final ConfigKey<Double> AUX_CROWD =
         PlaneSurfaceFactory.createAxisCrowdKey( "Aux" );
 
-    /** Config key for aux shader lower limit. */
+    /** Config key for global aux shader lower limit. */
     public static final ConfigKey<Double> SHADE_LOW =
         PlaneSurfaceFactory.createAxisLimitKey( "Aux", false );
 
-    /** Config key for aux shader upper limit. */
+    /** Config key for global aux shader upper limit. */
     public static final ConfigKey<Double> SHADE_HIGH =
         PlaneSurfaceFactory.createAxisLimitKey( "Aux", true );
 
-    /** Config key for aux shader subrange. */
+    /** Config key for global aux shader subrange. */
     public static final ConfigKey<Subrange> SHADE_SUBRANGE =
         new SubrangeConfigKey( SubrangeConfigKey
                               .createAxisSubMeta( "aux", "Aux" ) );
 
-    /** Config key for aux null colour. */
+    /** Config key for global aux null colour. */
     public static final ConfigKey<Color> AUX_NULLCOLOR =
         createNullColorKey( "aux", "Aux" );
+
+    /** Config key for non-global aux null colour. */
+    public static final ConfigKey<Color> AUXLOCAL_NULLCOLOR =
+        createNullColorKey( "p", "Aux" );
 
     private static final String SCALE_NAME = "scale";
     private static final String AUTOSCALE_NAME = "autoscale";
@@ -664,6 +668,11 @@ public class StyleKeys {
     public static final RampKeySet AUX_RAMP =
         new RampKeySet( "aux", "Aux",
                         createAuxShaders(), Scaling.LINEAR, false );
+
+    /** Config key set for non-global Aux axis colour ramp. */
+    public static final RampKeySet AUXLOCAL_RAMP =
+        new RampKeySet( "p", "Aux",
+                        createAuxShaders(), Scaling.LINEAR, true );
 
     /** Config key set for density point shading. */
     public static final RampKeySet DENSITY_RAMP =

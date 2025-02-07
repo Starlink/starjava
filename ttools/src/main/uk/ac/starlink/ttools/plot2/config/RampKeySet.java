@@ -64,9 +64,9 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
         }
         shaderList.addAll( Arrays.asList( Shaders.getCustomShaders() ) );
 
-        ConfigMeta shaderMeta = 
+        ConfigMeta shaderMeta =
             ShaderConfigKey
-           .createAxisMeta( axname + "map", axName + " Shader", axName );
+           .createAxisMeta( axname + "map", "Shader", axName );
         shaderKey_ =
             new ShaderConfigKey( shaderMeta,
                                  shaderList.toArray( new Shader[ 0 ] ),
