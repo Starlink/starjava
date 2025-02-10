@@ -212,9 +212,7 @@ public class ParquetIO {
         builder.withWriteMode( ParquetFileWriter.Mode.OVERWRITE )
                .withGroupArray( writer.isGroupArray() )
                .withVOTableMetadata( votmetaVersion )
-               .withValidation( true )
-               .withPageWriteChecksumEnabled( false ) // doesn't seem to help
-               .withDictionaryEncoding( true );
+               .withValidation( true );
         CompressionCodecName codec = writer.getCompressionCodec();
         if ( codec != null ) {
             builder.withCompressionCodec( codec );
