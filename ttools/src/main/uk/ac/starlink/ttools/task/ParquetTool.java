@@ -160,16 +160,14 @@ public class ParquetTool implements Task {
         /** Data blocks. */
         public static final MetaItem BLOCKS =
             new MetaItem( "blocks", "Data Blocks",
-                          "displays information about the parquet data blocks"
-                        + " (currently this is not in a very useful form)",
+                          "displays information about the parquet data blocks",
                           ParquetDump::formatBlocks );
 
         /** Column chunks. */
         public static final MetaItem CHUNKS =
             new MetaItem( "chunks", "Column Chunks",
                           "displays information about the column chunks in "
-                        + "the parquet file"
-                        + " (currently this is not in a very useful form)",
+                        + "the parquet file",
                           ParquetDump::formatColumnChunks );
 
         /** VOParquet data-less VOTable document. */
