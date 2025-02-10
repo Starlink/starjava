@@ -9094,7 +9094,7 @@ It has the following options:
     of the slider to choose exactly the range you want.
     </p>
     <p>The default range is clipped at one end for colour maps that fade
-    to white, so that all the plotted colours will be distinguisable
+    to white, so that all the plotted colours will be distinguishable
     against a white background.
     That is generally a good idea for scatter-type plots, but may not be
     so good for plots where the whole plotting surface is coloured in,
@@ -13096,7 +13096,7 @@ you to use it.
     of the slider to choose exactly the range you want.
     </p>
     <p>The default range is clipped at one end for colour maps that fade
-    to white, so that all the plotted colours will be distinguisable
+    to white, so that all the plotted colours will be distinguishable
     against a white background.
     If you don't want that, you can
     uncheck Default and leave the handles at the extreme ends of the slider.
@@ -14468,9 +14468,8 @@ user-configurable options.  The options are:
     If you want to configure the range of colours from the map yourself,
     uncheck the Default checkbox, and slide the handles in from the end
     of the slider to choose exactly the range you want.
-    </p>
-    <p>The default range is clipped at one end for colour maps that fade
-    to white, so that all the plotted colours will be distinguisable
+    The default range is clipped at one end for colour maps that fade
+    to white, so that all the plotted colours will be distinguishable
     against a white background.
     If you don't want that, you can
     uncheck Default and leave the handles at the extreme ends of the slider.
