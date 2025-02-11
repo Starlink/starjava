@@ -15757,6 +15757,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="shading-paux"><code>paux</code></ref>.</li>
     <li>Add new Private Weighted plot shading mode
         <ref id="shading-pweighted"><code>pweighted</code></ref>.</li>
+    <li>Improve placement of filled polygons in plot layers
+        <ref id="layer-area"><code>area</code></ref>,
+        <ref id="layer-polygon"><code>polygon</code></ref> and
+        <ref id="layer-poly4"><code>poly4</code></ref>.
+        Filled polygons no longer need outlines round them
+        to avoid annoying gaps between tiles.</li>
     </ul>
     </p></dd>
 

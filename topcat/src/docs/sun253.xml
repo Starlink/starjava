@@ -34312,6 +34312,12 @@ introduced since the last version:
         <ref id="mode-paux">PAux</ref>.</li>
     <li>Add new Private Weighted plot shading mode
         <ref id="mode-pweighted">PWeighted</ref>.</li>
+    <li>Improve placement of filled polygons in plot forms
+        <ref id="form-area">Area</ref>,
+        <ref id="form-polygon">Polygon</ref> and
+        <ref id="form-poly4">Poly4</ref>.
+        Filled polygons no longer need outlines round them
+        to avoid annoying gaps between tiles.</li>
     </ul>
     </p></dd>
 

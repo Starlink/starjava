@@ -37,6 +37,17 @@ public class FillPixer implements Pixer {
     private int u_;
     private int v_;
 
+    /* We have the machinery to map the X and Y coordinates to U and V
+     * adaptively according to whether the shape is short and fat or
+     * tall and thin, since it is expected to be faster to fill in
+     * a small number of long rows than a large number of short rows.
+     * This switch configures whether such adaptive switching is in fact done.
+     * It is turned off, since although doing it like that works,
+     * different rounding errors for the different orientations mean
+     * that you end up with pixel-order gaps between polygons that
+     * should butt right up to each other's edges. */
+    private static final boolean OPTIMISE_XY = false;
+
     /**
      * Constructor.
      *
@@ -96,12 +107,13 @@ public class FillPixer implements Pixer {
 
         /* Map the externally supplied X and Y coordinates to the U and V
          * coordinates we use internally.
-         * V is the slower-varying index (row value) and U is the faster-
-         * varying one, since this should be quicker than the other way round.
+         * Unless disabled, this uses V as the slower-varying index (row value)
+         * U as the faster- varying one, since this should be quicker
+         * than the other way round.
          * The code may be easier to read if you think of U=X and Y=V,
          * though for tall thin shapes the mapping will actually be
          * the other way round. */
-        if ( yhi - ylo <= xhi - xlo ) {
+        if ( !OPTIMISE_XY || ( yhi - ylo <= xhi - xlo ) ) {
             us_ = xs;
             vs_ = ys;
             umin_ = xlo;
