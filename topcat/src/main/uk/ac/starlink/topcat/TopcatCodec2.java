@@ -55,8 +55,10 @@ public class TopcatCodec2 implements TopcatCodec {
         createCodecInfo( "columnIndices", int[].class );
     private static final ValueInfo COLS_VISIBLE_INFO =
         createCodecInfo( "columnVisibilities", boolean[].class );
-    private static final ValueInfo SORT_COLUMN_INFO =
+    private static final ValueInfo SORT_COLUMN_INDEX_INFO =
         createCodecInfo( "sortColumn", Integer.class );
+    private static final ValueInfo SORT_COLUMN_EXPRS_INFO =
+        createCodecInfo( "sortColumnExprs", String[].class );
     private static final ValueInfo SORT_SENSE_INFO =
         createCodecInfo( "sortSense", Boolean.class );
     private static final ValueInfo CURRENT_SUBSET_INFO =
@@ -250,17 +252,13 @@ public class TopcatCodec2 implements TopcatCodec {
 
         /* Record sort order. */
         SortOrder sortOrder = tcModel.getSelectedSort();
-        TableColumn sortCol = sortOrder == null ? null : sortOrder.getColumn();
-        if ( sortCol != null ) {
-            int icolSort = tcModel.getColumnList().indexOf( sortCol );
-            if ( icolSort >= 0 ) {
-                boolean sense = tcModel.getSortSenseModel().isSelected();
-                paramList.add( new DescribedValue( SORT_COLUMN_INFO,
-                                                   Integer
-                                                  .valueOf( icolSort ) ) );
-                paramList.add( new DescribedValue( SORT_SENSE_INFO,
-                                                   Boolean.valueOf( sense ) ) );
-            }
+        String[] sortExprs = sortOrder.getExpressions();
+        if ( sortExprs.length > 0 ) {
+            boolean sense = tcModel.getSortSenseModel().isSelected();
+            paramList.add( new DescribedValue( SORT_COLUMN_EXPRS_INFO,
+                                               sortExprs ) );
+            paramList.add( new DescribedValue( SORT_SENSE_INFO,
+                                               Boolean.valueOf( sense ) ) );
         }
 
         /* Record current subset. */
@@ -640,15 +638,37 @@ public class TopcatCodec2 implements TopcatCodec {
             tcModel.applySubset( tcModel.getSubsets().get( iCurrentSubset ) );
         }
 
-        /* Set current sort order. */
-        Integer icolSort = (Integer) pset.getCodecValue( SORT_COLUMN_INFO );
-        if ( icolSort != null ) {
+        /* Set current sort sense. */
+        boolean sortSense =
+            Boolean.TRUE.equals( pset.getCodecValue( SORT_SENSE_INFO ) );
+        tcModel.getSortSenseModel().setSelected( sortSense );
+
+        /* Set current sort order.  There are two different formats this
+         * might appear in, depending on the version of the topcat
+         * that wrote it.  Cope with either. */
+        String[] exprsSort =
+            (String[]) pset.getCodecValue( SORT_COLUMN_EXPRS_INFO );
+        Integer icolSort =
+            (Integer) pset.getCodecValue( SORT_COLUMN_INDEX_INFO );
+        assert exprsSort == null || icolSort == null;
+        final SortOrder sortOrder;
+        if ( exprsSort != null ) {
+            sortOrder = new SortOrder( exprsSort );
+        }
+        else if ( icolSort != null ) {
             int icSort = icolSort.intValue();
-            boolean sortSense =
-                Boolean.TRUE.equals( pset.getCodecValue( SORT_SENSE_INFO ) );
-            TableColumn tcolSort = colList.getColumn( icSort );
-            tcModel.getSortSenseModel().setSelected( sortSense );
-            tcModel.sortBy( new SortOrder( tcolSort ), sortSense );
+            ColumnInfo cinfoSort =
+                tcModel.getDataModel().getColumnInfo( icSort );
+            String[] sortExprs = { cinfoSort.getName() };
+            sortOrder = new SortOrder( sortExprs );
+        }
+        else {
+            sortOrder = SortOrder.NONE;
+        }
+
+        /* Do sorting if a non-default order is in force. */
+        if ( ! sortOrder.equals( SortOrder.NONE ) ) {
+            tcModel.sortBy( sortOrder, sortSense );
         }
 
         /* Return the fully populated TopcatModel. */

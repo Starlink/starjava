@@ -96,8 +96,11 @@ public class CodecTest extends TableCase {
         RowSubset removed2 = (RowSubset) tcModel.getSubsets().remove( 4 );
         assertEquals( quarterSet, removed2 );
         tcModel.applySubset( tenSet );
-        tcModel.sortBy( new SortOrder( tcModel.getColumnModel()
-                                              .getColumn( 2 ) ), true );
+        String sortExpr =
+            tcModel.getColumnModel().getColumn( 2 ).getHeaderValue().toString();
+        if ( ! ( codec instanceof TopcatCodec1 ) ) {
+            tcModel.sortBy( new SortOrder( new String[] { sortExpr } ), true );
+        }
         ColumnData addcol1 =
             new SyntheticColumn( tcModel,
                                  new ColumnInfo( "ix", Integer.class, null ),

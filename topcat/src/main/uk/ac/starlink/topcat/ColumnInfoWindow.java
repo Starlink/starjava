@@ -1375,9 +1375,16 @@ public class ColumnInfoWindow extends AuxWindow {
 
         public void actionPerformed( ActionEvent evt ) {
             int irow = toUnsortedIndex( jtab_.getSelectedRow() );
-            SortOrder order = ( irow > 0 )
-                      ? new SortOrder( getColumnFromRow( irow ) )
-                      : SortOrder.NONE;
+            final SortOrder order;
+            if ( irow > 0 ) {
+                TableColumn tcol = getColumnFromRow( irow );
+                int icol = tcol.getModelIndex();
+                String name = dataModel_.getColumnInfo( irow ).getName();
+                order = new SortOrder( new String[] { name } );
+            }
+            else {
+                order = SortOrder.NONE;
+            }
             tcModel_.sortBy( order, ascending_ );
         }
     }

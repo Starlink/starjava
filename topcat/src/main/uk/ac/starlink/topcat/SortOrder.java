@@ -1,61 +1,69 @@
 package uk.ac.starlink.topcat;
 
-import javax.swing.table.TableColumn;
+import java.util.Arrays;
 
 /**
  * Defines a sorting order for a table.
- * An instance of this class defines the algorithm by which a sort is done,
- * not rather than a given row sequence.
+ * An instance of this class defines the ordering by which a sort is done,
+ * rather than a given row sequence.
  *
- * <p>Currently, the sort order is defined only by the column that the
- * table is sorted on, but this may get extended one day.
- * Note that the sense (up or down) of the sort is selected separately than by
- * this object.
+ * <p>Note that the sense (up or down) of the sort is selected separately
+ * than by this object.
  *
  * @author   Mark Taylor (Starlink)
  * @since    23 Feb 2004
  */
 public class SortOrder {
-    private final TableColumn tcol;
+
+    private final String[] expressions_;
 
     /** SortOrder instance indicating the natural order of the data. */
-    public static final SortOrder NONE = 
-        new SortOrder( ColumnComboBoxModel.NO_COLUMN );
+    public static final SortOrder NONE = new SortOrder( new String[ 0 ] );
 
     /**
      * Constructs a new sort order based on a table column.
      * 
-     * @param  tcol  table colunmn
+     * @param  expressions  list of JEL sort expressions,
+     *                      most significant first
      */
-    public SortOrder( TableColumn tcol ) {
-        this.tcol = tcol;
+    public SortOrder( String[] expressions ) {
+        expressions_ = expressions;
     }
 
     /**
-     * Gives the column on which this table is based.
+     * Gives the expressions on which this table is based.
      *
-     * @return  table column
+     * @return   array of sort JEL expressions, most significant first
      */
-    public TableColumn getColumn() {
-        return tcol;
+    public String[] getExpressions() {
+        return expressions_;
     }
 
+    @Override
     public String toString() {
-        Object id = tcol.getIdentifier();
-        return id == null ? "(none)" : id.toString();
+        switch ( expressions_.length ) {
+            case 0:
+                return "";
+            case 1:
+                return expressions_[ 0 ];
+            default:
+                return Arrays.toString( expressions_ );
+        }
     }
 
+    @Override
     public boolean equals( Object o ) {
         if ( o instanceof SortOrder ) {
             SortOrder other = (SortOrder) o;
-            return this.tcol.equals( other.tcol );
+            return Arrays.equals( this.expressions_, other.expressions_ );
         }
         else {
             return false;
         }
     }
 
+    @Override
     public int hashCode() {
-        return tcol.hashCode();
+        return Arrays.hashCode( expressions_ );
     }
 }

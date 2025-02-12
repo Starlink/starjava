@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat;
 
 import gnu.jel.CompilationException;
+import gnu.jel.CompiledExpression;
 import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.Window;
@@ -9,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -51,6 +53,7 @@ import uk.ac.starlink.topcat.activate.ActivationMeta;
 import uk.ac.starlink.topcat.activate.ActivationWindow;
 import uk.ac.starlink.ttools.convert.Conversions;
 import uk.ac.starlink.ttools.convert.ValueConverter;
+import uk.ac.starlink.ttools.jel.JELUtils;
 
 /**
  * Defines all the state for the representation of a given table as
@@ -588,11 +591,10 @@ public class TopcatModel {
      */
     public Action getSortAction( final SortOrder order, 
                                  final boolean ascending ) {
-        TableColumn tcol = order.getColumn();
         return new BasicAction( "Sort " + ( ascending ? "up" : "down" ),
                                 ascending ? ResourceIcon.UP : ResourceIcon.DOWN,
                                 "Sort rows by " + ( ascending ? "a" : "de" ) +
-                                "scending order of " + tcol.getIdentifier() ) {
+                                "scending order of " + order ) {
             public void actionPerformed( ActionEvent evt ) {
                 sortBy( order, ascending );
             }
@@ -934,7 +936,7 @@ public class TopcatModel {
      * @param  ascending  sort sense (true for up, false for down)
      */
     public void sortBy( SortOrder order, boolean ascending ) {
-        if ( order != SortOrder.NONE ) {
+        if ( ! order.equals( SortOrder.NONE ) ) {
             sortSenseModel_.setSelected( ascending );
         }
         sortSelectionModel_.setSelectedItem( order );
@@ -967,59 +969,71 @@ public class TopcatModel {
      * Returns a row mapping array which gives the sort order corresponding
      * to a sort on values in a given column.
      * 
-     * @param  icol  the index of the column to be sorted on in
-     *               this viewer's model  
-     * @param  ascending  true for ascending sort, false for descending
+     * @param  order  sort order for the table
+     * @param  isAscending  true for ascending sort, false for descending
      */
-    private int[] getSortOrder( int icol, final boolean ascending )
-            throws IOException { 
-        final int sense = ascending ? 1 : -1;
-         
-        /* Define a little class for objects being sorted. */
-        class Item implements Comparable<Item> {
-            final int rank;
-            final Comparable<?> value;
-            Item( int r, Comparable<?> v ) {
-                this.rank = r;
-                this.value = v;
-            }
-            public int compareTo( Item other ) {
-                Comparable<?> oval = other.value;
-                if ( value != null && oval != null ) {
-                    @SuppressWarnings("unchecked")
-                    int cmp = ((Comparable<Object>) value).compareTo( oval ); 
-                    return sense * cmp;
-                } 
-                else if ( value == null && oval == null ) {
-                    return 0;
-                }
-                else {
-                    return sense * ( ( value == null ) ? 1 : -1 );
-                }
-            }
-        }
+    private int[] getSortedRowMap( SortOrder order, boolean isAscending )
+            throws IOException, CompilationException {
+        final int sense = isAscending ? 1 : -1;
 
-        /* Construct a list of all the elements in the given column. */
-        int nrow = AbstractStarTable
-                  .checkedLongToInt( dataModel_.getRowCount() );
-        Item[] items = new Item[ nrow ];
-        try ( RowSequence rseq = dataModel_.getRowSequence() ) {
-            int ir = 0;
-            while ( rseq.next() ) {
-                items[ ir ] =
-                    new Item( ir, (Comparable<?>) rseq.getCell( icol ) );
-                ir++;
+        /* Construct an array of all the sort keys. */
+        int nv = order.getExpressions().length;
+        int nrow =
+            AbstractStarTable.checkedLongToInt( dataModel_.getRowCount() );
+        TopcatJELRowReader rdr = TopcatJELRowReader.createAccessReader( this );
+        CompiledExpression[] compExs =
+            JELUtils.compileExpressions( rdr, order.getExpressions() );
+        RankedItem[] items = new RankedItem[ nrow ];
+        for ( int irow = 0; irow < nrow; irow++ ) {
+            Comparable<?>[] values = new Comparable<?>[ nv ];
+            for ( int iv = 0; iv < nv; iv++ ) {
+                Object value;
+                try {
+                    value = rdr.evaluateAtRow( compExs[ iv ], irow );
+                }
+                catch ( Throwable e ) {
+                    value = null;
+                }
+                assert value == null || value instanceof Comparable;
+                if ( value instanceof Comparable ) {
+                    values[ iv ] = (Comparable<?>) value;
+                }
             }
+            items[ irow ] = new RankedItem( values, irow );
         }
 
         /* Sort the list on the ordering of the items. */
-        Arrays.parallelSort( items );
+        Comparator<RankedItem> comparator = ( item1, item2 ) -> {
+            Comparable<?>[] vals1 = item1.values_;
+            Comparable<?>[] vals2 = item2.values_;
+            for ( int iv = 0; iv < nv; iv++ ) {
+                Comparable<?> v1 = vals1[ iv ];
+                Comparable<?> v2 = vals2[ iv ];
+                final int cmp;
+                if ( v1 != null && v2 != null ) {
+                    @SuppressWarnings("unchecked")
+                    int cmp0 = ((Comparable<Object>) v1).compareTo( v2 );
+                    cmp = cmp0;
+                }
+                else if ( v1 == null && v2 == null ) {
+                    cmp = 0;
+                }
+                else {
+                    cmp = v1 == null ? 1 : -1;
+                }
+                if ( cmp != 0 ) {
+                    return sense * cmp;
+                }
+            }
+            return 0;
+        };
+        Arrays.parallelSort( items, comparator );
 
         /* Construct and return a list of reordered ranks from the
          * sorted array. */
         int[] rowMap = new int[ nrow ];
         for ( int i = 0; i < nrow; i++ ) {
-            rowMap[ i ] = items[ i ].rank;
+            rowMap[ i ] = items[ i ].rank_;
         }
         return rowMap;
     }
@@ -1186,17 +1200,15 @@ public class TopcatModel {
      */
     private class SortSelectionModel implements ComboBoxModel<SortOrder> {
 
-        private final ColumnComboBoxModel sortColModel_;
+        private final ColumnDataComboBoxModel sortDataModel_;
         private SortOrder lastSort_;
 
         SortSelectionModel() {
-            sortColModel_ =
-                    new RestrictedColumnComboBoxModel( columnModel_, true ) {
-                public boolean acceptColumn( ColumnInfo cinfo ) {
-                    return Comparable.class
-                          .isAssignableFrom( cinfo.getContentClass() );
-                }
-            };
+            ColumnDataComboBoxModel.Filter comparableFilter = info ->
+                Comparable.class.isAssignableFrom( info.getContentClass() );
+            sortDataModel_ = new ColumnDataComboBoxModel( TopcatModel.this,
+                                                          comparableFilter,
+                                                          true, false );
             lastSort_ = SortOrder.NONE;
         }
 
@@ -1204,19 +1216,24 @@ public class TopcatModel {
          * Turns a column identifier into a sort order definition.
          */
         public SortOrder getElementAt( int index ) {
-            return new SortOrder( sortColModel_.getElementAt( index ) );
+            ColumnData cdata = sortDataModel_.getColumnDataAt( index );
+            String expr = cdata == null ? null
+                                        : cdata.getColumnInfo().getName();
+            return expr != null && expr.trim().length() > 0
+                 ? new SortOrder( new String[] { expr } )
+                 : SortOrder.NONE;
         }
 
         public int getSize() {
-            return sortColModel_.getSize();
+            return sortDataModel_.getSize();
         }
 
         public void addListDataListener( ListDataListener l ) {
-            sortColModel_.addListDataListener( l );
+            sortDataModel_.addListDataListener( l );
         }
 
         public void removeListDataListener( ListDataListener l ) {
-            sortColModel_.removeListDataListener( l );
+            sortDataModel_.removeListDataListener( l );
         }
 
         /**
@@ -1252,12 +1269,11 @@ public class TopcatModel {
                 rowMap = null;
             }
             else {
-                TableColumn tcol = order.getColumn();
                 try {
-                    rowMap = getSortOrder( tcol.getModelIndex(), 
-                                           sortSenseModel_.isSelected() );
+                    rowMap = getSortedRowMap( order,
+                                              sortSenseModel_.isSelected() );
                 }
-                catch ( IOException e ) {
+                catch ( IOException | CompilationException e ) {
                     Toolkit.getDefaultToolkit().beep();
                     e.printStackTrace( System.err );
                     setSelectedItem( SortOrder.NONE );
@@ -1275,7 +1291,6 @@ public class TopcatModel {
             fireModelChanged( TopcatEvent.CURRENT_ORDER, null );
         }
     }
-
 
     /**
      * ComboBoxModel used for storing the last-invoked subset selection.
@@ -1353,6 +1368,18 @@ public class TopcatModel {
             if ( ! subsets_.contains( getSelectedItem() ) ) {
                 setSelectedItem( subsets_.getElementAt( 0 ) );
             }
+        }
+    }
+
+    /**
+     * Utility class that aggregates a rank and an array, used for sorting.
+     */
+    private static class RankedItem {
+        final Comparable<?>[] values_;
+        final int rank_;
+        RankedItem( Comparable<?>[] values, int rank ) {
+            values_ = values;
+            rank_ = rank; 
         }
     }
 }

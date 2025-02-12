@@ -97,7 +97,12 @@ public class TopcatCodec1 implements TopcatCodec {
 
         /* Record sort order. */
         SortOrder sortOrder = tcModel.getSelectedSort();
-        TableColumn sortCol = sortOrder == null ? null : sortOrder.getColumn();
+        if ( sortOrder != null && ! sortOrder.equals( SortOrder.NONE ) ) {
+            assert false;  // only called during tests, with SortOrder.NONE
+            logger_.severe( "Incompatible format. "
+                          + "What are you doing writing with TopcatCodec1??" );
+        }
+        TableColumn sortCol = null;
         if ( sortCol != null ) {
             int icolSort = tcModel.getColumnList().indexOf( sortCol );
             if ( icolSort >= 0 ) {
@@ -298,9 +303,11 @@ public class TopcatCodec1 implements TopcatCodec {
             int icSort = icolSort.intValue();
             boolean sortSense =
                 Boolean.TRUE.equals( codec.getCodecValue( SORT_SENSE_INFO ) );
-            TableColumn tcolSort = colList.getColumn( icSort );
+            ColumnInfo cinfoSort =
+                tcModel.getDataModel().getColumnInfo( icSort );
+            String[] sortExprs = { cinfoSort.getName() };
             tcModel.getSortSenseModel().setSelected( sortSense );
-            tcModel.sortBy( new SortOrder( tcolSort ), sortSense );
+            tcModel.sortBy( new SortOrder( sortExprs ), sortSense );
         }
 
         /* Return result. */

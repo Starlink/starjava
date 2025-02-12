@@ -514,10 +514,10 @@ public class TableViewerWindow extends AuxWindow {
         else {
             if ( Comparable.class
                            .isAssignableFrom( colInfo.getContentClass() ) ) {
-                popper.add( tcModel_
-                           .getSortAction( new SortOrder( tcol ), true ) );
-                popper.add( tcModel_
-                           .getSortAction( new SortOrder( tcol ), false ) );
+                SortOrder sortOrder =
+                    new SortOrder( new String[] { colInfo.getName() } );
+                popper.add( tcModel_.getSortAction( sortOrder, true ) );
+                popper.add( tcModel_.getSortAction( sortOrder, false ) );
             }
         }
 
