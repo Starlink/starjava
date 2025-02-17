@@ -608,7 +608,7 @@ Here is a summary of its main capabilities:
 <li>View/edit column metadata (column names, units, UCDs...)</li>
 <li>Re-order and hide/reveal columns</li>
 <li>Insert 'synthetic' columns defined by algebraic expression</li>
-<li>Sort rows on the values in a given column</li>
+<li>Sort rows on the values in given columns or expressions</li>
 <li>Define row subsets in various ways, including algebraically 
     and graphically</li>
 <li>Plot columns against each other in 1, 2 and 3 dimensions,
@@ -1048,7 +1048,7 @@ scatter plot windows.
 <subhead><title>Row Order</title></subhead>
 
 <p>You can sort the rows of each table according to the
-values in a selected column.
+values in the table.
 Normally you will want to sort on
 a numeric column, but other values may be sortable too, for instance
 a String column will sort alphabetically.
@@ -1058,24 +1058,31 @@ order, and it is not possible to select these for sorting on.
 
 <p>At any time, each table has a <label>current</label> row order,
 and this affects the <ref id="apparent">Apparent Table</ref>.
-You can always see what it is by looking under the "Sort Order" item
+You can always see what it is by looking under
+the <label>Sort Order</label> item
 in the <ref id="ControlWindow">Control Window</ref> when that table
-is selected; by default it is "(none)", which means the rows have the
+is selected; by default it is blank, which means the rows have the
 same order as that of the table they were loaded in from.
 The little arrow (&IMG.UP_TRIM;/&IMG.DOWN_TRIM;) indicates whether
-the sense of the sort is up or down.  You can change the sort order
-by selecting a column name from this control, and change the sense
-by clicking on the arrow.  The sort order can also be changed
-by using menu items in the 
+the sense of the sort is up or down.
+You can change the sort order by selecting a column name
+or entering an <ref id="jel">algebraic expression</ref>
+in this selector, and change the sense by clicking on the arrow.
+To sort on multiple columns, use the <label>Add/Remove Selector</label>
+(&IMG.ADD;&IMG.SUBTRACT;) buttons to change the number of selectors;
+selectors to the left are more significant, and ones to the right
+are used in case of a tie in earlier values.
+The sort order can also be changed by using menu items in the 
 <ref id="ColumnInfoWindow">Columns Window</ref> or right-clicking
 popup menus in the <ref id="TableViewerWindow">Data Window</ref>.
 </p>
 
-<p>Selecting a column to sort by calculates the new row order 
+<p>Selecting values to sort by calculates the new row order 
 by performing a sort on the cell values there and then.
 If the table data change somehow (e.g. because you edit
 cells in the table) then it is possible for the sort order 
-to become out of date.
+to become out of date.  If that happens you can resort by
+making a new selection and then changing it back again.
 </p>
 
 <p>The current row order affects the <ref id="apparent">Apparent Table</ref>,
@@ -5476,13 +5483,17 @@ Here is what the individual items mean:
     </p></dd>
 
 <dt>Sort Order</dt>
-<dd><p>The column (if any) which determines the current
+<dd><p>The columns or expressions (if any) which determine the current
     <ref id="order">Row Order</ref>.
-    A selector shows the column (if any) on which the rows of the 
-    Apparent Table are sorted
-    and allows you to choose a different one.  
-    The little arrow beside it
-    indicates whether the sort is ascending or descending.
+    Selectors show the values (if any) on which the rows of the 
+    Apparent Table are sorted.
+    The little arrow beside it indicates whether the sort
+    is ascending (&IMG.UP_TRIM;) or descending (&IMG.DOWN_TRIM;).
+    The <label>Add</label> button (&IMG.ADD;) can be used to add
+    more selectors; ones further right are used only if several rows
+    have the same value for expressions to the left.
+    The <label>Remove</label> button if present can be used to remove
+    the currently least-significant selector.
     </p></dd>
 
 <dt>Row Subset</dt>
@@ -6212,12 +6223,14 @@ way to do some things with the column in question:
 <dd><p>Sorts the table rows according to ascending value of the contents of
     the column.  Only available if some kind of order (e.g. numeric or
     alphabetic) can sensibly be applied to the column.
+    This will overwrite the current <ref id="order">Sort Order</ref>.
     </p></dd>
 
 <dt>&IMG.DOWN; Sort down</dt>
 <dd><p>Sorts the table rows according to descending value of the contents of
     the column.  Only available if some kind of order (e.g. numeric or
     alphabetic) can sensibly be applied to the column.
+    This will overwrite the current <ref id="order">Sort Order</ref>.
     </p></dd>
 
 <dt>&IMG.HIDE; Hide</dt>
@@ -34320,6 +34333,9 @@ introduced since the last version:
         to avoid annoying gaps between tiles.</li>
     <li>New class <ref id="Json">Json</ref> contains expression-language
         functions for use with JSON text.</li> 
+    <li>The <ref id="order">Sort Order</ref> can now be defined
+        using multiple columns or expressions,
+        not just a single column.</li>
     </ul>
     </p></dd>
 

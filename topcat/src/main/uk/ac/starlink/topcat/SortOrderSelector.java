@@ -3,9 +3,14 @@ package uk.ac.starlink.topcat;
 import gnu.jel.CompilationException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.Action;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import uk.ac.starlink.table.ColumnData;
@@ -18,17 +23,44 @@ import uk.ac.starlink.table.ColumnData;
  */
 public class SortOrderSelector extends JPanel {
 
-    private final List<ColumnDataComboBox> cdataBoxes_;
     private final ActionForwarder forwarder_;
+    private final List<ColumnDataComboBox> cdataBoxes_;
+    private final JButton addButton_;
+    private final JButton removeButton_;
+    private final PropertyChangeListener modelListener_;
+    
     private Model model_;
 
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     public SortOrderSelector() {
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
-        cdataBoxes_ = new ArrayList<ColumnDataComboBox>();
         forwarder_ = new ActionForwarder();
+        cdataBoxes_ = new ArrayList<ColumnDataComboBox>();
+        Action addAct = BasicAction
+                       .create( "Add column selector", ResourceIcon.ADD,
+                                "Add selector for subordinate sort term",
+                                evt -> {
+                                    model_.addSelector();
+                                    updateGui();
+                                } );
+        Action removeAct =
+            BasicAction.create( "Remove column selector", ResourceIcon.SUBTRACT,
+                                "Remove least significant sort term selector",
+                                evt -> {
+                                    model_.removeSelector();
+                                    updateGui();
+                                } );
+        addButton_ = new JButton( addAct );
+        removeButton_ = new JButton( removeAct );
+        for ( JButton butt : new JButton[] { addButton_, removeButton_ } ) {
+            butt.setHideActionText( true );
+            butt.setBorder( javax.swing.BorderFactory.createEmptyBorder() );
+            butt.setContentAreaFilled( false );
+        }
+        modelListener_ = evt -> updateGui();
         setModel( Model.DUMMY_MODEL );
     }
 
@@ -57,20 +89,14 @@ public class SortOrderSelector extends JPanel {
      */
     public void setModel( Model model ) {
         if ( model != model_ ) {
-            for ( ColumnDataComboBox cdataBox : cdataBoxes_ ) {
-                cdataBox.removeActionListener( forwarder_ );
+            if ( model != null ) {
+                model.removePropertyChangeListener( modelListener_ );
             }
-            cdataBoxes_.clear();
             model_ = model;
-            for ( ColumnDataComboBoxModel cdataModel : model.cdataModels_ ) {
-                ColumnDataComboBox cdataBox = new ColumnDataComboBox();
-                cdataBox.addActionListener( forwarder_ );
-                cdataBox.setModel( cdataModel );
-                cdataBoxes_.add( cdataBox );
+            if ( model_ != null ) {
+                model_.addPropertyChangeListener( modelListener_ );
             }
             updateGui();
-            forwarder_.actionPerformed( new ActionEvent( this, 1,
-                                                         "model-change" ) );
         }
     }
 
@@ -91,24 +117,45 @@ public class SortOrderSelector extends JPanel {
 
     /**
      * Updates the content of this component according to its current
-     * internal state.
+     * internal state.  Also notifies listeners that a change may have
+     * been made.
      */
     private void updateGui() {
 
-        /* Replace any existing selection boxes with new ones appropriate
-         * to the current state. */
-        removeAll();
+        /* Release and remove all existing components. */
         for ( ColumnDataComboBox cdataBox : cdataBoxes_ ) {
-            add( cdataBox );
+            cdataBox.removeActionListener( forwarder_ );
         }
+        cdataBoxes_.clear();
+        removeAll();
 
+        /* Add new combo boxes for each selector in the model. */
+        for ( ColumnDataComboBoxModel cdataModel : model_.cdataModels_ ) {
+            ColumnDataComboBox cdataBox = new ColumnDataComboBox();
+            cdataBox.setModel( cdataModel );
+            cdataBox.addActionListener( forwarder_ );
+            add( cdataBox );
+            add( Box.createHorizontalStrut( 5 ) );
+            cdataBoxes_.add( cdataBox );
+        }
+        
         /* Just for cosmetic reasons, paint a useless JComboBox in case of
          * a table-less model. */
         if ( cdataBoxes_.size() == 0 ) {
             JComboBox<?> dummyBox = new JComboBox<Object>();
             dummyBox.setEnabled( false );
             add( dummyBox );
+            add( Box.createHorizontalStrut( 5 ) );
         }
+
+        /* Add buttons for adding/removing selectors. */
+        if ( cdataBoxes_.size() > 1 ) {
+            add( removeButton_ );
+        }
+        add( addButton_ );
+
+        /* Inform listeners that a change may have been made. */
+        forwarder_.actionPerformed( new ActionEvent( this, 1, "change" ) );
 
         /* Update the visual state. */
         updateEnabled();
@@ -125,6 +172,8 @@ public class SortOrderSelector extends JPanel {
         for ( ColumnDataComboBox cdataBox : cdataBoxes_ ) {
             cdataBox.setEnabled( isEnabled );
         }
+        addButton_.setEnabled( isEnabled );
+        removeButton_.setEnabled( isEnabled );
     }
 
     /**
@@ -134,6 +183,7 @@ public class SortOrderSelector extends JPanel {
 
         private final TopcatModel tcModel_;
         private final List<ColumnDataComboBoxModel> cdataModels_;
+        private final List<PropertyChangeListener> listeners_;
         private static final ColumnDataComboBoxModel.Filter comparableFilter_ =
             info -> Comparable.class.isAssignableFrom( info.getContentClass() );
 
@@ -149,10 +199,8 @@ public class SortOrderSelector extends JPanel {
         public Model( TopcatModel tcModel ) {
             tcModel_ = tcModel;
             cdataModels_ = new ArrayList<ColumnDataComboBoxModel>();
-            if ( tcModel != null ) {
-                ColumnDataComboBoxModel boxModel0 = createComboBoxModel();
-                cdataModels_.add( createComboBoxModel() );
-            }
+            listeners_ = new ArrayList<PropertyChangeListener>();
+            addSelector();
         }
 
         /**
@@ -180,14 +228,15 @@ public class SortOrderSelector extends JPanel {
          * @param  sortOrder  new selection, not null
          */
         public void setSelectedSortOrder( SortOrder sortOrder ) {
-            if ( ! sortOrder.equals( getSelectedSortOrder() ) ) {
+            SortOrder oldOrder = getSelectedSortOrder();
+            if ( ! sortOrder.equals( oldOrder ) ) {
                 String[] exprs = sortOrder.getExpressions();
                 int nexpr = exprs.length;
                 while ( cdataModels_.size() > Math.max( 1, nexpr ) ) {
-                    cdataModels_.remove( cdataModels_.size() - 1 );
+                    removeSelector();
                 }
                 while ( cdataModels_.size() < nexpr ) {
-                    cdataModels_.add( createComboBoxModel() );
+                    addSelector();
                 }
                 for ( int i = 0; i < cdataModels_.size(); i++ ) {
                     String expr = i < nexpr ? exprs[ i ] : null;
@@ -201,18 +250,53 @@ public class SortOrderSelector extends JPanel {
                     }
                     cdataModel.setSelectedItem( cdata );
                 }
+                PropertyChangeEvent evt =
+                    new PropertyChangeEvent( this, "selectedSortOrder",
+                                             oldOrder, sortOrder );
+                for ( PropertyChangeListener listener : listeners_ ) {
+                    listener.propertyChange( evt );
+                }
             }
         }
 
         /**
-         * Creates a combo box model that can select one expression part
-         * of a sort order for this model.
+         * Adds a listener that will be informed if the selection has changed.
          *
-         * @return   new combo box model
+         * @param  l  listener
          */
-        private ColumnDataComboBoxModel createComboBoxModel() {
-            return new ColumnDataComboBoxModel( tcModel_, comparableFilter_,
-                                                true, false );
+        public void addPropertyChangeListener( PropertyChangeListener l ) {
+            listeners_.add( l );
+        }
+
+        /**
+         * Removes a previously added listener.
+         *
+         * @param  l  listener
+         */
+        public void removePropertyChangeListener( PropertyChangeListener l ) {
+            listeners_.remove( l );
+        }
+
+        /**
+         * Adds a new selector model.
+         * If this model has no associated TopcatModel, does nothing.
+         */
+        private void addSelector() {
+            if ( tcModel_ != null ) {
+                cdataModels_
+               .add( new ColumnDataComboBoxModel( tcModel_, comparableFilter_,
+                                                  true, false ) );
+            }
+        }
+
+        /**
+         * Removes the least significant selector model,
+         * if more than one exists.
+         */
+        private void removeSelector() {
+            if ( cdataModels_.size() > 0 ) {
+                cdataModels_.remove( cdataModels_.size() - 1 );
+            }
         }
     }
 }
