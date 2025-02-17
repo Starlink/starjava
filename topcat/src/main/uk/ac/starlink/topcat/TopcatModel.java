@@ -80,7 +80,7 @@ public class TopcatModel {
     private final OptionsListModel<RowSubset> subsets_;
     private final Map<RowSubset,Long> subsetCounts_;
     private final SingleRowSubset activatedSubset_;
-    private final SortSelectionModel sortSelectionModel_;
+    private final SortOrderSelector.Model sortSelectionModel_;
     private final ComboBoxModel<RowSubset> subsetSelectionModel_;
     private final JToggleButton.ToggleButtonModel sortSenseModel_;
     private final Collection<TopcatListener> listeners_;
@@ -187,10 +187,10 @@ public class TopcatModel {
 
         /* Set up the current sort selector. */
         sortSenseModel_ = new JToggleButton.ToggleButtonModel();
-        sortSelectionModel_ = new SortSelectionModel( this );
+        sortSelectionModel_ = new SortOrderSelector.Model( this );
         sortSenseModel_.setSelected( true );
         sortSense_ = sortSenseModel_.isSelected();
-        sortOrder_ = sortSelectionModel_.getSelectedItem();
+        sortOrder_ = sortSelectionModel_.getSelectedSortOrder();
 
         /* Initialise subsets list. */
         activatedSubset_ = new SingleRowSubset( "Activated" );
@@ -258,7 +258,7 @@ public class TopcatModel {
     }
 
     /**
-     * Retursn the model's ID number.  This is a small sequence number, 
+     * Returns the model's ID number.  This is a small sequence number, 
      * typically starting
      * at one and increasing for every model created in this topcat instance.
      * It's used for identifying the model to the user.
@@ -382,7 +382,7 @@ public class TopcatModel {
      *
      * @return sort selection model
      */
-    public ComboBoxModel<SortOrder> getSortSelectionModel() {
+    public SortOrderSelector.Model getSortSelectionModel() {
         return sortSelectionModel_;
     }
 
@@ -443,7 +443,7 @@ public class TopcatModel {
      * @return  current sort order
      */
     public SortOrder getSelectedSort() {
-        return sortSelectionModel_.getSelectedItem();
+        return sortSelectionModel_.getSelectedSortOrder();
     }
 
     /**
@@ -988,7 +988,7 @@ public class TopcatModel {
         sortOrder_ = order;
         viewModel_.setOrder( rowMap );
         sortSenseModel_.setSelected( ascending );
-        sortSelectionModel_.setSelectedItem( order );
+        sortSelectionModel_.setSelectedSortOrder( order );
 
         /* Inform listeners. */
         fireModelChanged( TopcatEvent.CURRENT_ORDER, null );
@@ -1207,7 +1207,7 @@ public class TopcatModel {
                .setVisible( true );
             }
             else if ( this == unsortAct_ ) {
-                sortBy( SortOrder.NONE, false );
+                sortBy( SortOrder.NONE, true );
             }
             else {
                 assert false;

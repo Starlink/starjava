@@ -212,7 +212,7 @@ public class ControlWindow extends AuxWindow
     private final JLabel qstatusLabel_ = new JLabel();
     private final JLabel colsLabel_ = new JLabel();
     private final JComboBox<RowSubset> subsetSelector_ = new JComboBox<>();
-    private final JComboBox<SortOrder> sortSelector_ = new JComboBox<>();
+    private final SortOrderSelector sortSelector_ = new SortOrderSelector();
     private final JToggleButton sortSenseButton_ = new UpDownButton();
     private final JLabel activatorLabel_ = new JLabel();
     private final TopcatCommunicator communicator_;
@@ -269,17 +269,17 @@ public class ControlWindow extends AuxWindow
         /* Watch the sort configuration controls. */
         ActionListener sortListener = evt -> {
             if ( currentModel_ != null ) {
-                Object sortObject =
-                    currentModel_.getSortSelectionModel().getSelectedItem();
-                if ( sortObject instanceof SortOrder ) {
-                    boolean sortSense =
-                        currentModel_.getSortSenseModel().isSelected();
-                    currentModel_.sortBy( (SortOrder) sortObject, sortSense );
-                }
+                SortOrder sortOrder =
+                    currentModel_.getSortSelectionModel()
+                                 .getSelectedSortOrder();
+                boolean sortSense =
+                    currentModel_.getSortSenseModel().isSelected();
+                currentModel_.sortBy( sortOrder, sortSense );
             }
         };
         sortSelector_.addActionListener( sortListener );
         sortSenseButton_.addActionListener( sortListener );
+        dummyButtonModel_.setSelected( true );
 
         /* Set up a panel displaying table information. */
         JComponent rowsLine = Box.createHorizontalBox();
@@ -1352,7 +1352,7 @@ public class ControlWindow extends AuxWindow
             rowsLabel_.setText( null );
             colsLabel_.setText( null );
 
-            sortSelector_.setModel( new DefaultComboBoxModel<SortOrder>() );
+            sortSelector_.setModel( SortOrderSelector.Model.DUMMY_MODEL );
             subsetSelector_.setModel( new DefaultComboBoxModel<RowSubset>() );
             sortSenseButton_.setModel( dummyButtonModel_ );
             activatorLabel_.setText( null );
