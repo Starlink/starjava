@@ -117,15 +117,18 @@ public class LinesQueryPanel extends AbstractServerPanel implements ActionListen
              public void stateChanged(ChangeEvent e) {
                  if (isSLAPSelected()) {
                      setServerTable(slapServices);
+                     slPanel.setLinetapTab(false);
                      slPanel.deactivateCharge(); // does not work for SLAP (yet)
                  } else  if (isLinetapSelected()){
                 	 
                 	 setServerTable(linetapServices);
                 	 slPanel.reloadUI(true);
-                     slPanel.activateCharge();                     
+                     slPanel.activateCharge(); 
+                     slPanel.setLinetapTab(true);
                  } else {
                 	 setServerTable(vamdcServices);                   
                      slPanel.activateCharge();
+                     slPanel.setLinetapTab(false);
                 //     slPanel.reloadUI(false);
                  }
              }

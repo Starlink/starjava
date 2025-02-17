@@ -258,6 +258,35 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
      return resultsPanel;
    
    }
+   
+   public void makeQuery( String queryString, String table) {
+	   
+	   
+       ServerPopupTable currentTable=null;
+       String accessURL = "";
+
+    
+	   // we have the query string, have to find the service
+	   if (linesQuery.isLinetapSelected()) {
+	        progressFrame = new ProgressPanelFrame( "Querying LINETAP Services" );    
+	       currentTable= linesQuery.getLinetapTable();
+	       int accessURLrow = currentTable.getRowIndexByValue( ServerPopupTable.SHORTNAME_INDEX, (Object) table);
+	       if (accessURLrow>0) {
+	    	   accessURL = currentTable.getAccessURL(accessURLrow );
+	       } else
+	    	   return; // give error message!
+	       
+	       resultsPanel.removeAllResults();
+	       if (progressFrame != null) {
+	           progressFrame.closeWindowEvent();
+	           progressFrame=null;
+	       }
+	       progressFrame = new ProgressPanelFrame( "Querying LINETAP Services" );  
+	  
+	   }
+	   executeQuery (queryString, table, accessURL);
+	   
+   }
 
    public void makeQuery( ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String species, String charge, String inChiKey) {
 
@@ -300,6 +329,9 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
            else
                queryString= makeVamdcQuery(ranges, lambdas, species, charge, inChiKey, currentTable.getAccessURL(row));
 
+           
+           executeQuery (queryString, shortname, accessURL);
+           /*
            Logger.info(this, "query= "+queryString);
            final ProgressPanel progressPanel = new ProgressPanel( "Querying: " + shortname );
            progressFrame.addProgressPanel( progressPanel );
@@ -342,9 +374,60 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
            });
 
            worker.start();  
+           */
        }
 
 
+
+
+   }
+   
+   
+   private void executeQuery ( String queryString, String shortname, String accessURL){
+	   
+	   
+       Logger.info(this, "query= "+queryString);
+       final ProgressPanel progressPanel = new ProgressPanel( "Querying: " + shortname );
+       progressFrame.addProgressPanel( progressPanel );
+
+       final SwingWorker worker = new SwingWorker()
+       {
+           boolean interrupted = false;
+           public Object construct() 
+           {
+               progressPanel.start();
+               try {
+                   startQuery( shortname, queryString, accessURL, progressPanel );
+               }
+               catch (Exception e) {
+                   interrupted = true;
+               }
+               return null;
+           }
+
+
+
+
+		public void finished()
+           {
+               progressPanel.stop();
+               //  Display the results.
+               if ( ! interrupted ) {
+                   //        addResultsDisplay( ssaQuery );
+               }
+           }
+       };
+       progressPanel.addActionListener( new ActionListener()
+       {
+           public void actionPerformed( ActionEvent e )
+           {
+               if ( worker != null ) {
+                   worker.interrupt();
+               }
+           }
+       });
+
+       worker.start();  
 
 
    }

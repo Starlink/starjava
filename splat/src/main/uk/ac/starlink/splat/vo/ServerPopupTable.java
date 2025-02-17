@@ -269,6 +269,17 @@ import uk.ac.starlink.table.StarTable;
          return (String) getModel().getValueAt(row, SHORTNAME_INDEX);
 
      }
+     
+     public  int getRowIndexByValue(int columnIndex, Object value) {
+         for (int row = 0; row < getRowCount(); row++) {
+             if (getValueAt(row, columnIndex).equals(value)) {
+                 return row; // Return the index of the matching row
+             }
+         }
+         return -1; // Return -1 if the value is not found
+     }
+     
+     
      public String getAccessURL(int row) {
          return (String) getModel().getValueAt(row, ACCESSURL_INDEX).toString();
 
