@@ -54,6 +54,7 @@ import uk.ac.starlink.topcat.activate.ActivationWindow;
 import uk.ac.starlink.ttools.convert.Conversions;
 import uk.ac.starlink.ttools.convert.ValueConverter;
 import uk.ac.starlink.ttools.jel.JELUtils;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Defines all the state for the representation of a given table as
@@ -79,12 +80,14 @@ public class TopcatModel {
     private final OptionsListModel<RowSubset> subsets_;
     private final Map<RowSubset,Long> subsetCounts_;
     private final SingleRowSubset activatedSubset_;
-    private final ComboBoxModel<SortOrder> sortSelectionModel_;
+    private final SortSelectionModel sortSelectionModel_;
     private final ComboBoxModel<RowSubset> subsetSelectionModel_;
-    private final SortSenseModel sortSenseModel_;
+    private final JToggleButton.ToggleButtonModel sortSenseModel_;
     private final Collection<TopcatListener> listeners_;
     private final Map<ValueInfo,ColumnSelectorModel> columnSelectorMap_;
     private final TableBuilder tableBuilder_;
+    private SortOrder sortOrder_;
+    private boolean sortSense_;
     private ActivationWindow activationWindow_;
     private SubsetConsumerDialog subsetConsumerDialog_;
     private final int id_;
@@ -110,6 +113,7 @@ public class TopcatModel {
      * @param   location  location string
      * @param   controlWindow  control window instance
      */
+    @SuppressWarnings("this-escape")
     protected TopcatModel( StarTable startab, int id, String location,
                            ControlWindow controlWindow ) {
         controlWindow_ = controlWindow;
@@ -182,8 +186,11 @@ public class TopcatModel {
         columnList_ = new ColumnList( columnModel_ );
 
         /* Set up the current sort selector. */
-        sortSelectionModel_ = new SortSelectionModel();
-        sortSenseModel_ = new SortSenseModel();
+        sortSenseModel_ = new JToggleButton.ToggleButtonModel();
+        sortSelectionModel_ = new SortSelectionModel( this );
+        sortSenseModel_.setSelected( true );
+        sortSense_ = sortSenseModel_.isSelected();
+        sortOrder_ = sortSelectionModel_.getSelectedItem();
 
         /* Initialise subsets list. */
         activatedSubset_ = new SingleRowSubset( "Activated" );
@@ -436,7 +443,7 @@ public class TopcatModel {
      * @return  current sort order
      */
     public SortOrder getSelectedSort() {
-        return (SortOrder) sortSelectionModel_.getSelectedItem();
+        return sortSelectionModel_.getSelectedItem();
     }
 
     /**
@@ -929,17 +936,62 @@ public class TopcatModel {
 
     /**
      * Trigger a sort of the rows in the viewModel.
-     * This causes a {@link TopcatEvent#CURRENT_ORDER} event to be sent
-     * to listeners.
+     * In case of a material change this causes a
+     * {@link TopcatEvent#CURRENT_ORDER} event to be sent to listeners.
      *
      * @param  order  sort order
      * @param  ascending  sort sense (true for up, false for down)
      */
     public void sortBy( SortOrder order, boolean ascending ) {
-        if ( ! order.equals( SortOrder.NONE ) ) {
-            sortSenseModel_.setSelected( ascending );
+
+        /* Transient? */
+        if ( order == null ) {
+            assert false;
+            return;
         }
+
+        /* No change. */
+        else if ( order.equals( sortOrder_ ) && ascending == sortSense_ ) {
+            return;
+        }
+
+        /* There is a material change.  Recalculate the rowMap array. */
+        int[] rowMap;
+        if ( order.equals( SortOrder.NONE ) ) {
+            rowMap = null;
+        }
+        else if ( order.equals( sortOrder_ ) ) {
+
+            /* If only the sense has changed, reverse the row map
+             * in place. */
+            assert ascending != sortSense_;
+                rowMap = viewModel_.getRowMap();
+                for ( int i = 0, j = rowMap.length - 1; i < j; i++, j-- ) {
+                    int c = rowMap[ i ];
+                    rowMap[ i ] = rowMap[ j ];
+                    rowMap[ j ] = c;
+                }
+        }
+        else {
+            try {
+                rowMap = getSortedRowMap( order, ascending );
+            }
+            catch ( CompilationException | IOException e ) {
+                ErrorDialog.showError( ControlWindow.getInstance(),
+                                       "Sort Error", e );
+                return;
+            }
+        }
+
+        /* Store the changed state. */
+        sortSense_ = ascending;
+        sortOrder_ = order;
+        viewModel_.setOrder( rowMap );
+        sortSenseModel_.setSelected( ascending );
         sortSelectionModel_.setSelectedItem( order );
+
+        /* Inform listeners. */
+        fireModelChanged( TopcatEvent.CURRENT_ORDER, null );
     }
 
     /**
@@ -1160,135 +1212,6 @@ public class TopcatModel {
             else {
                 assert false;
             }
-        }
-    }
-
-    /**
-     * ButtonModel used for storing whether sorts should go up or down.
-     */
-    private class SortSenseModel extends JToggleButton.ToggleButtonModel {
-        boolean lastAscending_ = true;
-        public void setSelected( boolean ascending ) {
-            if ( ascending != lastAscending_ ) {
-
-                /* If the table view has a current (non-null) sort order, 
-                 * reverse it in place. */
-                int[] rowMap = viewModel_.getRowMap();
-                if ( rowMap != null ) {
-                    for ( int i = 0, j = rowMap.length - 1; i < j; i++, j-- ) {
-                        int c = rowMap[ i ];
-                        rowMap[ i ] = rowMap[ j ];
-                        rowMap[ j ] = c;
-                    }
-                    viewModel_.setRowMap( rowMap );
-                }
-
-                /* Store the changed state. */
-                lastAscending_ = ascending;
-                fireStateChanged();
-                fireModelChanged( TopcatEvent.CURRENT_ORDER, null );
-            }
-        }
-        public boolean isSelected() {
-            return lastAscending_;
-        }
-    }
-
-    /**
-     * ComboBoxModel used for storing the available and last-invoked
-     * sort orders.
-     */
-    private class SortSelectionModel implements ComboBoxModel<SortOrder> {
-
-        private final ColumnDataComboBoxModel sortDataModel_;
-        private SortOrder lastSort_;
-
-        SortSelectionModel() {
-            ColumnDataComboBoxModel.Filter comparableFilter = info ->
-                Comparable.class.isAssignableFrom( info.getContentClass() );
-            sortDataModel_ = new ColumnDataComboBoxModel( TopcatModel.this,
-                                                          comparableFilter,
-                                                          true, false );
-            lastSort_ = SortOrder.NONE;
-        }
-
-        /**
-         * Turns a column identifier into a sort order definition.
-         */
-        public SortOrder getElementAt( int index ) {
-            ColumnData cdata = sortDataModel_.getColumnDataAt( index );
-            String expr = cdata == null ? null
-                                        : cdata.getColumnInfo().getName();
-            return expr != null && expr.trim().length() > 0
-                 ? new SortOrder( new String[] { expr } )
-                 : SortOrder.NONE;
-        }
-
-        public int getSize() {
-            return sortDataModel_.getSize();
-        }
-
-        public void addListDataListener( ListDataListener l ) {
-            sortDataModel_.addListDataListener( l );
-        }
-
-        public void removeListDataListener( ListDataListener l ) {
-            sortDataModel_.removeListDataListener( l );
-        }
-
-        /**
-         * Returns the most recent selected sort. 
-         */
-        public Object getSelectedItem() {
-            return lastSort_;
-        }
-
-        /**
-         * Selecting an item in this model triggers the actual sort.
-         * All sorts pass through here.
-         */
-        public void setSelectedItem( Object item ) {
-            SortOrder order = (SortOrder) item;
-
-            /* Do nothing if the selected item is being set null - this
-             * corresponds to a JComboBox deselection, which happens 
-             * immediately prior to a selection when the control is
-             * activated. */
-            if ( order == null ) {
-                return;
-            }
-
-            /* Do nothing if the order is the same one we've just had. */
-            if ( order.equals( lastSort_ ) ) {
-                return;
-            }
-
-            /* OK do the sort, and install it in the viewModel. */
-            int[] rowMap;
-            if ( order.equals( SortOrder.NONE ) ) {
-                rowMap = null;
-            }
-            else {
-                try {
-                    rowMap = getSortedRowMap( order,
-                                              sortSenseModel_.isSelected() );
-                }
-                catch ( IOException | CompilationException e ) {
-                    Toolkit.getDefaultToolkit().beep();
-                    e.printStackTrace( System.err );
-                    setSelectedItem( SortOrder.NONE );
-                    return;
-                }
-            }
-
-            /* Install the new sorted order in the table view model. */
-            viewModel_.setOrder( rowMap );
-
-            /* Store the selected value. */
-            lastSort_ = order;
-
-            /* Inform TopcatListeners. */
-            fireModelChanged( TopcatEvent.CURRENT_ORDER, null );
         }
     }
 

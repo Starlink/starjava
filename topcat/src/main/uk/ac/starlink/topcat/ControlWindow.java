@@ -266,6 +266,21 @@ public class ControlWindow extends AuxWindow
             }
         } );
 
+        /* Watch the sort configuration controls. */
+        ActionListener sortListener = evt -> {
+            if ( currentModel_ != null ) {
+                Object sortObject =
+                    currentModel_.getSortSelectionModel().getSelectedItem();
+                if ( sortObject instanceof SortOrder ) {
+                    boolean sortSense =
+                        currentModel_.getSortSenseModel().isSelected();
+                    currentModel_.sortBy( (SortOrder) sortObject, sortSense );
+                }
+            }
+        };
+        sortSelector_.addActionListener( sortListener );
+        sortSenseButton_.addActionListener( sortListener );
+
         /* Set up a panel displaying table information. */
         JComponent rowsLine = Box.createHorizontalBox();
         rowsLine.add( rowsLabel_ );
