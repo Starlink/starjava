@@ -338,6 +338,7 @@ public class ModeFormControl extends FormControl {
                 return c;
             }
         } );
+        comboBox.setMaximumRowCount( 10 );
         return new ComboBoxSpecifier<ModePlotter.Mode>( ModePlotter.Mode.class,
                                                         comboBox );
     }
