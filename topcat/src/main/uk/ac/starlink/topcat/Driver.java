@@ -117,7 +117,6 @@ public class Driver {
      */
     private static void runMain( String[] args )
             throws SampException, IOException {
-        tabfact = TopcatPreparation.createFactory();
         String cmdname;
         try {
             Loader.loadProperties();
@@ -155,6 +154,9 @@ public class Driver {
             + pad + " [-verbose] [-debug] [-demo] [-running] [-memory|-disk]"
             + pad + " [-[no]hub|-exthub|-noserv] [-samp|-plastic]"
             + pad + " [[-f <format>] table ...]";
+
+        /* Create default table factory. */
+        tabfact = TopcatPreparation.createFactory();
 
         /* Standalone execution (e.g. System.exit() may be called). */
         setStandalone( true );
