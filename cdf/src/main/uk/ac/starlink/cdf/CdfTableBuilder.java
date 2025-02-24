@@ -7,18 +7,28 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import uk.ac.bristol.star.cdf.CdfContent;
 import uk.ac.bristol.star.cdf.CdfReader;
+import uk.ac.bristol.star.cdf.Variable;
+import uk.ac.bristol.star.cdf.VariableAttribute;
 import uk.ac.bristol.star.cdf.record.Buf;
 import uk.ac.bristol.star.cdf.record.Bufs;
 import uk.ac.bristol.star.cdf.record.WrapperBuf;
+import uk.ac.starlink.table.ByteStore;
+import uk.ac.starlink.table.MultiTableBuilder;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableFormatException;
+import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.TableSink;
-import uk.ac.starlink.table.ByteStore;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.formats.DocumentedIOHandler;
 import uk.ac.starlink.table.formats.DocumentedTableBuilder;
 import uk.ac.starlink.util.Compression;
@@ -32,7 +42,8 @@ import uk.ac.starlink.util.IOUtils;
  * @author   Mark Taylor
  * @since    24 Jun 2013
  */
-public class CdfTableBuilder extends DocumentedTableBuilder {
+public class CdfTableBuilder extends DocumentedTableBuilder
+                             implements MultiTableBuilder {
 
     /**
      * Default CDF-StarTable translation profile.
@@ -47,6 +58,10 @@ public class CdfTableBuilder extends DocumentedTableBuilder {
         new String[] { "FILLVAL", },
         new String[] { "DEPEND_0", }
     );
+
+    private static final int IPOS_BASE = 0;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.cdf" );
 
     private final CdfTableProfile profile_;
 
@@ -77,44 +92,47 @@ public class CdfTableBuilder extends DocumentedTableBuilder {
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy storagePolicy )
             throws IOException {
-        if ( ! CdfReader.isMagic( datsrc.getIntro() ) ) {
-            throw new TableFormatException( "Not a CDF file" );
+        TablesContent tcontent =
+            new TablesContent( datsrc, storagePolicy, profile_ );
+        String pos = datsrc.getPosition();
+        final int ipos;
+        if ( pos == null || pos.trim().length() == 0 ) {
+            ipos = IPOS_BASE;
         }
-
-        /* Get a buf containing the byte data from the input source. */
-        final Buf nbuf;
-        if ( datsrc instanceof FileDataSource &&
-             datsrc.getCompression() == Compression.NONE ) {
-            File file = ((FileDataSource) datsrc).getFile();
-            nbuf = Bufs.createBuf( file, true, true );
+        else if ( pos.trim().matches( "[0-9]+" ) ) {
+            ipos = Integer.parseInt( pos.trim() );
+        }
+        else if ( tcontent.getTableIndex( pos ) >= 0 ) {
+            ipos = tcontent.getTableIndex( pos ) + IPOS_BASE;
         }
         else {
-            ByteStore byteStore = storagePolicy.makeByteStore();
-            BufferedOutputStream storeOut =
-                new BufferedOutputStream( byteStore.getOutputStream() );
-            InputStream dataIn = datsrc.getInputStream();
-            IOUtils.copy( dataIn, storeOut );
-            dataIn.close();
-            storeOut.flush();
-            ByteBuffer[] bbufs = byteStore.toByteBuffers();
-            storeOut.close();
-            byteStore.close();
-            nbuf = Bufs.createBuf( bbufs, true, true );
+            String msg = "Unknown pos \"" + pos + "\", should be numeric "
+                       + "(" + IPOS_BASE + "-"
+                             + ( IPOS_BASE + tcontent.getTableCount() ) + ") "
+                       + "or one of "
+                       + Arrays.stream( tcontent.dependVars_ )
+                               .map( Variable::getName )
+                               .collect( Collectors.toList() );
+            throw new TableFormatException( msg );
         }
+        int jpos = ipos - IPOS_BASE;
+        if ( jpos < 0 || jpos >= tcontent.getTableCount() ) {
+            throw new TableFormatException( "No table at pos #" + ipos );
+        }
+        return tcontent.createTable( jpos );
+    }
 
-        /* Fix the Buf implementation so that it uses the supplied
-         * storage policy for allocating any more required storage. */
-        Buf buf = new StoragePolicyBuf( nbuf, storagePolicy );
-
-        /* Turn the buf into a CdfContent and thence into a StarTable. */
-        CdfContent content = new CdfContent( new CdfReader( buf ) );
-        return new CdfStarTable( content, profile_, null ) {
-            @Override
-            public void close() {
-                // this should really do cleanup on file descriptors etc
-                // held by the buf.
-            }
-        };
+    public TableSequence makeStarTables( DataSource datsrc,
+                                         StoragePolicy storagePolicy )
+            throws IOException {
+         TablesContent tcontent =
+             new TablesContent( datsrc, storagePolicy, profile_ );
+         int nt = tcontent.getTableCount();
+         CdfStarTable[] tables = new CdfStarTable[ nt ];
+         for ( int it = 0; it < nt; it++ ) {
+             tables[ it ] = tcontent.createTable( it );
+         }
+         return Tables.arrayTableSequence( tables );
     }
 
     /**
@@ -144,6 +162,21 @@ public class CdfTableBuilder extends DocumentedTableBuilder {
             "It is typically used to store tabular data for subject areas",
             "like space and solar physics.",
             "</p>",
+            "<p>CDF does not store tables as such, but sets of variables",
+            "(columns) which are typically linked to a time quantity;",
+            "there may be multiple such disjoint sets in a single CDF file.",
+            "This reader attempts to extract these sets into separate tables",
+            "using, where present, the <code>DEPEND_0</code> attribute",
+            "defined by the",
+            "<webref url='https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html'",
+            ">ISTP Metadata Guidelines</webref>.",
+            "Where there are multiple tables they can be identified",
+            "using a \"<code>#</code>\" symbol at the end of the filename",
+            "by index (\"<code>&lt;file&gt;.cdf#0</code>\" is the first table)",
+            "or by the name of the independent variable",
+            "(\"<code>&lt;file&gt;.cdf#EPOCH</code>\" is the table relating to",
+            "the <code>EPOCH</code> column).",
+            "</p>",
         "" );
     }
 
@@ -153,6 +186,39 @@ public class CdfTableBuilder extends DocumentedTableBuilder {
 
     public boolean canStream() {
         return false;
+    }
+
+    /**
+     * Utility method to find a Variable from its name.
+     *
+     * @param  content  CdfContent object
+     * @param  name    variable name
+     * @return  Variable object matching name, or null
+     */
+    private static Variable getVariable( CdfContent content, String name ) {
+        for ( Variable var : content.getVariables() ) {
+            if ( var.getName().equals( name ) ) {
+                return var;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Utility method to find a VariableAttribute from its name.
+     *
+     * @param  content  CdfContent object
+     * @param  name   attribute name
+     * @return   VariableAttribute object matching name, or null
+     */
+    private static VariableAttribute getVariableAttribute( CdfContent content,
+                                                           String name ) {
+        for ( VariableAttribute att : content.getVariableAttributes() ) {
+            if ( att.getName().equals( name ) ) {
+                return att;
+            }
+        }
+        return null;
     }
 
     /**
@@ -321,6 +387,153 @@ public class CdfTableBuilder extends DocumentedTableBuilder {
          */
         private String normalise( String txt ) {
             return txt.trim().toLowerCase();
+        }
+    }
+
+    /**
+     * Packages a CdfContent ready to yield one or more StarTables.
+     */
+    private static class TablesContent {
+
+        private final CdfContent content_;
+        private final CdfTableProfile profile_;
+        private final Variable[] dependVars_;
+
+        /**
+         * Constructor.
+         *
+         * @param  datsrc  data source
+         * @param  storagePolicy  storage policy
+         * @param  profile  defines details of CDF-to-table mapping
+         */
+        TablesContent( DataSource datsrc, StoragePolicy storagePolicy,
+                       CdfTableProfile profile ) throws IOException {
+            profile_ = profile;
+
+            /* Check the magic number. */
+            if ( ! CdfReader.isMagic( datsrc.getIntro() ) ) {
+                throw new TableFormatException( "Not a CDF file" );
+            }
+    
+            /* Get a buf containing the byte data from the input source. */
+            final Buf nbuf;
+            if ( datsrc instanceof FileDataSource &&
+                 datsrc.getCompression() == Compression.NONE ) {
+                File file = ((FileDataSource) datsrc).getFile();
+                nbuf = Bufs.createBuf( file, true, true );
+            }
+            else {
+                ByteStore byteStore = storagePolicy.makeByteStore();
+                BufferedOutputStream storeOut =
+                    new BufferedOutputStream( byteStore.getOutputStream() );
+                InputStream dataIn = datsrc.getInputStream();
+                IOUtils.copy( dataIn, storeOut );
+                dataIn.close();
+                storeOut.flush();
+                ByteBuffer[] bbufs = byteStore.toByteBuffers();
+                storeOut.close();
+                byteStore.close();
+                nbuf = Bufs.createBuf( bbufs, true, true );
+            }
+
+            /* Fix the Buf implementation so that it uses the supplied
+             * storage policy for allocating any more required storage. */
+            Buf buf = new StoragePolicyBuf( nbuf, storagePolicy );
+
+            /* Turn the buf into a CdfContent. */
+            content_ = new CdfContent( new CdfReader( buf ) );
+
+            /* Identify independent variables in the CDF, by noting all the
+             * distinct values of the DEPEND_0 attribute (if present).
+             * These will correspond to different tables. */
+            String[] attNames =
+                Arrays.stream( content_.getVariableAttributes() )
+                              .map( VariableAttribute::getName )
+                              .toArray( n -> new String[ n ] );
+            String dependAttName = profile.getDepend0Attribute( attNames );
+            final String[] dependVarNames;
+            if ( dependAttName != null ) {
+                VariableAttribute dependAtt =
+                    getVariableAttribute( content_, dependAttName );
+                if ( dependAtt != null ) {
+                    dependVarNames =
+                        Arrays.stream( content_.getVariables() )
+                              .map( v -> CdfStarTable
+                                        .getStringEntry( dependAtt, v ) )
+                              .filter( s -> s != null && s.trim().length() > 0 )
+                              .distinct()
+                              .toArray( n -> new String[ n ] );
+                }
+                else {
+                    dependVarNames = null;
+                }
+            }
+            else {
+                dependVarNames = null;
+            }
+
+            /* Turn the independent variable names into Variable instances,
+             * and store them for later reference. */
+            final List<Variable> dependVars = new ArrayList<>();
+            if ( dependVarNames != null && dependVarNames.length > 0 ) {
+                for ( String varName : dependVarNames ) {
+                    Variable var = getVariable( content_, varName );
+                    if ( var == null ) {
+                        logger_.warning( "Unknown independent variable "
+                                       + varName );
+                    }
+                    else {
+                        dependVars.add( var );
+                    }
+                }
+            }
+            dependVars_ = dependVars.toArray( new Variable[ 0 ] );
+        }
+
+        /**
+         * Returns the number of distinct tables that this content will yeild.
+         *
+         * @return  table count
+         */
+        public int getTableCount() {
+            return dependVars_.length == 0 ? 1 : dependVars_.length;
+        }
+
+        /**
+         * Returns the table index given a symbolic name.
+         *
+         * @param  pos  name of independent variable (case-insensitive)
+         * @return  index of table, or -1 if not present
+         */
+        public int getTableIndex( String pos ) {
+            for ( int it = 0; it < dependVars_.length; it++ ) {
+                if ( dependVars_[ it ].getName().equalsIgnoreCase( pos ) ) {
+                    return it;
+                }
+            }
+            return -1;
+        }
+
+        /**
+         * Returns a table based on this content.
+         *
+         * @param  itable  table index
+         * @return  new table
+         */
+        public CdfStarTable createTable( int itable ) throws IOException {
+            final Variable dependVar;
+            if ( dependVars_.length == 0 ) {
+                if ( itable == 0 ) {
+                    dependVar = null;
+                }
+                else {
+                    throw new TableFormatException( "No table at " + itable );
+                }
+            }
+            else {
+                dependVar = dependVars_[ itable ];
+            }
+            return new CdfStarTable( content_, profile_, dependVar );
         }
     }
 }

@@ -15765,6 +15765,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         to avoid annoying gaps between tiles.</li>
     <li>New class <ref id="Json">Json</ref> contains expression-language
         functions for use with JSON text.</li>
+    <li>The <ref id="inCdf">CDF input handler</ref> can now extract
+        multiple tables from a single CDF file.</li>
     </ul>
     </p></dd>
 
