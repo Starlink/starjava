@@ -539,8 +539,11 @@ public class FuncTest extends TestCase {
         assertTrue( Coverage.nearMoc( asciiMoc, 123, 30, 0.5 ) );
         assertFalse( Coverage.nearMoc( asciiMoc, 123, 30, 0.1 ) );
 
-        assertFalse( Coverage.inMoc( "bad", 23, -12 ) );
-        assertFalse( Coverage.nearMoc( "bad", 23, -12, 18 ) );
+        // These should work, but they end up trying to load MOCs from
+        // VizieR, which can cause trouble when the service or network is
+        // down or slow.  Probably this should be fixed elsewhere.
+        // assertFalse( Coverage.inMoc( "bad", 23, -12 ) );
+        // assertFalse( Coverage.nearMoc( "bad", 23, -12, 18 ) );
 
         assertEquals( 4, Coverage.mocUniq( 0, 0 ) );
         for ( int ilev = 0; ilev < 11; ilev++ ) {
