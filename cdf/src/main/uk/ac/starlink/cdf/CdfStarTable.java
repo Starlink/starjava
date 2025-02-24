@@ -53,23 +53,106 @@ public class CdfStarTable extends AbstractStarTable {
     /**
      * Constructor.
      *
+     * <p>The optional <code>dependVar</code> parameter provides an
+     * effective grouping of columns, and corresponds to the DEPEND_0
+     * variable attribute defined by the ISTP Metadata Guidelines.
+     * CDF files contain multiple variables that are not necessarily
+     * all columns of the same table; at least within the ISTP guidelines
+     * a table is effectively defined by an independent epoch variable
+     * and a number of other variables depending on that (and thus
+     * presumably having the same number of values/rows).
+     * This interpretation is not exactly explicit in ISTP, but it looks
+     * like our best bet for turning CDF content into a thing or things
+     * that look like StarTables.
+     * If <code>dependVar</code> is null, we just have to assume that
+     * all the variables are effectively columns in the same table.
+     * In case that they don't all have the same multiplicity,
+     * just guess something and issue a warning.
+     *
      * @param   content  CDF data content object
      * @param   profile  parameterisation of how CDFs should get turned
      *                   into StarTables
+     * @param   dependVar  independent variable on which other columns depend,
+     *                     or null
      * @throws  IOException  in case of error
      */
     @SuppressWarnings("this-escape")
-    public CdfStarTable( CdfContent content, CdfTableProfile profile )
+    public CdfStarTable( CdfContent content, CdfTableProfile profile,
+                         Variable dependVar )
             throws IOException {
 
-        /* Separate variable list into two parts: one to turn into columns,
-         * and one to turn into parameters.  The parameters one will only
-         * have entries if there are non-varying variables
+        /* Identify useful attributes. */
+        VariableAttribute[] vatts = content.getVariableAttributes();
+        String[] attNames = Arrays.stream( vatts )
+                                  .map( VariableAttribute::getName )
+                                  .toArray( n -> new String[ n ] );
+        String descAttName = profile.getDescriptionAttribute( attNames );
+        String unitAttName = profile.getUnitAttribute( attNames );
+        String blankvalAttName = profile.getBlankValueAttribute( attNames );
+        String dependAttName = profile.getDepend0Attribute( attNames );
+        VariableAttribute descAtt = null;
+        VariableAttribute unitAtt = null;
+        VariableAttribute blankvalAtt = null;
+        VariableAttribute dependAtt = null;
+        for ( VariableAttribute vatt : vatts ) {
+            String vattName = vatt.getName();
+            if ( vattName != null ) {
+                if ( vattName.equals( descAttName ) ) {
+                    descAtt = vatt;
+                }
+                else if ( vattName.equals( unitAttName ) ) {
+                    unitAtt = vatt;
+                }
+                else if ( vattName.equals( blankvalAttName ) ) {
+                    blankvalAtt = vatt;
+                }
+                else if ( vattName.equals( dependAttName ) ) {
+                    dependAtt = vatt;
+                }
+            }
+        }
+        blankvalAtt_ = blankvalAtt;
+
+        /* Remove the attributes we've used for a specific purpose above
+         * from the variable attribute list to give a list of miscellaneous
+         * attributes. */
+        List<VariableAttribute> miscAttList =
+            new ArrayList<>( Arrays.asList( vatts ) );
+        miscAttList.remove( descAtt );
+        miscAttList.remove( unitAtt );
+        if ( dependVar != null ) {
+            miscAttList.remove( dependAtt );
+        }
+
+        /* Identify variables to turn into columns. */
+        final List<Variable> varList;
+        if ( dependVar == null || dependAtt == null ) {
+
+            /* No declared independent variable; just use all of them. */
+            varList = new ArrayList<Variable>( Arrays.asList( content
+                                                             .getVariables() ));
+        }
+        else {
+
+            /* We have an independent variable: assemble a column list
+             * including dependVar itself, other variables declared to
+             * depend on it, and any variables that do not vary per row. */
+            String dependVarName = dependVar.getName();
+            varList = new ArrayList<Variable>();
+            varList.add( dependVar );
+            for ( Variable var : content.getVariables() ) {
+                if ( dependVarName.equals( getStringEntry( dependAtt, var ) ) ||
+                     ! var.getRecordVariance() ) {
+                    varList.add( var );
+                }
+            }
+        }
+
+        /* Identify variables to turn into parameters.
+         * This list will only have entries if there are non-varying variables
          * (recordVariance = false) and the profile says these are to be
          * treated as parameters. */
-        List<Variable> varList =
-            new ArrayList<Variable>( Arrays.asList( content.getVariables() ) );
-        List<Variable> paramVarList = new ArrayList<Variable>();
+        List<Variable> paramVarList = new ArrayList<>();
         if ( profile.invariantVariablesToParameters() ) {
             for ( Iterator<Variable> it = varList.iterator(); it.hasNext(); ) {
                 Variable var = it.next();
@@ -83,53 +166,30 @@ public class CdfStarTable extends AbstractStarTable {
         vars_ = varList.toArray( new Variable[ 0 ] );
         ncol_ = vars_.length;
 
-        /* Calculate the row count.  CDF does not have a concept of a row
-         * count as such, but it makes sense to use the longest record
-         * count of any of the variables (typically you'd expect the
-         * record count to be the same for all variables). */
-        long nrow = 0;
-        for ( int iv = 0; iv < vars_.length; iv++ ) {
-            nrow = Math.max( nrow, vars_[ iv ].getRecordCount() );
-        }
-        nrow_ = nrow;
-
-        /* Try to work out which attributes represent units and description
-         * by using the hints in the supplied profile. */
-        VariableAttribute[] vatts = content.getVariableAttributes();
-        String[] attNames = new String[ vatts.length ];
-        for ( int iva = 0; iva < vatts.length; iva++ ) {
-            attNames[ iva ] = vatts[ iva ].getName();
-        }
-        String descAttName = profile.getDescriptionAttribute( attNames );
-        String unitAttName = profile.getUnitAttribute( attNames );
-        String blankvalAttName = profile.getBlankValueAttribute( attNames );
-        VariableAttribute descAtt = null;
-        VariableAttribute unitAtt = null;
-        VariableAttribute blankvalAtt = null;
-        for ( int iva = 0; iva < vatts.length; iva++ ) {
-            VariableAttribute vatt = vatts[ iva ];
-            String vattName = vatt.getName();
-            if ( vattName != null ) {
-                if ( vattName.equals( descAttName ) ) {
-                    descAtt = vatt;
+        /* Calculate the row count.  This should be the same for all the
+         * variables we are interpreting as columns here.
+         * Take the first column as authoritative; if a dependency variable
+         * has been declared, that will be in the first position.
+         * If the row counts don't line up there's something wrong,
+         * possibly our dependency assumptions, so issue a warning. */
+        long nrow = -1;
+        for ( Variable var : vars_ ) {
+            if ( var.getRecordVariance() ) {
+                long nr = var.getRecordCount();
+                if ( nrow < 0 ) {
+                    nrow = nr;
                 }
-                else if ( vattName.equals( unitAttName ) ) {
-                    unitAtt = vatt;
-                }
-                else if ( vattName.equals( blankvalAttName ) ) {
-                    blankvalAtt = vatt;
+                else {
+                    if ( nr != nrow ) {
+                        logger_.warning( "Inconsistent row counts; "
+                                       + "probably trouble"
+                                       + ": " + nr + " != " + nrow
+                                       + " at column " + var.getName() );
+                    }
                 }
             }
         }
-        blankvalAtt_ = blankvalAtt;
-
-        /* Remove the attributes we've used for a specific purpose above
-         * from the variable attribute list to give a list of miscellaneous
-         * attributes. */
-        List<VariableAttribute> miscAttList =
-            new ArrayList<VariableAttribute>( Arrays.asList( vatts ) );
-        miscAttList.remove( descAtt );
-        miscAttList.remove( unitAtt );
+        nrow_ = nrow;
 
         /* Set up random data access. */
         randomVarReaders_ = new VariableReader[ ncol_ ];
@@ -437,8 +497,7 @@ public class CdfStarTable extends AbstractStarTable {
      * @return   string value of att for var, or null if it doesn't exist
      *           or has the wrong type
      */
-    private static String getStringEntry( VariableAttribute att,
-                                          Variable var ) {
+    public static String getStringEntry( VariableAttribute att, Variable var ) {
         AttributeEntry entry = att == null ? null : att.getEntry( var );
         Object item = entry == null ? null : entry.getShapedValue();
         return item instanceof String ? (String) item : null;

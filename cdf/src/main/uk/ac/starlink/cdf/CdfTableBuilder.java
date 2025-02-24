@@ -108,7 +108,7 @@ public class CdfTableBuilder extends DocumentedTableBuilder {
 
         /* Turn the buf into a CdfContent and thence into a StarTable. */
         CdfContent content = new CdfContent( new CdfReader( buf ) );
-        return new CdfStarTable( content, profile_ ) {
+        return new CdfStarTable( content, profile_, null ) {
             @Override
             public void close() {
                 // this should really do cleanup on file descriptors etc
