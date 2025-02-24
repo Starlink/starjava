@@ -4,6 +4,11 @@ package uk.ac.starlink.cdf;
  * Encapsulates choices about how to do the conversion from a CDF to a
  * StarTable.
  *
+ * <p>Suitable implementations for the attribute finding methods
+ * may be based on the
+ * <a href="https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html"
+ *    >ISTP Metadata Guidelines</a>.
+ *
  * @author   Mark Taylor
  * @since    24 Jun 2013
  * @see   CdfTableBuilder
@@ -43,14 +48,24 @@ public interface CdfTableProfile {
     String getUnitAttribute( String[] attNames );
 
     /**
-     * 
      * Returns the name of the CDF Variable Attribute whose value is used
      * to specify magic blank values for the variable data.
      * This is typically "FILLVAL".
      *
      * @param  attNames  names of all the variable attributes present in the CDF
-     * @return   attribute name for blank avlue; if null or not present,
+     * @return   attribute name for blank value; if null or not present,
      *           column has no magic blank value
      */
     String getBlankValueAttribute( String[] attNames );
+
+    /**
+     * Returns the name of the CDF Variable Attribute whose value is used
+     * to determine the independent variable with which a given variable's
+     * dependent value is associated.
+     *
+     * @param  attNames  names of all the variable attributes present in the CDF
+     * @return  attribute name for associated indpendent variable;
+     *          if null or not present, dependency is not known
+     */
+    String getDepend0Attribute( String[] attNames );
 }

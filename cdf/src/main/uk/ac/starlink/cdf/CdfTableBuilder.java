@@ -34,12 +34,18 @@ import uk.ac.starlink.util.IOUtils;
  */
 public class CdfTableBuilder extends DocumentedTableBuilder {
 
-    /** Default CDF-StarTable translation profile. */
+    /**
+     * Default CDF-StarTable translation profile.
+     * This is based on the ISTP Metadata Guidelines at
+     * <a href="https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html"
+     *         >https://spdf.gsfc.nasa.gov/sp_use_of_cdf.html</a>
+     */
     public static final CdfTableProfile DEFAULT_PROFILE = createProfile(
         true,
         new String[] { "CATDESC", "FIELDNAM", "DESCRIP", "DESCRIPTION", },
         new String[] { "UNITS", "UNIT", "UNITSTRING", },
-        new String[] { "FILLVAL", }
+        new String[] { "FILLVAL", },
+        new String[] { "DEPEND_0", }
     );
 
     private final CdfTableProfile profile_;
@@ -216,14 +222,18 @@ public class CdfTableBuilder extends DocumentedTableBuilder {
      *                          that might supply units metadata
      * @param  blankvalAttNames ordered list of names of attributes
      *                          that might supply magic blank values
+     * @param  depend0AttNames  ordered list of names of attributes
+     *                          that might supply a dependent variable name
      * @return  new profile instance
      */
     public static CdfTableProfile createProfile( boolean invarParams,
                                                  String[] descripAttNames,
                                                  String[] unitAttNames,
-                                                 String[] blankvalAttNames ) {
+                                                 String[] blankvalAttNames,
+                                                 String[] depend0AttNames ) {
         return new ListCdfTableProfile( invarParams, descripAttNames,
-                                        unitAttNames, blankvalAttNames );
+                                        unitAttNames, blankvalAttNames,
+                                        depend0AttNames );
     }
 
     /**
@@ -234,6 +244,7 @@ public class CdfTableBuilder extends DocumentedTableBuilder {
         private final String[] descAttNames_;
         private final String[] unitAttNames_;
         private final String[] blankvalAttNames_;
+        private final String[] depend0AttNames_;
 
         /**
          * Constructor.
@@ -247,14 +258,17 @@ public class CdfTableBuilder extends DocumentedTableBuilder {
          *                          that might supply units metadata
          * @param  blankvalAttNames ordered list of names of attributes
          *                          that might supply magic blank values
+         * @param  depend0AttNames  ordered list of names of attributes
+         *                          that might supply a dependent variable name
          */
         ListCdfTableProfile( boolean invarParams, String[] descripAttNames,
-                             String[] unitAttNames,
-                             String[] blankvalAttNames ) {
+                             String[] unitAttNames, String[] blankvalAttNames,
+                             String[] depend0AttNames ) {
             invarParams_ = invarParams;
             descAttNames_ = descripAttNames;
             unitAttNames_ = unitAttNames;
             blankvalAttNames_ = blankvalAttNames;
+            depend0AttNames_ = depend0AttNames;
         }
 
         public boolean invariantVariablesToParameters() {
@@ -271,6 +285,10 @@ public class CdfTableBuilder extends DocumentedTableBuilder {
 
         public String getBlankValueAttribute( String[] attNames ) {
             return match( blankvalAttNames_, attNames );
+        }
+
+        public String getDepend0Attribute( String[] attNames ) {
+            return match( depend0AttNames_, attNames );
         }
 
         /**
