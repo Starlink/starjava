@@ -98,6 +98,11 @@ public class DomainMapperComboBox extends JComboBox<DomainMapper> {
                 }
             }
         } );
+        columnSelector_.addPropertyChangeListener( "model", evt -> {
+            if ( ! lockButton.isSelected() ) {
+                updateMapper();
+            }
+        } );
         updateMapper();
         line_ = Box.createHorizontalBox();
         line_.add( lockButton );

@@ -71,12 +71,12 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
 
     @Override
     public void setModel( ComboBoxModel<ColumnData> model ) {
-        super.setModel( model );
         if ( model instanceof ColumnDataComboBoxModel ) {
             ColumnDataComboBoxModel emodel =
                 (ColumnDataComboBoxModel) model;
             setEditor( new ColumnDataEditor( emodel, this ) );
         }
+        super.setModel( model );
     }
 
     /**

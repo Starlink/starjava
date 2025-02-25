@@ -34338,6 +34338,9 @@ introduced since the last version:
         not just a single column.</li>
     <li>The <ref id="inCdf">CDF input handler</ref> can now extract
         multiple tables from a single CDF file.</li>
+    <li>Fix time format reselection in
+        <ref id="TimePlotWindow">Time plot window</ref>
+        when changing tables.</li>
     </ul>
     </p></dd>
 
