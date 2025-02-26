@@ -15767,6 +15767,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         functions for use with JSON text.</li>
     <li>The <ref id="inCdf">CDF input handler</ref> can now extract
         multiple tables from a single CDF file.</li>
+    <li>Update JCDF to v1.2.5.
+        Significant improvements to CDF read performance.</li>
     </ul>
     </p></dd>
 

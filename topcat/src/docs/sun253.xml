@@ -34341,6 +34341,8 @@ introduced since the last version:
     <li>Fix time format reselection in
         <ref id="TimePlotWindow">Time plot window</ref>
         when changing tables.</li>
+    <li>Update JCDF to v1.2.5.
+        Significant improvements to CDF read performance.</li>
     </ul>
     </p></dd>
 
