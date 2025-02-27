@@ -68,8 +68,10 @@ public class TapResultReader {
         progressParam_ = new BooleanParameter( "progress" );
         progressParam_.setPrompt( "Report on query progress" );
         progressParam_.setDescription( new String[] {
-            "<p>If this parameter is set true, progress of the job is",
-            "reported to standard output as it happens.",
+            "<p>If this parameter is set true,",
+            "updates on the status of the asynchronous UWS job are",
+            "reported to standard output as they become available.",
+            "This parameter is ignored in synchronous mode.",
             "</p>",
         } );
         progressParam_.setBooleanDefault( true );
