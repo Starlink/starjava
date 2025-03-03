@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.gpl;
 
+import java.util.function.Supplier;
 import java.util.concurrent.ForkJoinPool;
 import uk.ac.starlink.ttools.filter.IntComparator;
 
@@ -46,20 +47,35 @@ public class SortUtils {
      * @param  cmp  comparator
      */
     public static void parallelIntSort( int[] array, IntComparator cmp ) {
-        if ( cmp == null ) {
-            cmp = Integer::compare;
+        final IntComparator cmp0 = cmp == null ? Integer::compare : cmp;
+        parallelIntSort( array, () -> cmp0 );
+    }
+        
+    /**
+     * Parallel sort of an integer array with a custom, possibly
+     * non-thread-safe, comparator.
+     * Any comparator obtained from the supplied factory will only
+     * be used within a single thread.
+     *
+     * @param  array  array to sort
+     * @param  cmpSupplier  supplier for comparators
+     */
+    public static void parallelIntSort( int[] array,
+                                        Supplier<? extends IntComparator> cmpSupplier ) {
+        if ( cmpSupplier == null ) {
+            cmpSupplier = () -> Integer::compare;
         }
         int n = array.length;
         int p = ForkJoinPool.getCommonPoolParallelism();
         if ( n <= MIN_ARRAY_SORT_GRAN || p == 1 ) {
-            IntTimSort.sort( array, 0, n, cmp, null, 0, 0 );
+            IntTimSort.sort( array, 0, n, cmpSupplier.get(), null, 0, 0 );
         }
         else {
             int g = n / ( p << 2 );
             new ArraysParallelSortHelpers.FJObject.Sorter(
                     null, array, new int[ n ], 0, n, 0,
                     ( g <= MIN_ARRAY_SORT_GRAN ) ? MIN_ARRAY_SORT_GRAN : g,
-                    cmp )
+                    cmpSupplier )
            .invoke();
         }
     }

@@ -28,6 +28,7 @@ package uk.ac.starlink.ttools.gpl;
 
 import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.CountedCompleter;
+import java.util.function.Supplier;
 import uk.ac.starlink.ttools.filter.IntComparator;
 
 /**
@@ -114,18 +115,18 @@ import uk.ac.starlink.ttools.filter.IntComparator;
         static final class Sorter extends CountedCompleter<Void> {
             final int[] a, w;
             final int base, size, wbase, gran;
-            IntComparator comparator;
+            Supplier<? extends IntComparator> cmpSupplier;
             Sorter(CountedCompleter<?> par, int[] a, int[] w, int base, int size,
                    int wbase, int gran,
-                   IntComparator comparator) {
+                   Supplier<? extends IntComparator> cmpSupplier) {
                 super(par);
                 this.a = a; this.w = w; this.base = base; this.size = size;
                 this.wbase = wbase; this.gran = gran;
-                this.comparator = comparator;
+                this.cmpSupplier = cmpSupplier;
             }
             public final void compute() {
                 CountedCompleter<?> s = this;
-                IntComparator c = this.comparator;
+                Supplier<? extends IntComparator> c = this.cmpSupplier;
                 int[] a = this.a, w = this.w; // localize all params
                 int b = this.base, n = this.size, wb = this.wbase, g = this.gran;
                 while (n > g) {
@@ -142,7 +143,7 @@ import uk.ac.starlink.ttools.filter.IntComparator;
                     s = new EmptyCompleter(bc);
                     n = q;
                 }
-                IntTimSort.sort(a, b, b + n, c, w, wb, n);
+                IntTimSort.sort(a, b, b + n, c.get(), w, wb, n);
                 s.tryComplete();
             }
         }
@@ -150,21 +151,21 @@ import uk.ac.starlink.ttools.filter.IntComparator;
         static final class Merger extends CountedCompleter<Void> {
             final int[] a, w; // main and workspace arrays
             final int lbase, lsize, rbase, rsize, wbase, gran;
-            IntComparator comparator;
+            Supplier<? extends IntComparator> cmpSupplier;
             Merger(CountedCompleter<?> par, int[] a, int[] w,
                    int lbase, int lsize, int rbase,
                    int rsize, int wbase, int gran,
-                   IntComparator comparator) {
+                   Supplier<? extends IntComparator> cmpSupplier) {
                 super(par);
                 this.a = a; this.w = w;
                 this.lbase = lbase; this.lsize = lsize;
                 this.rbase = rbase; this.rsize = rsize;
                 this.wbase = wbase; this.gran = gran;
-                this.comparator = comparator;
+                this.cmpSupplier = cmpSupplier;
             }
 
             public final void compute() {
-                IntComparator c = this.comparator;
+                IntComparator c = cmpSupplier.get();
                 int[] a = this.a, w = this.w; // localize all params
                 int lb = this.lbase, ln = this.lsize, rb = this.rbase,
                     rn = this.rsize, k = this.wbase, g = this.gran;
@@ -200,7 +201,7 @@ import uk.ac.starlink.ttools.filter.IntComparator;
                     }
                     Merger m = new Merger(this, a, w, lb + lh, ln - lh,
                                           rb + rh, rn - rh,
-                                          k + lh + rh, g, c);
+                                          k + lh + rh, g, cmpSupplier);
                     rn = rh;
                     ln = lh;
                     addToPendingCount(1);
