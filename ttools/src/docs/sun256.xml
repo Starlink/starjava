@@ -15770,6 +15770,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Update JCDF to v1.2.5.
         Significant improvements to CDF read performance.</li>
     <li>Add <ref id="shuffle"><code>shuffle</code></ref> filter.</li>
+    <li>Resource usage improvements to
+        <ref id="sort"><code>sort</code></ref> filter;
+        it can now sort tables several times larger than before,
+        and considerably faster.</li>
     </ul>
     </p></dd>
 

@@ -3,8 +3,6 @@ package uk.ac.starlink.ttools.filter;
 import gnu.jel.CompilationException;
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,6 +11,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Tokenizer;
+import uk.ac.starlink.ttools.gpl.SortUtils;
 import uk.ac.starlink.ttools.jel.RandomJELEvaluator;
 
 /**
@@ -137,9 +136,9 @@ public class SortFilter extends BasicFilter {
             boolean isParallel = isParallel_ == null
                                ? nrow > PARALLEL_THRESHOLD
                                : isParallel_.booleanValue();
-            Number[] rowMap = new Number[ nrow ];
+            int[] rowMap = new int[ nrow ];
             for ( int i = 0; i < nrow; i++ ) {
-                rowMap[ i ] = Integer.valueOf( i );
+                rowMap[ i ] = i;
             }
             RowComparator keyComparator;
             try {
@@ -152,10 +151,10 @@ public class SortFilter extends BasicFilter {
             }
             try {
                 if ( isParallel ) {
-                    Arrays.parallelSort( rowMap, keyComparator );
+                    SortUtils.parallelIntSort( rowMap, keyComparator );
                 }
                 else {
-                    Arrays.sort( rowMap, keyComparator );
+                    SortUtils.intSort( rowMap, keyComparator );
                 }
             }
             catch ( SortException e ) {
@@ -166,18 +165,17 @@ public class SortFilter extends BasicFilter {
             }
             long[] rmap = new long[ nrow ];
             for ( int i = 0; i < nrow; i++ ) {
-                rmap[ i ] = rowMap[ i ].longValue();
+                rmap[ i ] = rowMap[ i ];
             }
             return new RowPermutedStarTable( baseTable, rmap );
         }
     }
 
     /** 
-     * Comparator which will compare two objects which are Numbers 
+     * IntComparator which will compare two integers
      * representing row indices of a given table.
      */
-    private static class RowComparator
-            implements Comparator<Number>, Closeable {
+    private static class RowComparator implements IntComparator, Closeable {
 
         final int nexpr_;
         final RandomJELEvaluator[] evaluators_;
@@ -216,9 +214,7 @@ public class SortFilter extends BasicFilter {
             }
         }
 
-        public int compare( Number o1, Number o2 ) {
-            long row1 = o1.longValue();
-            long row2 = o2.longValue();
+        public int compare( int row1, int row2 ) {
             int c = 0;
             for ( int i = 0; i < nexpr_ && c == 0; i++ ) { 
                 RandomJELEvaluator evaluator = evaluators_[ i ];
