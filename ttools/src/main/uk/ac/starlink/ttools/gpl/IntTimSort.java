@@ -1,3 +1,5 @@
+// This class adapted from the OpenJDK 8 implementation of java.util.TimSort.
+
 /*
  * Copyright (c) 2009, 2013, Oracle and/or its affiliates. All rights reserved.
  * Copyright 2009 Google Inc.  All Rights Reserved.
@@ -24,7 +26,9 @@
  * questions.
  */
 
-package java.util;
+package uk.ac.starlink.ttools.gpl;
+
+import uk.ac.starlink.ttools.filter.IntComparator;
 
 /**
  * A stable, adaptive, iterative mergesort that requires far fewer than
@@ -58,8 +62,9 @@ package java.util;
  * TimSort. Small arrays are sorted in place, using a binary insertion sort.
  *
  * @author Josh Bloch
+ * @author Mark Taylor
  */
-class TimSort<T> {
+class IntTimSort {
     /**
      * This is the minimum sized sequence that will be merged.  Shorter
      * sequences will be lengthened by calling binarySort.  If the entire
@@ -82,12 +87,12 @@ class TimSort<T> {
     /**
      * The array being sorted.
      */
-    private final T[] a;
+    private final int[] a;
 
     /**
      * The comparator for this sort.
      */
-    private final Comparator<? super T> c;
+    private final IntComparator c;
 
     /**
      * When we get into galloping mode, we stay there until both runs win less
@@ -116,7 +121,7 @@ class TimSort<T> {
      * provided in constructor, and if so will be used as long as it
      * is big enough.
      */
-    private T[] tmp;
+    private int[] tmp;
     private int tmpBase; // base of tmp array slice
     private int tmpLen;  // length of tmp array slice
 
@@ -143,7 +148,8 @@ class TimSort<T> {
      * @param workBase origin of usable space in work array
      * @param workLen usable size of work array
      */
-    private TimSort(T[] a, Comparator<? super T> c, T[] work, int workBase, int workLen) {
+    private IntTimSort(int[] a, IntComparator c, int[] work, int workBase,
+                       int workLen) {
         this.a = a;
         this.c = c;
 
@@ -153,8 +159,7 @@ class TimSort<T> {
             len >>> 1 : INITIAL_TMP_STORAGE_LENGTH;
         if (work == null || workLen < tlen || workBase + tlen > work.length) {
             @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
-            T[] newArray = (T[])java.lang.reflect.Array.newInstance
-                (a.getClass().getComponentType(), tlen);
+            int[] newArray = new int[tlen];
             tmp = newArray;
             tmpBase = 0;
             tmpLen = tlen;
@@ -203,8 +208,8 @@ class TimSort<T> {
      * @param workLen usable size of work array
      * @since 1.8
      */
-    static <T> void sort(T[] a, int lo, int hi, Comparator<? super T> c,
-                         T[] work, int workBase, int workLen) {
+    static void sort(int[] a, int lo, int hi, IntComparator c,
+                     int[] work, int workBase, int workLen) {
         assert c != null && a != null && lo >= 0 && lo <= hi && hi <= a.length;
 
         int nRemaining  = hi - lo;
@@ -223,7 +228,7 @@ class TimSort<T> {
          * extending short natural runs to minRun elements, and merging runs
          * to maintain stack invariant.
          */
-        TimSort<T> ts = new TimSort<>(a, c, work, workBase, workLen);
+        IntTimSort ts = new IntTimSort(a, c, work, workBase, workLen);
         int minRun = minRunLength(nRemaining);
         do {
             // Identify next run
@@ -270,13 +275,13 @@ class TimSort<T> {
      * @param c comparator to used for the sort
      */
     @SuppressWarnings("fallthrough")
-    private static <T> void binarySort(T[] a, int lo, int hi, int start,
-                                       Comparator<? super T> c) {
+    private static <T> void binarySort(int[] a, int lo, int hi, int start,
+                                       IntComparator c) {
         assert lo <= start && start <= hi;
         if (start == lo)
             start++;
         for ( ; start < hi; start++) {
-            T pivot = a[start];
+            int pivot = a[start];
 
             // Set left (and right) to the index where a[start] (pivot) belongs
             int left = lo;
@@ -340,8 +345,8 @@ class TimSort<T> {
      * @return  the length of the run beginning at the specified position in
      *          the specified array
      */
-    private static <T> int countRunAndMakeAscending(T[] a, int lo, int hi,
-                                                    Comparator<? super T> c) {
+    private static int countRunAndMakeAscending(int[] a, int lo, int hi,
+                                                IntComparator c) {
         assert lo < hi;
         int runHi = lo + 1;
         if (runHi == hi)
@@ -367,10 +372,10 @@ class TimSort<T> {
      * @param lo the index of the first element in the range to be reversed
      * @param hi the index after the last element in the range to be reversed
      */
-    private static void reverseRange(Object[] a, int lo, int hi) {
+    private static void reverseRange(int[] a, int lo, int hi) {
         hi--;
         while (lo < hi) {
-            Object t = a[lo];
+            int t = a[lo];
             a[lo++] = a[hi];
             a[hi--] = t;
         }
@@ -530,8 +535,8 @@ class TimSort<T> {
      *    the first k elements of a should precede key, and the last n - k
      *    should follow it.
      */
-    private static <T> int gallopLeft(T key, T[] a, int base, int len, int hint,
-                                      Comparator<? super T> c) {
+    private static int gallopLeft(int key, int[] a, int base, int len, int hint,
+                                  IntComparator c) {
         assert len > 0 && hint >= 0 && hint < len;
         int lastOfs = 0;
         int ofs = 1;
@@ -600,8 +605,8 @@ class TimSort<T> {
      * @param c the comparator used to order the range, and to search
      * @return the int k,  0 <= k <= n such that a[b + k - 1] <= key < a[b + k]
      */
-    private static <T> int gallopRight(T key, T[] a, int base, int len,
-                                       int hint, Comparator<? super T> c) {
+    private static int gallopRight(int key, int[] a, int base, int len,
+                                   int hint, IntComparator c) {
         assert len > 0 && hint >= 0 && hint < len;
 
         int ofs = 1;
@@ -678,8 +683,8 @@ class TimSort<T> {
         assert len1 > 0 && len2 > 0 && base1 + len1 == base2;
 
         // Copy first run into temp array
-        T[] a = this.a; // For performance
-        T[] tmp = ensureCapacity(len1);
+        int[] a = this.a; // For performance
+        int[] tmp = ensureCapacity(len1);
         int cursor1 = tmpBase; // Indexes into tmp array
         int cursor2 = base2;   // Indexes int a
         int dest = base1;      // Indexes int a
@@ -697,7 +702,7 @@ class TimSort<T> {
             return;
         }
 
-        Comparator<? super T> c = this.c;  // Use local variable for performance
+        IntComparator c = this.c;          // Use local variable for performance
         int minGallop = this.minGallop;    //  "    "       "     "      "
     outer:
         while (true) {
@@ -794,8 +799,8 @@ class TimSort<T> {
         assert len1 > 0 && len2 > 0 && base1 + len1 == base2;
 
         // Copy second run into temp array
-        T[] a = this.a; // For performance
-        T[] tmp = ensureCapacity(len2);
+        int[] a = this.a; // For performance
+        int[] tmp = ensureCapacity(len2);
         int tmpBase = this.tmpBase;
         System.arraycopy(a, base2, tmp, tmpBase, len2);
 
@@ -817,7 +822,7 @@ class TimSort<T> {
             return;
         }
 
-        Comparator<? super T> c = this.c;  // Use local variable for performance
+        IntComparator c = this.c;          // Use local variable for performance
         int minGallop = this.minGallop;    //  "    "       "     "      "
     outer:
         while (true) {
@@ -909,7 +914,7 @@ class TimSort<T> {
      * @param minCapacity the minimum required capacity of the tmp array
      * @return tmp, whether or not it grew
      */
-    private T[] ensureCapacity(int minCapacity) {
+    private int[] ensureCapacity(int minCapacity) {
         if (tmpLen < minCapacity) {
             // Compute smallest power of 2 > minCapacity
             int newSize = minCapacity;
@@ -926,8 +931,7 @@ class TimSort<T> {
                 newSize = Math.min(newSize, a.length >>> 1);
 
             @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
-            T[] newArray = (T[])java.lang.reflect.Array.newInstance
-                (a.getClass().getComponentType(), newSize);
+            int[] newArray = new int[newSize];
             tmp = newArray;
             tmpLen = newSize;
             tmpBase = 0;
