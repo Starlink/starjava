@@ -47,6 +47,48 @@ public abstract class RandomJELEvaluator implements Closeable {
     public abstract boolean evaluateBoolean( long lrow ) throws IOException;
 
     /**
+     * Returns a supplier for evaluators.
+     * The evaluators returned by the supplier are not safe for concurrent use.
+     *
+     * @param  table  context for expression evaluation
+     * @param  expr   JEL expression
+     * @return  supplier of non-thread-safe evaluators
+     */
+    public static Supplier<RandomJELEvaluator>
+            createEvaluatorSupplier( StarTable table, String expr )
+            throws CompilationException {
+        Function<Library,CompiledExpression> compiler =
+            JELUtils.compiler( table, expr, null );
+        return () -> {
+            final AccessRowReader rdr;
+            try {
+                rdr = new AccessRowReader( table, compiler );
+            }
+            catch ( IOException e ) {
+                throw new RuntimeException( "Uh oh, rethrown IOException " + e,
+                                            e );
+            }
+            return new RandomJELEvaluator() {
+                public Object evaluateObject( long lrow ) throws IOException {
+                    rdr.setRowIndex( lrow );
+                    return rdr.evaluateObject();
+                }
+                public double evaluateDouble( long lrow ) throws IOException {
+                    rdr.setRowIndex( lrow );
+                    return rdr.evaluateDouble();
+                }
+                public boolean evaluateBoolean( long lrow ) throws IOException {
+                    rdr.setRowIndex( lrow );
+                    return rdr.evaluateBoolean();
+                }
+                public void close() throws IOException {
+                    rdr.close();
+                }
+            };
+        };
+    }
+
+    /**
      * Returns a RandomJELEvaluator instance for a given table and expression.
      * The returned implementation may or may not be suitable for use from
      * multiple threads concurrently, depending on the

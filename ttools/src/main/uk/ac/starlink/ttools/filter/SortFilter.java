@@ -3,9 +3,13 @@ package uk.ac.starlink.ttools.filter;
 import gnu.jel.CompilationException;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import uk.ac.starlink.table.RowPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
@@ -140,28 +144,22 @@ public class SortFilter extends BasicFilter {
             for ( int i = 0; i < nrow; i++ ) {
                 rowMap[ i ] = i;
             }
-            RowComparator keyComparator;
-            try {
-                keyComparator = new RowComparator( baseTable, keys_, up_,
-                                                   nullsLast_, isParallel );
+            try ( ComparatorManager cmpMgr =
+                      new ComparatorManager( baseTable, keys_,
+                                             up_, nullsLast_ ) ) {
+                if ( isParallel ) {
+                    SortUtils.parallelIntSort( rowMap, cmpMgr::getComparator );
+                }
+                else {
+                    SortUtils.intSort( rowMap, cmpMgr.getComparator() );
+                }
             }
             catch ( CompilationException e ) {
                 throw (IOException) new IOException( "Bad sort key(s)" )
                                    .initCause( e );
             }
-            try {
-                if ( isParallel ) {
-                    SortUtils.parallelIntSort( rowMap, keyComparator );
-                }
-                else {
-                    SortUtils.intSort( rowMap, keyComparator );
-                }
-            }
             catch ( SortException e ) {
                 throw e.asIOException();
-            }
-            finally {
-                keyComparator.close();
             }
             long[] rmap = new long[ nrow ];
             for ( int i = 0; i < nrow; i++ ) {
@@ -174,6 +172,7 @@ public class SortFilter extends BasicFilter {
     /** 
      * IntComparator which will compare two integers
      * representing row indices of a given table.
+     * Instances are not thread-safe.
      */
     private static class RowComparator implements IntComparator, Closeable {
 
@@ -185,27 +184,21 @@ public class SortFilter extends BasicFilter {
         /**
          * Constructor.
          *
-         * @param  table  table whose rows are to be examined
-         * @param  keys   array of column identifiers; first is most
-         *                significant for ordering, second next, etc
+         * @param  keyEvaluators  array of evaluators for sort key values;
+         *                        first is most significant for ordering,
+         *                        second next, etc
          * @param   up  true for sorting into ascending order, false for
          *          descending order
          * @param   nullsLast  true if blank values should be considered
          *          last in the collation order, false if they should
          *          be considered first
          */
-        public RowComparator( StarTable table, String[] keys, boolean up,
-                              boolean nullsLast, boolean isParallel )
-                throws CompilationException, IOException {
-            nexpr_ = keys.length;
+        public RowComparator( RandomJELEvaluator[] keyEvaluators, boolean up,
+                              boolean nullsLast ) {
+            evaluators_ = keyEvaluators;
             up_ = up;
             nullsLast_ = nullsLast;
-            evaluators_ = new RandomJELEvaluator[ nexpr_ ];
-            for ( int ie = 0; ie < nexpr_; ie++ ) {
-                evaluators_[ ie ] =
-                    RandomJELEvaluator
-                   .createEvaluator( table, keys[ ie ], isParallel );
-            }
+            nexpr_ = evaluators_.length;
         }
 
         public void close() throws IOException {
@@ -256,6 +249,67 @@ public class SortFilter extends BasicFilter {
             }
             else {
                 return ((Comparable<Object>) o1).compareTo( (Comparable) o2 );
+            }
+        }
+    }
+
+    /**
+     * Supplier for RowComparators that keeps track of them and will
+     * close them when it is closed.
+     */
+    private static class ComparatorManager implements Closeable {
+
+        final List<Supplier<RandomJELEvaluator>> evaluatorSuppliers_;
+        final boolean up_;
+        final boolean nullsLast_;
+        final Collection<RowComparator> comparators_;
+
+        /**
+         * Constructor.
+         *
+         * @param  table  table
+         * @param  keys   JEL expressions for sort keys, most significant first
+         * @param   up  true for sorting into ascending order, false for
+         *          descending order
+         * @param   nullsLast  true if blank values should be considered
+         *          last in the collation order, false if they should
+         *          be considered first
+         */
+        ComparatorManager( StarTable table, String[] keys, boolean up,
+                           boolean nullsLast )
+                throws CompilationException {
+            up_ = up;
+            nullsLast_ = nullsLast;
+            evaluatorSuppliers_ = new ArrayList<Supplier<RandomJELEvaluator>>();
+            comparators_ = ConcurrentHashMap.newKeySet();
+            for ( String key : keys ) {
+                evaluatorSuppliers_
+               .add( RandomJELEvaluator.createEvaluatorSupplier( table, key ) );
+            }
+        }
+
+        /**
+         * Returns a RowComparator instance.  This instance is not thread-safe.
+         *
+         * @return  comparator
+         */
+        RowComparator getComparator() {
+            RandomJELEvaluator[] evaluators =
+                evaluatorSuppliers_.stream()
+                                   .map( Supplier::get )
+                                   .toArray( n -> new RandomJELEvaluator[ n ] );
+            RowComparator cmp =
+                new RowComparator( evaluators, up_, nullsLast_ );
+            comparators_.add( cmp );
+            return cmp;
+        }
+
+        /**
+         * Closes any comparators that have been dispatched from this object.
+         */
+        public void close() throws IOException {
+            for ( RowComparator cmp : comparators_ ) {
+                cmp.close();
             }
         }
     }
