@@ -859,6 +859,21 @@ public class TablePipeTest extends TableTestCase {
         assertEquals( 0L, apply( "select false; cache" ).getRowCount() );
     }
 
+    public void testShuffle() throws Exception {
+        assertSameData( apply( "stats" ), apply( "shuffle; stats" ) );
+        assertSameData( apply( "addcol i $0" ),
+                        apply( "addcol i $0; shuffle; sort i" ) );
+        assertFalse( Arrays.equals(
+                        getColData( inTable_, 0 ),
+                        getColData( apply( "shuffle -seed 9999" ), 0 ) ) );
+        assertFalse( Arrays.equals(
+                        getColData( apply( "shuffle -seed 9999" ), 0 ),
+                        getColData( apply( "shuffle -seed 7777" ), 0 ) ) );
+        assertTrue( Arrays.equals(
+                        getColData( apply( "shuffle -seed 9999" ), 0 ),
+                        getColData( apply( "shuffle -seed 9999" ), 0 ) ) );
+    }
+
     public void testSort() throws Exception {
         assertSameData( inTable_, apply( "sort a" ) );
 

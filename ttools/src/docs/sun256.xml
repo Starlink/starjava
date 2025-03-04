@@ -15769,6 +15769,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         multiple tables from a single CDF file.</li>
     <li>Update JCDF to v1.2.5.
         Significant improvements to CDF read performance.</li>
+    <li>Add <ref id="shuffle"><code>shuffle</code></ref> filter.</li>
     </ul>
     </p></dd>
 

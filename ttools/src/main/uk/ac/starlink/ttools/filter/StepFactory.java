@@ -63,6 +63,7 @@ public class StepFactory {
         filterFactory_.register( "select", pkg + "SelectFilter" );
         filterFactory_.register( "seqview", pkg + "SequentialViewFilter" );
         filterFactory_.register( "setparam", pkg + "SetParameterFilter" );
+        filterFactory_.register( "shuffle", pkg + "ShuffleFilter" );
         filterFactory_.register( "sort", pkg + "SortFilter" );
         filterFactory_.register( "sorthead", pkg + "SortHeadFilter" );
         filterFactory_.register( "stats", pkg + "StatsFilter" );
