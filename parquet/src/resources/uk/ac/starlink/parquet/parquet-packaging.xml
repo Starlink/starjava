@@ -47,13 +47,14 @@ in particular the files
 <code>slf4j-nop-1.7.22.jar</code>
 <code>snappy-java-1.1.8.3.jar</code>
 <code>stax2-api-4.2.1.jar</code>
-<code>woodstox-core-5.3.0.jar</code>.
+<code>woodstox-core-5.3.0.jar</code>
+<code>zstd-jni-1.5.0-1.jar</code>.
 </blockquote>
 <blockquote>
 These libraries support some, but not all, of the compression formats
 defined for parquet, currently
-<code>uncompressed</code>, <code>gzip</code>, <code>snappy</code>
-and <code>lz4_raw</code>.
+<code>uncompressed</code>, <code>gzip</code>, <code>snappy</code>,
+<code>zstd</code> and <code>lz4_raw</code>.
 Supplying more of the parquet-mr dependencies at runtime would
 extend this list.
 </blockquote>

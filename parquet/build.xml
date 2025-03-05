@@ -118,6 +118,9 @@
   <!-- Directory containing any JNI source code -->
   <property name="src.jni.dir" value="${src.dir}/jni"/>
 
+  <!-- Directory containing files downloaded at build time. -->
+  <property name="src.downloads.dir" value="${src.dir}/downloads"/>
+
   <!-- Directories for JUnit test cases and related files -->
   <property name="tests.dir" value="${src.dir}/testcases"/>
   <property name="tests.etc.dir" value="${src.dir}/etc/testcases"/>
@@ -302,6 +305,7 @@
     <pathelement location="${build.tests}"/>
     <pathelement location="${tests.dir}"/>
     <pathelement location="${tests.etc.dir}"/>
+    <fileset dir="${src.downloads.dir}" includes="*.jar"/>
     <path refid="classpath"/>
   </path>
 
@@ -383,7 +387,7 @@
    !  copied into place here.
    !-->
   <target name="build"
-          depends="prepare, check_packages"
+          depends="prepare, check_packages, download"
           unless="runonly.install"
           description="-> compiles the source code">
 
@@ -523,7 +527,7 @@
    !  targets.
    !-->
   <target name="dist"
-          depends="build,jars,javadocs,webstart"
+          depends="build,jars,javadocs,webstart,download"
           unless="runonly.install"
           description="-> configures the local binary distribution">
 
@@ -533,6 +537,13 @@
     <mkdir dir="${dist.lib.pkg}"/>
     <mkdir dir="${dist.docs.pkg}"/>
     <mkdir dir="${dist.etc.pkg}"/>
+
+    <!-- Copy extra files. -->
+    <copy todir="${dist.lib.pkg}">
+      <fileset dir="${src.downloads.dir}">
+        <include name="*.jar"/>
+      </fileset>
+    </copy>
 
     <!-- Copy any configuration/helper scripts etc. -->
   <!--
@@ -973,12 +984,34 @@
   </target>
 
   <!--
+   !   ==============================
+   !   Download external dependencies
+   !   ==============================
+   !-->
+  <property name="zstd.lib" value="zstd-jni-1.5.0-1.jar"/>
+  <target name="download">
+    <condition property="downloads.present">
+      <and>
+        <available file="${src.downloads.dir}/${zstd.lib}"/>
+      </and>
+    </condition>
+    <antcall target="do-downloads"/>
+    <checksum algorithm="md5">
+      <fileset dir="${src.downloads.dir}" includes="*.jar"/>
+    </checksum>
+  </target>
+  <target name="do-downloads" unless="downloads.present">
+    <get src="https://repo1.maven.org/maven2/com/github/luben/zstd-jni/1.5.0-1/${zstd.lib}"
+         dest="${src.downloads.dir}/${zstd.lib}"/>
+  </target>
+
+  <!--
    !   =================
    !   Compile testcases
    !   =================
    !-->
   <target name="compile-tests"
-          depends="build"
+          depends="build, download"
           if="junit.present">
 
     <mkdir dir="${build.tests}"/>

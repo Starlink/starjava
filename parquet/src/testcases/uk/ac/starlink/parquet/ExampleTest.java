@@ -30,8 +30,8 @@ public class ExampleTest extends TestCase {
             "gzip",
             "snappy",
             "lz4",
+            "zstd",
         //  "brotli",  // can't find codec
-        //  "zstd",    // parquet-mr uses zstd-jni
         };
         for ( String cf : compressFormats ) {
             String fname = "example-" + cf + ".parquet";

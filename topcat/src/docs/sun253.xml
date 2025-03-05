@@ -34344,6 +34344,8 @@ introduced since the last version:
     <li>Update JCDF to v1.2.5.
         Significant improvements to CDF read performance.</li>
     <li>STScI RegTAP endpoint updated.</li>
+    <li>The parquet I/O handler in <code>topcat-extra.jar</code> now
+        supports ZSTD as well as some other compression algorithms.</li>
     </ul>
     </p></dd>
 
