@@ -34343,6 +34343,7 @@ introduced since the last version:
         when changing tables.</li>
     <li>Update JCDF to v1.2.5.
         Significant improvements to CDF read performance.</li>
+    <li>STScI RegTAP endpoint updated.</li>
     </ul>
     </p></dd>
 
