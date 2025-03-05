@@ -33,6 +33,7 @@ this list up to date, but if there are missing entries please complain.
       jel_g.jar
       jlatexmath.jar
       jfreesvg-3.4.jar
+      ttools-gpl.jar
       moc.jar (probably LGPL in future versions)
 
    GPL with classpath exception:

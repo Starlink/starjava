@@ -635,14 +635,27 @@
           unless="runonly.install"
           description="-> creates the package jar file(s)">
 
-    <!-- Create the library jar file, ttools.jar. -->
+    <!-- Create the library jar file, ttools.jar.
+     !   This excludes any GPL-encumbered parts. -->
     <mkdir dir="${dist.lib.pkg}"/>
     <jar destfile="${dist.lib.pkg}/${name}.jar">
-      <fileset dir="${build.classes}"/>
+      <fileset dir="${build.classes}"
+               excludes="uk/ac/starlink/ttools/gpl/*
+                         uk/ac/starlink/ttools/gpl"/>
       <fileset dir="${build.javadocs}"/>
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" value="${jar.class.path}"/>
+      </manifest>
+    </jar>
+
+    <!-- Create a jar file consisting of just the GPL-encumbered parts. -->
+    <mkdir dir="${dist.lib.pkg}"/>
+    <jar destfile="${dist.lib.pkg}/${name}-gpl.jar">
+      <fileset dir="${build.classes}"
+               includes="uk/ac/starlink/ttools/gpl/*"/>
+      <manifest> 
+        <attribute name="Built-By" value="${user.name}"/>
       </manifest>
     </jar>
 
