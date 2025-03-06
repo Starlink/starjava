@@ -167,11 +167,11 @@ public class ParquetTableWriter
     @ConfigMethod(
         property = "compression",
         example = "gzip",
-        usage = "uncompressed|snappy|gzip|lz4_raw",
+        usage = "uncompressed|snappy|zstd|gzip|lz4_raw",
         doc = "<p>Configures the type of compression used for output.\n"
             + "Supported values are probably\n"
             + "<code>uncompressed</code>, <code>snappy</code>,\n"
-            + "<code>gzip</code> and <code>lz4_raw</code>.\n"
+            + "<code>zstd</code>, <code>gzip</code> and <code>lz4_raw</code>.\n"
             + "Others may be available if the relevant codecs are on the\n"
             + "classpath at runtime.\n"
             + "If no value is specified, the parquet-mr library default\n"
