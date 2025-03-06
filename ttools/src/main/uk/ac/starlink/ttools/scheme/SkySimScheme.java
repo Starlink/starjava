@@ -24,7 +24,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableScheme;
-import uk.ac.starlink.table.TestTableScheme;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.filter.AddColumnFilter;
 import uk.ac.starlink.ttools.filter.AddSkyCoordsFilter;
@@ -101,7 +101,7 @@ public class SkySimScheme implements TableScheme, Documented {
         try {
             nrow = argtxt.length() == 0
                  ? 10000
-                 : TestTableScheme.parseRowCount( argtxt );
+                 : Tables.parseCount( argtxt );
         }
         catch ( NumberFormatException e ) {
             throw new TableFormatException( "Not numeric: " + argtxt, e );

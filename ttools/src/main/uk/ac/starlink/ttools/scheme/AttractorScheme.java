@@ -4,7 +4,7 @@ import uk.ac.starlink.table.Documented;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableScheme;
-import uk.ac.starlink.table.TestTableScheme;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.DocUtils;
 
 /**
@@ -186,7 +186,7 @@ public class AttractorScheme implements TableScheme, Documented {
         }
         try {
             if ( narg > 0 ) {
-                nrow = TestTableScheme.parseRowCount( args[ 0 ] );
+                nrow = Tables.parseCount( args[ 0 ] );
             }
             if ( narg > 1 ) {
                 name = args[ 1 ];

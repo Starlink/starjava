@@ -86,7 +86,7 @@ public class TestTableScheme implements TableScheme, Documented {
         final long nrow;
         try {
             nrow = args.length > 0 && args[ 0 ].trim().length() > 0
-                 ? parseRowCount( args[ 0 ] )
+                 ? Tables.parseCount( args[ 0 ] )
                  : DFLT_NROW;
         }
         catch ( NumberFormatException e ) {
@@ -121,42 +121,6 @@ public class TestTableScheme implements TableScheme, Documented {
             opt.addContent_.accept( table );
         }
         return table;
-    }
-
-    /**
-     * Interprets a string as a required row count.
-     * This mostly just parses the supplied string as an integer,
-     * but it will also accept embedded underscores (like 1_000_000)
-     * and suitable exponential notation (like 1e6).
-     * 
-     * @param  countTxt  textual representation of integer
-     * @return   non-negative integer value
-     * @throws  NumberFormatException if it can't be interpreted as a
-     *          non-negative integer
-     */
-    public static long parseRowCount( String countTxt ) {
-        countTxt = countTxt.trim();
-        if ( countTxt.startsWith( "0x" ) ) {
-            return Long.parseLong( countTxt.substring( 2 )
-                                           .replaceAll( "_", "" ),
-                                   16 );
-        }
-        else if ( countTxt.matches( "[0-9]+" ) ) {
-            return Long.parseLong( countTxt );
-        }
-        else if ( countTxt.matches( "[0-9_]+" ) ) {
-            return Long.parseLong( countTxt.replaceAll( "_", "" ) );
-        }
-        else if ( countTxt.matches( "[0-9.]+[eE][+]?[0-9]+" ) ) {
-            double d = Double.parseDouble( countTxt );
-            long l = (long) d;
-            if ( l == d ) {
-                return l;
-            }
-        }
-        String msg = "Can't be interpreted as non-negative integer: "
-                   + countTxt;
-        throw new NumberFormatException( msg );
     }
 
     /**

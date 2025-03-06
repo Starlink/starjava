@@ -78,6 +78,16 @@ public class Tables {
                             + "anything other than OK means something wrong" );
 
     /**
+     * A user-directed XML string documenting the behaviour of the
+     * {@link #parseCount} method.
+     * This string starts " may be given as " and ends with a full stop.
+     */
+    public static final String PARSE_COUNT_MAY_BE_GIVEN =
+        " may be given as a plain integer (<code>1000</code>),\n" +
+        "or with embedded underscores (<code>1_000</code>),\n" +
+        "or in exponential format (<code>1e3</code>).";
+
+    /**
      * ValueInfo representing Right Ascension. 
      * The units are radians and it is non-nullable.
      */
@@ -98,6 +108,12 @@ public class Tables {
         DEC_INFO.setNullable( false );
         RA_INFO.setUCD( "POS_EQ_RA" );
         DEC_INFO.setUCD( "POS_EQ_DEC" );
+    }
+
+    /**
+     * Private constructor prevents instantiation.
+     */
+    private Tables() {
     }
 
     /**
@@ -910,6 +926,43 @@ public class Tables {
                 }
             }
         }
+    }
+
+    /**
+     * Interprets a string as a non-negative long integer.
+     * This mostly just parses the supplied string as an integer,
+     * but it will also accept embedded underscores (like 1_000_000),
+     * suitable exponential notation (like 1e6),
+     * and hexadecimal (like 0x400).
+     *
+     * @param  countTxt  textual representation of integer
+     * @return   non-negative integer value
+     * @throws  NumberFormatException if it can't be interpreted as a
+     *          non-negative integer
+     */
+    public static long parseCount( String countTxt ) {
+        countTxt = countTxt.trim();
+        if ( countTxt.startsWith( "0x" ) ) {
+            return Long.parseLong( countTxt.substring( 2 )
+                                           .replaceAll( "_", "" ),
+                                   16 );
+        }
+        else if ( countTxt.matches( "[0-9]+" ) ) {
+            return Long.parseLong( countTxt );
+        }
+        else if ( countTxt.matches( "[0-9_]+" ) ) {
+            return Long.parseLong( countTxt.replaceAll( "_", "" ) );
+        }
+        else if ( countTxt.matches( "[0-9.]+[eE][+]?[0-9]+" ) ) {
+            double d = Double.parseDouble( countTxt );
+            long l = (long) d;
+            if ( l == d ) {
+                return l;
+            }
+        }
+        String msg = "Can't be interpreted as non-negative integer: "
+                   + countTxt;
+        throw new NumberFormatException( msg );
     }
 
     /**
