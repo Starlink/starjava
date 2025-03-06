@@ -577,9 +577,10 @@ a gateway to many remote archives of astronomical data.
 It can also interoperate with other desktop tools using the SAMP protocol.
 </px>
 
-<px>TOPCAT is written in pure Java and is available under the 
-GNU General Public Licence.  Its underlying table processing facilities
-are provided by STIL, the Starlink Tables Infrastructure Library.
+<px>TOPCAT is written in pure Java (except for a few optional libraries)
+and is available under the GNU General Public Licence.
+Its underlying table processing facilities are provided by STIL,
+the Starlink Tables Infrastructure Library.
 </px>
 
 </abstract>
@@ -682,8 +683,9 @@ the Starlink Tables Infrastructure Library
 <webref url="http://www.starlink.ac.uk/stil/" plaintextref="yes">STIL</webref>,
 which is documented more fully in 
 <docxref doc="sun252" plaintextref="yes"/>.
-The software is written in pure Java, and should run on any 
-J2SE platform version 1.6 or later.
+The software is written in pure Java
+(except for some compression codecs used by the Parquet I/O handlers),
+and should run on any J2SE platform version 1.8 or later.
 This makes it highly portable, since it can run on any machine which has
 a suitable Java installation, which is available for MS Windows, Mac OS X and
 most flavours of Unix amongst others.

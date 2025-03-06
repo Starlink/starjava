@@ -57,5 +57,12 @@ defined for parquet, currently
 <code>zstd</code> and <code>lz4_raw</code>.
 Supplying more of the parquet-mr dependencies at runtime would
 extend this list.
+Unlike the rest of TOPCAT/STILTS/STIL which is written in pure java,
+some of these libraries (currently the snappy and zstd compression codecs)
+contain native code, which means they may not work on all architectures.
+At time of writing all common architectures are covered, but there is
+the possibility of failure with a <code>java.lang.UnsatisfiedLinkError</code>
+on other platforms if attempting to read/write files that use those
+compression algorithms.
 </blockquote>
 </p>

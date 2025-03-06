@@ -228,7 +228,8 @@ Calculations on cell data can be performed using a powerful and
 extensible expression language.
 </px>
 
-<px>The package is written in pure Java and based on 
+<px>The package is written in pure Java
+(except for a few optional libraries) and based on 
 <webref url="http://www.starlink.ac.uk/stil/">STIL</webref>,
 the Starlink Tables Infrastructure Library.
 This gives it high portability, support for many data formats
