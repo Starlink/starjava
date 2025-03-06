@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.filter;
 
 import java.util.Iterator;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 
 public class EveryFilter extends BasicFilter {
 
@@ -17,6 +18,9 @@ public class EveryFilter extends BasicFilter {
             "controls whether the selection needs to be exact;",
             "in some cases an approximate calculation can take advantage",
             "of parallelism where an exact one cannot.",
+            "</p>",
+            "<p>The <code>&lt;step&gt;</code> argument",
+            Tables.PARSE_COUNT_MAY_BE_GIVEN,
             "</p>",
         };
     }
@@ -49,14 +53,12 @@ public class EveryFilter extends BasicFilter {
         }
         long count;
         try {
-            count = Long.parseLong( countStr );
+            count = Tables.parseCount( countStr );
         }
         catch ( NumberFormatException e ) {
             throw new ArgException( "Step value " + countStr + " not numeric" );
         }
-        if ( count <= 0 ) {
-            throw new ArgException( "Step must be >= 1" );
-        }
+        assert count >= 0;
         return new EveryStep( count, isExact );
     }
 

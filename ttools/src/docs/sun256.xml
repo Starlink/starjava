@@ -15781,6 +15781,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         and considerably faster.</li>
     <li>The parquet I/O handler, if present, now supports ZSTD as
         well as some other compression algorithms.</li>
+    <li>Suitable numeric arguments can be presented with
+        embedded underscores or in exponential notation for filters
+        <ref id="every"><code>every</code></ref>,
+        <ref id="head"><code>head</code></ref>,
+        <ref id="repeat"><code>repeat</code></ref>,
+        <ref id="rowrange"><code>rowrange</code></ref>,
+        <ref id="sorthead"><code>sorthead</code></ref> and
+        <ref id="tail"><code>tail</code></ref>.</li>
     </ul>
     </p></dd>
 

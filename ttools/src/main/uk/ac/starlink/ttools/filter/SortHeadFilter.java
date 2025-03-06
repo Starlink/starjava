@@ -65,6 +65,9 @@ public class SortHeadFilter extends BasicFilter {
             "on memory and faster, as long as <code>&lt;nrows&gt;</code>",
             "is significantly lower than the size of the table.",
             "</p>",
+            "<p>The <code>&lt;nrows&gt;</code> argument",
+            Tables.PARSE_COUNT_MAY_BE_GIVEN,
+            "</p>",
             explainSyntax( new String[] { "key-list", } ),
         };
     }
@@ -92,15 +95,19 @@ public class SortHeadFilter extends BasicFilter {
             }
             else if ( nrows < 0 ) {
                 argIt.remove();
+                long lrows;
                 try {
-                    nrows = Integer.parseInt( arg );
+                    lrows = Tables.parseCount( arg );
                 }
                 catch ( NumberFormatException e ) {
                     throw new ArgException( "<nrows> not numeric: " + arg );
                 }
-                if ( nrows <= 0 ) {
-                    throw new ArgException( "Non-positive <nrows>: " + nrows );
+                nrows = (int) lrows;
+                if ( nrows != lrows ) {
+                    assert lrows > Integer.MAX_VALUE;
+                    throw new ArgException( "<nrows> too big: " + arg );
                 }
+                assert nrows >= 0;
             }
             else if ( exprs == null ) {
                 argIt.remove();

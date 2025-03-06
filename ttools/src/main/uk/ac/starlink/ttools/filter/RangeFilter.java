@@ -44,6 +44,8 @@ public class RangeFilter extends BasicFilter {
             "\"<code>rowrange 101 200</code>\" or",
             "\"<code>rowrange 101 +100</code>\"",
             "</p>",
+            "<p>The integer arguments" + Tables.PARSE_COUNT_MAY_BE_GIVEN,
+            "</p>",
         };
     }
 
@@ -55,10 +57,14 @@ public class RangeFilter extends BasicFilter {
         if ( argIt.hasNext() ) {
             String iStr = argIt.next();
             argIt.remove();
-            if ( iStr.matches( "[1-9][0-9]*" ) ) {
-                ifirst = Long.parseLong( iStr );
+            try {
+                ifirst = Tables.parseCount( iStr );
             }
-            else {
+            catch ( NumberFormatException e ) {
+                throw new ArgException( "Row index " + iStr
+                                      + " must be integer >0" );
+            }
+            if ( ifirst < 1 ) {
                 throw new ArgException( "Row index " + iStr
                                       + " must be integer >0" );
             }
@@ -72,17 +78,20 @@ public class RangeFilter extends BasicFilter {
         if ( argIt.hasNext() ) {
             String iStr = argIt.next();
             argIt.remove();
-            if ( iStr.matches( "\\+[0-9]+" ) ) {
-                ilast = ifirst + Long.parseLong( iStr.substring( 1 ) ) - 1;
-            }
-            else if ( iStr.matches( "[0-9]+" ) ) {
-                ilast = Long.parseLong( iStr );
-                if ( ifirst > ilast ) {
-                    throw new ArgException( ifirst + " > " + ilast );
+            try {
+                if ( iStr.startsWith( "+" ) ) {
+                    ilast = ifirst +
+                            Tables.parseCount( iStr.substring( 1 ) ) - 1;
+                }
+                else {
+                    ilast = Tables.parseCount( iStr );
                 }
             }
-            else {
-                throw new ArgException( "Row index " + iStr + " not numeric" );
+            catch ( NumberFormatException e ) {
+                throw new ArgException( "Arg \"iStr\" not <int> or +<int>" );
+            }
+            if ( ifirst > ilast ) {
+                throw new ArgException( ifirst + " > " + ilast );
             }
         }
         else {

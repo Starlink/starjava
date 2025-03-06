@@ -7,6 +7,7 @@ import gnu.jel.Library;
 import java.io.IOException;
 import java.util.Iterator;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 import uk.ac.starlink.ttools.jel.JELUtils;
@@ -41,7 +42,9 @@ public class RepeatFilter extends BasicFilter {
             "</p>",
             "<p>The <code>&lt;count&gt;</code> value will usually",
             "be a constant integer value, but it can be an expression",
-            "evaluated in the context of the table.",
+            "evaluated in the context of the table,",
+            "for instance <code>1000000/$nrow</code>.",
+            "If it's a constant, it" + Tables.PARSE_COUNT_MAY_BE_GIVEN,
             "</p>",
         };
     }
@@ -92,6 +95,16 @@ public class RepeatFilter extends BasicFilter {
      */
     private long getCount( String countExpr, StarTable table )
             throws IOException {
+
+        /* See if the count can be parsed as a numeric literal. */
+        try {
+            return Tables.parseCount( countExpr );
+        }
+        catch ( NumberFormatException e ) {
+            // So it's not a numeric literal.
+        }
+
+        /* Try parsing it as a JEL expression instead. */
         JELRowReader rdr = JELUtils.createDatalessRowReader( table );
         Library lib = JELUtils.getLibrary( rdr );
         String qexpr = "\"" + countExpr + "\"";

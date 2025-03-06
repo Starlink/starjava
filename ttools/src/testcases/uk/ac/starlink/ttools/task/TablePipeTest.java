@@ -554,7 +554,8 @@ public class TablePipeTest extends TableTestCase {
 
     public void testHead() throws Exception {
         assertSameData( inTable_, apply( "head 4" ) );
-        assertSameData( inTable_, apply( "head 10000000" ) );
+        assertSameData( inTable_, apply( "head 10_000_000" ) );
+        assertSameData( inTable_, apply( "head 1e9" ) );
         assertArrayEquals( new Object[] { "Mark", "Beauchamp" },
                            getColData( apply( "head 2" ), 3 ) );
     }
@@ -580,7 +581,7 @@ public class TablePipeTest extends TableTestCase {
         long nrow = inTable_.getRowCount();
         assertTrue( nrow > 2 );
         assertSameData( inTable_, apply( "repeat 1" ) );
-        assertSameData( inTable_, apply( "repeat 1000000; head " + nrow ) );
+        assertSameData( inTable_, apply( "repeat 1_000_000; head " + nrow ) );
         assertSameData( inTable_, apply( "repeat -table 999; tail " + nrow ) );
         assertSameData( inTable_,
                         apply( "repeat 10; rowrange " + ( nrow + 1 )

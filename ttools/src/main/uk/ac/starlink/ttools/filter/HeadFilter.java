@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.filter;
 
 import java.util.Iterator;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 
 /**
  * Filter for picking only the first few rows of a table.
@@ -22,6 +23,9 @@ public class HeadFilter extends BasicFilter {
             "If the table has fewer than <code>&lt;nrows&gt;</code> rows",
             "then it will be unchanged.",
             "</p>",
+            "<p>The <code>&lt;nrows&gt;</code> argument",
+            Tables.PARSE_COUNT_MAY_BE_GIVEN,
+            "</p>",
         };
     }
 
@@ -32,15 +36,13 @@ public class HeadFilter extends BasicFilter {
             argIt.remove();
             long count;
             try {
-                count = Long.parseLong( countStr );
+                count = Tables.parseCount( countStr );
             }
             catch ( NumberFormatException e ) {
                 throw new ArgException( "Row count " + countStr + 
                                         " not numeric" );
             }
-            if ( count < 0 ) {
-                throw new ArgException( "Nrows must be >= 0" );
-            }
+            assert count >= 0;
             return new HeadStep( count );
         }
         else {
