@@ -75,6 +75,9 @@ public class TestTableScheme implements TableScheme, Documented {
             "If <code>&lt;opts&gt;</code> and/or <code>&lt;nrow&gt;</code>",
             "are omitted, some default values are used.",
             "</p>",
+            "<p>The <code>&lt;nrow&gt;</code> argument",
+            Tables.PARSE_COUNT_MAY_BE_GIVEN,
+            "</p>",
         "" );
     }
 
