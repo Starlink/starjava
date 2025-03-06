@@ -529,7 +529,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>8 November 2024</docdate>
+<docdate>7 March 2025</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -34269,91 +34269,111 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v4.10-3">Version 4.10-3 (7 March 2025)</dt>
 <dd><p>
-    <ul>
-    <li>MOC-ASCII and UNIQ shapes can now be plotted in the
-        <ref id="GangLayerControl_area">Area layer control</ref> of the
-        <ref id="SpherePlotWindow">Sphere Plot Window</ref>.</li>
-    <li>New <ref id="TapTableLoadDialog">TAP window</ref>
-        menu option
-        <label>TAP</label>|<label
-              >Service Discovery</label>|<label
-              >RegTAP 1.2</label>.</li>
-    <li>The parquet reader can now read data with the un-annotated 
-        BINARY (BYTE_ARRAY) type; 
-        it is interpreted as a byte array.</li>
-    <li>Fix the <ref id="FunctionLayerControl">Function</ref> layer
-        to appear in only a single zone of the
-        <ref id="TimePlotWindow">Time Plot</ref>.</li>
-    <li>Fix regression bug since v4.10 that failed to pick up
-        Service Descriptors from VOTables loaded directly
-        (mostly didn't affect tables loaded from services).</li>
-    <li>Add <label>Load Tables</label> option alongside
-        <label>Load Table</label> in the Action selector for the
-        <ref id="ServiceActivationType">Invoke Service</ref> and
-        <ref id="DatalinkWindow">Datalink Window</ref>.</li>
-    <li>Fix regression bug since v4.10 that caused broken COUNT
-        column in Import as Table result from
-        <ref id="HistogramPlotWindow">Histogram Plot</ref>.</li>
-    <li>Fix some significant parquet I/O bugs related to
-        array-valued columns.</li>
-    <li>Retain column ordering when selecting multiple columns
-        at once for the <label>Insert Columns</label> action in the
-        <ref id="TapTableLoadDialog_query_text">TAP window</ref>.</li>
-    <li>Restore a lot of content (boxed items) that had gone missing
-        from the documentation available from the
-        <ref id="HelpWindow">Help Window</ref>.</li>
-    <li>Parquet <ref id="inParquet">input</ref> and
-        <ref id="outParquet">output</ref> handlers now support the
-        <webref url="https://www.ivoa.net/documents/Notes/VOParquet/"
-                >VOParquet convention</webref> 
-        for embedded metadata.</li>
-    <li>Upgrade CDS MOC library to v6.31; now reads MOC 2.0 compliant
-        FITS and ASCII representations.</li>
-    <li>New MOC handling functions added to class
-        <ref id="Coverage">Coverage</ref>: <code>mocUniq</code>,
-        <code>mocUniqToOrder</code>, <code>mocUniqToIndex</code>,
-        <code>mocSkyProportion</code>, <code>mocTileCount</code>.</li>
-    <li>Opening Sky Plot window when a MOC table is selected
-        now automatically plots it like a MOC.</li>
-    <li>Table row counts can now be given with embedded underscores
-        or exponential notation for Table Schemes
-        <ref id="scheme-skysim"><code>skysim</code></ref>,
-        <ref id="scheme-attractor"><code>attractor</code></ref>,
-        <ref id="scheme-test"><code>test</code></ref> and
-        <ref id="scheme-loop"><code>loop</code></ref>.</li>
-    <li>TOPCAT now subscribes to the SAMP MType
-        <code>coverage.load.moc.fits</code>.
-        The MOC is loaded as a normal table.</li>
-    <li>Add <label>Isometric</label> option to
-        <ref id="CubeAxisControl_coords">Cube Axis Control</ref>.</li>
-    <li>Add new Private Auxiliary plot shading mode
-        <ref id="mode-paux">PAux</ref>.</li>
-    <li>Add new Private Weighted plot shading mode
-        <ref id="mode-pweighted">PWeighted</ref>.</li>
-    <li>Improve placement of filled polygons in plot forms
-        <ref id="form-area">Area</ref>,
-        <ref id="form-polygon">Polygon</ref> and
-        <ref id="form-poly4">Poly4</ref>.
-        Filled polygons no longer need outlines round them
-        to avoid annoying gaps between tiles.</li>
-    <li>New class <ref id="Json">Json</ref> contains expression-language
-        functions for use with JSON text.</li> 
-    <li>The <ref id="order">Sort Order</ref> can now be defined
-        using multiple columns or expressions,
-        not just a single column.</li>
-    <li>The <ref id="inCdf">CDF input handler</ref> can now extract
-        multiple tables from a single CDF file.</li>
-    <li>Fix time format reselection in
-        <ref id="TimePlotWindow">Time plot window</ref>
-        when changing tables.</li>
-    <li>Update JCDF to v1.2.5.
-        Significant improvements to CDF read performance.</li>
-    <li>STScI RegTAP endpoint updated.</li>
-    <li>The parquet I/O handler in <code>topcat-extra.jar</code> now
-        supports ZSTD as well as some other compression algorithms.</li>
-    </ul>
+    <dl>
+    <dt>New functionality</dt>
+    <dd><p>
+        <ul>
+        <li>The <ref id="order">Sort Order</ref> can now be defined
+            using multiple columns or expressions,
+            not just a single column.</li>
+        <li>Add <label>Isometric</label> option to
+            <ref id="CubeAxisControl_coords">Cube Axis Control</ref>.</li>
+        <li>Add new Private Auxiliary and Private Weighted plot shading modes
+            <ref id="mode-paux">PAux</ref> and
+            <ref id="mode-pweighted">PWeighted</ref>.</li>
+        <li>Upgrade CDS MOC library to v6.31; now reads MOC 2.0 compliant
+            FITS and ASCII representations.</li>
+        <li>New MOC handling functions added to class
+            <ref id="Coverage">Coverage</ref>: <code>mocUniq</code>,
+            <code>mocUniqToOrder</code>, <code>mocUniqToIndex</code>,
+            <code>mocSkyProportion</code>, <code>mocTileCount</code>.</li>
+        <li>New class <ref id="Json">Json</ref> contains expression-language
+            functions for use with JSON text (experimental).</li> 
+        </ul>
+        </p></dd>
+    <dt>File formats (Parquet and CDF)</dt>
+    <dd><p>
+        <ul>
+        <li>Parquet <ref id="inParquet">input</ref> and
+            <ref id="outParquet">output</ref> handlers now support the
+            <webref url="https://www.ivoa.net/documents/Notes/VOParquet/"
+                    >VOParquet convention</webref> 
+            for embedded metadata.</li>
+        <li>The parquet I/O handler in <code>topcat-extra.jar</code> now
+            supports ZSTD as well as some other compression algorithms.</li>
+        <li>Fix some significant parquet I/O bugs related to
+            array-valued columns.</li>
+        <li>The parquet reader can now read data with the un-annotated 
+            BINARY (BYTE_ARRAY) type; 
+            it is interpreted as a byte array.</li>
+        <li>The <ref id="inCdf">CDF input handler</ref> can now extract
+            multiple tables from a single CDF file.</li>
+        <li>Update JCDF to v1.2.5.
+            Significant improvements to CDF read performance.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Improve placement of filled polygons in plot forms
+            <ref id="form-area">Area</ref>,
+            <ref id="form-polygon">Polygon</ref> and
+            <ref id="form-poly4">Poly4</ref>.
+            Filled polygons no longer need outlines round them
+            to avoid annoying gaps between tiles.</li>
+        <li>Opening <ref id="SkyPlotWindow">Sky Plot Window</ref>
+            when a MOC table is selected
+            now automatically plots it like a MOC.</li>
+        <li>MOC-ASCII and UNIQ shapes can now be plotted in the
+            <ref id="GangLayerControl_area">Area layer control</ref> of the
+            <ref id="SpherePlotWindow">Sphere Plot Window</ref>.</li>
+        <li>TOPCAT now <ref id="interopReceive">subscribes</ref>
+            to the SAMP MType <code>coverage.load.moc.fits</code>.
+            The MOC is loaded as a normal table.</li>
+        <li>New <ref id="TapTableLoadDialog">TAP window</ref>
+            menu option
+            <label>TAP</label>|<label
+                  >Service Discovery</label>|<label
+                  >RegTAP 1.2</label>.</li>
+        <li>Add <label>Load Tables</label> option alongside
+            <label>Load Table</label> in the Action selector for the
+            <ref id="ServiceActivationType">Invoke Service</ref> and
+            <ref id="DatalinkWindow">Datalink Window</ref>.</li>
+        <li>Table row counts can now be given with embedded underscores
+            or exponential notation for Table Schemes
+            <ref id="scheme-skysim">skysim</ref>,
+            <ref id="scheme-attractor">attractor</ref>,
+            <ref id="scheme-test">test</ref> and
+            <ref id="scheme-loop">loop</ref>.</li>
+        <li>STScI RegTAP endpoint updated.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes</dt>
+    <dd><p>
+        <ul>
+        <li>Restore a lot of content (boxed items) that had gone missing
+            from the documentation available from the
+            <ref id="HelpWindow">Help Window</ref>.</li>
+        <li>Fix time format reselection in
+            <ref id="TimePlotWindow">Time plot window</ref>
+            when changing tables.</li>
+        <li>Fix regression bug since v4.10 that failed to pick up
+            Service Descriptors from VOTables loaded directly
+            (mostly didn't affect tables loaded from services).</li>
+        <li>Fix the <ref id="FunctionLayerControl">Function</ref> layer
+            to appear in only a single zone of the
+            <ref id="TimePlotWindow">Time Plot</ref>.</li>
+        <li>Fix regression bug since v4.10 that caused broken COUNT
+            column in Import as Table result from
+            <ref id="HistogramPlotWindow">Histogram Plot</ref>.</li>
+        <li>Retain column ordering when selecting multiple columns
+            at once for the <label>Insert Columns</label> action in the
+            <ref id="TapTableLoadDialog_query_text">TAP window</ref>.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>

@@ -190,7 +190,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>6 November 2024</docdate>
+<docdate>7 March 2025</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -15714,83 +15714,97 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v3.5-2">Version 3.5-2 (7 March 2025)</dt>
 <dd><p>
-    <ul>
-    <li>Values <code>MOC-ASCII</code> and <code>UNIQ</code>
-        for <code>areatype</code>
-        in <ref id="layer-area">area</ref>-like layers
-        are now supported in <ref id="plot2sphere">plot2sphere</ref>.</li>
-    <li>The parquet reader can now read data with the un-annotated 
-        BINARY (BYTE_ARRAY) type; 
-        it is interpreted as a byte array.</li>
-    <li>Fix some significant parquet I/O bugs related to
-        array-valued columns.</li>
-    <li>Improve <ref id="mode-checksum"><code>checksum</code></ref> mode
-        so it works reliably with array-valued cells.</li>
-    <li>Parquet <ref id="inParquet">input</ref> and
-        <ref id="outParquet">output</ref> handlers now support the
-        <webref url="https://www.ivoa.net/documents/Notes/VOParquet/"
-                >VOParquet convention</webref>
-        for embedded metadata.</li>
-    <li>New task <ref id="parqlook"><code>parqlook</code></ref> added
-        for examining parquet (including VOParquet) files.</li>
-    <li>New task <ref id="parqlint"><code>parqlint</code></ref> added
-        for validating parquet files against the
-        <webref url="https://www.ivoa.net/documents/Notes/VOParquet/"
-                >VOParquet convention</webref>.</li>
-    <li>Upgrade CDS MOC library to v6.31; now reads MOC 2.0 compliant
-        FITS and ASCII representations.</li>
-    <li><ref id="pixfoot"><code>pixfoot</code></ref> now allows
-        <code>order=0</code>.</li>
-    <li>New MOC handling functions added to class
-        <ref id="Coverage">Coverage</ref>: <code>mocUniq</code>,
-        <code>mocUniqToOrder</code>, <code>mocUniqToIndex</code>,
-        <code>mocSkyProportion</code>, <code>mocTileCount</code>.</li>
-    <li><ref id="pixfoot"><code>pixfoot</code></ref> can now write
-        ASCII MOCs.</li>
-    <li>New command <ref id="mocshape"><code>mocshape</code></ref>,
-        generates MOCs from shape specifications in a table.</li>
-    <li>Table row counts can now be given with embedded underscores
-        or exponential notation for Table Schemes
-        <ref id="scheme-skysim"><code>skysim</code></ref>,
-        <ref id="scheme-attractor"><code>attractor</code></ref>,
-        <ref id="scheme-test"><code>test</code></ref> and
-        <ref id="scheme-loop"><code>loop</code></ref>.</li>
-    <li>Add new <ref id="plot2cube-isometric"><code>isometric</code></ref>
-        option to <code>plot2cube</code>.</li>
-    <li>Add new Private Auxiliary plot shading mode
-        <ref id="shading-paux"><code>paux</code></ref>.</li>
-    <li>Add new Private Weighted plot shading mode
-        <ref id="shading-pweighted"><code>pweighted</code></ref>.</li>
-    <li>Improve placement of filled polygons in plot layers
-        <ref id="layer-area"><code>area</code></ref>,
-        <ref id="layer-polygon"><code>polygon</code></ref> and
-        <ref id="layer-poly4"><code>poly4</code></ref>.
-        Filled polygons no longer need outlines round them
-        to avoid annoying gaps between tiles.</li>
-    <li>New class <ref id="Json">Json</ref> contains expression-language
-        functions for use with JSON text.</li>
-    <li>The <ref id="inCdf">CDF input handler</ref> can now extract
-        multiple tables from a single CDF file.</li>
-    <li>Update JCDF to v1.2.5.
-        Significant improvements to CDF read performance.</li>
-    <li>Add <ref id="shuffle"><code>shuffle</code></ref> filter.</li>
-    <li>Resource usage improvements to
-        <ref id="sort"><code>sort</code></ref> filter;
-        it can now sort tables several times larger than before,
-        and considerably faster.</li>
-    <li>The parquet I/O handler, if present, now supports ZSTD as
-        well as some other compression algorithms.</li>
-    <li>Suitable numeric arguments can be presented with
-        embedded underscores or in exponential notation for filters
-        <ref id="every"><code>every</code></ref>,
-        <ref id="head"><code>head</code></ref>,
-        <ref id="repeat"><code>repeat</code></ref>,
-        <ref id="rowrange"><code>rowrange</code></ref>,
-        <ref id="sorthead"><code>sorthead</code></ref> and
-        <ref id="tail"><code>tail</code></ref>.</li>
-    </ul>
+    <dl>
+    <dt>New functionality</dt>
+    <dd><p>
+        <ul>
+        <li>New command <ref id="mocshape"><code>mocshape</code></ref>,
+            generates MOCs from shape specifications in a table.</li>
+        <li>Command <ref id="pixfoot"><code>pixfoot</code></ref>
+            can now write ASCII MOCs.</li>
+        <li>Upgrade CDS MOC library to v6.31; now reads MOC 2.0 compliant
+            FITS and ASCII representations.</li>
+        <li>New MOC handling functions added to class
+            <ref id="Coverage">Coverage</ref>: <code>mocUniq</code>,
+            <code>mocUniqToOrder</code>, <code>mocUniqToIndex</code>,
+            <code>mocSkyProportion</code>, <code>mocTileCount</code>.</li>
+        <li>New class <ref id="Json">Json</ref> contains expression-language
+            functions for use with JSON text (experimental).</li>
+        <li>New filter <ref id="shuffle"><code>shuffle</code></ref>.</li>
+        </ul>
+        </p></dd>
+    <dt>File formats (Parquet and CDF)</dt>
+    <dd><p>
+        <ul>
+        <li>Parquet <ref id="inParquet">input</ref> and
+            <ref id="outParquet">output</ref> handlers now support the
+            <webref url="https://www.ivoa.net/documents/Notes/VOParquet/"
+                    >VOParquet convention</webref>
+            for embedded metadata.</li>
+        <li>New command <ref id="parqlint"><code>parqlint</code></ref> added
+            for validating parquet files against the
+            <webref url="https://www.ivoa.net/documents/Notes/VOParquet/"
+                    >VOParquet convention</webref>.</li>
+        <li>New command <ref id="parqlook"><code>parqlook</code></ref> added
+            for examining parquet (including VOParquet) files.</li>
+        <li>The parquet I/O handler, if present, now supports ZSTD as
+            well as some other compression algorithms.</li>
+        <li>Fix some significant parquet I/O bugs related to
+            array-valued columns.</li>
+        <li>The parquet reader can now read data with the un-annotated 
+            BINARY (BYTE_ARRAY) type; 
+            it is interpreted as a byte array.</li>
+        <li>The <ref id="inCdf">CDF input handler</ref> can now extract
+            multiple tables from a single CDF file.</li>
+        <li>Update JCDF to v1.2.5.
+            Significant improvements to CDF read performance.</li>
+        </ul>
+        </p></dd>
+    <dt>Other enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Add new Private Auxiliary and Private Weighted plot shading modes
+            <ref id="shading-paux"><code>paux</code></ref> and
+            <ref id="shading-pweighted"><code>pweighted</code></ref>.</li>
+        <li>Add new <ref id="plot2cube-isometric"><code>isometric</code></ref>
+            option to <code>plot2cube</code>.</li>
+        <li>Values <code>MOC-ASCII</code> and <code>UNIQ</code>
+            for <code>areatype</code>
+            in <ref id="layer-area">area</ref>-like layers
+            are now supported in <ref id="plot2sphere">plot2sphere</ref>.</li>
+        <li>Improve placement of filled polygons in plot layers
+            <ref id="layer-area"><code>area</code></ref>,
+            <ref id="layer-polygon"><code>polygon</code></ref> and
+            <ref id="layer-poly4"><code>poly4</code></ref>.
+            Filled polygons no longer need outlines round them
+            to avoid annoying gaps between tiles.</li>
+        <li>Suitable integers can now be written
+            with embedded underscores or in exponential notation
+            when specifying filters
+            <ref id="every"><code>every</code></ref>,
+            <ref id="head"><code>head</code></ref>,
+            <ref id="repeat"><code>repeat</code></ref>,
+            <ref id="rowrange"><code>rowrange</code></ref>,
+            <ref id="sorthead"><code>sorthead</code></ref>,
+            <ref id="tail"><code>tail</code></ref>,
+            and schemes
+            <ref id="scheme-skysim"><code>skysim</code></ref>,
+            <ref id="scheme-attractor"><code>attractor</code></ref>,
+            <ref id="scheme-test"><code>test</code></ref> and
+            <ref id="scheme-loop"><code>loop</code></ref>.</li>
+        <li>Command <ref id="pixfoot"><code>pixfoot</code></ref> now allows
+            <code>order=0</code>.</li>
+        <li>Resource usage improvements to
+            <ref id="sort"><code>sort</code></ref> filter;
+            it can now sort tables several times larger than before,
+            and considerably faster.</li>
+        <li>Improve <ref id="mode-checksum"><code>checksum</code></ref> mode
+            so it works reliably with array-valued cells.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
