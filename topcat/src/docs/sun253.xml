@@ -34320,8 +34320,9 @@ introduced since the last version:
     <li>Table row counts can now be given with embedded underscores
         or exponential notation for Table Schemes
         <ref id="scheme-skysim"><code>skysim</code></ref>,
-        <ref id="scheme-attractor"><code>attractor</code></ref> and
-        <ref id="scheme-test"><code>test</code></ref>.</li>
+        <ref id="scheme-attractor"><code>attractor</code></ref>,
+        <ref id="scheme-test"><code>test</code></ref> and
+        <ref id="scheme-loop"><code>loop</code></ref>.</li>
     <li>TOPCAT now subscribes to the SAMP MType
         <code>coverage.load.moc.fits</code>.
         The MOC is loaded as a normal table.</li>

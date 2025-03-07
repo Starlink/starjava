@@ -15754,8 +15754,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Table row counts can now be given with embedded underscores
         or exponential notation for Table Schemes
         <ref id="scheme-skysim"><code>skysim</code></ref>,
-        <ref id="scheme-attractor"><code>attractor</code></ref> and
-        <ref id="scheme-test"><code>test</code></ref>.</li>
+        <ref id="scheme-attractor"><code>attractor</code></ref>,
+        <ref id="scheme-test"><code>test</code></ref> and
+        <ref id="scheme-loop"><code>loop</code></ref>.</li>
     <li>Add new <ref id="plot2cube-isometric"><code>isometric</code></ref>
         option to <code>plot2cube</code>.</li>
     <li>Add new Private Auxiliary plot shading mode

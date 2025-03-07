@@ -44,6 +44,7 @@ public class LoopTableScheme implements TableScheme, Documented {
             .append( "will be 32- or 64-bit integer\n" )
             .append( "or 64-bit floating point,\n" )
             .append( "depending on the values that it has to take.\n" )
+            .append( "Any embedded underscores will be ignored.\n" )
             .append( "</p>" )
             .append( "<p>Examples:\n" )
             .append( "<ul>\n" )
