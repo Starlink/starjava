@@ -935,6 +935,7 @@ public class Tables {
      * suitable exponential notation (like 1e6),
      * and hexadecimal (like 0x400).
      *
+     * @see   #PARSE_COUNT_MAY_BE_GIVEN
      * @param  countTxt  textual representation of integer
      * @return   non-negative integer value
      * @throws  NumberFormatException if it can't be interpreted as a
