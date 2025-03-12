@@ -11,6 +11,8 @@ import uk.ac.starlink.ttools.cone.AsciiMocCoverage;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import uk.ac.starlink.ttools.jel.JELUtils;
+import uk.ac.starlink.ttools.plot2.Scale;
+import uk.ac.starlink.ttools.plot2.ScaleType;
 import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.TestCase;
 
@@ -722,6 +724,19 @@ public class FuncTest extends TestCase {
             assertEquals( Arithmetic.abs( theta ),
                           Maths.acosh( Maths.cosh( theta ) ), delta );
             assertEquals( theta, Maths.atanh( Maths.tanh( theta ) ), delta );
+        }
+
+        final double symlogScaleFactor = 1.0;
+        for ( double t : new double[] {.1, .65, 1, Math.PI } ) {
+            for ( double s : new double[] {.01, 1, Math.E } ) {
+                Scale slScale =
+                    ScaleType.SYMLOG.createScale( new double[] { t, s } );
+                for ( double d : new double[] { -9e4, -6, -.001, 0 } ) {
+                    double v1 = slScale.dataToScale( d );
+                    double v2 = Maths.symlog( t, s, d );
+                    assertEquals( v1, symlogScaleFactor * v2, 1e-10 );
+                }
+            }
         }
     }
 
