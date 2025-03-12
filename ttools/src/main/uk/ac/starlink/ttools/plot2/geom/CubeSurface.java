@@ -22,6 +22,7 @@ import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.Surround;
 import uk.ac.starlink.ttools.plot2.Tick;
@@ -588,8 +589,22 @@ public class CubeSurface implements Surface {
         double[] dp1 = graphicsToData( gpos1 );
         double[][] limits = new double[ 3 ][];
         for ( int i = 0; i < 3; i++ ) {
-            limits[ i ] = Axis.pan( dlos_[ i ], dhis_[ i ], dp0[ i ], dp1[ i ],
-                                    logFlags_[ i ] );
+            Scale scale = logFlags_[ i ] ? Scale.LOG : Scale.LINEAR;
+            double s0 = scale.dataToScale( dp0[ i ] );
+            double s1 = scale.dataToScale( dp1[ i ] );
+            double s10 = s1 - s0;
+            double dlo = dlos_[ i ];
+            double dhi = dhis_[ i ];
+            double slo = scale.dataToScale( dlo );
+            double shi = scale.dataToScale( dhi );
+            double plo = scale.scaleToData( slo - s10 );
+            double phi = scale.scaleToData( shi - s10 );
+            limits[ i ] =
+                  ( plo > ( scale.isPositiveDefinite() ? Double.MIN_VALUE
+                                                       : -Double.MAX_VALUE ) &&
+                    phi < Double.MAX_VALUE )
+                ? new double[] { plo, phi }
+                : new double[] { dlo, dhi };
         }
         return new CubeAspect( limits[ 0 ], limits[ 1 ], limits[ 2 ],
                                rotmat_, zoom_, xoff_, yoff_ );
@@ -769,8 +784,21 @@ public class CubeSurface implements Surface {
         double[] factors = new double[] { xFactor, yFactor, zFactor };
         double[][] limits = new double[ 3 ][];
         for ( int i = 0; i < 3; i++ ) {
-            limits[ i ] = Axis.zoom( dlos_[ i ], dhis_[ i ],
-                                     dpos0[ i ], factors[ i ], logFlags_[ i ] );
+            Scale scale = logFlags_[ i ] ? Scale.LOG : Scale.LINEAR;
+            double f1 = 1. / factors[ i ];
+            double dlo = dlos_[ i ];
+            double dhi = dhis_[ i ];
+            double slo = scale.dataToScale( dlo );
+            double shi = scale.dataToScale( dhi );
+            double s0 = scale.dataToScale( dpos0[ i ] );
+            double zlo = scale.scaleToData( s0 + ( slo - s0 ) * f1 );
+            double zhi = scale.scaleToData( s0 + ( shi - s0 ) * f1 );
+            limits[ i ] =
+                  ( zlo > ( scale.isPositiveDefinite() ? Double.MIN_VALUE
+                                                       : -Double.MAX_VALUE ) &&
+                    zhi < Double.MAX_VALUE )
+                ? new double[] { zlo, zhi }
+                : new double[] { dlo, dhi };
         }
         return new CubeAspect( limits[ 0 ], limits[ 1 ], limits[ 2 ],
                                rotmat_, zoom_, xoff_, yoff_ );
