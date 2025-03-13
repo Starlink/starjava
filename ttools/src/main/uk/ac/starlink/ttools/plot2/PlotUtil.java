@@ -586,10 +586,10 @@ public class PlotUtil {
      * it is padded to (very nearly) zero instead of adding a fixed amount.
      *
      * @param  range  range to pad
-     * @param  logFlag  true for logarithmic scaling, false for linear
+     * @param  scale  axis scale
      */
-    public static void padRange( Range range, boolean logFlag ) {
-        double[] bounds = range.getFiniteBounds( logFlag );
+    public static void padRange( Range range, Scale scale ) {
+        double[] bounds = range.getFiniteBounds( scale.isPositiveDefinite() );
         double lo = bounds[ 0 ];
         double hi = bounds[ 1 ];
         if ( lo < hi ) {
@@ -597,13 +597,13 @@ public class PlotUtil {
             double tinyFrac = TINY_FRACTION;
             final boolean loNearZero;
             final boolean hiNearZero;
-            if ( logFlag ) {
+            if ( scale.isPositiveDefinite() ) {
                 loNearZero = false;
                 hiNearZero = false;
             }
             else {
                 double ztol = 2 * padFrac;
-                double zfrac = unscaleValue( lo, hi, 0., logFlag );
+                double zfrac = unscaleValue( lo, hi, 0., scale );
                 loNearZero = 0 - zfrac >= 0 && 0 - zfrac <= ztol;
                 hiNearZero = zfrac - 1 >= 0 && zfrac - 1 <= ztol;
             }
@@ -617,9 +617,22 @@ public class PlotUtil {
              * include all the values from which the range was generated. */
             double loPadFrac = loNearZero ? tinyFrac : padFrac; 
             double hiPadFrac = hiNearZero ? tinyFrac : padFrac;
-            range.submit( scaleValue( lo, hi, 0 - loPadFrac, logFlag ) );
-            range.submit( scaleValue( lo, hi, 1 + hiPadFrac, logFlag ) );
+            range.submit( scaleValue( lo, hi, 0 - loPadFrac, scale ) );
+            range.submit( scaleValue( lo, hi, 1 + hiPadFrac, scale ) );
         }
+    }
+
+    /**
+     * Pads a data range to provide a bit of extra space at each end
+     * using a standard padding fraction.
+     * If one of the limits extends nearly or exactly to zero,
+     * it is padded to (very nearly) zero instead of adding a fixed amount.
+     *
+     * @param  range  range to pad
+     * @param  logFlag  true for logarithmic scaling, false for linear
+     */
+    public static void padRange( Range range, boolean logFlag ) {
+        padRange( range, logFlag ? Scale.LOG : Scale.LINEAR );
     }
 
     /**
@@ -925,15 +938,29 @@ public class PlotUtil {
      * @param  min  minimum of range
      * @param  max  maximum of range
      * @param  frac  fractional scale point
+     * @param  scale  axis scale
+     * @return   data value corresponding to fractional scale point
+     */
+    public static double scaleValue( double min, double max, double frac,
+                                     Scale scale ) {
+        return scale.scaleToData( scale.dataToScale( min ) * ( 1. - frac )
+                                + scale.dataToScale( max ) * frac );
+    }
+
+    /**
+     * Returns a value determined by a fixed range and a fractional scale point
+     * within it.  If the point is zero the minimum value is returned,
+     * and if it is one the maximum value is returned.
+     *
+     * @param  min  minimum of range
+     * @param  max  maximum of range
+     * @param  frac  fractional scale point
      * @param  isLog  true iff the range is logarithmic
      * @return   data value corresponding to fractional scale point
      */
     public static double scaleValue( double min, double max, double frac,
                                      boolean isLog ) {
-        return isLog
-             ? Math.exp( Math.log( min ) * ( 1. - frac )
-                       + Math.log( max ) * frac )
-             : min * ( 1. - frac ) + max * frac;
+        return scaleValue( min, max, frac, isLog ? Scale.LOG : Scale.LINEAR );
     }
 
     /**
@@ -947,7 +974,25 @@ public class PlotUtil {
      * @return   data value corresponding to fractional scale point
      */
     public static double scaleValue( double min, double max, double frac ) {
-        return scaleValue( min, max, frac, false );
+        return scaleValue( min, max, frac, Scale.LINEAR );
+    }
+
+    /**
+     * Returns the proportional position of a point within a fixed range.
+     * If the point is equal to the minimum value zero is returned,
+     * and if it is equal to the maximum value one is returned.
+     * This is the inverse function of {@link #scaleValue}.
+     *
+     * @param  min  minimum of range
+     * @param  max  maximum of range
+     * @param  point  data value
+     * @param  scale  axis scale
+     * @return  fractional value corresponding to data point
+     */
+    public static double unscaleValue( double min, double max, double point,
+                                       Scale scale ) {
+        return ( scale.dataToScale( point ) - scale.dataToScale( min ) )
+             / ( scale.dataToScale( max ) - scale.dataToScale( min ) );
     }
 
     /**
@@ -964,10 +1009,26 @@ public class PlotUtil {
      */
     public static double unscaleValue( double min, double max, double point,
                                        boolean isLog ) {
-        return isLog
-             ? ( Math.log( point ) - Math.log( min ) )
-               / ( Math.log( max ) - Math.log( min ) )
-             : ( point - min ) / ( max - min );
+        return unscaleValue( min, max, point,
+                             isLog ? Scale.LOG : Scale.LINEAR );
+    }
+
+    /**
+     * Returns a range determined by a fixed range and a subrange within it.
+     * If the subrange is 0-1 the output range is the input range.
+     *
+     * @param  min  minimum of range
+     * @param  max  maximum of range
+     * @param  subrange  sub-range, both ends between 0 and 1
+     * @param  scale   axis scale
+     * @return   2-element array giving low, high values of scaled range
+     */
+    public static double[] scaleRange( double min, double max,
+                                       Subrange subrange, Scale scale ) {
+        return new double[] {
+            scaleValue( min, max, subrange.getLow(), scale ),
+            scaleValue( min, max, subrange.getHigh(), scale ),
+        };
     }
 
     /**
@@ -982,10 +1043,8 @@ public class PlotUtil {
      */
     public static double[] scaleRange( double min, double max,
                                        Subrange subrange, boolean isLog ) {
-        return new double[] {
-            scaleValue( min, max, subrange.getLow(), isLog ),
-            scaleValue( min, max, subrange.getHigh(), isLog ),
-        };
+        return scaleRange( min, max, subrange,
+                           isLog ? Scale.LOG : Scale.LINEAR );
     }
 
     /**
