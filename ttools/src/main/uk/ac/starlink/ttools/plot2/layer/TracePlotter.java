@@ -509,9 +509,9 @@ public abstract class TracePlotter
                 return new WrapperPlotLayer( baseLayer ) {
                     @Override
                     public void extendCoordinateRanges( Range[] ranges,
-                                                        boolean[] logFlags,
+                                                        Scale[] scales,
                                                         DataStore dataStore ) {
-                        super.extendCoordinateRanges( ranges, logFlags,
+                        super.extendCoordinateRanges( ranges, scales,
                                                       dataStore );
                         RangeCollector<TupleSequence> rangeCollector =
                                 new RangeCollector<TupleSequence>( 2 ) {

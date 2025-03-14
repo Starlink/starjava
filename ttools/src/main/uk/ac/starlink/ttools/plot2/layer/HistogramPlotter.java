@@ -399,12 +399,11 @@ public class HistogramPlotter
                  * the height of the bars for auto-ranging purposes. */
                 @Override
                 public void extendCoordinateRanges( Range[] ranges,
-                                                    boolean[] logFlags,
+                                                    Scale[] scales,
                                                     DataStore dataStore ) {
                     Range xRange = ranges[ isY ? 1 : 0 ];
                     Range yRange = ranges[ isY ? 0 : 1 ];
-                    Scale xscale = logFlags[ isY ? 1 : 0 ] ? Scale.LOG
-                                                           : Scale.LINEAR;
+                    Scale xscale = scales[ isY ? 1 : 0 ];
 
                     /* The range in X will have been already calculated on
                      * the basis of the X values in this and any other layers

@@ -241,14 +241,14 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
      * Performs any required range extension.  May be a no-op.
      *
      * @param  ranges   array of data space dimension ranges to update
-     * @param  logFlags  array of linear/log flags corresponding to ranges
+     * @param  scales   array of axis scales corresponding to ranges
      * @param  style   plotting style
      * @param  dataSpec  data specification
      * @param  dataStore  data storage object
      * @see    uk.ac.starlink.ttools.plot2.PlotLayer#extendCoordinateRanges
      */
     protected abstract void
-        extendPixel1dCoordinateRanges( Range[] ranges, boolean[] logFlags,
+        extendPixel1dCoordinateRanges( Range[] ranges, Scale[] scales,
                                        S style, DataSpec dataSpec,
                                        DataStore dataStore );
 
@@ -346,9 +346,9 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
 
             @Override
             public void extendCoordinateRanges( Range[] ranges,
-                                                boolean[] logFlags,
+                                                Scale[] scales,
                                                 DataStore dataStore ) {
-                extendPixel1dCoordinateRanges( ranges, logFlags, style,
+                extendPixel1dCoordinateRanges( ranges, scales, style,
                                                dataSpec, dataStore );
             }
         };

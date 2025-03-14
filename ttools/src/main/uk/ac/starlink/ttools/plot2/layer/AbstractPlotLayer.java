@@ -10,6 +10,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 
@@ -59,7 +60,7 @@ public abstract class AbstractPlotLayer implements PlotLayer {
     /**
      * This implementation does nothing.
      */
-    public void extendCoordinateRanges( Range[] ranges, boolean[] logFlags,
+    public void extendCoordinateRanges( Range[] ranges, Scale[] scales,
                                         DataStore dataStore ) {
     }
 

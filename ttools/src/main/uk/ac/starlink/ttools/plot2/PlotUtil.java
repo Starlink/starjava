@@ -531,6 +531,10 @@ public class PlotUtil {
                                                boolean doPad,
                                                DataStore dataStore ) {
         final int nDataDim = ranges.length;
+        Scale[] scales = new Scale[ nDataDim ];
+        for ( int idim = 0; idim < nDataDim; idim++ ) {
+            scales[ idim ] = logFlags[ idim ] ? Scale.LOG : Scale.LINEAR;
+        }
 
         /* Create a point cloud containing all the data coordinates
          * represented by the supplied layers.  If there are several
@@ -568,13 +572,13 @@ public class PlotUtil {
         /* If any of the layers wants to supply non-data-position points
          * to mark out additional space, take account of those too. */
         for ( int il = 0; il < layers.length; il++ ) {
-            layers[ il ].extendCoordinateRanges( ranges, logFlags, dataStore );
+            layers[ il ].extendCoordinateRanges( ranges, scales, dataStore );
         }
 
         /* Pad the ranges with a bit of space. */
         if ( doPad ) {
             for ( int idim = 0; idim < nDataDim; idim++ ) {
-                padRange( ranges[ idim ], logFlags[ idim ] );
+                padRange( ranges[ idim ], scales[ idim ].isPositiveDefinite() );
             }
         }
     }
