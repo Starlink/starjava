@@ -228,10 +228,9 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             }
             @Override
             public void extendCoordinateRanges( Range[] ranges,
-                                                boolean[] logFlags,
+                                                Scale[] scales,
                                                 DataStore dataStore ) {
-                Scale scale = logFlags[ isY ? 1 : 0 ] ? Scale.LOG
-                                                      : Scale.LINEAR;
+                Scale scale = scales[ isY ? 1 : 0 ];
                 WStats stats = collectStats( scale, dataSpec, dataStore );
                 StatsPlan plan = new StatsPlan( scale, stats, dataSpec );
                 double mean = stats.getMean();

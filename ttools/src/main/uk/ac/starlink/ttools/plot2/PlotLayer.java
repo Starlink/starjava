@@ -65,11 +65,11 @@ public interface PlotLayer {
      * the implementation of this method will be a no-operation.
      *
      * @param   ranges   array of data space dimension ranges, may be adjusted
-     * @param   logFlags    array of scaling flags (false=linear, true=log)
+     * @param   scales      array of axis scalings
      *                      corresponding to <code>ranges</code> array
      * @param   dataStore   data storage object
      */
-    void extendCoordinateRanges( Range[] ranges, boolean[] logFlags,
+    void extendCoordinateRanges( Range[] ranges, Scale[] scales,
                                  DataStore dataStore );
 
     /**

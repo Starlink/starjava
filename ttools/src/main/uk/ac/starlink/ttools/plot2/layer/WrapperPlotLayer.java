@@ -10,6 +10,7 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -52,9 +53,9 @@ public class WrapperPlotLayer implements PlotLayer {
         return base_.getDataSpec();
     }
 
-    public void extendCoordinateRanges( Range[] ranges, boolean[] logFlags,
+    public void extendCoordinateRanges( Range[] ranges, Scale[] scales,
                                         DataStore dataStore ) {
-        base_.extendCoordinateRanges( ranges, logFlags, dataStore );
+        base_.extendCoordinateRanges( ranges, scales, dataStore );
     }
 
     public Map<AuxScale,AuxReader> getAuxRangers() {

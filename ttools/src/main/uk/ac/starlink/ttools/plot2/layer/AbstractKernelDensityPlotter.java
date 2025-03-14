@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -284,7 +285,7 @@ public abstract class AbstractKernelDensityPlotter
     }
 
     protected void extendPixel1dCoordinateRanges( Range[] ranges,
-                                                  boolean[] logFlags,
+                                                  Scale[] scales,
                                                   KDenseStyle style,
                                                   DataSpec dataSpec,
                                                   DataStore dataStore ) {
@@ -293,11 +294,11 @@ public abstract class AbstractKernelDensityPlotter
         boolean isY = style.isY_;
         Range xRange = ranges[ isY ? 1 : 0 ];
         Range yRange = ranges[ isY ? 0 : 1 ];
-        boolean xlog = logFlags[ isY ? 1 : 0 ];
-        boolean ylog = logFlags[ isY ? 0 : 1 ];
+        Scale xScale = scales[ isY ? 1 : 0 ];
+        Scale yScale = scales[ isY ? 0 : 1 ];
 
         /* Assume y=0 is always of interest for a histogram. */
-        yRange.submit( ylog ? 1 : 0 );
+        yRange.submit( yScale.isPositiveDefinite() ? 1 : 0 );
 
         /* To calculate the bin heights, we have to provide an Axis
          * instance.  We know the data limits of this from previous
@@ -310,13 +311,14 @@ public abstract class AbstractKernelDensityPlotter
          * the large side for pixel extent, since this will err
          * on the side of a range that is too high (leading to
          * unused space at the top rather than clipping the plot). */
-        double[] dxlimits = xRange.getFiniteBounds( xlog );
+        double[] dxlimits =
+            xRange.getFiniteBounds( xScale.isPositiveDefinite() );
         double dxlo = dxlimits[ 0 ];
         double dxhi = dxlimits[ 1 ];
         int gxlo = 0;
         int gxhi = GUESS_PLOT_WIDTH;
         boolean xflip = false;
-        Axis xAxis = Axis.createAxis( gxlo, gxhi, dxlo, dxhi, xlog, xflip );
+        Axis xAxis = new Axis( gxlo, gxhi, dxlo, dxhi, xScale, xflip );
         Kernel1d kernel = style.createKernel( xAxis );
         int xpad = getEffectiveExtent( kernel );
         BinArray binArray = readBins( xAxis, xpad, style.combiner_,

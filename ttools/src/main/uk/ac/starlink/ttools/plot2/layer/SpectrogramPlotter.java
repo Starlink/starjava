@@ -32,6 +32,7 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.Ranger;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Span;
@@ -313,7 +314,7 @@ public class SpectrogramPlotter
                 }
                 @Override
                 public void extendCoordinateRanges( Range[] ranges,
-                                                    boolean[] logFlags,
+                                                    Scale[] scales,
                                                     DataStore dataStore ) {
                     Range specRange = ranges[ 1 ];
                     int nchan = grid.getChannelCount();

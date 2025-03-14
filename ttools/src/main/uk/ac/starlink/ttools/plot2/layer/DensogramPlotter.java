@@ -237,7 +237,7 @@ public class DensogramPlotter
     }
 
     protected void extendPixel1dCoordinateRanges( Range[] ranges,
-                                                  boolean[] logFlags,
+                                                  Scale[] scales,
                                                   DensoStyle style,
                                                   DataSpec dataSpec,
                                                   DataStore dataStore ) {
