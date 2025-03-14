@@ -3,10 +3,12 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
+import uk.ac.starlink.ttools.plot.Rounder;
 import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
@@ -27,28 +29,28 @@ public abstract class BinSizer {
         Logger.getLogger( "uk.ac.starlink.ttools.plot2.layer" );
 
     /**
-     * Provides a bin width value for a given axis data range.
+     * Provides a bin width value in scale units for a given axis data range.
      *
-     * @param  xlog  false for linear scaling, true for logarithmic
-     * @param  xlo   axis lower bound
-     * @param  xhi   axis upper bound
-     * @param  rounding  rounding policy hint (may be ignored)
-     *                   or null for no rounding
-     * @return   additive/multiplicative bin width appropriate for the
-     *           given range
+     * @param  scale  axis scaling
+     * @param  dlo   data value lower bound
+     * @param  dhi   data value upper bound
+     * @param  rounded   if true, an attempt may be made to provide a width
+     *                   that corresponds to some kind of round number;
+     *                   this hint may be ignored
+     * @return   scale interval appropriate for the given range
      */
-    public abstract double getWidth( boolean xlog, double xlo, double xhi,
-                                     Rounding rounding );
+    public abstract double getScaleWidth( Scale scale, double dlo, double dhi,
+                                          boolean rounded );
 
     /**
      * Returns a bin sizer instance which always returns the same fixed
      * value.  No rounding is performed.
      *
-     * @param  binWidth  fixed bin width
+     * @param  scaleWidth  fixed bin width in scale units
      * @return  bin sizer
      */
-    public static BinSizer createFixedBinSizer( double binWidth ) {
-        return new FixedBinSizer( binWidth );
+    public static BinSizer createFixedBinSizer( double scaleWidth ) {
+        return new FixedBinSizer( scaleWidth );
     }
 
     /**
@@ -93,6 +95,8 @@ public abstract class BinSizer {
             "it is interpreted as a fixed width in the data coordinates",
             "of the X axis",
             "(if the X axis is logarithmic, the value is a fixed factor).",
+            // Other scaling options exist, but don't attempt to explain
+            // them here.
             "If it is a negative number, then it will be interpreted",
             "as the approximate number of smooothing widths that fit",
             "in the width of the visible plot",
@@ -110,32 +114,33 @@ public abstract class BinSizer {
      * BinSizer implementation that always returns a fixed value.
      */
     private static class FixedBinSizer extends BinSizer {
-        private final double binWidth_;
+
+        private final double scaleWidth_;
 
         /**
          * Constructor.
          *
-         * @param  binWidth  fixed bin width
+         * @param  scaleWidth  fixed scaled bin width
          */
-        FixedBinSizer( double binWidth ) {
-            binWidth_ = binWidth;
+        FixedBinSizer( double scaleWidth ) {
+            scaleWidth_ = scaleWidth;
         }
 
-        public double getWidth( boolean xlog, double xlo, double xhi,
-                                Rounding rounding ) {
-            return xlog ? Math.max( 1, binWidth_ ) : binWidth_;
+        public double getScaleWidth( Scale scale, double dlo, double dhi,
+                                     boolean rounded ) {
+            return scaleWidth_;
         }
 
         @Override
         public int hashCode() {
-            return Float.floatToIntBits( (float) binWidth_ );
+            return Float.floatToIntBits( (float) scaleWidth_ );
         }
 
         @Override
         public boolean equals( Object o ) {
             if ( o instanceof FixedBinSizer ) {
                 FixedBinSizer other = (FixedBinSizer) o;
-                return this.binWidth_ == other.binWidth_;
+                return this.scaleWidth_ == other.scaleWidth_;
             }
             else {
                 return false;
@@ -160,14 +165,12 @@ public abstract class BinSizer {
             nbin_ = nbin;
         }
 
-        public double getWidth( boolean xlog, double xlo, double xhi,
-                                Rounding rounding ) {
-            double width0 = xlog
-                ? Math.exp( ( Math.log( xhi ) - Math.log( xlo ) ) / nbin_ )
-                : ( xhi - xlo ) / nbin_;
-            return rounding == null
-                 ? width0
-                 : rounding.getRounder( xlog ).round( width0 );
+        public double getScaleWidth( Scale scale, double dlo, double dhi,
+                                     boolean rounded ) {
+            double slo = scale.dataToScale( dlo );
+            double shi = scale.dataToScale( dhi );
+            double sw =  ( shi - slo ) / nbin_;
+            return rounded ? scale.getScaleRounder().round( sw ) : sw;
         }
 
         @Override
@@ -246,7 +249,7 @@ public abstract class BinSizer {
 
         public String valueToString( BinSizer sizer ) {
             if ( sizer instanceof FixedBinSizer ) {
-                double width = ((FixedBinSizer) sizer).binWidth_;
+                double width = ((FixedBinSizer) sizer).scaleWidth_;
                 return Double.toString( width );
             }
             else if ( sizer instanceof CountBinSizer ) {
@@ -322,7 +325,7 @@ public abstract class BinSizer {
                 sliderSpecifier_.setSpecifiedValue( nbin );
             }
             else if ( sizer instanceof FixedBinSizer ) {
-                double bw = ((FixedBinSizer) sizer).binWidth_;
+                double bw = ((FixedBinSizer) sizer).scaleWidth_;
                 sliderSpecifier_.setSliderActive( false );
                 sliderSpecifier_.setSpecifiedValue( bw );
             }

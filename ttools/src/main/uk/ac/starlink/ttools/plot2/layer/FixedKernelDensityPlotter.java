@@ -4,6 +4,7 @@ import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.PerUnitConfigKey;
@@ -90,16 +91,19 @@ public class FixedKernelDensityPlotter extends AbstractKernelDensityPlotter {
             isMean_ = isMean;
         }
 
-        public Kernel1d createKernel( Kernel1dShape shape, Axis xAxis,
-                                      boolean xLog ) {
+        public Kernel1d createKernel( Kernel1dShape shape, Axis xAxis ) {
             return Pixel1dPlotter
-                  .createKernel( shape, binSizer_, xAxis, xLog, isMean_ );
+                  .createKernel( shape, binSizer_, xAxis, isMean_ );
         }
 
-        public ReportMap getReportMap( boolean xLog, double dlo, double dhi ) {
+        public ReportMap getReportMap( Axis xAxis ) {
             ReportMap report = new ReportMap();
-            report.put( SMOOTHWIDTH_KEY,
-                        binSizer_.getWidth( xLog, dlo, dhi, (Rounding) null ) );
+            double[] dLimits = xAxis.getDataLimits();
+            Scale scale = xAxis.getScale();
+            double w =
+                binSizer_.getScaleWidth( scale, dLimits[ 0 ], dLimits[ 1 ],
+                                         false );
+            report.put( SMOOTHWIDTH_KEY, w );
             return report;
         }
 

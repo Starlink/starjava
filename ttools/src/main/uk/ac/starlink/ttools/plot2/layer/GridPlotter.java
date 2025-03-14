@@ -38,6 +38,7 @@ import uk.ac.starlink.ttools.plot2.Ranger;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Span;
@@ -334,7 +335,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
 
     /**
      * Returns the approximate extent of a graphics pixel
-     * on an axis in data units.
+     * on an axis in scale units.
      * The idea of the rounding is that this should produce a result
      * that does not differ if the axis is simply translated;
      * that may be important if you want to use the grid size to label
@@ -342,16 +343,15 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
      * if the requirements have not significantly changed.
      *
      * @param  axis  axis
-     * @return   additive/multiplicative extent of a graphics pixel
-     *           for linear/logarithmic axis
+     * @return   extent of a graphics pixel in scale units
      */
-    private static double getRoundedPixelWidth( Axis axis ) {
-        int[] glimits = axis.getGraphicsLimits();
-        double gmid = 0.5 * ( glimits[ 0 ] + glimits[ 1 ] );
-        double d1 = axis.graphicsToData( gmid - 0.5 );
-        double d2 = axis.graphicsToData( gmid + 0.5 );
-        double extent = Math.abs( axis.getScale().isLinear() ? d2 - d1
-                                                             : d2 / d1 );
+    private static double getRoundedPixelScaleWidth( Axis axis ) {
+        int glo = axis.getGraphicsLimits()[ 0 ];
+        Scale scale = axis.getScale();
+        double d1 = axis.graphicsToData( glo );
+        double d2 = axis.graphicsToData( glo + 1 );
+        double sextent =
+            Math.abs( scale.dataToScale( d2 ) - scale.dataToScale( d1 ) );
 
         /* Try to round the result so that it's not sensitive to tiny
          * precision-related changes in the calculations.
@@ -359,7 +359,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
          * chop off some significant figures.  I think that ought to work,
          * though it might lead to problems with small logarithmic pixels
          * (for which the result will be near to unity). */
-        return (float) extent;
+        return (float) sextent;
     }
 
     /**
@@ -600,7 +600,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
                          .getBinLimits( isY ? xyMapper.getGridY( irow )
                                             : xyMapper.getGridX( irow ) );
                 double dval = PlotUtil.scaleValue( limits[ 0 ], limits[ 1 ],
-                                                   frac, tgrid.isLog_ );
+                                                   frac, tgrid.scale_ );
                 return Double.valueOf( dval );
             }
         };
@@ -806,26 +806,24 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
             GridSpec[] grids = new GridSpec[ 2 ];
             BinSizer[] sizers = { gstyle_.xSizer_, gstyle_.ySizer_ };
             double[] phases = { gstyle_.xPhase_, gstyle_.yPhase_ };
-            boolean[] logFlags = surface.getLogFlags();
-            boolean[] timeFlags = surface.getTimeFlags();
             Axis[] axes = surface.getAxes();
             double[][] dataLimits = surface.getDataLimits();
             for ( int i = 0; i < 2; i++ ) {
-                boolean isLog = logFlags[ i ];
-                Rounding rounding = Rounding.getRounding( timeFlags[ i ] );
+                Axis axis = axes[ i ];
+                Scale scale = axis.getScale();
                 double dlo = dataLimits[ i ][ 0 ];
                 double dhi = dataLimits[ i ][ 1 ];
                 double[] drange =
-                    PlotUtil.scaleRange( dlo, dhi, padder, isLog );
+                    PlotUtil.scaleRange( dlo, dhi, padder, scale );
                 double reqWidth =
-                    sizers[ i ].getWidth( isLog, dlo, dhi, rounding );
+                    sizers[ i ].getScaleWidth( scale, dlo, dhi, true );
 
                 /* Avoid sub-pixel grids since it would both be expensive
                  * on memory and produce visually worse results. */
                 double binWidth =
-                    Math.max( reqWidth, getRoundedPixelWidth( axes[ i ] ) );
+                    Math.max( reqWidth, getRoundedPixelScaleWidth( axis ) );
                 double phase = phases[ i ];
-                grids[ i ] = new GridSpec( isLog, binWidth, phase, drange );
+                grids[ i ] = new GridSpec( scale, binWidth, phase, drange );
             }
             return new GridPixer( grids[ 0 ], grids[ 1 ] );
         }
@@ -1184,7 +1182,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
 
         /**
          * Returns the area of a bin in data units.
-         * If either axis is logarithmic, this will be a strange quantity.
+         * If either axis is non-linear, this will be a strange quantity.
          *
          * @param  ctype  combination type
          * @return  multiplication for bin values
@@ -1210,7 +1208,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
      * Specifies bin geometry for a 1-dimensional grid.
      */
     private static class GridSpec {
-        final boolean isLog_;
+        final Scale scale_;
         final double binWidth_;
         final double phase_;
         final double dlo_;
@@ -1223,19 +1221,18 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
         /**
          * Constructor.
          *
-         * @param  isLog     false for linear, true for logarithmic
-         * @param  binWidth  bin width, additive/multiplicative for linear/log
+         * @param  scale    axis scale
+         * @param  binWidth  bin width in scale units
          * @param  phase   scaled phase (non-degenerate range is 0..1)
          * @param  drange  2-element [lo,hi] array giving required
          *                 minimum extent in data coordinates
          */
-        GridSpec( boolean isLog, double binWidth, double phase,
+        GridSpec( Scale scale, double binWidth, double phase,
                   double[] drange ) {
-            isLog_ = isLog;
+            scale_ = scale;
             binWidth_ = binWidth;
             phase_ = phase;
-            mapper_ =
-                BinMapper.createMapper( isLog, binWidth, phase, drange[ 0 ] );
+            mapper_ = new BinMapper( scale, binWidth, phase, drange[ 0 ] );
             int i0 = mapper_.getBinIndex( drange[ 0 ] );
             int i1 = mapper_.getBinIndex( drange[ 1 ] );
             double[] dlimits0 = mapper_.getBinLimits( i0 );

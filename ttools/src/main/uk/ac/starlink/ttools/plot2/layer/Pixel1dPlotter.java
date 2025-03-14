@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -473,7 +474,8 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
         /* Normalise.  This probably doesn't make much sense for intensive
          * combiners like MEAN. */
         double total = binArray.loBin_ + binArray.midBin_ + binArray.hiBin_;
-        double binWidth = getPixelDataWidth( xAxis, unit );
+        double binWidth =
+            PlotUtil.getPixelScaleExtent( xAxis ) / unit.getExtent();
         double scale = norm.getScaleFactor( total, max, binWidth, ctype,
                                             cumul.isCumulative() );
         if ( scale != 1.0 ) {
@@ -527,7 +529,6 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
      * @param   kernelShape  functional form
      * @param   sizer   determines width in data coordinates
      * @param   xAxis   axis on which samples occur
-     * @param   xLog   true for logarithmic x axis, false for linear
      * @param   isMean   true if the smoothing is to suitable for
      *                   intensive quantities like the mean,
      *                   false for extensive quantities like a sum
@@ -535,8 +536,8 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
      */
     public static Kernel1d createKernel( Kernel1dShape kernelShape,
                                          BinSizer sizer, Axis xAxis,
-                                         boolean xLog, boolean isMean ) {
-        double width = getPixelWidth( sizer, xAxis, xLog );
+                                         boolean isMean ) {
+        double width = getPixelWidth( sizer, xAxis );
         return isMean
              ? kernelShape.createMeanKernel( width )
              : kernelShape.createFixedWidthKernel( width );
@@ -548,39 +549,19 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
      *
      * @param   sizer   determines width in data coordinates
      * @param   xAxis   axis on which samples occur
-     * @param   xLog   true for logarithmic x axis, false for linear
-     * @return   width in pixel data coordinates represented by sizer,
+     * @return   width in pixel coordinates represented by sizer,
      *           never negative
      */
-    public static double getPixelWidth( BinSizer sizer, Axis xAxis,
-                                        boolean xLog ) {
+    public static double getPixelWidth( BinSizer sizer, Axis xAxis ) {
         double[] dLimits = xAxis.getDataLimits();
-        double dWidth = sizer.getWidth( xLog, dLimits[ 0 ], dLimits[ 1 ],
-                                        (Rounding) null );
-        double gx0 = xAxis.dataToGraphics( dLimits[ 0 ] );
-        double gx1 = xAxis.dataToGraphics( xLog ? dLimits[ 0 ] * dWidth
-                                                : dLimits[ 0 ] + dWidth );
-        return Math.abs( gx1 - gx0 );
-    }
-
-    /**
-     * Works out the constant width of a pixel-sized bin on a given axis.
-     * For linear axis this is in data units,
-     * for logarithmic axis it's in log(data units).
-     *
-     * @param  axis  axis
-     * @param  unit  axis unit scaling factor
-     * @return   fixed width of pixel in data-like coordinates
-     */
-    private static double getPixelDataWidth( Axis axis, Unit unit ) {
-        int[] glimits = axis.getGraphicsLimits();
-        double gmid = 0.5 * ( glimits[ 0 ] + glimits[ 1 ] );
-        double extent = unit.getExtent();
-        double d1 = axis.graphicsToData( gmid - 0.5 ) / extent;
-        double d2 = axis.graphicsToData( gmid + 0.5 ) / extent;
-        return Math.abs( axis.getScale().isLinear()
-                             ? d2 - d1
-                             : Math.log( d2 ) - Math.log( d1 ) );
+        int[] gLimits = xAxis.getGraphicsLimits();
+        int gExtent = gLimits[ 1 ] - gLimits[ 0 ];
+        Scale xScale = xAxis.getScale();
+        double sWidth =
+            sizer.getScaleWidth( xScale, dLimits[ 0 ], dLimits[ 1 ], false );
+        double slo = xScale.dataToScale( dLimits[ 0 ] );
+        double shi = xScale.dataToScale( dLimits[ 1 ] );
+        return Math.abs( gExtent * ( sWidth / ( shi - slo ) ) );
     }
 
     /**

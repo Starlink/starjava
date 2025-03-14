@@ -28,6 +28,7 @@ import uk.ac.starlink.ttools.plot2.RangeCollector;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Subrange;
@@ -285,10 +286,10 @@ public abstract class TracePlotter
     private ReportMap createReport( TraceStyle style, PlanarSurface psurf ) {
         int iax = style.isHorizontal_ ? 0 : 1;
         Axis xAxis = psurf.getAxes()[ iax ];
-        boolean xLog = psurf.getLogFlags()[ iax ];
+        Scale xscale = xAxis.getScale();
         double[] dlims = xAxis.getDataLimits();
-        double w = style.smoothSizer_.getWidth( xLog, dlims[ 0 ], dlims[ 1 ],
-                                                (Rounding) null );
+        double w = style.smoothSizer_
+                  .getScaleWidth( xscale, dlims[ 0 ], dlims[ 1 ], false );
         ReportMap report = new ReportMap();
         report.put( SMOOTHWIDTH_KEY, Double.valueOf( w ) );
         return report;
@@ -342,9 +343,8 @@ public abstract class TracePlotter
          * enough grid in the plan that the edge is outside of the
          * visible part of the plot.  Currently, I'm too lazy. */
         Kernel1d kernel =
-            Pixel1dPlotter
-           .createKernel( style.kernelShape_, style.smoothSizer_, xAxis, xLog,
-                          false );
+            Pixel1dPlotter.createKernel( style.kernelShape_, style.smoothSizer_,
+                                         xAxis, false );
         GridData gdata = createGridData( kernel, xlos, xhis, binner, gridder );
 
         /* Iterate over each column of pixels. */

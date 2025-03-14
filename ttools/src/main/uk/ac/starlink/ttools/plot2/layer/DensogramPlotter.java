@@ -17,6 +17,7 @@ import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Ranger;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Scalings;
@@ -149,10 +150,9 @@ public class DensogramPlotter
         /* Get the data values for each pixel position. */
         boolean isY = style.isY_;
         Axis xAxis = surface.getAxes()[ isY ? 1 : 0 ];
-        boolean xLog = surface.getLogFlags()[ isY ? 1 : 0 ];
         Combiner combiner = style.combiner_;
         Kernel1d kernel = createKernel( style.kernelShape_, style.sizer_,
-                                        xAxis, xLog,
+                                        xAxis,
                                         ! combiner.getType().isExtensive() );
         double[] bins = getDataBins( binArray, xAxis, kernel,
                                      Normalisation.NONE,
@@ -228,7 +228,6 @@ public class DensogramPlotter
         Kernel1d kernel =
             createKernel( style.kernelShape_, style.sizer_,
                           surf.getAxes()[ isY ? 1 : 0 ],
-                          surf.getLogFlags()[ isY ? 1 : 0 ],
                           ! style.combiner_.getType().isExtensive() );
         return getEffectiveExtent( kernel );
     }
@@ -250,10 +249,11 @@ public class DensogramPlotter
         Axis xAxis = plan.xAxis_;
         BinSizer sizer = style.sizer_;
         double[] dlimits = xAxis.getDataLimits();
-        double dSmoothWidth =
-            sizer.getWidth( xLog, dlimits[ 0 ], dlimits[ 1 ], (Rounding) null );
+        double sSmoothWidth =
+            sizer.getScaleWidth( xAxis.getScale(), dlimits[ 0 ], dlimits[ 1 ],
+                                 false );
         ReportMap report = new ReportMap();
-        report.put( SMOOTHWIDTH_KEY, dSmoothWidth );
+        report.put( SMOOTHWIDTH_KEY, sSmoothWidth );
         return report;
     }
 
