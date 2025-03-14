@@ -13,6 +13,7 @@ import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotMetric;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
@@ -356,7 +357,8 @@ public class SkySurfaceFactory
                     && isAllSky( ranges );
             }
         };
-        PlotUtil.extendCoordinateRanges( layers, ranges, new boolean[ 3 ],
+        Scale[] scales = { Scale.LINEAR, Scale.LINEAR, Scale.LINEAR };
+        PlotUtil.extendCoordinateRanges( layers, ranges, scales,
                                          false, lazyStore );
         return ranges;
     }

@@ -17,6 +17,7 @@ import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotMetric;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
@@ -348,7 +349,9 @@ public class PlaneSurfaceFactory
         boolean[] logFlags = profile.getLogFlags();
         assert logFlags.length == 2;
         Range[] ranges = new Range[] { new Range(), new Range() };
-        PlotUtil.extendCoordinateRanges( layers, ranges, logFlags, true,
+        Scale[] scales = { logFlags[ 0 ] ? Scale.LOG : Scale.LINEAR,
+                           logFlags[ 1 ] ? Scale.LOG : Scale.LINEAR };
+        PlotUtil.extendCoordinateRanges( layers, ranges, scales, true,
                                          dataStore );
         return ranges;
     }

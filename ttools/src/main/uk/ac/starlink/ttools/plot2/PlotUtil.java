@@ -517,9 +517,7 @@ public class PlotUtil {
      * @param   layers   plot layers
      * @param   ranges   <code>nDataDim</code>-element array of range objects
      *                   to extend
-     * @param   logFlags  <code>nDataDim</code>-element array indicating
-     *                    whether data dimensions are
-     *                    linear (false) or logarithmic (true),
+     * @param   scales   <code>nDataDim</code>-element array of axis scales
      * @param   doPad    whether to add a small standard amount of padding
      *                   to the result
      * @param   dataStore  data storage
@@ -527,14 +525,10 @@ public class PlotUtil {
     @Slow
     public static void extendCoordinateRanges( PlotLayer[] layers,
                                                Range[] ranges,
-                                               boolean[] logFlags,
+                                               Scale[] scales,
                                                boolean doPad,
                                                DataStore dataStore ) {
         final int nDataDim = ranges.length;
-        Scale[] scales = new Scale[ nDataDim ];
-        for ( int idim = 0; idim < nDataDim; idim++ ) {
-            scales[ idim ] = logFlags[ idim ] ? Scale.LOG : Scale.LINEAR;
-        }
 
         /* Create a point cloud containing all the data coordinates
          * represented by the supplied layers.  If there are several
