@@ -149,9 +149,7 @@ public abstract class AbstractKernelDensityPlotter
 
     protected int getPixelPadding( KDenseStyle style, PlanarSurface surf ) {
         boolean isY = style.isY_;
-        Kernel1d kernel =
-            style.createKernel( surf.getAxes()[ isY ? 1 : 0 ],
-                                surf.getLogFlags()[ isY ? 1 : 0 ] );
+        Kernel1d kernel = style.createKernel( surf.getAxes()[ isY ? 1 : 0 ] );
         return getEffectiveExtent( kernel );
     }
 
@@ -173,8 +171,7 @@ public abstract class AbstractKernelDensityPlotter
         /* Get the data values for each pixel position. */
         boolean isY = style.isY_;
         Axis xAxis = surface.getAxes()[ isY ? 1 : 0 ];
-        boolean xLog = surface.getLogFlags()[ isY ? 1 : 0 ];
-        Kernel1d kernel = style.createKernel( xAxis, xLog );
+        Kernel1d kernel = style.createKernel( xAxis );
         double[] bins = getDataBins( binArray, xAxis, kernel, style );
 
         /* Work out the Y axis base of the bars in graphics coordinates. */
@@ -320,7 +317,7 @@ public abstract class AbstractKernelDensityPlotter
         int gxhi = GUESS_PLOT_WIDTH;
         boolean xflip = false;
         Axis xAxis = Axis.createAxis( gxlo, gxhi, dxlo, dxhi, xlog, xflip );
-        Kernel1d kernel = style.createKernel( xAxis, xlog );
+        Kernel1d kernel = style.createKernel( xAxis );
         int xpad = getEffectiveExtent( kernel );
         BinArray binArray = readBins( xAxis, xpad, style.combiner_,
                                       dataSpec, dataStore );
@@ -343,7 +340,7 @@ public abstract class AbstractKernelDensityPlotter
                                           boolean xLog ) {
         BinArray binArray = plan.binArray_;
         Axis xAxis = plan.xAxis_;
-        Kernel1d kernel = style.createKernel( xAxis, xLog );
+        Kernel1d kernel = style.createKernel( xAxis );
         double[] dataBins = getDataBins( binArray, xAxis, kernel, style );
         double[] dlimits = xAxis.getDataLimits();
         double dlo = dlimits[ 0 ];
@@ -364,7 +361,7 @@ public abstract class AbstractKernelDensityPlotter
         if ( ctypeRepkey_ != null ) {
             report.put( ctypeRepkey_, getCombiner( style ).getType() );
         }
-        ReportMap kReport = style.kernelFigure_.getReportMap( xLog, dlo, dhi );
+        ReportMap kReport = style.kernelFigure_.getReportMap( xAxis );
         if ( kReport != null ) {
             report.putAll( kReport );
         }
@@ -484,11 +481,10 @@ public abstract class AbstractKernelDensityPlotter
          * Constructs a smoothing kernel suitable for this style.
          *
          * @param   xAxis  axis on which samples occur
-         * @param   xLog   true for logarithmic x axis, false for linear
          * @return  kernel
          */
-        public Kernel1d createKernel( Axis xAxis, boolean xLog ) {
-            return kernelFigure_.createKernel( kernelShape_, xAxis, xLog );
+        public Kernel1d createKernel( Axis xAxis ) {
+            return kernelFigure_.createKernel( kernelShape_, xAxis );
         }
 
         @Override
@@ -539,19 +535,16 @@ public abstract class AbstractKernelDensityPlotter
          *
          * @param  shape  kernel shape
          * @param   xAxis  axis on which samples occur
-         * @param   xLog   true for logarithmic x axis, false for linear
          * @return  kernel
          */
-        Kernel1d createKernel( Kernel1dShape shape, Axis xAxis, boolean xLog );
+        Kernel1d createKernel( Kernel1dShape shape, Axis xAxis );
 
         /**
          * Returns report items specific to the way this kernel has operated.
          *
-         * @param   xLog   true for logarithmic x axis, false for linear
-         * @param   dlo   lower data bound of axis
-         * @param   dhi   upper data bound of axis
+         * @param   xAxis  axis on which samples occur
          * @return   report map, may be null
          */
-        public ReportMap getReportMap( boolean xLog, double dlo, double dhi );
+        public ReportMap getReportMap( Axis xAxis );
     }
 }

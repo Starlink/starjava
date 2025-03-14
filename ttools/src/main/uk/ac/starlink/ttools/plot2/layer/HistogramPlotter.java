@@ -31,6 +31,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
@@ -307,7 +308,6 @@ public class HistogramPlotter
             Color color = style.color_;
             final boolean isOpaque = color.getAlpha() == 255
                                  && style.barForm_.isOpaque();
-            final Rounding xround = Rounding.getRounding( isTimeX_ );
             LayerOpt layerOpt = new LayerOpt( color, isOpaque );
             final boolean isY = style.isY_;
             final DataGeom histoDataGeom =
@@ -325,12 +325,13 @@ public class HistogramPlotter
                                                           + " " + surface );
                     }
                     final PlanarSurface pSurf = (PlanarSurface) surface;
-                    final boolean xlog = pSurf.getLogFlags()[ isY ? 1 : 0 ];
-                    double[] xlimits = pSurf.getDataLimits()[ isY ? 1 : 0 ];
+                    Axis xAxis = pSurf.getAxes()[ isY ? 1 : 0 ];
+                    Scale xscale = xAxis.getScale();
+                    double[] xlimits = xAxis.getDataLimits();
                     final double xlo = xlimits[ 0 ];
                     final double xhi = xlimits[ 1 ];
                     final double binWidth =
-                        sizer.getWidth( xlog, xlo, xhi, xround );
+                        sizer.getScaleWidth( xscale, xlo, xhi, true );
 
                     /* We can't work out what other histogram data sets are
                      * being plotted or where this one fits in - that level
@@ -347,14 +348,15 @@ public class HistogramPlotter
                                 if ( knownPlans[ ip ] instanceof HistoPlan ) {
                                     HistoPlan plan =
                                         (HistoPlan) knownPlans[ ip ];
-                                    if ( plan.matches( xlog, binWidth, binPhase,
-                                                       combiner, dataSpec ) ) {
+                                    if ( plan.matches( xscale, binWidth,
+                                                       binPhase, combiner,
+                                                       dataSpec ) ) {
                                         return plan;
                                     }
                                 }
                             }
                             BinBag binBag =
-                                readBins( xlog, binWidth, binPhase, combiner,
+                                readBins( xscale, binWidth, binPhase, combiner,
                                           xlo, xhi, dataSpec, dataStore );
                             return new HistoPlan( binBag, dataSpec );
                         }
@@ -381,8 +383,8 @@ public class HistogramPlotter
                                 report.put( BINWIDTH_KEY, bbag.getBinWidth() );
                                 report.put( BINTABLE_KEY,
                                             new BinBagTable( hplan, style,
-                                                             hasWeight,
-                                                             xlog, xlo, xhi ) );
+                                                             hasWeight, xscale,
+                                                             xlo, xhi ) );
                                 if ( ctypeRepkey_ != null ) {
                                     report.put( ctypeRepkey_,
                                                 bbag.getCombiner().getType() );
@@ -401,19 +403,22 @@ public class HistogramPlotter
                                                     DataStore dataStore ) {
                     Range xRange = ranges[ isY ? 1 : 0 ];
                     Range yRange = ranges[ isY ? 0 : 1 ];
-                    boolean xlog = logFlags[ isY ? 1 : 0 ];
+                    Scale xscale = logFlags[ isY ? 1 : 0 ] ? Scale.LOG
+                                                           : Scale.LINEAR;
 
                     /* The range in X will have been already calculated on
                      * the basis of the X values in this and any other layers
                      * by earlier stages of the auto-ranging process.
                      * We have to use this to get the bin sizes which will
                      * in turn determine the heights of the histogram bars. */
-                    double[] xlimits = xRange.getFiniteBounds( xlog );
+                    double[] xlimits =
+                        xRange.getFiniteBounds( xscale.isPositiveDefinite() );
                     double xlo = xlimits[ 0 ];
                     double xhi = xlimits[ 1 ];
-                    double binWidth = sizer.getWidth( xlog, xlo, xhi, xround );
+                    double binWidth =
+                        sizer.getScaleWidth( xscale, xlo, xhi, true );
                     BinBag binBag =
-                        readBins( xlog, binWidth, binPhase, combiner,
+                        readBins( xscale, binWidth, binPhase, combiner,
                                   xlo, xhi, dataSpec, dataStore );
 
                     /* Assume y=0 is always of interest for a histogram. */
@@ -457,8 +462,8 @@ public class HistogramPlotter
     /**
      * Reads histogram data from a given data set.
      *
-     * @param   xlog  false for linear scaling, true for logarithmic
-     * @param   binWidth  additive/multiplicative bin width
+     * @param   xscale   axis scaling
+     * @param   binWidth   bin width in scale units
      * @param   binPhase   bin reference point, 0..1
      * @param   combiner   bin aggregation mode
      * @param   xlo       representative lower value along axis
@@ -466,17 +471,17 @@ public class HistogramPlotter
      * @param   dataSpec  specification for histogram data values
      * @param   dataStore  data storage
      */
-    private BinBag readBins( final boolean xlog, final double binWidth,
+    private BinBag readBins( Scale xscale, final double binWidth,
                              final double binPhase, final Combiner combiner,
                              double xlo, double xhi,
                              DataSpec dataSpec, DataStore dataStore ) {
-        final double point = PlotUtil.scaleValue( xlo, xhi, 0.5, xlog );
+        final double point = PlotUtil.scaleValue( xlo, xhi, 0.5, xscale );
         final boolean isUnweighted =
             weightCoord_ == null || dataSpec.isCoordBlank( icWeight_ );
         SplitCollector<TupleSequence,BinBag> collector =
                 new SplitCollector<TupleSequence,BinBag>() {
             public BinBag createAccumulator() {
-                return new BinBag( xlog, binWidth, binPhase, combiner, point );
+                return new BinBag( xscale, binWidth, binPhase, combiner, point);
             }
             public void accumulate( TupleSequence tseq, BinBag binBag ) {
                 if ( isUnweighted ) {
@@ -539,7 +544,7 @@ public class HistogramPlotter
         double dxMin = xAxis.getDataLimits()[ 0 ];
         double dxMax = xAxis.getDataLimits()[ 1 ];
         boolean xflip = surface.getFlipFlags()[ isY ? 1 : 0 ];
-        boolean ylog = surface.getLogFlags()[ isY ? 0 : 1 ];
+        boolean yposdef = yAxis.getScale().isPositiveDefinite();
        
         int lastGx1 = xflip ? Integer.MAX_VALUE : Integer.MIN_VALUE;
         int lastGy1 = 0;
@@ -563,8 +568,8 @@ public class HistogramPlotter
 
                  /* Transform the corners of each bar to graphics coords. */
                  double p0x = xAxis.dataToGraphics( dxlo ); 
-                 double p0y = yAxis.dataToGraphics( ylog ? Double.MIN_VALUE
-                                                         : 0 );
+                 double p0y = yAxis.dataToGraphics( yposdef ? Double.MIN_VALUE
+                                                            : 0 );
                  double p1x = xAxis.dataToGraphics( dxhi );
                  double p1y = yAxis.dataToGraphics( dy );
                  if ( ! ( Double.isNaN( p0x ) || Double.isNaN( p0y ) ||
@@ -754,7 +759,7 @@ public class HistogramPlotter
     private static class BinBagTable extends AbstractStarTable {
         private final BinBag binBag_;
         private final HistoStyle hstyle_;
-        private final boolean xlog_;
+        private final Scale xscale_;
         private final double xlo_;
         private final double xhi_;
         private final ColumnInfo xmidInfo_;
@@ -769,16 +774,15 @@ public class HistogramPlotter
          * @param  hplan   plan containing bin data
          * @param  hstyle  plot style
          * @param  hasWeight  true if the weight coordinate may be non-blank
-         * @param  xlog   true for horizontal coordinate is logarithmic,
-         *                false for linear
+         * @param  xscale  scaling on X axis
          * @param  xlo    lower bound on X axis
          * @param  xhi    upper bound on X axis
          */
         BinBagTable( HistoPlan hplan, HistoStyle hstyle, boolean hasWeight,
-                     boolean xlog, double xlo, double xhi ) {
+                     Scale xscale, double xlo, double xhi ) {
             binBag_ = hplan.binBag_;
             hstyle_ = hstyle;
-            xlog_ = xlog;
+            xscale_ = xscale;
             xlo_ = xlo;
             xhi_ = xhi;
             Combiner combiner = hstyle.getCombiner();
@@ -819,7 +823,8 @@ public class HistogramPlotter
                     BinBag.Bin bin = binIt.next();
                     double xmin = bin.getXMin();
                     double xmax = bin.getXMax();
-                    double xmid = PlotUtil.scaleValue( xmin, xmax, 0.5, xlog_ );
+                    double xmid =
+                        PlotUtil.scaleValue( xmin, xmax, 0.5, xscale_ );
                     return new Object[] {
                         Double.valueOf( xmid ),
                         Double.valueOf( bin.getY() ),
@@ -1004,15 +1009,15 @@ public class HistogramPlotter
          * Indicates whether this plan will have the same content as one
          * constructed with given parameters.
          *
-         * @param   xlog   axis scaling
+         * @param   xscale   axis scaling
          * @param   binWidth   bin width
          * @param   binPhase    bin reference point, 0..1
          * @param   combiner    bin aggregation mode
          * @param   dataSpec   source of coordinate data
          */
-        boolean matches( boolean xlog, double binWidth, double binPhase,
+        boolean matches( Scale xscale, double binWidth, double binPhase,
                          Combiner combiner, DataSpec dataSpec ) {
-            return binBag_.matches( xlog, binWidth, binPhase, combiner )
+            return binBag_.matches( xscale, binWidth, binPhase, combiner )
                 && dataSpec_.equals( dataSpec );
         }
     }

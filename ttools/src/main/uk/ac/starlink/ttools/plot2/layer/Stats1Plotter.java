@@ -26,6 +26,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
@@ -229,18 +230,20 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             public void extendCoordinateRanges( Range[] ranges,
                                                 boolean[] logFlags,
                                                 DataStore dataStore ) {
-                boolean isLog = logFlags[ isY ? 1 : 0 ];
-                WStats stats = collectStats( isLog, dataSpec, dataStore );
-                StatsPlan plan = new StatsPlan( isLog, stats, dataSpec );
+                Scale scale = logFlags[ isY ? 1 : 0 ] ? Scale.LOG
+                                                      : Scale.LINEAR;
+                WStats stats = collectStats( scale, dataSpec, dataStore );
+                StatsPlan plan = new StatsPlan( scale, stats, dataSpec );
                 double mean = stats.getMean();
                 double sd = stats.getSigma();
                 Range xRange = ranges[ isY ? 1 : 0 ];
                 xRange.submit( mean - sd * 2 );
                 xRange.submit( mean + sd * 2 );
                 if ( xRange.isFinite() ) {
-                    double[] xlims = xRange.getFiniteBounds( isLog );
-                    double yhi = plan.getFactor( xlims[ 0 ], xlims[ 1 ],
-                                                 Rounding.DECIMAL, style );
+                    double[] xlims =
+                        xRange.getFiniteBounds( scale.isPositiveDefinite() );
+                    double yhi =
+                        plan.getFactor( xlims[ 0 ], xlims[ 1 ], style );
                     Range yRange = ranges[ isY ? 0 : 1 ];
                     yRange.submit( 0 );
                     yRange.submit( yhi );
@@ -252,12 +255,12 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
     /**
      * Determines the stats by going through the data.
      *
-     * @param  isLogX     true for X axis logarithmic, false for linear
+     * @param  scale      axis scale on X axis
      * @param  dataSpec   data spec
      * @param  dataStore  data store
      * @return  calculated statistics
      */
-    private WStats collectStats( boolean isLogX, DataSpec dataSpec,
+    private WStats collectStats( Scale scale, DataSpec dataSpec,
                                  DataStore dataStore ) {
         final boolean isUnweighted = weightCoord_ == null
                                   || dataSpec.isCoordBlank( icWeight_ );
@@ -270,7 +273,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                 if ( isUnweighted ) {
                     while ( tseq.next() ) {
                         double x = xCoord_.readDoubleCoord( tseq, icX_ );
-                        double s = isLogX ? log( x ) : x;
+                        double s = scale.dataToScale( x );
                         if ( PlotUtil.isFinite( s ) ) {
                             stats.addPoint( s );
                         }
@@ -279,7 +282,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                 else {
                     while ( tseq.next() ) {
                         double x = xCoord_.readDoubleCoord( tseq, icX_ );
-                        double s = isLogX ? log( x ) : x;
+                        double s = scale.dataToScale( x );
                         if ( PlotUtil.isFinite( s ) ) {
                             double w = weightCoord_
                                       .readDoubleCoord( tseq, icWeight_ );
@@ -294,16 +297,6 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             }
         };
         return PlotUtil.tupleCollect( collector, dataSpec, dataStore );
-    }
-
-    /**
-     * Log function, used for transforming X values to values for fitting.
-     *
-     * @param  val  value
-     * @return  log to base 10 of <code>val</code>
-     */
-    private static double log( double val ) {
-        return Math.log10( val );
     }
 
     /**
@@ -400,20 +393,20 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
 
         public Object calculatePlan( Object[] knownPlans,
                                      DataStore dataStore ) {
-            final boolean isLog = surface_.getLogFlags()[ style_.isY_ ? 1 : 0 ];
+            Scale scale = surface_.getAxes()[ style_.isY_ ? 1 : 0 ].getScale();
 
             /* If one of the known plans matches the one we're about
              * to calculate, just return that. */
             for ( Object plan : knownPlans ) {
                 if ( plan instanceof StatsPlan &&
-                     ((StatsPlan) plan).matches( isLog, dataSpec_ ) ) {
+                     ((StatsPlan) plan).matches( scale, dataSpec_ ) ) {
                     return plan;
                 }
             }
 
             /* Otherwise, accumulate statistics and return the result. */
-            WStats stats = collectStats( isLog, dataSpec_, dataStore );
-            return new StatsPlan( isLog, stats, dataSpec_ );
+            WStats stats = collectStats( scale, dataSpec_, dataStore );
+            return new StatsPlan( scale, stats, dataSpec_ );
         }
 
         public void paintData( Object plan, Paper paper, DataStore dataStore ) {
@@ -438,7 +431,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
      * Plan object encapsulating the inputs and results of a stats plot.
      */
     private static class StatsPlan {
-        final boolean isLog_;
+        final Scale scale_;
         final double mean_;
         final double sigma_;
         final double sum_;
@@ -447,12 +440,12 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         /**
          * Constructor.
          *
-         * @param  isLog   true iff stats are calculated on data logarithms
+         * @param  scale   axis scaling
          * @param  stats   univariate statistics giving fit results
          * @param  dataSpec   characterisation of input data points
          */
-        StatsPlan( boolean isLog, WStats stats, DataSpec dataSpec ) {
-            isLog_ = isLog;
+        StatsPlan( Scale scale, WStats stats, DataSpec dataSpec ) {
+            scale_ = scale;
             mean_ = stats.getMean();
             sigma_ = stats.getSigma();
             sum_ = stats.getSum();
@@ -463,11 +456,11 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
          * Indicates whether this object's state will be the same as
          * a plan calculated for the given input values.
          *
-         * @param  isLog   true iff stats are calculated on data logarithms
+         * @param  scale     axis scaling
          * @param  dataSpec  characterisation of input data points
          */
-        boolean matches( boolean isLog, DataSpec dataSpec ) {
-            return isLog == isLog_
+        boolean matches( Scale scale, DataSpec dataSpec ) {
+            return scale.equals( scale_ )
                 && dataSpec.equals( dataSpec_ );
         }
 
@@ -532,9 +525,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         private double getFactor( PlanarSurface surface, StatsStyle style ) {
             boolean isY = style.isY_;
             double[] xlims = surface.getDataLimits()[ isY ? 1 : 0 ];
-            boolean isTime = surface.getTimeFlags()[ isY ? 1 : 0 ];
-            Rounding xround = Rounding.getRounding( isTime );
-            return getFactor( xlims[ 0 ], xlims[ 1 ], xround, style );
+            return getFactor( xlims[ 0 ], xlims[ 1 ], style );
         }
 
         /**
@@ -543,14 +534,12 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
          *
          * @param  xlo     approx X coordinate lower limit of surface
          * @param  xhi     approx X coordinate upper limit of surface
-         * @param  xround  rounding behaviour on X axis
          * @param  style     stats style
          */
-        private double getFactor( double xlo, double xhi, Rounding xround,
-                                  StatsStyle style ) {
-            double bw = style.sizer_.getWidth( isLog_, xlo, xhi, xround );
-            double binWidth = isLog_ ? log( bw )
-                                     : bw / style.unit_.getExtent();
+        private double getFactor( double xlo, double xhi, StatsStyle style ) {
+            BinSizer sizer = style.sizer_;
+            double binWidth = sizer.getScaleWidth( scale_, xlo, xhi, true )
+                            / style.unit_.getExtent();
             double c = 1.0 / ( sigma_ * Math.sqrt( 2.0 * Math.PI ) );
             double sum = sum_;
             double max = c * sum * binWidth;
@@ -572,7 +561,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
          * @return  unscaled Gaussian function evaluated at <code>x</code>
          */
         double gaussian( double x ) {
-            double s = isLog_ ? log( x ) : x;
+            double s = scale_.dataToScale( x );
             double p = ( s - mean_ ) / sigma_;
             return Math.exp( - 0.5 * p * p );
         }
@@ -594,7 +583,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                 .append( CONST_KEY.toText( factor ) )
                 .append( " * " )
                 .append( "exp(-0.5 * square((" )
-                .append( isLog_ ? "log10(x)" : "x" )
+                .append( scale_.dataToScaleExpression( "x" ) )
                 .append( "-" )
                 .append( MEAN_KEY.toText( mean_ ) )
                 .append( ")/" )

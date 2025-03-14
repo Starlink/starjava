@@ -1301,6 +1301,25 @@ public class PlotUtil {
     }
 
     /**
+     * Returns the constant extent in scale units of a single pixel
+     * on a given axis.
+     *
+     * @param  axis  axis
+     * @return   extent in scale units of a pixel on the axis
+     */
+    public static double getPixelScaleExtent( Axis axis ) {
+        int[] glimits = axis.getGraphicsLimits();
+        int g0 = glimits[ 0 ];
+        int g1 = g0 + 1;
+        double d0 = axis.graphicsToData( g0 );
+        double d1 = axis.graphicsToData( g1 );
+        Scale scale = axis.getScale();
+        double s0 = scale.dataToScale( d0 );
+        double s1 = scale.dataToScale( d1 );
+        return Math.abs( s1 - s0 );
+    }
+
+    /**
      * Returns an array of tickmarks that resembles the supplied ones,
      * but with no labels.  Major tickmarks are preserved though.
      *

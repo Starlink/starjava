@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import uk.ac.starlink.ttools.plot2.Scale;
 
 /**
  * Data model for a one-dimensional histogram.
@@ -16,7 +17,7 @@ import java.util.NoSuchElementException;
  */
 public class BinBag {
 
-    private final boolean log_;
+    private final Scale scale_;
     private final double binWidth_;
     private final double binPhase_;
     private final Combiner combiner_;
@@ -25,14 +26,6 @@ public class BinBag {
 
     /**
      * Constructor.
-     * Notional bin boundaries are for <code>log=false</code>:
-     * <pre>
-     *   binWidth*(0+binPhase), binWidth*(1+binPhase), ...
-     * </pre>
-     * and for <code>log=true</code>:
-     * <pre>
-     *   binWidth**(0+binPhase), binWidth**(1+binPhase), ...
-     * </pre>
      *
      * <p>The <code>point</code> parameter is used internally to determine
      * the zero point of the bins.  In principle this should make no
@@ -40,22 +33,21 @@ public class BinBag {
      * a very long way from 1,  setting it close to
      * the actual data point locations may avoid rounding errors.
      *
-     * @param   log   false for linear axis scaling, true for logarithmic
-     * @param   binWidth   width of each bin; this is additive for linear
-     *                     and multiplicative for logarithmic scaling
+     * @param   scale      axis scaling
+     * @param   binWidth   width of each bin in scale units
      * @param   binPhase   determines sub-bin boundary shifts along axis,
      *                     normally in range 0..1
      * @param   combiner   aggregation mode
      * @param   point   representative point on axis near which bins are
      *                  situated
      */
-    public BinBag( boolean log, double binWidth, double binPhase,
+    public BinBag( Scale scale, double binWidth, double binPhase,
                    Combiner combiner, double point ) {
-        log_ = log;
+        scale_ = scale;
         binWidth_ = binWidth;
         binPhase_ = binPhase;
         combiner_ = combiner;
-        mapper_ = BinMapper.createMapper( log, binWidth, binPhase, point );
+        mapper_ = new BinMapper( scale, binWidth, binPhase, point );
         valueMap_ = new HashMap<Integer,Combiner.Container>();
     }
 
@@ -69,7 +61,7 @@ public class BinBag {
      */
     public void submitToBin( double point, double datum ) {
         if ( ! Double.isNaN( point ) && ! Double.isInfinite( point ) &&
-             ( ( ! log_ ) || point > 0 ) ) {
+             ( ( ! scale_.isPositiveDefinite() ) || point > 0 ) ) {
             int ix = mapper_.getBinIndex( point );
             Combiner.Container val = valueMap_.get( ix );
             if ( val == null ) {
@@ -91,7 +83,6 @@ public class BinBag {
      */
     public Iterator<Bin> binIterator( Cumulation cumul, Normalisation norm,
                                       Unit unit ) {
-
         return binIterator( cumul, norm, unit, null );
     }
 
@@ -168,8 +159,7 @@ public class BinBag {
         }
 
         /* Normalise. */
-        double bw = log_ ? BinMapper.log( binWidth_ )
-                         : binWidth_ / unit.getExtent();
+        double bw = binWidth_ / unit.getExtent();
         double scale = norm.getScaleFactor( total, max, bw, combiner_.getType(),
                                             cumul.isCumulative() );
         if ( scale != 1.0 ) {
@@ -284,10 +274,9 @@ public class BinBag {
     }
 
     /**
-     * Returns the bin width used by this histogram model.
-     * It's additive for linear and multiplicative for logarithmic.
+     * Returns the bin width in scale units used by this histogram model.
      *
-     * @return  bin width
+     * @return  bin width in scale units
      */
     public double getBinWidth() {
         return binWidth_;
@@ -338,7 +327,7 @@ public class BinBag {
      * Indicates whether the bin boundaries and aggregation mode
      * used by this object are the same as a given bin set specification.
      *
-     * @param   log  false for linear scaling, true for logarithmic
+     * @param   scale      axis scaling
      * @param   binWidth   width of each bin; this is additive for linear
      *                     and multiplicative for logarithmic scaling
      * @param   binPhase   determines sub-bin boundary shifts along axis
@@ -347,9 +336,9 @@ public class BinBag {
      * @return  true iff a BinBag constructed using the given parameters
      *          would have the same behaviour as this one
      */
-    public boolean matches( boolean log, double binWidth, double binPhase,
+    public boolean matches( Scale scale, double binWidth, double binPhase,
                             Combiner combiner ) {
-        return log == log_
+        return scale.equals( scale_ )
             && binWidth == binWidth_
             && binPhase == binPhase_
             && combiner.equals( combiner_ );

@@ -96,47 +96,4 @@ public class BinMapper {
             return false;
         }
     }
-
-    /**
-     * Returns a BinMapper instance.
-     *
-     * <p>Notional bin boundaries are for <code>log=false</code>:
-     * <pre>
-     *   binWidth*(0+binPhase), binWidth*(1+binPhase), ...
-     * </pre>
-     * and for <code>log=true</code>:
-     * <pre>
-     *   binWidth**(0+binPhase), binWidth**(1+binPhase), ...
-     * </pre>
-     *
-     * <p>The <code>point</code> parameter is used internally to determine
-     * the zero point of the bins.  In principle this should make no
-     * difference to behaviour, but in case that the data is situated
-     * a very long way from 1,  setting it close to
-     * the actual data point locations may avoid rounding errors.
-     *
-     * @param   log   false for linear axis scaling, true for logarithmic
-     * @param   binWidth   width of each bin; this is additive for linear
-     *                     and multiplicative for logarithmic scaling
-     * @param   binPhase   determines sub-bin boundary shifts along axis,
-     *                     normally in range 0..1
-     * @param   point   representative point on axis near which bins are
-     *                  situated
-     */
-    public static BinMapper createMapper( boolean log, double binWidth,
-                                          double binPhase, double point ) {
-        Scale scale = log ? Scale.LOG : Scale.LINEAR;
-        double scaleWidth = log ? log( binWidth ) : binWidth;
-        return new BinMapper( scale, scaleWidth, binPhase, point );
-    }
-
-    /**
-     * Logarithm function corresponding to logarithmic mapper.
-     *
-     * @param  val  value
-     * @return  log to base 10 of <code>val</code>
-     */
-    public static double log( double val ) {
-        return Math.log10( val );
-    }
 }
