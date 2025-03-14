@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotMetric;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
@@ -303,9 +304,10 @@ public class TimeSurfaceFactory
 
     public Range[] readRanges( Profile profile, PlotLayer[] layers,
                                DataStore dataStore ) {
-        boolean[] logFlags = new boolean[] { false, profile.getYLog() };
         Range[] ranges = new Range[] { new Range(), new Range() };
-        PlotUtil.extendCoordinateRanges( layers, ranges, logFlags, true,
+        Scale[] scales = { Scale.TIME,
+                           profile.getYLog() ? Scale.LOG : Scale.LINEAR };
+        PlotUtil.extendCoordinateRanges( layers, ranges, scales, true,
                                          dataStore );
         return ranges;
     }
