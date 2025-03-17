@@ -354,6 +354,9 @@ public abstract class ScaleType {
                 public boolean isLinear() {
                     return true;
                 }
+                public Ticker getTicker() {
+                    return BasicTicker.LINEAR;
+                }
                 public Rounder getScaleRounder() {
                     return rounder;
                 }
@@ -401,6 +404,9 @@ public abstract class ScaleType {
                 }
                 public boolean isLinear() {
                     return false;
+                }
+                public Ticker getTicker() {
+                    return BasicTicker.LOG;
                 }
                 public Rounder getScaleRounder() {
                     return rounder;
@@ -471,6 +477,7 @@ public abstract class ScaleType {
             private final double log10thresh_;
             private final double scaleOverThresh_;
             private final double threshOverScale_;
+            private final Ticker ticker_;
 
             /**
              * Constructor.
@@ -491,6 +498,7 @@ public abstract class ScaleType {
                 log10thresh_ = log10( linthresh );
                 scaleOverThresh_ = linscale / linthresh;
                 threshOverScale_ = linthresh / linscale;
+                ticker_ = BasicTicker.createHybridTicker( this, linthresh );
             }
 
             public boolean isPositiveDefinite() {
@@ -499,6 +507,10 @@ public abstract class ScaleType {
 
             public boolean isLinear() {
                 return false;
+            }
+
+            public Ticker getTicker() {
+                return ticker_;
             }
 
             public Rounder getScaleRounder() {
@@ -573,6 +585,8 @@ public abstract class ScaleType {
             }
             double a1 = 1.0 / a;
             return new AbstractScale( this, args ) {
+                final Ticker ticker_ =
+                    BasicTicker.createHybridTicker( this, a );
                 public boolean isPositiveDefinite() {
                     return false;
                 }
@@ -581,6 +595,9 @@ public abstract class ScaleType {
                 }
                 public Rounder getScaleRounder() {
                     return DUMMY_ROUNDER;
+                }
+                public Ticker getTicker() {
+                    return ticker_;
                 }
                 public double dataToScale( double d ) {
                     return asinh( d * a1 );
