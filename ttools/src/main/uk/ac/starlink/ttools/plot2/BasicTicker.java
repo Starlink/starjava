@@ -7,6 +7,8 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import uk.ac.starlink.util.Bi;
 import uk.ac.starlink.util.Pair;
 
@@ -152,6 +154,35 @@ public abstract class BasicTicker implements Ticker {
     }
 
     /**
+     * Returns a ticker instance that is linear within a given distance
+     * of the origin and logarithmic or negative logarithmic for larger
+     * absolute values.
+     *
+     * @param  scale   axis scaling
+     * @param  linthresh  distance from origin within which ticks are linear
+     * @return  new ticker
+     */
+    public static Ticker createHybridTicker( Scale scale, double linthresh ) {
+        return new BasicTicker( scale ) {
+            public Rule createRule( double dlo, double dhi,
+                                    double approxMajorCount, int adjust ) {
+                return new CheckRule( createHybridRule( dlo, dhi,
+                                                        approxMajorCount,
+                                                        adjust, scale,
+                                                        linthresh ) ) {
+                    boolean checkLabel( Caption label, double val ) {
+                        double lval = Double.parseDouble( label.toText() );
+                        return lval == val
+                            || ( ( Math.abs( val ) <= linthresh )
+                                     ? Math.abs( ( lval - val ) / val ) < TOL
+                                     : Math.abs( lval / val - 1 ) < TOL );
+                    }
+                };
+            }
+        };
+    }
+
+    /**
      * Use a given rule to generate major ticks in a given range of
      * coordinates.
      *
@@ -289,6 +320,51 @@ public abstract class BasicTicker implements Ticker {
                 + LinearSpacer.getSpacerIndex( oversize ) - adjust;
         int[] div = divFloor( num, maxLevel );
         return new LinearRule( div[ 0 ], LinearSpacer.SPACERS[ div[ 1 ] ] );
+    }
+
+    /**
+     * Acquire a rule for labelling an axis which is linear near the origin
+     * and logarithmic or negative logarithmic otherwise.
+     *
+     * @param   dlo     minimum axis data value
+     * @param   dhi     maximum axis data value
+     * @param   approxMajorCount  guide value for number of major ticks
+     *                            in range
+     * @param   adjust  adjusts density of major ticks
+     * @param   scale   axis scaling
+     * @param   double  linthresh  absolute values lower than this are
+     *                             in the linear regime, others in the
+     *                             logarithmic regime
+     * @return  tick generation rule
+     */
+    private static Rule createHybridRule( double dlo, double dhi,
+                                          double approxMajorCount, int adjust,
+                                          Scale scale, double linthresh ) {
+        double shi = scale.dataToScale( dhi );
+        double slo = scale.dataToScale( dlo );
+        double dloLin = Math.max( -linthresh, dlo );
+        double dhiLin = Math.min( +linthresh, dhi );
+        double sloLin = scale.dataToScale( dloLin );
+        double shiLin = scale.dataToScale( dhiLin );
+        double flin = ( shiLin - sloLin ) / ( shi - slo );
+        Rule linRule = createLinearRule( dloLin, dhiLin,
+                                         flin * approxMajorCount, adjust );
+        final double flog;
+        final double dloLog;
+        final double dhiLog;
+        if ( shi - shiLin > sloLin - slo ) {
+            flog = ( shi - shiLin ) / ( shi - slo );
+            dloLog = dhiLin;
+            dhiLog = dhi;
+        }
+        else {
+            flog = ( sloLin - slo ) / ( shi - slo );
+            dloLog = - dloLin;
+            dhiLog = - dlo;
+        }
+        Rule logRule = createLogRule( dloLog, dhiLog,
+                                      flog * approxMajorCount, adjust );
+        return new HybridRule( linRule, logRule, linthresh );
     }
 
     /**
@@ -837,6 +913,145 @@ public abstract class BasicTicker implements Ticker {
         public Caption indexToLabel( long index ) {
             long mantissa = index * spacer_.major_;
             return linearLabel( mantissa, exp_ );
+        }
+    }
+
+    /**
+     * Rule instance that provides linear ticks within a given distance
+     * of the origin and logarithmic or negative logarithmic for larger
+     * absolute values.
+     */
+    private static class HybridRule implements Rule {
+
+        private final Rule linRule_;
+        private final Rule logRule_;
+        private final double linthresh_;
+        private final long linIx_;
+        private final long logIx_;
+        private static final Pattern MINUS_REGEX =
+            Pattern.compile( "( *- *)?(.*)");
+
+        /**
+         * Constructor.
+         *
+         * @param  linRule    rule for linear regime
+         * @param  logRule    rule for positive logarithmic regime
+         * @param  linthresh  positive position of crossover between
+         *                    linear and logarithmic regimes
+         */
+        HybridRule( Rule linRule, Rule logRule, double linthresh ) {
+            linRule_ = linRule;
+            logRule_ = logRule;
+            linthresh_ = linthresh;
+            linIx_ = linRule_.floorIndex( linthresh );
+            logIx_ = logRule_.floorIndex( linthresh );
+            assert linRule_.indexToValue( 0 ) == 0;
+        }
+
+        public long floorIndex( double value ) {
+            if ( value > +linthresh_ ) {
+                return +fromLogIndex( logRule_.floorIndex( +value ) );
+            }
+            else if ( value < -linthresh_ ) {
+                return -fromLogIndex( logRule_.floorIndex( -value ) );
+            }
+            else {
+                return linRule_.floorIndex( value );
+            }
+        }
+
+        public double indexToValue( long index ) {
+            if ( index > +linIx_ ) {
+                return +logRule_.indexToValue( toLogIndex( +index ) );
+            }
+            else if ( index < -linIx_ ) {
+                return -logRule_.indexToValue( toLogIndex( -index ) );
+            }
+            else {
+                return linRule_.indexToValue( index );
+            }
+        }
+
+        public double[] getMinors( long index ) {
+            if ( index >= +linIx_ ) {
+                return logRule_.getMinors( toLogIndex( +index ) );
+            }
+            else if ( index < -linIx_ ) {
+                double[] minors =
+                    logRule_.getMinors( toLogIndex( -index - 1 ) );
+                if ( minors != null ) {
+                    for ( int i = 0; i < minors.length; i++ ) {
+                        minors[ i ] = -minors[ i ];
+                    }
+                }
+                return minors;
+            }
+            else {
+                return linRule_.getMinors( index );
+            }
+        }
+
+        public Caption indexToLabel( long index ) {
+            if ( index > +linIx_ ) {
+                return logRule_.indexToLabel( toLogIndex( index ) );
+            }
+            else if ( index < -linIx_ ) {
+                Caption cap = logRule_.indexToLabel( toLogIndex( -index ) );
+
+                // It's a bit hacky to manipulate the caption text here
+                // rather than regenerating it, but it does the right thing
+                // for all cases at time of writing.
+                String txt = negativeText( cap.toText() );
+                String latex = negativeText( cap.toLatex() );
+                return new Caption( txt ) {
+                    @Override
+                    public String toLatex() {
+                        return latex;
+                    }
+                };
+            }
+            else {
+                return linRule_.indexToLabel( index );
+            }
+        }
+
+        /**
+         * Converts an index for this hybrid rule to the equivalent index
+         * for the underlying positive logarithmic rule.
+         *
+         * @param  index  hybrid index
+         * @return  logarithmic index
+         */
+        private long toLogIndex( long index ) {
+            return index - linIx_ + logIx_;
+        }
+
+        /**
+         * Converts an index for the underlying positive logarithmic rule
+         * to the equivalent index for this hybrid rule.
+         *
+         * @param logIndex  logarithmic index
+         * @return  hybrid index
+         */
+        private long fromLogIndex( long logIndex ) {
+            return logIndex - logIx_ + linIx_;
+        }
+
+        /**
+         * Toggles presence of a minus sign at the start of a string.
+         *
+         * @param  txt  string that may or may not start with "-"
+         * @return   same string but with initial "-" added/removed
+         */
+        private static String negativeText( String txt ) {
+            Matcher matcher = MINUS_REGEX.matcher( txt );
+            if ( matcher.matches() ) {
+                return matcher.group( 1 ) == null ? "-" + txt
+                                                  : matcher.group( 2 );
+            }
+            else {
+                return txt;
+            }
         }
     }
 

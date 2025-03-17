@@ -78,6 +78,13 @@ public interface Scale {
     boolean isLinear();
 
     /**
+     * Returns an object that can generate axis ticks for this scale.
+     *
+     * @return  ticker
+     */
+    Ticker getTicker();
+
+    /**
      * Returns an object which can round scale values to a value that
      * counts as a round number.
      *
