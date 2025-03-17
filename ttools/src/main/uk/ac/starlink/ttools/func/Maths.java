@@ -295,4 +295,44 @@ public class Maths {
     public static double atanh( double x ) {
         return 0.5 * Math.log( ( 1 + x ) / ( 1 - x ) );
     }
+
+    /**
+     * Symmetric logarithm mapping function.
+     * This function is not generally of much mathematical use,
+     * but it is available as one of the scaling options for plot axes.
+     * It is linear near the origin (abs(x)&lt;=<code>linthresh</code>)
+     * and positive/negative logarithmic outside that region.
+     *
+     * <p>The function is:
+     * <pre>
+     *    |x| &lt;= linthresh:
+     *         x * linscale / linthresh
+     *    |x| &gt;= linthresh:
+     *         sgn(x) * (linscale + log10(|x|) - log10(linthresh))
+     * </pre>
+     *
+     * @param  linthresh  linear threshold, below which absolute value the
+     *                    function is linear; must be &gt;0
+     * @param  linscale   linear scale, being the ratio of the half-extent of
+     *                    the linear mapped region to the extent of a decade
+     *                    in the logarithmic region; must be &gt;0
+     * @param  x  value to map
+     * @return  mapped value
+     */
+    public static double symlog( double linthresh, double linscale, double x ) {
+        if ( linthresh > 0 && linscale > 0 ) {
+            if ( x < -linthresh ) {
+                return -linscale - log10( -x ) + log10( linthresh );
+            }
+            else if ( x > linthresh ) {
+                return linscale + log10( x ) - log10( linthresh );
+            }
+            else {
+                return x * linscale / linthresh;
+            }
+        }
+        else {
+            return Double.NaN;
+        }
+    }
 }
