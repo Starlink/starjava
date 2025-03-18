@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.jel.JELRowReader;
 import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.Orientation;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Tick;
 import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
@@ -43,10 +44,12 @@ public class FigureModeTest extends TestCase {
             boolean yflip = ( ( i >> 1 ) & 1 ) != 0;
             boolean xlog = ( ( i >> 2 ) & 1 ) != 0;
             boolean ylog = ( ( i >> 3 ) & 1 ) != 0;
+            Scale xscale = xlog ? Scale.LOG : Scale.LINEAR;
+            Scale yscale = ylog ? Scale.LOG : Scale.LINEAR;
             PlanarSurface surf =
                 new PlaneSurface( 0, 100, 0, 100,        // graphics coords
                                   0.1, 10000, 0.2, 20,   // data coords
-                                  xlog, ylog, xflip, yflip,
+                                  xscale, yscale, xflip, yflip,
                                   new Tick[ 0 ], new Tick[ 0 ],
                                   Orientation.X, Orientation.Y, "X", "Y",
                                   new Tick[ 0 ], new Tick[ 0 ],

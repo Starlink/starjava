@@ -181,7 +181,7 @@ public class CubeAxisController
     @Override
     protected boolean logChanged( CubeSurfaceFactory.Profile prof1,
                                   CubeSurfaceFactory.Profile prof2 ) {
-        return ! Arrays.equals( prof1.getLogFlags(), prof2.getLogFlags() );
+        return logChanged( prof1.getScales(), prof2.getScales() );
     }
 
     @Override
@@ -189,7 +189,7 @@ public class CubeAxisController
                                        CubeSurfaceFactory.Profile prof2 ) {
         return ( ( prof1.isForceIso() ^ prof2.isForceIso() ) &&
                  ! logChanged( prof1, prof2 ) &&
-                 CubeSurface.isIsometricPossible( prof1.getLogFlags() ) )
+                 CubeSurface.isIsometricPossible( prof1.getScales() ) )
             || super.forceClearRange( prof1, prof2 );
     }
 

@@ -97,7 +97,8 @@ public class TimeAxisController
     @Override
     protected boolean logChanged( TimeSurfaceFactory.Profile prof1,
                                   TimeSurfaceFactory.Profile prof2 ) {
-        return prof1.getYLog() != prof2.getYLog();
+        return prof1.getYScale().isPositiveDefinite()
+            != prof2.getYScale().isPositiveDefinite();
     }
 
     @Override

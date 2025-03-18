@@ -34,6 +34,7 @@ import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
@@ -387,8 +388,11 @@ public class HistogramPlotWindow
                 (PlaneSurface) plotPanel.getLatestSurface( iz );
             double[] xbounds = surface.getDataLimits()[ 0 ];
             boolean ylogFlag = surface.getLogFlags()[ 1 ];
-            PlotUtil.padRange( yrange, ylogFlag );
-            double[] ybounds = yrange.getFiniteBounds( ylogFlag );
+            Scale yscale = surface.getLogFlags()[ 1 ] ? Scale.LOG
+                                                      : Scale.LINEAR;
+            PlotUtil.padRange( yrange, yscale );
+            double[] ybounds =
+                yrange.getFiniteBounds( yscale.isPositiveDefinite() );
             PlaneAspect aspect = new PlaneAspect( xbounds, ybounds );
             getZoneController( iz ).setAspect( aspect );
             plotPanel.replot();

@@ -30,6 +30,7 @@ import uk.ac.starlink.topcat.func.SuperCosmos;
 import uk.ac.starlink.topcat.func.TwoQZ;
 import uk.ac.starlink.topcat.plot2.GuiCoordContent;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 import uk.ac.starlink.ttools.jel.JELUtils;
 
@@ -720,7 +721,8 @@ public class TopcatJELUtils extends JELUtils {
         String exprTxt = isJelIdentifier( expr )
                        ? expr
                        : "(" + expr + ")";
-        String[] limits = PlotUtil.formatAxisRangeLimits( lo, hi, isLog, npix );
+        Scale scale = isLog ? Scale.LOG : Scale.LINEAR;
+        String[] limits = PlotUtil.formatAxisRangeLimits( lo, hi, scale, npix );
         return new StringBuffer()
               .append( exprTxt )
               .append( " >= " )

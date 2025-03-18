@@ -11,11 +11,11 @@ import java.util.function.DoubleUnaryOperator;
 import java.util.function.Supplier;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot2.Axis;
-import uk.ac.starlink.ttools.plot2.BasicTicker;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.Surround;
 import uk.ac.starlink.ttools.plot2.Tick;
@@ -39,8 +39,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
     private final double dxhi_;
     private final double dylo_;
     private final double dyhi_;
-    private final boolean xlog_;
-    private final boolean ylog_;
+    private final Scale xscale_;
+    private final Scale yscale_;
     private final boolean xflip_;
     private final boolean yflip_;
     private final Tick[] xticks_;
@@ -74,8 +74,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
      * @param  dxhi   data X coordinate upper bound
      * @param  dylo   data Y coordinate lower bound
      * @param  dyhi   data Y coordinate upper bound
-     * @param  xlog   whether to use logarithmic scaling on X axis
-     * @param  ylog   whether to use logarithmic scaling on Y axis
+     * @param  xscale   scaling on X axis
+     * @param  yscale   scaling on Y axis
      * @param  xflip  whether to invert direction of X axis
      * @param  yflip  whether to invert direction of Y axis
      * @param  xticks  array of tickmark objects for X axis
@@ -100,7 +100,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
     @SuppressWarnings("this-escape")
     public PlaneSurface( int gxlo, int gxhi, int gylo, int gyhi,
                          double dxlo, double dxhi, double dylo, double dyhi,
-                         boolean xlog, boolean ylog,
+                         Scale xscale, Scale yscale,
                          boolean xflip, boolean yflip,
                          Tick[] xticks, Tick[] yticks,
                          Orientation xorient, Orientation yorient,
@@ -119,8 +119,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
         dxhi_ = dxhi;
         dylo_ = dylo;
         dyhi_ = dyhi;
-        xlog_ = xlog;
-        ylog_ = ylog;
+        xscale_ = xscale;
+        yscale_ = yscale;
         xflip_ = xflip;
         yflip_ = yflip;
         xticks_ = xticks;
@@ -140,9 +140,9 @@ public class PlaneSurface implements Surface, PlanarSurface {
         gridcolor_ = gridcolor;
         axlabelcolor_ = axlabelcolor;
         islabelposition_ = islabelposition;
-        xAxis_ = Axis.createAxis( gxlo_, gxhi_, dxlo_, dxhi_, xlog_, xflip_ );
-        yAxis_ = Axis.createAxis( gylo_, gyhi_, dylo_, dyhi_, ylog_,
-                                  yflip_ ^ PlaneAxisAnnotation.INVERT_Y );
+        xAxis_ = new Axis( gxlo_, gxhi_, dxlo_, dxhi_, xscale_, xflip_ );
+        yAxis_ = new Axis( gylo_, gyhi_, dylo_, dyhi_, yscale_,
+                           yflip_ ^ PlaneAxisAnnotation.INVERT_Y );
         assert this.equals( this );
     }
 
@@ -272,7 +272,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
     }
 
     public boolean[] getLogFlags() {
-        return new boolean[] { xlog_, ylog_ };
+        return new boolean[] { xscale_.isPositiveDefinite(),
+                               yscale_.isPositiveDefinite() };
     }
 
     public boolean[] getFlipFlags() {
@@ -389,8 +390,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
                 && this.dxhi_ == other.dxhi_
                 && this.dylo_ == other.dylo_
                 && this.dyhi_ == other.dyhi_
-                && this.xlog_ == other.xlog_
-                && this.ylog_ == other.ylog_
+                && this.xscale_.equals( other.xscale_ )
+                && this.yscale_.equals( other.yscale_ )
                 && this.xflip_ == other.xflip_
                 && this.yflip_ == other.yflip_
                 && Arrays.equals( this.xticks_, other.xticks_ )
@@ -427,9 +428,9 @@ public class PlaneSurface implements Surface, PlanarSurface {
         code = 23 * code + Float.floatToIntBits( (float) dxhi_ );
         code = 23 * code + Float.floatToIntBits( (float) dylo_ );
         code = 23 * code + Float.floatToIntBits( (float) dyhi_ );
-        code = 23 * code + ( xlog_  ? 1 : 0 )
-                         + ( ylog_  ? 2 : 0 )
-                         + ( xflip_ ? 4 : 0 )
+        code = 23 * code + xscale_.hashCode();
+        code = 23 * code + yscale_.hashCode();
+        code = 23 * code + ( xflip_ ? 4 : 0 )
                          + ( yflip_ ? 8 : 0 );
         code = 23 * code + Arrays.hashCode( xticks_ );
         code = 23 * code + Arrays.hashCode( yticks_ );
@@ -458,8 +459,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
      *
      * @param  plotBounds  rectangle which the plot data should occupy
      * @param  aspect  surface view configuration
-     * @param  xlog   whether to use logarithmic scaling on X axis
-     * @param  ylog   whether to use logarithmic scaling on Y axis
+     * @param  xscale  scaling on X axis
+     * @param  yscale  scaling on Y axis
      * @param  xflip  whether to invert direction of X axis
      * @param  yflip  whether to invert direction of Y axis
      * @param  xlabel  text for labelling X axis
@@ -491,7 +492,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
      */
     public static PlaneSurface createSurface( Rectangle plotBounds,
                                               PlaneAspect aspect,
-                                              boolean xlog, boolean ylog,
+                                              Scale xscale, Scale yscale,
                                               boolean xflip, boolean yflip,
                                               String xlabel, String ylabel,
                                               DoubleUnaryOperator x2func,
@@ -514,47 +515,42 @@ public class PlaneSurface implements Surface, PlanarSurface {
         double dxhi = aspect.getXMax();
         double dylo = aspect.getYMin();
         double dyhi = aspect.getYMax();
-        Ticker xTicker = xlog ? BasicTicker.LOG : BasicTicker.LINEAR;
-        Ticker yTicker = ylog ? BasicTicker.LOG : BasicTicker.LINEAR;
+        Ticker xTicker = xscale.getTicker();
+        Ticker yTicker = yscale.getTicker();
 
         /* Fixed ratio of X/Y data scales.  Interpret this by ensuring that
          * all of both requested data ranges is included, and one of them is
          * extended if necessary to accommodate the extra graphics space.
-         * Only makes sense if both linear or both log. */
+         * Only makes much sense if both have the same scaling. */
         final TickRun xtickRun;
         final TickRun ytickRun;
-        if ( xyfactor > 0 && xlog == ylog ) {
-            boolean log = xlog;
+        if ( xyfactor > 0 && xscale.equals( yscale ) ) {
             double gx = gxhi - gxlo;
             double gy = gyhi - gylo;
-            double dx = log ? Math.log( dxhi / dxlo ) : dxhi - dxlo;
-            double dy = log ? Math.log( dyhi / dylo ) : dyhi - dylo;
-            double fadj = xyfactor * ( gy / dy ) / ( gx / dx );
+            double sxlo = xscale.dataToScale( dxlo );
+            double sxhi = xscale.dataToScale( dxhi );
+            double sylo = yscale.dataToScale( dylo );
+            double syhi = yscale.dataToScale( dyhi );
+            double sx = sxhi - sxlo;
+            double sy = syhi - sylo;
+            double fadj = xyfactor * ( gy / sy ) / ( gx / sx );
             if ( fadj > 1 ) {
-                double dyadj = dy * ( 1 * fadj - 1 );
-                if ( log ) {
-                    dylo *= Math.exp( -0.5 * dyadj );
-                    dyhi *= Math.exp( +0.5 * dyadj );
-                }
-                else {
-                    dylo += -0.5 * dyadj;
-                    dyhi += +0.5 * dyadj;
-                }
+                double dyadj = sy * ( 1 * fadj - 1 );
+                sylo += -0.5 * dyadj;
+                syhi += +0.5 * dyadj;
+                dylo = yscale.scaleToData( sylo );
+                dyhi = yscale.scaleToData( syhi );
             }
             else {
-                double dxadj = dx * ( 1 / fadj - 1 );
-                if ( log ) {
-                    dxlo *= Math.exp( -0.5 * dxadj );
-                    dxhi *= Math.exp( +0.5 * dxadj );
-                }
-                else {
-                    dxlo += -0.5 * dxadj;
-                    dxhi += +0.5 * dxadj;
-                }
+                double dxadj = sx * ( 1 / fadj - 1 );
+                sxlo += -0.5 * dxadj;
+                sxhi += +0.5 * dxadj;
+                dxlo = xscale.scaleToData( sxlo );
+                dxhi = xscale.scaleToData( sxhi );
             }
-            dx = log ? Math.log( dxhi / dxlo ) : dxhi - dxlo;
-            dy = log ? Math.log( dyhi / dylo ) : dyhi - dylo;
-            assert Math.abs( xyfactor * ( gy / dy ) / ( gx / dx ) - 1 ) < 1e-6;
+            assert Math.abs( xyfactor * ( gy / ( syhi - sylo ) )
+                                      / ( gx / ( sxhi - sxlo ) )
+                             - 1 ) < 1e-6;
             xtickRun = xTicker.getTicks( dxlo, dxhi, minor, captioner,
                                          orientpolicy.getOrientationsX(),
                                          plotBounds.width, 1 );
@@ -576,9 +572,9 @@ public class PlaneSurface implements Surface, PlanarSurface {
         Tick[] yticks = ytickRun.getTicks();
         Orientation xorient = xtickRun.getOrientation();
         Orientation yorient = ytickRun.getOrientation();
-        Axis xAxis = Axis.createAxis( gxlo, gxhi, dxlo, dxhi, xlog, xflip );
-        Axis yAxis = Axis.createAxis( gylo, gyhi, dylo, dyhi, ylog,
-                                      yflip ^ PlaneAxisAnnotation.INVERT_Y );
+        Axis xAxis = new Axis( gxlo, gxhi, dxlo, dxhi, xscale, xflip );
+        Axis yAxis = new Axis( gylo, gyhi, dylo, dyhi, yscale,
+                               yflip ^ PlaneAxisAnnotation.INVERT_Y );
         TickRun x2tickRun =
               x2func == null
             ? ( shadow ? new TickRun( PlotUtil.getShadowTicks( xticks ),
@@ -606,7 +602,7 @@ public class PlaneSurface implements Surface, PlanarSurface {
                              ? null
                              : y2tickRun.getOrientation();
         return new PlaneSurface( gxlo, gxhi, gylo, gyhi, dxlo, dxhi, dylo, dyhi,
-                                 xlog, ylog, xflip, yflip,
+                                 xscale, yscale, xflip, yflip,
                                  xticks, yticks, xorient, yorient,
                                  xlabel, ylabel,
                                  x2ticks, y2ticks, x2orient, y2orient,

@@ -56,6 +56,7 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotScene;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -685,13 +686,13 @@ public class PlotSession<P,A> {
             CubeSurface csurf = (CubeSurface) surf;
             Rectangle gbox = csurf.getPlotBounds();
             int npix = Math.max( gbox.width, gbox.height );
-            boolean[] logFlags = csurf.getLogFlags();
+            Scale[] scales = csurf.getScales();
             double[][] rlimits = new double[ 3 ][];
             for ( int id = 0; id < 3; id++ ) {
                 double[] lims = csurf.getDataLimits( id );
                 String[] slims =
                     PlotUtil.formatAxisRangeLimits( lims[ 0 ], lims[ 1 ],
-                                                    logFlags[ id ], npix );
+                                                    scales[ id ], npix );
                 rlimits[ id ] = new double[] {
                     Double.parseDouble( slims[ 0 ] ),
                     Double.parseDouble( slims[ 1 ] ),

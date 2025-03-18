@@ -97,6 +97,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
 import uk.ac.starlink.ttools.plot2.Slow;
@@ -2163,11 +2164,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 if ( idim > 0 ) {
                     sbuf.append( " AND " );
                 }
+                Scale scale = logFlags_[ idim ] ? Scale.LOG : Scale.LINEAR;
                 String[] limits =
                     PlotUtil.formatAxisRangeLimits( dlims_[ idim ][ 0 ],
                                                     dlims_[ idim ][ 1 ],
-                                                    logFlags_[ idim ],
-                                                    npixs_[ idim ] );
+                                                    scale, npixs_[ idim ] );
                 sbuf.append( varNames[ idim ] )
                     .append( " BETWEEN " )
                     .append( limits[ 0 ] )

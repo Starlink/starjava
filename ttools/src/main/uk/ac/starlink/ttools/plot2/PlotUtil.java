@@ -572,7 +572,7 @@ public class PlotUtil {
         /* Pad the ranges with a bit of space. */
         if ( doPad ) {
             for ( int idim = 0; idim < nDataDim; idim++ ) {
-                padRange( ranges[ idim ], scales[ idim ].isPositiveDefinite() );
+                padRange( ranges[ idim ], scales[ idim ] );
             }
         }
     }
@@ -618,19 +618,6 @@ public class PlotUtil {
             range.submit( scaleValue( lo, hi, 0 - loPadFrac, scale ) );
             range.submit( scaleValue( lo, hi, 1 + hiPadFrac, scale ) );
         }
-    }
-
-    /**
-     * Pads a data range to provide a bit of extra space at each end
-     * using a standard padding fraction.
-     * If one of the limits extends nearly or exactly to zero,
-     * it is padded to (very nearly) zero instead of adding a fixed amount.
-     *
-     * @param  range  range to pad
-     * @param  logFlag  true for logarithmic scaling, false for linear
-     */
-    public static void padRange( Range range, boolean logFlag ) {
-        padRange( range, logFlag ? Scale.LOG : Scale.LINEAR );
     }
 
     /**
@@ -1201,32 +1188,27 @@ public class PlotUtil {
 
     /**
      * Formats a pair of values representing data bounds of a range
-     * along a graphics axis. nge.  The number of pixels separating the
+     * along a graphics axis.  The number of pixels separating the
      * values is used to determine the formatting precision.
      *
-     * @param  lo   data lower bound
-     * @param  hi   data upper bound
-     * @param  isLog  true for logarithmic axis, false for linear
+     * @param  dlo   data lower bound
+     * @param  dhi   data upper bound
+     * @param  scale   axis scaling
      * @param   npix   approximate number of pixels covered by the range
      * @return   2-element array giving (lower,upper) bounds formatted
      *           and ready for presentation to the user
      */
-    public static String[] formatAxisRangeLimits( double lo, double hi,
-                                                  boolean isLog, int npix ) {
-        if ( isLog ) {
-            double dl = ( Math.log( hi ) - Math.log( lo ) ) / npix;
-            return new String[] {
-                formatNumber( lo, Math.min( lo * dl, lo / dl ) ),
-                formatNumber( hi, Math.min( hi * dl, hi / dl ) ),
-            };
-        }
-        else {
-            double eps = ( hi - lo ) / npix;
-            return new String[] {
-                formatNumber( lo, eps ),
-                formatNumber( hi, eps ),
-            };
-        }
+    public static String[] formatAxisRangeLimits( double dlo, double dhi,
+                                                  Scale scale, int npix ) {
+        double slo = scale.dataToScale( dlo );
+        double shi = scale.dataToScale( dhi );
+        double spix = ( shi - slo ) / npix;
+        return new String[] {
+            formatNumber( dlo,
+                          Math.abs( scale.scaleToData( slo + spix ) - dlo ) ),
+            formatNumber( dhi,
+                          Math.abs( scale.scaleToData( shi + spix ) - dhi ) ),
+        };
     }
 
     /**
