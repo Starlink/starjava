@@ -9,6 +9,7 @@ import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -126,8 +127,8 @@ public class PlanePlotWindow
         public double[][] getDataLimits( Surface surf ) {
             return ((PlanarSurface) surf).getDataLimits();
         }
-        public boolean[] getLogFlags( Surface surf ) {
-            return ((PlanarSurface) surf).getLogFlags();
+        public Scale[] getScales( Surface surf ) {
+            return ((PlanarSurface) surf).getScales();
         }
         public int[] getPixelDims( Surface surf ) {
             Rectangle bounds = surf.getPlotBounds();

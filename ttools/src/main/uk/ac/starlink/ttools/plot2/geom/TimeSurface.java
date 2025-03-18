@@ -233,8 +233,8 @@ public class TimeSurface implements Surface, PlanarSurface {
         return captioner_;
     }
 
-    public boolean[] getLogFlags() {
-        return new boolean[] { false, yscale_.isPositiveDefinite() };
+    public Scale[] getScales() {
+        return new Scale[] { Scale.TIME, yscale_ };
     }
 
     public boolean[] getFlipFlags() {

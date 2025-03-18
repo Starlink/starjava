@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.plot2;
 
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Surface;
 
 /**
@@ -35,10 +36,10 @@ public interface CartesianRanger {
      * of the hypercube corresponding to a given plot surface.
      *
      * @param   surf  plot surface
-     * @return   ndim-element array, false for linear or true for logarithmic
+     * @return   ndim-element array giving scalings
      *           for each axis of hypercube
      */
-    boolean[] getLogFlags( Surface surf );
+    Scale[] getScales( Surface surf );
 
     /**
      * Returns the notional size in pixels for each axis

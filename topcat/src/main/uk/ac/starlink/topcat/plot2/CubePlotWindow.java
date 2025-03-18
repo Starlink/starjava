@@ -99,13 +99,8 @@ public class CubePlotWindow
                 csurf.getDataLimits( 2 ),
             };
         }
-        public boolean[] getLogFlags( Surface surf ) {
-            Scale[] scales = ((CubeSurface) surf).getScales();
-            return new boolean[] {
-                scales[ 0 ].isPositiveDefinite(),
-                scales[ 1 ].isPositiveDefinite(),
-                scales[ 2 ].isPositiveDefinite(),
-            };
+        public Scale[] getScales( Surface surf ) {
+            return ((CubeSurface) surf).getScales();
         }
         public int[] getPixelDims( Surface surf ) {
             Rectangle bounds = ((CubeSurface) surf).getPlotBounds();

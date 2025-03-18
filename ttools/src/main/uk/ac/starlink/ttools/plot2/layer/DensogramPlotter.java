@@ -245,7 +245,7 @@ public class DensogramPlotter
     }
 
     protected ReportMap getPixel1dReport( Pixel1dPlan plan, DensoStyle style,
-                                          boolean xLog ) {
+                                          Scale xScale ) {
         Axis xAxis = plan.xAxis_;
         BinSizer sizer = style.sizer_;
         double[] dlimits = xAxis.getDataLimits();

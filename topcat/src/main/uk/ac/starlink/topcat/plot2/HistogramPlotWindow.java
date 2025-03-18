@@ -387,9 +387,7 @@ public class HistogramPlotWindow
             PlaneSurface surface =
                 (PlaneSurface) plotPanel.getLatestSurface( iz );
             double[] xbounds = surface.getDataLimits()[ 0 ];
-            boolean ylogFlag = surface.getLogFlags()[ 1 ];
-            Scale yscale = surface.getLogFlags()[ 1 ] ? Scale.LOG
-                                                      : Scale.LINEAR;
+            Scale yscale = surface.getScales()[ 1 ];
             PlotUtil.padRange( yrange, yscale );
             double[] ybounds =
                 yrange.getFiniteBounds( yscale.isPositiveDefinite() );
@@ -413,9 +411,10 @@ public class HistogramPlotWindow
          * the bars. */
         Range yRange = new Range();
         Surface surface = plotPanel.getSurface( iz );
-        boolean isLog = surface instanceof PlaneSurface
-                     && ((PlaneSurface) surface ).getLogFlags()[ 1 ];
-        yRange.submit( isLog ? 1 : 0 );
+        boolean isPosDef =
+               surface instanceof PlaneSurface
+            && ((PlaneSurface) surface).getScales()[ 1 ].isPositiveDefinite();
+        yRange.submit( isPosDef ? 1 : 0 );
 
         /* Get the heights of the entries in the bin data table.
          * This will cover the HistogramPlotter layers. */

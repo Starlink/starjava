@@ -330,7 +330,6 @@ public abstract class TracePlotter
         int iXax = isHorizontal ? 0 : 1;
         int iYax = isHorizontal ? 1 : 0;
         Axis xAxis = surface.getAxes()[ iXax ];
-        boolean xLog = surface.getLogFlags()[ iXax ];
         boolean yFlip = surface.getFlipFlags()[ iYax ];
         boolean yInvert = isHorizontal ^ yFlip;
         double qlo = yInvert ? 1.0 - style.qhi_ : style.qlo_;
