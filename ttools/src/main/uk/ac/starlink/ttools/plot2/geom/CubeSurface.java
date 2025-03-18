@@ -17,7 +17,6 @@ import uk.ac.starlink.ttools.plot.Corner;
 import uk.ac.starlink.ttools.plot.Matrices;
 import uk.ac.starlink.ttools.plot.Plot3D;
 import uk.ac.starlink.ttools.plot2.Axis;
-import uk.ac.starlink.ttools.plot2.BasicTicker;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.Orientation;
@@ -52,7 +51,7 @@ public class CubeSurface implements Surface {
     private final int gyhi_;
     private final double[] dlos_;
     private final double[] dhis_;
-    private final boolean[] logFlags_;
+    private final Scale[] scales_;
     private final boolean[] flipFlags_;
     private final double[] rotmat_;
     private final double zoom_;
@@ -70,7 +69,7 @@ public class CubeSurface implements Surface {
     private final int gXoff_;
     private final int gYoff_;
     private final double[] dScales_;
-    private final double[] dOffs_;
+    private final double[] sOffs_;
 
     private static final TickLook TICKLOOK = TickLook.STANDARD;
 
@@ -83,7 +82,7 @@ public class CubeSurface implements Surface {
      * @param  gyhi   graphics Y coordinate upper bound
      * @param  dlos   3-element array giving X,Y,Z data coordinate lower bounds
      * @param  dhis   3-element array giving X,Y,Z data coordinate upper bounds
-     * @param  logFlags  3-element array flagging log scaling on X,Y,Z axis
+     * @param  scales  3-element array giving scaling on X,Y,Z axis
      * @param  flipFlags 3-element array flagging axis inversion for X,Y,Z
      * @param  rotmat  9-element array giving graphics space rotation matrix
      * @param  zoom    zoom factor, 1 means cube roughly fills plot bounds
@@ -99,7 +98,7 @@ public class CubeSurface implements Surface {
     @SuppressWarnings("this-escape")
     public CubeSurface( int gxlo, int gxhi, int gylo, int gyhi,
                         double[] dlos, double[] dhis,
-                        boolean[] logFlags, boolean[] flipFlags,
+                        Scale[] scales, boolean[] flipFlags,
                         double[] rotmat, double zoom, double xoff, double yoff,
                         Tick[][] ticks, Orientation[] orients, String[] labels,
                         Captioner captioner, boolean frame, boolean antialias ){
@@ -109,7 +108,7 @@ public class CubeSurface implements Surface {
         gyhi_ = gyhi;
         dlos_ = dlos.clone();
         dhis_ = dhis.clone();
-        logFlags_ = logFlags.clone();
+        scales_ = scales.clone();
         flipFlags_ = flipFlags.clone();
         rotmat_ = rotmat.clone();
         zoom_ = zoom;
@@ -127,16 +126,16 @@ public class CubeSurface implements Surface {
         gZoom_ = zoom_ * gScale_ / 2;
         gXoff_ = gxlo_ + (int) ( xoff_ * gScale_ ) + ( gxhi_ - gxlo_ ) / 2;
         gYoff_ = gylo_ + (int) ( yoff_ * gScale_ ) + ( gyhi_ - gylo_ ) / 2;
-        dOffs_ = new double[ 3 ];
+        sOffs_ = new double[ 3 ];
         dScales_ = new double[ 3 ];
         for ( int id = 0; id < 3; id++ ) {
-            boolean logFlag = logFlags_[ id ];
+            Scale scale = scales_[ id ];
             double flipMult = flipFlags_[ id ] ? -1 : +1;
             boolean flipFlag = flipFlags_[ id ];
-            double dlo = logFlag ? Math.log( dlos_[ id ] ) : dlos_[ id ];
-            double dhi = logFlag ? Math.log( dhis_[ id ] ) : dhis_[ id ];
-            dOffs_[ id ] = - ( dlo + dhi ) / 2;
-            dScales_[ id ] = flipMult / ( dhi - dlo ) * 2;
+            double slo = scale.dataToScale( dlos_[ id ] );
+            double shi = scale.dataToScale( dhis_[ id ] );
+            sOffs_[ id ] = - ( slo + shi ) / 2;
+            dScales_[ id ] = flipMult / ( shi - slo ) * 2;
             assert PlotUtil.approxEquals( -flipMult, normalise( dlos_, id ) );
             assert PlotUtil.approxEquals( +flipMult, normalise( dhis_, id ) );
         }
@@ -313,11 +312,10 @@ public class CubeSurface implements Surface {
     /**
      * Indicates the scaling along the three axes.
      *
-     * @return  3-element array giving X, Y, Z scaling flags:
-     *          false for linear, true for logarithmic
+     * @return  3-element array giving scaling on X, Y, Z axes
      */
-    public boolean[] getLogFlags() {
-        return logFlags_;
+    public Scale[] getScales() {
+        return scales_;
     }
 
     /**
@@ -340,9 +338,8 @@ public class CubeSurface implements Surface {
      */
     public double normalise( double[] dataPos, int idim ) {
         return dScales_[ idim ]
-             * ( dOffs_[ idim ]
-                   + ( logFlags_[ idim ] ? Math.log( dataPos[ idim ] )
-                                         : dataPos[ idim ] ) );
+             * ( sOffs_[ idim ]
+                   + ( scales_[ idim ].dataToScale( dataPos[ idim ] ) ) );
     }
 
     /**
@@ -354,8 +351,8 @@ public class CubeSurface implements Surface {
      * @return  data space coordinate
      */
     private double unNormalise( double[] normPos, int idim ) {
-        double x = normPos[ idim ] / dScales_[ idim ] - dOffs_[ idim ];
-        return logFlags_[ idim ] ? Math.exp( x ) : x;
+        double s = normPos[ idim ] / dScales_[ idim ] - sOffs_[ idim ];
+        return scales_[ idim ].scaleToData( s );
     }
 
     /**
@@ -547,9 +544,10 @@ public class CubeSurface implements Surface {
     CubeAspect centerZoom( double factor, boolean[] useFlags ) {
         double[] midPos = new double[ 3 ];
         for ( int i = 0; i < 3; i++ ) {
-            midPos[ i ] = logFlags_[ i ]
-                        ? Math.sqrt( dlos_[ i ] * dhis_[ i ] )
-                        : ( dlos_[ i ] + dhis_[ i ] ) / 2.0;
+            Scale scale = scales_[ i ];
+            double smid = 0.5 * ( scale.dataToScale( dlos_[ i ] ) 
+                                + scale.dataToScale( dhis_[ i ] ) );
+            midPos[ i ] = scale.scaleToData( smid );
         }
         return zoomData( midPos, useFlags[ 0 ] ? factor : 1,
                                  useFlags[ 1 ] ? factor : 1,
@@ -589,7 +587,7 @@ public class CubeSurface implements Surface {
         double[] dp1 = graphicsToData( gpos1 );
         double[][] limits = new double[ 3 ][];
         for ( int i = 0; i < 3; i++ ) {
-            Scale scale = logFlags_[ i ] ? Scale.LOG : Scale.LINEAR;
+            Scale scale = scales_[ i ];
             double s0 = scale.dataToScale( dp0[ i ] );
             double s1 = scale.dataToScale( dp1[ i ] );
             double s10 = s1 - s0;
@@ -746,24 +744,15 @@ public class CubeSurface implements Surface {
     CubeAspect center( double[] dpos ) {
         double[][] limits = new double[ 3 ][];
         for ( int i = 0; i < 3; i++ ) {
-            double dp = dpos[ i ];
-            double dlo = dlos_[ i ];
-            double dhi = dhis_[ i ];
-            final double min;
-            final double max;
-            if ( logFlags_[ i ] ) {
-                double dmid = Math.sqrt( dlo * dhi );
-                double offset = dp / dmid;
-                min = dlo * offset;
-                max = dhi * offset;
-            }
-            else {
-                double dmid = 0.5 * ( dlo + dhi );
-                double offset = dp - dmid;
-                min = dlo + offset;
-                max = dhi + offset;
-            }
-            limits[ i ] = new double[] { min, max };
+            Scale scale = scales_[ i ];
+            double sp = scale.dataToScale( dpos[ i ] );
+            double slo = scale.dataToScale( dlos_[ i ] );
+            double shi = scale.dataToScale( dhis_[ i ] );
+            double smid = 0.5 * ( slo + shi );
+            double soffset = sp - smid;
+            double dmin = scale.scaleToData( slo + soffset );
+            double dmax = scale.scaleToData( shi + soffset );
+            limits[ i ] = new double[] { dmin, dmax };
         }
         return new CubeAspect( limits[ 0 ], limits[ 1 ], limits[ 2 ],
                                rotmat_, zoom_, xoff_, yoff_ );
@@ -784,7 +773,7 @@ public class CubeSurface implements Surface {
         double[] factors = new double[] { xFactor, yFactor, zFactor };
         double[][] limits = new double[ 3 ][];
         for ( int i = 0; i < 3; i++ ) {
-            Scale scale = logFlags_[ i ] ? Scale.LOG : Scale.LINEAR;
+            Scale scale = scales_[ i ];
             double f1 = 1. / factors[ i ];
             double dlo = dlos_[ i ];
             double dhi = dhis_[ i ];
@@ -814,7 +803,7 @@ public class CubeSurface implements Surface {
                 && this.gyhi_ == other.gyhi_
                 && Arrays.equals( this.dlos_, other.dlos_ )
                 && Arrays.equals( this.dhis_, other.dhis_ )
-                && Arrays.equals( this.logFlags_, other.logFlags_ )
+                && Arrays.equals( this.scales_, other.scales_ )
                 && Arrays.equals( this.flipFlags_, other.flipFlags_ )
                 && this.zoom_ == other.zoom_
                 && this.xoff_ == other.xoff_
@@ -841,7 +830,7 @@ public class CubeSurface implements Surface {
         code = 23 * code + gyhi_;
         code = 23 * code + Arrays.hashCode( dlos_ );
         code = 23 * code + Arrays.hashCode( dhis_ );
-        code = 23 * code + Arrays.hashCode( logFlags_ );
+        code = 23 * code + Arrays.hashCode( scales_ );
         code = 23 * code + Arrays.hashCode( flipFlags_ );
         code = 23 * code + Float.floatToIntBits( (float) zoom_ );
         code = 23 * code + Float.floatToIntBits( (float) xoff_ );
@@ -1111,9 +1100,9 @@ public class CubeSurface implements Surface {
 
         /* Draw the annotated axis. */
         g2.drawLine( 0, 0, sx, 0 );
-        Axis ax = Axis.createAxis( 0, sx, dlos_[ iaxis ], dhis_[ iaxis ],
-                                   logFlags_[ iaxis ],
-                                   ( ! forward ) ^ flipFlags_[ iaxis ] );
+        Axis ax =
+            new Axis( 0, sx, dlos_[ iaxis ], dhis_[ iaxis ], scales_[ iaxis ],
+            ( ! forward ) ^ flipFlags_[ iaxis ] );
         ax.drawLabels( ticks_[ iaxis ], labels_[ iaxis ],
                        captioner_, TICKLOOK, orients_[ iaxis ], false, g2 );
         g2.setTransform( atf0 );
@@ -1152,7 +1141,7 @@ public class CubeSurface implements Surface {
      * @param  plotBounds  rectangle within which the plot should be drawn
      * @param  aspect   surface view configuration
      * @param  forceIso  if true, scaling is forced the same on all axes
-     * @param  logFlags  3-element array flagging log scaling on X,Y,Z axis
+     * @param  scales    3-element array giving axis scaling on X,Y,Z axis
      * @param  flipFlags 3-element array flagging axis inversion for X,Y,Z
      * @param  labels  3-element array of X,Y,Z axis label strings
      * @param  crowdFactors  3-element array giving tick mark crowding factors
@@ -1167,7 +1156,7 @@ public class CubeSurface implements Surface {
     public static CubeSurface createSurface( Rectangle plotBounds,
                                              CubeAspect aspect,
                                              boolean forceIso,
-                                             boolean[] logFlags,
+                                             Scale[] scales,
                                              boolean[] flipFlags,
                                              String[] labels,
                                              double[] crowdFactors,
@@ -1190,29 +1179,25 @@ public class CubeSurface implements Surface {
             dlos[ i ] = limits[ i ][ 0 ];
             dhis[ i ] = limits[ i ][ 1 ];
         }
-        if ( forceIso && isIsometricPossible( logFlags ) ) {
-            boolean isLog = logFlags[ 0 ];
-            double extent = isLog ? 1 : 0;
+        if ( forceIso && isIsometricPossible( scales ) ) {
+            Scale scale = scales[ 0 ];
+            double sextent = scale.isPositiveDefinite() ? 1 : 0;
             for ( int i = 0; i < 3; i++ ) {
-                extent = Math.max( extent, isLog ? dhis[ i ] / dlos[ i ]
-                                                 : dhis[ i ] - dlos[ i ] );
+                double slo = scale.dataToScale( dlos[ i ] );
+                double shi = scale.dataToScale( dhis[ i ] );
+                sextent = Math.max( sextent, shi - slo );
             }
             for ( int i = 0; i < 3; i++ ) {
-                if ( isLog ) {
-                    double pad = Math.sqrt( extent / ( dhis[i] / dlos[i] ) );
-                    dlos[ i ] /= pad;
-                    dhis[ i ] *= pad;
-                }
-                else {
-                    double pad = 0.5 * ( extent - ( dhis[ i ] - dlos[ i ] ) );
-                    dlos[ i ] -= pad;
-                    dhis[ i ] += pad;
-                }
+                double slo = scale.dataToScale( dlos[ i ] );
+                double shi = scale.dataToScale( dhis[ i ] );
+                double spad = 0.5 * ( sextent - ( shi - slo ) );
+                dlos[ i ] = scale.scaleToData( slo - spad );
+                dhis[ i ] = scale.scaleToData( shi + spad );
             }
         }
         for ( int i = 0; i < 3; i++ ) {
             TickRun tickRun =
-                  ( logFlags[ i ] ? BasicTicker.LOG : BasicTicker.LINEAR )
+                  scales[ i ].getTicker()
                  .getTicks( dlos[ i ], dhis[ i ], minor, captioner,
                             orientpolicy.getOrientationsX(), npix,
                             crowdFactors[ i ] );
@@ -1224,22 +1209,21 @@ public class CubeSurface implements Surface {
         double xoff = aspect.getOffsetX();
         double yoff = aspect.getOffsetY();
         return new CubeSurface( gxlo, gxhi, gylo, gyhi, dlos, dhis,
-                                logFlags, flipFlags, rotmat, zoom, xoff, yoff,
+                                scales, flipFlags, rotmat, zoom, xoff, yoff,
                                 ticks, orients, labels, captioner,
                                 frame, antialias );
     }
 
     /**
      * Determines whether forced isometric scaling makes sense for a given
-     * set of axis logarithmic flags.
+     * set of axis scales.
      *
-     * @param  logFlags  3-element array indicating logarithmic status for
-     *                   X, Y, Z axes
+     * @param  scales  3-element array giving scaling for X, Y, Z axes
      * @return  true iff forced isometric scaling is a possibility
      */
-    public static boolean isIsometricPossible( boolean[] logFlags ) {
-        return logFlags[ 0 ] == logFlags[ 1 ]
-            && logFlags[ 0 ] == logFlags[ 2 ];
+    public static boolean isIsometricPossible( Scale[] scales ) {
+        return scales[ 0 ].equals( scales[ 1 ] )
+            && scales[ 0 ].equals( scales[ 2 ] );
     }
 
     /**
@@ -1275,7 +1259,7 @@ public class CubeSurface implements Surface {
     private static class NeighbourData {
 
         final long[] counts_;        // number of points per group
-        final double[][] dposTots_;  // running totals of x,y,z values per group
+        final double[][] sposTots_;  // running totals of scaled x,y,z per group
 
         /**
          * Constructor.
@@ -1284,7 +1268,7 @@ public class CubeSurface implements Surface {
          */
         NeighbourData( int ngrp ) {
             counts_ = new long[ ngrp ];
-            dposTots_ = new double[ ngrp ][ 3 ];
+            sposTots_ = new double[ ngrp ][ 3 ];
         }
     }
 
@@ -1300,7 +1284,7 @@ public class CubeSurface implements Surface {
         private final int nthresh_;
         private final int[] thresh2s_;
         private final double maxThresh2_;
-        private final boolean[] logFlags_;
+        private final Scale[] scales_;
 
         /**
          * Constructor.
@@ -1318,7 +1302,7 @@ public class CubeSurface implements Surface {
             surf_ = surf;
             gpos0_ = gpos0;
             nthresh_ = thresh1s.length;
-            logFlags_ = surf.logFlags_;
+            scales_ = surf.scales_;
 
             /* Set up a lookup table of square distances for efficiency. */
             thresh2s_ = new int[ nthresh_ ];
@@ -1332,7 +1316,7 @@ public class CubeSurface implements Surface {
 
         public void accumulate( CoordSequence cseq, NeighbourData acc ) {
             double[] dpos = cseq.getCoords();
-            double[] dp0 = new double[ 3 ];
+            double[] sp0 = new double[ 3 ];
             Point2D.Double gp = new Point2D.Double();
             while ( cseq.next() ) {
                 if ( surf_.dataToGraphics( dpos, true, gp ) ) {
@@ -1345,14 +1329,14 @@ public class CubeSurface implements Surface {
                          * linearly (totalled and averaged). */
                         for ( int idim = 0; idim < 3; idim++ ) {
                             double d = dpos[ idim ];
-                            dp0[ idim ] = logFlags_[ idim ] ? Math.log( d ) : d;
+                            sp0[ idim ] = scales_[ idim ].dataToScale( d );
                         }
 
                         /* Accumulate for each threshold. */
                         for ( int ith = 0; ith < nthresh_; ith++ ) {
                             if ( d2 <= thresh2s_[ ith ] ) {
                                 for ( int idim = 0; idim < 3; idim++ ) {
-                                    acc.dposTots_[ ith ][ idim ] += dp0[ idim ];
+                                    acc.sposTots_[ ith ][ idim ] += sp0[ idim ];
                                 }
                                 acc.counts_[ ith ]++;
                             }
@@ -1366,7 +1350,7 @@ public class CubeSurface implements Surface {
             for ( int ith = 0; ith < nthresh_; ith++ ) {
                 acc1.counts_[ ith ] += acc2.counts_[ ith ];
                 for ( int id = 0; id < 3; id++ ) {
-                    acc1.dposTots_[ ith ][ id ] += acc2.dposTots_[ ith ][ id ];
+                    acc1.sposTots_[ ith ][ id ] += acc2.sposTots_[ ith ][ id ];
                 }
             }
             return acc1;
@@ -1389,8 +1373,8 @@ public class CubeSurface implements Surface {
                     double c1 = 1.0 / count;
                     double[] dposMean = new double[ 3 ];
                     for ( int id = 0; id < 3; id++ ) {
-                        double d = c1 * acc.dposTots_[ ith ][ id ];
-                        dposMean[ id ] = logFlags_[ id ] ? Math.exp( d ) : d;
+                        double s = c1 * acc.sposTots_[ ith ][ id ];
+                        dposMean[ id ] = scales_[ id ].scaleToData( s );
                     }
                     return dposMean;
                 }

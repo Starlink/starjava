@@ -327,7 +327,7 @@ public class CubeSurfaceFactory
         Profile p = profile;
         return CubeSurface
               .createSurface( plotBounds, aspect, p.forceiso_,
-                              new boolean[] { p.xlog_, p.ylog_, p.zlog_ },
+                              new Scale[] { p.xscale_, p.yscale_, p.zscale_ },
                               new boolean[] { p.xflip_, p.yflip_, p.zflip_ },
                               new String[] { p.xlabel_, p.ylabel_, p.zlabel_ },
                               new double[] { p.xcrowd_, p.ycrowd_, p.zcrowd_ },
@@ -374,6 +374,9 @@ public class CubeSurfaceFactory
         boolean xlog = isIso_ ? false : config.get( XLOG_KEY );
         boolean ylog = isIso_ ? false : config.get( YLOG_KEY );
         boolean zlog = isIso_ ? false : config.get( ZLOG_KEY );
+        Scale xscale = xlog ? Scale.LOG : Scale.LINEAR;
+        Scale yscale = ylog ? Scale.LOG : Scale.LINEAR;
+        Scale zscale = zlog ? Scale.LOG : Scale.LINEAR;
         boolean xflip = isIso_ ? false : config.get( XFLIP_KEY );
         boolean yflip = isIso_ ? false : config.get( YFLIP_KEY );
         boolean zflip = isIso_ ? false : config.get( ZFLIP_KEY );
@@ -389,7 +392,7 @@ public class CubeSurfaceFactory
         boolean frame = config.get( FRAME_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
         boolean antialias = config.get( StyleKeys.GRID_ANTIALIAS );
-        return new Profile( xlog, ylog, zlog,
+        return new Profile( xscale, yscale, zscale,
                             xflip, yflip, zflip,
                             xlabel, ylabel, zlabel,
                             forceiso, captioner, frame, xcrowd, ycrowd, zcrowd,
@@ -450,16 +453,9 @@ public class CubeSurfaceFactory
 
     public Range[] readRanges( Profile profile, PlotLayer[] layers,
                                DataStore dataStore ) {
-        boolean[] logFlags = profile.getLogFlags();
-        assert logFlags.length == 3;
         Range[] ranges = new Range[] { new Range(), new Range(), new Range() };
-        Scale[] scales = new Scale[] {
-            logFlags[ 0 ] ? Scale.LOG : Scale.LINEAR,
-            logFlags[ 1 ] ? Scale.LOG : Scale.LINEAR,
-            logFlags[ 2 ] ? Scale.LOG : Scale.LINEAR,
-        };
-        PlotUtil.extendCoordinateRanges( layers, ranges, scales, true,
-                                         dataStore );
+        PlotUtil.extendCoordinateRanges( layers, ranges, profile.getScales(),
+                                         true, dataStore );
         return ranges;
     }
 
@@ -511,15 +507,15 @@ public class CubeSurfaceFactory
             double[] xlimits =
                 PlaneSurfaceFactory
                .getLimits( config, XMIN_KEY, XMAX_KEY, XSUBRANGE_KEY,
-                           profile.xlog_, null );
+                           profile.xscale_, null );
             double[] ylimits =
                 PlaneSurfaceFactory
                .getLimits( config, YMIN_KEY, YMAX_KEY, YSUBRANGE_KEY,
-                           profile.ylog_, null );
+                           profile.yscale_, null );
             double[] zlimits =
                 PlaneSurfaceFactory
                .getLimits( config, ZMIN_KEY, ZMAX_KEY, ZSUBRANGE_KEY,
-                           profile.zlog_, null );
+                           profile.zscale_, null );
             return xlimits == null || ylimits == null || zlimits == null
                  ? null
                  : new double[][] { xlimits, ylimits, zlimits };
@@ -573,13 +569,13 @@ public class CubeSurfaceFactory
             return new double[][] {
                 PlaneSurfaceFactory
                .getLimits( config, XMIN_KEY, XMAX_KEY, XSUBRANGE_KEY,
-                           profile.xlog_, ranges[ 0 ] ),
+                           profile.xscale_, ranges[ 0 ] ),
                 PlaneSurfaceFactory
                .getLimits( config, YMIN_KEY, YMAX_KEY, YSUBRANGE_KEY,
-                           profile.ylog_, ranges[ 1 ] ),
+                           profile.yscale_, ranges[ 1 ] ),
                 PlaneSurfaceFactory
                .getLimits( config, ZMIN_KEY, ZMAX_KEY, ZSUBRANGE_KEY,
-                           profile.zlog_, ranges[ 2 ] ),
+                           profile.zscale_, ranges[ 2 ] ),
             };
         }
     }
@@ -727,9 +723,9 @@ public class CubeSurfaceFactory
      * {@link #createProfile createProfile} method.
      */
     public static class Profile {
-        private final boolean xlog_;
-        private final boolean ylog_;
-        private final boolean zlog_;
+        private final Scale xscale_;
+        private final Scale yscale_;
+        private final Scale zscale_;
         private final boolean xflip_;
         private final boolean yflip_;
         private final boolean zflip_;
@@ -749,9 +745,9 @@ public class CubeSurfaceFactory
         /**
          * Constructor.
          *
-         * @param  xlog   whether to use logarithmic scaling on X axis
-         * @param  ylog   whether to use logarithmic scaling on Y axis
-         * @param  zlog   whether to use logarithmic scaling on Z axis
+         * @param  xscale   scaling on X axis
+         * @param  yscale   scaling on Y axis
+         * @param  zscale   scaling on X axis
          * @param  xflip  whether to invert direction of X axis
          * @param  yflip  whether to invert direction of Y axis
          * @param  zflip  whether to invert direction of Z axis
@@ -772,16 +768,16 @@ public class CubeSurfaceFactory
          * @param  minor   whether to paint minor tick marks on axes
          * @param  antialias  whether to antialias grid lines and text
          */
-        public Profile( boolean xlog, boolean ylog, boolean zlog,
+        public Profile( Scale xscale, Scale yscale, Scale zscale,
                         boolean xflip, boolean yflip, boolean zflip,
                         String xlabel, String ylabel, String zlabel,
                         boolean forceiso, Captioner captioner, boolean frame,
                         double xcrowd, double ycrowd, double zcrowd,
                         OrientationPolicy orientpolicy, boolean minor,
                         boolean antialias ) {
-            xlog_ = xlog;
-            ylog_ = ylog;
-            zlog_ = zlog;
+            xscale_ = xscale;
+            yscale_ = yscale;
+            zscale_ = zscale;
             xflip_ = xflip;
             yflip_ = yflip;
             zflip_ = zflip;
@@ -802,10 +798,10 @@ public class CubeSurfaceFactory
         /**
          * Returns a 3-element array giving X, Y and Z log flags.
          *
-         * @return   (xlog, ylog, zlog) array
+         * @return   (xscale, yscale, zscale) array
          */
-        public boolean[] getLogFlags() {
-            return new boolean[] { xlog_, ylog_, zlog_ };
+        public Scale[] getScales() {
+            return new Scale[] { xscale_, yscale_, zscale_ };
         }
 
         /**

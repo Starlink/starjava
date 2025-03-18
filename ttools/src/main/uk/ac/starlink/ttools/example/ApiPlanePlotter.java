@@ -12,6 +12,7 @@ import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.Padding;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
 import uk.ac.starlink.ttools.plot2.Trimming;
 import uk.ac.starlink.ttools.plot2.ZoneContent;
@@ -99,8 +100,8 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
          * those things about the geometry and appearance of the plot
          * axes which will not change with window resizing, zooming etc. */
         PlaneSurfaceFactory surfFact = new PlaneSurfaceFactory();
-        boolean xlog = false;
-        boolean ylog = false;
+        Scale xscale = Scale.LINEAR;
+        Scale yscale = Scale.LINEAR;
         boolean xflip = false;
         boolean yflip = false;
         String xlabel = "X axis";
@@ -120,7 +121,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         Color gridColor = null;
         Color axlabelColor = Color.BLACK;
         PlaneSurfaceFactory.Profile profile =
-            new PlaneSurfaceFactory.Profile( xlog, ylog, xflip, yflip,
+            new PlaneSurfaceFactory.Profile( xscale, yscale, xflip, yflip,
                                              xlabel, ylabel, x2func, y2func,
                                              x2label, y2label, captioner,
                                              annotateFlags, xyfactor,

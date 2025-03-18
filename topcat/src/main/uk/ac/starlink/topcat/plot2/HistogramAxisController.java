@@ -171,7 +171,7 @@ public class HistogramAxisController
     @Override
     protected boolean logChanged( PlaneSurfaceFactory.Profile prof1,
                                   PlaneSurfaceFactory.Profile prof2 ) {
-        return ! Arrays.equals( prof1.getLogFlags(), prof2.getLogFlags() );
+        return logChanged( prof1.getScales(), prof2.getScales() );
     }
 
     @Override

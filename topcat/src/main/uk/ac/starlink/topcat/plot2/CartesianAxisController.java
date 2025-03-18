@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.plot2;
 
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 
@@ -118,4 +119,24 @@ public abstract class CartesianAxisController<P,A> extends AxisController<P,A> {
      *               or vice versa
      */
     protected abstract boolean logChanged( P prof1, P prof2 );
+
+    /**
+     * Determines whether the logarithmic (actually: positive definite)
+     * status has changed for any of the elements of two matched Scale arrays.
+     *
+     * @param  scales1  first array of axis scales
+     * @param  scales2  second array of axis scales, same size as first
+     * @return  true iff the logarithmic status has changed between
+     *          first and second array of any of the elements
+     */
+    public static boolean logChanged( Scale[] scales1, Scale[] scales2 ) {
+        assert scales1.length == scales2.length;
+        for ( int i = 0; i < scales1.length; i++ ) {
+            if ( scales1[ i ].isPositiveDefinite() !=
+                 scales2[ i ].isPositiveDefinite() ) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
