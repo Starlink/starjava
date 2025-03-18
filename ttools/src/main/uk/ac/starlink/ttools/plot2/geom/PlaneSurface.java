@@ -271,9 +271,8 @@ public class PlaneSurface implements Surface, PlanarSurface {
         return new double[][] { { dxlo_, dxhi_ }, { dylo_, dyhi_ } };
     }
 
-    public boolean[] getLogFlags() {
-        return new boolean[] { xscale_.isPositiveDefinite(),
-                               yscale_.isPositiveDefinite() };
+    public Scale[] getScales() {
+        return new Scale[] { xscale_, yscale_ };
     }
 
     public boolean[] getFlipFlags() {

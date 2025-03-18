@@ -2112,7 +2112,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private static class RangeDescriber {
         final int ndim_;
         final double[][] dlims_;
-        final boolean[] logFlags_;
+        final Scale[] scales_;
         final int[] npixs_;
 
         /**
@@ -2124,7 +2124,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         RangeDescriber( CartesianRanger ranger, Surface surf ) {
             ndim_ = ranger.getDimCount();
             dlims_ = ranger.getDataLimits( surf );
-            logFlags_ = ranger.getLogFlags( surf );
+            scales_ = ranger.getScales( surf );
             npixs_ = ranger.getPixelDims( surf );
         }
 
@@ -2145,7 +2145,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                             .betweenExpression( varNames[ idim ],
                                                 dlims_[ idim ][ 0 ],
                                                 dlims_[ idim ][ 1 ],
-                                                logFlags_[ idim ],
+                                                scales_[ idim ],
                                                 npixs_[ idim ] ) );
             }
             return sbuf.toString();
@@ -2164,7 +2164,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 if ( idim > 0 ) {
                     sbuf.append( " AND " );
                 }
-                Scale scale = logFlags_[ idim ] ? Scale.LOG : Scale.LINEAR;
+                Scale scale = scales_[ idim ];
                 String[] limits =
                     PlotUtil.formatAxisRangeLimits( dlims_[ idim ][ 0 ],
                                                     dlims_[ idim ][ 1 ],

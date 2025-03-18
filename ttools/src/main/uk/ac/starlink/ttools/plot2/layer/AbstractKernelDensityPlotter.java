@@ -177,10 +177,10 @@ public abstract class AbstractKernelDensityPlotter
 
         /* Work out the Y axis base of the bars in graphics coordinates. */
         Axis yAxis = surface.getAxes()[ isY ? 0 : 1 ];
-        boolean yLog = surface.getLogFlags()[ isY ? 0 : 1 ];
+        Scale yScale = surface.getScales()[ isY ? 0 : 1 ];
         boolean yFlip = surface.getFlipFlags()[ isY ? 0 : 1 ];
         int gy0;
-        if ( yLog ) {
+        if ( yScale.isPositiveDefinite() ) {
             double[] dyLimits = surface.getDataLimits()[ isY ? 0 : 1 ];
             double dy0 = yAxis.dataToGraphics( dyLimits[ 0 ] );
             gy0 = (int) ( yFlip ? dy0 - 2 : dy0 + 2 );
@@ -339,7 +339,7 @@ public abstract class AbstractKernelDensityPlotter
 
     protected ReportMap getPixel1dReport( Pixel1dPlan plan,
                                           KDenseStyle style,
-                                          boolean xLog ) {
+                                          Scale xScale ) {
         BinArray binArray = plan.binArray_;
         Axis xAxis = plan.xAxis_;
         Kernel1d kernel = style.createKernel( xAxis );

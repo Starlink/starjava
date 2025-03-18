@@ -257,12 +257,12 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
      *
      * @param   plan  plotting plan
      * @param   style  plot style
-     * @param   xLog  true iff X axis is logarithmic
+     * @param   xScale  scaling on X axis
      * @return  report info, may be null
      * @see   uk.ac.starlink.ttools.plot2.Drawing#getReport
      */
     protected abstract ReportMap getPixel1dReport( Pixel1dPlan plan, S style,
-                                                   boolean xLog );
+                                                   Scale xScale );
 
     /**
      * Returns the combination mode configuration key for this plotter.
@@ -298,7 +298,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
                 }
                 final PlanarSurface pSurf = (PlanarSurface) surface;
                 final Axis xAxis = pSurf.getAxes()[ isY ? 1 : 0 ];
-                final boolean xLog = pSurf.getLogFlags()[ isY ? 1 : 0 ];
+                final Scale xScale = pSurf.getScales()[ isY ? 1 : 0 ];
                 final int xpad = getPixelPadding( style, pSurf );
                 final Combiner combiner = getCombiner( style );
                 return new Drawing() {
@@ -338,7 +338,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
                     public ReportMap getReport( Object plan ) {
                         return plan instanceof Pixel1dPlan
                              ? getPixel1dReport( (Pixel1dPlan) plan,
-                                                 style, xLog )
+                                                 style, xScale )
                              : null;
                     }
                 };
