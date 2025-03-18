@@ -483,18 +483,24 @@ public class UploadStage implements Stage {
         if ( clazz == String.class ) {
             nullable = false;
             String[] sdata = (String[]) data;
-            int size = 0;
+            int size = sdata[ 0 ].length();
             for ( int i = 0; i < sdata.length; i++ ) {
-                size = Math.max( size, sdata[ i ].length() );
+                if ( sdata[ i ].length() != size ) {
+                    size = -1;
+                }
             }
-            cinfo.setElementSize( size );
+            if ( size >= 0 ) {
+                cinfo.setElementSize( size );
+            }
         }
         else if ( clazz.isArray() ) {
             nullable = false;
-            int size = 0;
+            int size = Array.getLength( Array.get( data, 0 ) );
             for ( int i = 0; i < Array.getLength( data ); i++ ) {
                 Object item = Array.get( data, i );
-                size = Math.max( size, Array.getLength( item ) );
+                if ( Array.getLength( Array.get( data, i ) ) != size ) {
+                    size = -1;
+                }
             }
             cinfo.setShape( new int[] { size } );
         }

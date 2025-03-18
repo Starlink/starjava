@@ -15810,6 +15810,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix problem with <code>taplint</code> upload table.</li>
     </ul>
     </p></dd>
 
