@@ -11,8 +11,8 @@ public class TickerTest extends TestCase {
         int npix = 400;
         int glo = 1000;
         Axis masterAxis =
-            Axis.createAxis( glo, glo + npix, dlo, dhi, false, false );
-        Ticker basicTicker = BasicTicker.LINEAR;
+             new Axis( glo, glo + npix, dlo, dhi, Scale.LINEAR, false );
+        Ticker basicTicker = masterAxis.getScale().getTicker();
         SlaveTicker slaveTicker =
             new SlaveTicker( masterAxis, x -> x*x, basicTicker );
         Orientation[] orients = new Orientation[] { Orientation.X };

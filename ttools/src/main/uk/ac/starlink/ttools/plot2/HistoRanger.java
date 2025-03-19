@@ -451,7 +451,8 @@ public class HistoRanger implements Ranger {
                      * but currently behaviour elsewhere in the plotting
                      * framework means that doesn't work out. */
                     double[] cliprange =
-                        PlotUtil.scaleRange( lo_, hi_, dataclip, isLog );
+                        PlotUtil.scaleRange( lo_, hi_, dataclip,
+                                             isLog ? Scale.LOG : Scale.LINEAR );
                     clipspan = limit( cliprange[ 0 ], cliprange[ 1 ] );
                 }
                 double[] clipbounds = clipspan.getFiniteBounds( isLog );

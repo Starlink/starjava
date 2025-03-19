@@ -17,6 +17,7 @@ import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.task.MapEnvironment;
 import uk.ac.starlink.ttools.task.TablePipe;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.util.LogUtils;
 import uk.ac.starlink.util.URLDataSource;
 
@@ -100,11 +101,11 @@ public class GaiaTest extends TestCase {
         for ( int ip = 0; ip <= np; ip++ ) {
             double absPlx =
                 PlotUtil.scaleValue( absPlxMin, absPlxMax,
-                                     ip / (double) np, true );
+                                     ip / (double) np, Scale.LOG );
             for ( int ie = 0; ie <= ne; ie++ ) {
                 double eplx =
                     PlotUtil.scaleValue( eplxMin, eplxMax,
-                                         ie / (double) ne, true );
+                                         ie / (double) ne, Scale.LOG );
 
                 compareDistances( absPlx, eplx, 1350 );
                 compareDistances( absPlx, eplx, 110 );

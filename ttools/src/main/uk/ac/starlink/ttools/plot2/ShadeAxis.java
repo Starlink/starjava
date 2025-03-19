@@ -194,9 +194,10 @@ public class ShadeAxis {
             box_ = rampBounds;
             ticks_ = ticks;
             orient_ = orient;
-            axis_ = Axis.createAxis( box_.y, box_.y + box_.height,
-                                     scaler.getLow(), scaler.getHigh(),
-                                     scaler.isLogLike(), false );
+            axis_ = new Axis( box_.y, box_.y + box_.height,
+                              scaler.getLow(), scaler.getHigh(),
+                              scaler.isLogLike() ? Scale.LOG : Scale.LINEAR,
+                              false );
         }
 
         public int getIconWidth() {

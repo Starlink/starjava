@@ -180,8 +180,9 @@ public class AuxScale {
         }
         else {
             double[] bounds = span.getFiniteBounds( isLog );
-            bounds = PlotUtil.scaleRange( bounds[ 0 ], bounds[ 1 ],
-                                          subrange, isLog );
+            bounds = PlotUtil
+                    .scaleRange( bounds[ 0 ], bounds[ 1 ], subrange,
+                                 isLog ? Scale.LOG : Scale.LINEAR );
             return span.limit( bounds[ 0 ], bounds[ 1 ] );
         }
     }
