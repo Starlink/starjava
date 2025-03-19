@@ -22,17 +22,17 @@ import uk.ac.starlink.util.Bi;
  */
 public abstract class PrefixTicker implements Ticker {
 
-    private final boolean logFlag_;
+    private final Scale scale_;
     private final BasicTicker basicTicker_;
 
     /**
      * Constructor.
      *
-     * @param   logFlag   true for logarithmic axis, false for linear
+     * @param   scale    axis scaling
      */
-    public PrefixTicker( boolean logFlag ) {
-        logFlag_ = logFlag;
-        basicTicker_ = new BasicTicker( logFlag ) {
+    public PrefixTicker( Scale scale ) {
+        scale_ = scale;
+        basicTicker_ = new BasicTicker( scale ) {
             public BasicTicker.Rule createRule( double dlo, double dhi,
                                                 double approxMajorCount,
                                                 int adjust ) {
@@ -119,7 +119,7 @@ public abstract class PrefixTicker implements Ticker {
          * they are not so crowded as to overlap.  If that's not possible,
          * back off to lower crowding levels until we have
          * something suitable. */
-        Axis axis = Axis.createAxis( 0, npix, dlo, dhi, logFlag_, false );
+        Axis axis = new Axis( 0, npix, dlo, dhi, scale_, false );
         int maxAdjust = -5;
         for ( int adjust = 0 ; adjust > maxAdjust; adjust-- ) {
             Rule rule = createRule( dlo, dhi, approxMajorCount, adjust );
