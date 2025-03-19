@@ -21,12 +21,12 @@ import uk.ac.starlink.util.Pair;
  */
 public abstract class BasicTicker implements Ticker {
 
-    private final boolean logFlag_;
+    private final Scale scale_;
 
     private static final double TOL = 1e-10;
 
     /** Ticker for linear axes. */
-    public static final BasicTicker LINEAR = new BasicTicker( false ) {
+    public static final BasicTicker LINEAR = new BasicTicker( Scale.LINEAR ) {
         public Rule createRule( double dlo, double dhi,
                                 double approxMajorCount, int adjust ) {
             return new CheckRule( createLinearRule( dlo, dhi, approxMajorCount,
@@ -40,7 +40,7 @@ public abstract class BasicTicker implements Ticker {
     };
 
     /** Ticker for logarithmic axes. */
-    public static final BasicTicker LOG = new BasicTicker( true ) {
+    public static final BasicTicker LOG = new BasicTicker( Scale.LOG ) {
         public Rule createRule( double dlo, double dhi,
                                 double approxMajorCount, int adjust ) {
             if ( dlo <= 0 || dhi <= 0 ) {
@@ -60,10 +60,10 @@ public abstract class BasicTicker implements Ticker {
     /**
      * Constructor.
      *
-     * @param  logFlag  true for logarithmic axis, false for linear
+     * @param  scale   axis scaling
      */
-    protected BasicTicker( boolean logFlag ) {
-        logFlag_ = logFlag;
+    protected BasicTicker( Scale scale ) {
+        scale_ = scale;
     }
 
     /**
@@ -133,7 +133,7 @@ public abstract class BasicTicker implements Ticker {
          * they are not so crowded as to overlap.  If that's not possible,
          * back off to lower crowding levels until we have
          * something suitable. */
-        Axis axis = Axis.createAxis( 0, npix, dlo, dhi, logFlag_, false );
+        Axis axis = new Axis( 0, npix, dlo, dhi, scale_, false );
         int maxAdjust = -5;
         for ( int adjust = 0 ; adjust > maxAdjust; adjust-- ) {
             Rule rule = createRule( dlo, dhi, approxMajorCount, adjust );

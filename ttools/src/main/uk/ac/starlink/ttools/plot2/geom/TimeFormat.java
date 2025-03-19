@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.Caption;
 import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PrefixTicker;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Ticker;
 
 /**
@@ -237,7 +238,7 @@ public abstract class TimeFormat {
          */
         protected NumericTimeFormat( String name, String description ) {
             super( name, description );
-            ticker_ = new BasicTicker( false ) {
+            ticker_ = new BasicTicker( Scale.LINEAR ) {
                 public Rule createRule( double dlo, double dhi,
                                         double approxMajorCount, int adjust ) {
                     final Rule rule =
@@ -415,7 +416,7 @@ public abstract class TimeFormat {
          * @param  locale  calendar locale
          */
         Iso8601Ticker( DateLevelSet levelSet, TimeZone tz, Locale locale ) {
-            super( false );
+            super( Scale.LINEAR );
             levelSet_ = levelSet;
             tz_ = tz;
             locale_ = locale;
