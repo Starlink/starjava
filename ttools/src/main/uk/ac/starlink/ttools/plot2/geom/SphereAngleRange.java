@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
 
 /**
  * Represents the range of angular coordinates that are covered
@@ -128,7 +129,7 @@ public class SphereAngleRange {
      * @return  true iff zero is near the center of the specified range
      */
     private static boolean zeroNearCenter( double dlo, double dhi ) {
-        double zf = PlotUtil.unscaleValue( dlo, dhi, 0.0, false );
+        double zf = PlotUtil.unscaleValue( dlo, dhi, 0.0, Scale.LINEAR );
         return zf > 0.25 && zf < 0.75;
     }
 

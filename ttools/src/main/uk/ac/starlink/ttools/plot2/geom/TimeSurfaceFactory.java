@@ -284,7 +284,7 @@ public class TimeSurfaceFactory
             }
             double[] tlimits =
                 PlotUtil.scaleRange( tlo1, thi1, config.get( TSUBRANGE_KEY ),
-                                    false );
+                                     Scale.TIME );
 
             /* Determine range on the Y axis using standard technique. */
             Range yrange = ranges == null ? new Range() : ranges[ 1 ];

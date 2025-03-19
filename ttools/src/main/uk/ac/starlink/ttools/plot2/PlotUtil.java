@@ -933,22 +933,6 @@ public class PlotUtil {
     }
 
     /**
-     * Returns a value determined by a fixed range and a fractional scale point
-     * within it.  If the point is zero the minimum value is returned,
-     * and if it is one the maximum value is returned.
-     *
-     * @param  min  minimum of range
-     * @param  max  maximum of range
-     * @param  frac  fractional scale point
-     * @param  isLog  true iff the range is logarithmic
-     * @return   data value corresponding to fractional scale point
-     */
-    public static double scaleValue( double min, double max, double frac,
-                                     boolean isLog ) {
-        return scaleValue( min, max, frac, isLog ? Scale.LOG : Scale.LINEAR );
-    }
-
-    /**
      * Does linear scaling between two values.
      * This convenience method just calls
      * <code>scaleValue(min, max, frac, false)</code>
@@ -981,24 +965,6 @@ public class PlotUtil {
     }
 
     /**
-     * Returns the proportional position of a point within a fixed range.
-     * If the point is equal to the minimum value zero is returned,
-     * and if it is equal to the maximum value one is returned.
-     * This is the inverse function of {@link #scaleValue}.
-     *
-     * @param  min  minimum of range
-     * @param  max  maximum of range
-     * @param  point  data value
-     * @param  isLog  true iff the range is logarithmic
-     * @return  fractional value corresponding to data point
-     */
-    public static double unscaleValue( double min, double max, double point,
-                                       boolean isLog ) {
-        return unscaleValue( min, max, point,
-                             isLog ? Scale.LOG : Scale.LINEAR );
-    }
-
-    /**
      * Returns a range determined by a fixed range and a subrange within it.
      * If the subrange is 0-1 the output range is the input range.
      *
@@ -1014,22 +980,6 @@ public class PlotUtil {
             scaleValue( min, max, subrange.getLow(), scale ),
             scaleValue( min, max, subrange.getHigh(), scale ),
         };
-    }
-
-    /**
-     * Returns a range determined by a fixed range and a subrange within it.
-     * If the subrange is 0-1 the output range is the input range.
-     *
-     * @param  min  minimum of range
-     * @param  max  maximum of range
-     * @param  subrange  sub-range, both ends between 0 and 1
-     * @param  isLog  true iff the range is logarithmic
-     * @return   2-element array giving low, high values of scaled range
-     */
-    public static double[] scaleRange( double min, double max,
-                                       Subrange subrange, boolean isLog ) {
-        return scaleRange( min, max, subrange,
-                           isLog ? Scale.LOG : Scale.LINEAR );
     }
 
     /**

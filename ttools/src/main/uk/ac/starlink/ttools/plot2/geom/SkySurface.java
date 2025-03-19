@@ -265,7 +265,7 @@ public class SkySurface implements Surface {
         double fend = 0.20;
         int x0 = (int) PlotUtil.scaleValue( gxlo_, gxhi_, fstart );
         int y0 = (int) PlotUtil.scaleValue( gylo_, gyhi_, 1. - fstart );
-        int x1 = (int) PlotUtil.scaleValue( gxlo_, gxhi_, fend, false );
+        int x1 = (int) PlotUtil.scaleValue( gxlo_, gxhi_, fend );
         Point gp0 = new Point( x0, y0 );
         Point gp1 = new Point( x1, y0 );
 

@@ -7,8 +7,6 @@ import java.awt.geom.AffineTransform;
 
 /**
  * Does geometry and drawing for a straight line axis.
- * Linear and logarithmic scales are supported; obtain one using
- * the {@link #createAxis createAxis} factory method.
  *
  * @author   Mark Taylor
  * @since    12 Feb 2013
@@ -325,23 +323,6 @@ public class Axis {
             textBounds = combineRect( textBounds, titleBounds );
         }
         return textBounds;
-    }
-
-    /**
-     * Factory method to create a linear or logarithmic axis.
-     *
-     * @param   glo   minimum graphics coordinate
-     * @param   ghi   maximum graphics coordinate
-     * @param   dlo   minimum data coordinate
-     * @param   dhi   maximum data coordinate
-     * @param   log   true for logarithmic scaling, false for linear
-     * @param   flip  true if the data coordinates should run
-     *                in the opposite sense to the graphics coordinates
-     */
-    public static Axis createAxis( int glo, int ghi, double dlo, double dhi,
-                                   boolean log, boolean flip ) {
-        return new Axis( glo, ghi, dlo, dhi,
-                         log ? Scale.LOG : Scale.LINEAR, flip );
     }
 
     /**
