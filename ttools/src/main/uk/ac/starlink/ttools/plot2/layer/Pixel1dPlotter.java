@@ -578,8 +578,9 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
         double extent = unit.getExtent();
         double d1 = axis.graphicsToData( gmid - 0.5 ) / extent;
         double d2 = axis.graphicsToData( gmid + 0.5 ) / extent;
-        return Math.abs( axis.isLinear() ? d2 - d1
-                                         : Math.log( d2 ) - Math.log( d1 ) );
+        return Math.abs( axis.getScale().isLinear()
+                             ? d2 - d1
+                             : Math.log( d2 ) - Math.log( d1 ) );
     }
 
     /**

@@ -14,12 +14,19 @@ import java.awt.geom.AffineTransform;
  * @since    12 Feb 2013
  */
 @Equality
-public abstract class Axis {
+public class Axis {
 
     private final int glo_;
     private final int ghi_;
     private final double dlo_;
     private final double dhi_;
+    private final Scale scale_;
+    private final boolean flip_;
+    private final double slo_;
+    private final double shi_;
+    private final double a_;
+    private final double a1_;
+    private final double b_;
 
     /**
      * Constructor.
@@ -28,8 +35,12 @@ public abstract class Axis {
      * @param   ghi  maximum graphics coordinate
      * @param   dlo  minimum data coordinate
      * @param   dhi  maximum data coordinate
+     * @param   scale  scaling function
+     * @param   flip  true if the data coordinates should run
+     *                in the opposite sense to the graphics coordinates
      */
-    protected Axis( int glo, int ghi, double dlo, double dhi ) {
+    public Axis( int glo, int ghi, double dlo, double dhi,
+                 Scale scale, boolean flip ) {
         if ( ! ( glo < ghi ) ) {
             throw new IllegalArgumentException( "Bad graphics bounds" );
         }
@@ -40,6 +51,13 @@ public abstract class Axis {
         ghi_ = ghi;
         dlo_ = dlo;
         dhi_ = dhi;
+        scale_ = scale;
+        flip_ = flip;
+        slo_ = scale_.dataToScale( dlo_ );
+        shi_ = scale_.dataToScale( dhi_ );
+        a_ = ( flip ? -1.0 : 1.0 ) * ( ghi - glo ) / ( shi_ - slo_ );
+        a1_ = 1.0 / a_;
+        b_ = ( flip ? ghi : glo ) - a_ * slo_;
     }
 
     /**
@@ -48,7 +66,9 @@ public abstract class Axis {
      * @param   d  data coordinate
      * @return  graphics coordinate
      */
-    public abstract double dataToGraphics( double d );
+    public double dataToGraphics( double d ) {
+        return b_ + a_ * scale_.dataToScale( d );
+    }
 
     /**
      * Converts a graphics position on this axis to a data coordinate.
@@ -56,7 +76,9 @@ public abstract class Axis {
      * @param   g  graphics coordinate
      * @return   data coordinate
      */
-    public abstract double graphicsToData( double g );
+    public double graphicsToData( double g ) {
+        return scale_.scaleToData( ( g - b_ ) * a1_ );
+    }
 
     /**
      * Returns the data bounds that result from performing an axis zoom
@@ -66,7 +88,17 @@ public abstract class Axis {
      * @param  factor  amount to zoom
      * @return   2-element array giving new new data min/max coordinates
      */
-    public abstract double[] dataZoom( double d0, double factor );
+    public double[] dataZoom( double d0, double factor ) {
+        double f1 = 1. / factor;
+        double s0 = scale_.dataToScale( d0 );
+        double zlo = scale_.scaleToData( s0 + ( slo_ - s0 ) * f1 );
+        double zhi = scale_.scaleToData( s0 + ( shi_ - s0 ) * f1 );
+        return ( zlo > ( scale_.isPositiveDefinite() ? Double.MIN_VALUE
+                                                     : -Double.MAX_VALUE ) &&
+                 zhi < Double.MAX_VALUE )
+             ? new double[] { zlo, zhi }
+             : new double[] { dlo_, dhi_ };
+    }
 
     /**
      * Returns the data bounds that result from performing an axis pan
@@ -76,7 +108,18 @@ public abstract class Axis {
      * @param  d1  destination data position
      * @return   2-element array giving new new data min/max coordinates
      */
-    public abstract double[] dataPan( double d0, double d1 );
+    public double[] dataPan( double d0, double d1 ) {
+        double s0 = scale_.dataToScale( d0 );
+        double s1 = scale_.dataToScale( d1 );
+        double s10 = s1 - s0;
+        double plo = scale_.scaleToData( slo_ - s10 );
+        double phi = scale_.scaleToData( shi_ - s10 );
+        return ( plo > ( scale_.isPositiveDefinite() ? Double.MIN_VALUE
+                                                     : -Double.MAX_VALUE ) &&
+                 phi < Double.MAX_VALUE )
+             ? new double[] { plo, phi }
+             : new double[] { dlo_, dhi_ };
+    }
 
     /**
      * Returns the axis graphics bounds.
@@ -101,11 +144,23 @@ public abstract class Axis {
     }
 
     /**
-     * Indicates whether the scaling on this axis is linear.
+     * Returns the scale used by this axis.
      *
-     * @return  true  iff this axis is linear
+     * @return   scale
      */
-    public abstract boolean isLinear();
+    public Scale getScale() {
+        return scale_;
+    }
+
+    /**
+     * Indicates whether this axis has the scaling reversed.
+     *
+     * @return   true iff graphics and data coordinates increase in
+     *                opposite directions
+     */
+    public boolean isFlip() {
+        return flip_;
+    }
 
     /**
      * Draws an axis title and supplied tickmarks.
@@ -141,6 +196,34 @@ public abstract class Axis {
                                      boolean invert ) {
         return calculateLabels( ticks, title, captioner, TickLook.NONE,
                                 orient, invert, null );
+    }
+
+    @Override
+    public int hashCode() {
+        int code = 22985;
+        code = 23 * code + glo_;
+        code = 23 * code + ghi_;
+        code = 23 * code + Float.floatToIntBits( (float) dlo_ );
+        code = 23 * code + Float.floatToIntBits( (float) dhi_ );
+        code = 23 * code + scale_.hashCode();
+        code = 23 * code + ( flip_ ? 11 : 17 );
+        return code;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( o instanceof Axis ) {
+            Axis other = (Axis) o;
+            return this.glo_ == other.glo_
+                && this.ghi_ == other.ghi_
+                && this.dlo_ == other.dlo_
+                && this.dhi_ == other.dhi_
+                && this.scale_.equals( other.scale_ )
+                && this.flip_ == other.flip_;
+        }
+        else {
+            return false;
+        }
     }
 
     /**
@@ -257,8 +340,8 @@ public abstract class Axis {
      */
     public static Axis createAxis( int glo, int ghi, double dlo, double dhi,
                                    boolean log, boolean flip ) {
-        return log ? new LogAxis( glo, ghi, dlo, dhi, flip )
-                   : new LinearAxis( glo, ghi, dlo, dhi, flip );
+        return new Axis( glo, ghi, dlo, dhi,
+                         log ? Scale.LOG : Scale.LINEAR, flip );
     }
 
     /**
@@ -295,163 +378,6 @@ public abstract class Axis {
                 rect.add( r2 );
             }
             return rect;
-        }
-    }
-
-    /**
-     * Axis implementation with linear scaling.
-     */
-    private static class LinearAxis extends Axis {
-        private final double a_;
-        private final double a1_;
-        private final double b_;
-        private final double dlo_;
-        private final double dhi_;
-
-        /**
-         * Constructor.
-         *
-         * @param   glo   minimum graphics coordinate
-         * @param   ghi   maximum graphics coordinate
-         * @param   dlo   minimum data coordinate
-         * @param   dhi   maximum data coordinate
-         * @param   flip  true if the data coordinates should run
-         *                in the opposite sense to the graphics coordinates
-         */
-        public LinearAxis( int glo, int ghi, double dlo, double dhi,
-                           boolean flip ) {
-            super( glo, ghi, dlo, dhi );
-            dlo_ = dlo;
-            dhi_ = dhi;
-            a_ = ( flip ? -1.0 : +1.0 ) * ( ghi - glo ) / ( dhi - dlo );
-            a1_ = 1.0 / a_;
-            b_ = ( flip ? ghi : glo ) - a_ * dlo;
-        }
-
-        public boolean isLinear() {
-            return true;
-        }
-
-        public double dataToGraphics( double d ) {
-            return b_ + a_ * d;
-        }
-
-        public double graphicsToData( double g ) {
-            return ( g - b_ ) * a1_;
-        }
-
-        public double[] dataZoom( double d0, double factor ) {
-            return zoom( dlo_, dhi_, d0, factor, false );
-        }
-
-        public double[] dataPan( double d0, double d1 ) {
-            return pan( dlo_, dhi_, d0, d1, false );
-        }
-
-        @Override
-        public int hashCode() {
-            int code = 2359;
-            code = 23 * code + Float.floatToIntBits( (float) a_ );
-            code = 23 * code + Float.floatToIntBits( (float) b_ );
-            code = 23 * code + Float.floatToIntBits( (float) dlo_ );
-            code = 23 * code + Float.floatToIntBits( (float) dhi_ );
-            return code;
-        }
-
-        @Override
-        public boolean equals( Object o ) {
-            if ( o instanceof LinearAxis ) { 
-                LinearAxis other = (LinearAxis) o;
-                return this.a_ == other.a_
-                    && this.b_ == other.b_
-                    && this.dlo_ == other.dlo_
-                    && this.dhi_ == other.dhi_;
-            }
-            else {
-                return false;
-            }
-        }
-    }
-
-    /**
-     * Axis implementation with logarithmic scaling.
-     */
-    private static class LogAxis extends Axis {
-        private final double a_;
-        private final double a1_;
-        private final double b_;
-        private final double dlo_;
-        private final double dhi_;
-
-        /**
-         * Constructor.
-         *
-         * @param   glo   minimum graphics coordinate
-         * @param   ghi   maximum graphics coordinate
-         * @param   dlo   minimum data coordinate
-         * @param   dhi   maximum data coordinate
-         * @param   flip  true if the data coordinates should run
-         *                in the opposite sense to the graphics coordinates
-         */
-        public LogAxis( int glo, int ghi, double dlo, double dhi,
-                        boolean flip ) {
-            super( glo, ghi, dlo, dhi );
-            dlo_ = dlo;
-            dhi_ = dhi;
-            a_ = ( flip ? -1.0 : +1.0 )
-               * ( ghi - glo ) / ( Math.log( dhi ) - Math.log( dlo ) );
-            b_ = ( flip ? ghi : glo ) - a_ * Math.log( dlo );
-            a1_ = 1.0 / a_;
-        }
-
-        public boolean isLinear() {
-            return false;
-        }
-
-        public double dataToGraphics( double d ) {
-
-            /* Check explicitly for zero values and return a NaN rather than
-             * -Infinity.  This is a bit questionable, and there may be a
-             * case for changing the behaviour, but it avoids having to
-             * make a number of checks for infinite values downstream. */
-            return d > 0 ? b_ + a_ * Math.log( d )
-                         : Double.NaN;
-        }
-
-        public double graphicsToData( double g ) {
-            return Math.exp( ( g - b_ ) * a1_ );
-        }
-
-        public double[] dataZoom( double d0, double factor ) {
-            return zoom( dlo_, dhi_, d0, factor, true );
-        }
-
-        public double[] dataPan( double d0, double d1 ) {
-            return pan( dlo_, dhi_, d0, d1, true );
-        }
-
-        @Override
-        public int hashCode() {
-            int code = -242442;
-            code = 23 * code + Float.floatToIntBits( (float) a_ );
-            code = 23 * code + Float.floatToIntBits( (float) b_ );
-            code = 23 * code + Float.floatToIntBits( (float) dlo_ );
-            code = 23 * code + Float.floatToIntBits( (float) dhi_ );
-            return code;
-        }
-
-        @Override
-        public boolean equals( Object o ) {
-            if ( o instanceof LogAxis ) {
-                LogAxis other = (LogAxis) o;
-                return this.a_ == other.a_
-                    && this.b_ == other.b_
-                    && this.dlo_ == other.dlo_
-                    && this.dhi_ == other.dhi_;
-            }
-            else {
-                return false;
-            }
         }
     }
 
