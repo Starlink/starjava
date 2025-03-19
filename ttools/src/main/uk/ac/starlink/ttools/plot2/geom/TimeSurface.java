@@ -16,6 +16,7 @@ import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.Surround;
 import uk.ac.starlink.ttools.plot2.Tick;
@@ -129,7 +130,7 @@ public class TimeSurface implements Surface, PlanarSurface {
         gridcolor_ = gridcolor;
         tformat_ = tformat;
         annotateflags_ = annotateflags;
-        tAxis_ = Axis.createAxis( gxlo_, gxhi_, dtlo_, dthi_, false, false );
+        tAxis_ = new Axis( gxlo_, gxhi_, dtlo_, dthi_, Scale.TIME, false );
         yAxis_ = Axis.createAxis( gylo_, gyhi_, dylo_, dyhi_, ylog_,
                                   yflip_ ^ INVERT_Y );
         assert this.equals( this );
@@ -517,7 +518,7 @@ public class TimeSurface implements Surface, PlanarSurface {
         Tick[] yticks = ytickRun.getTicks();
         Orientation torient = ttickRun.getOrientation();
         Orientation yorient = ytickRun.getOrientation();
-        Axis tAxis = Axis.createAxis( gxlo, gxhi, dtlo, dthi, false, false );
+        Axis tAxis = new Axis( gxlo, gxhi, dtlo, dthi, Scale.TIME, false );
         Axis yAxis = Axis.createAxis( gylo, gyhi, dylo, dyhi, ylog,
                                       yflip ^ PlaneAxisAnnotation.INVERT_Y );
         TickRun t2tickRun =

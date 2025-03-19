@@ -350,7 +350,8 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
         double gmid = 0.5 * ( glimits[ 0 ] + glimits[ 1 ] );
         double d1 = axis.graphicsToData( gmid - 0.5 );
         double d2 = axis.graphicsToData( gmid + 0.5 );
-        double extent = Math.abs( axis.isLinear() ? d2 - d1 : d2 / d1 );
+        double extent = Math.abs( axis.getScale().isLinear() ? d2 - d1
+                                                             : d2 / d1 );
 
         /* Try to round the result so that it's not sensitive to tiny
          * precision-related changes in the calculations.

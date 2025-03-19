@@ -321,7 +321,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      */
     private static void addPixelSize( ReportMap report, ReportKey<Double> key,
                                       Axis axis ) {
-        if ( axis.isLinear() ) {
+        if ( axis.getScale().isLinear() ) {
             int g0 = axis.getGraphicsLimits()[ 0 ];
             double pixSize = Math.abs( axis.graphicsToData( g0 + 1 )
                                      - axis.graphicsToData( g0 ) );

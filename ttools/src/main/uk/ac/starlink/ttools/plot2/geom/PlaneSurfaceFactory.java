@@ -863,9 +863,10 @@ public class PlaneSurfaceFactory
             lineList.add( new LabelledLine( gp10, gp1, yLabel ) );
 
             /* If the plane is linear in both directions, add a vector line.
-             * If either axis is logarithmic, there isn't really a sensible
+             * If either axis is nonlinear, there isn't really a sensible
              * metric on the space, so in that case don't. */
-            if ( has2dMetric_ && xAxis.isLinear() && yAxis.isLinear() ) {
+            if ( has2dMetric_ && xAxis.getScale().isLinear()
+                              && yAxis.getScale().isLinear() ) {
                 double gx01 = gx1 - gx0;
                 double gy01 = gy1 - gy0;
                 double g01 = Math.hypot( gx01, gy01 );
