@@ -2,6 +2,9 @@ package uk.ac.starlink.ttools.plot2;
 
 import java.util.function.DoubleUnaryOperator;
 import uk.ac.starlink.ttools.jel.JELFunction;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
+import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
+import uk.ac.starlink.ttools.plot2.config.ScaleConfigKey;
 import uk.ac.starlink.util.TestCase;
 
 public class ScaleTest extends TestCase {
@@ -56,7 +59,10 @@ public class ScaleTest extends TestCase {
             createAsinhScale( 19.9 ),
             createAsinhScale( 0.3 ),
         };
+        ScaleConfigKey ck =
+            new ScaleConfigKey( new ConfigMeta( "scale", "Scale" ) );
         for ( Scale scale : scales ) {
+            assertEquals( scale, ck.stringToValue( ck.valueToString( scale ) ));
             DoubleUnaryOperator exprFunc =
                 new JELFunction( "x", scale.dataToScaleExpression( "x" ) );
             for ( double i = 0; i < 10; i++ ) {
@@ -69,6 +75,31 @@ public class ScaleTest extends TestCase {
                                   exprFunc.applyAsDouble( -value ),
                                   1e-8 );
                 }
+            }
+        }
+    }
+
+    public void testKeySerialization() throws ConfigException {
+        ScaleConfigKey ck =
+            new ScaleConfigKey( new ConfigMeta( "scale", "Scale" ) );
+        assertEquals( Scale.LOG, ck.stringToValue( "log" ) );
+        assertEquals( Scale.LINEAR, ck.stringToValue( "linear()" ) );
+        assertEquals( ScaleType.SYMLOG.createScale( new double[] {} ),
+                      ck.stringToValue( "symlog" ) );
+        assertEquals( ScaleType.SYMLOG.createScale( new double[] { 0.25 } ),
+                      ck.stringToValue( "symlog(.25)" ) );
+        assertEquals( ScaleType.SYMLOG.createScale( new double[] { 0.25, 3 } ),
+                      ck.stringToValue( "symlog( .25 , 3.0 )" ) );
+        for ( String txt : new String[] {
+                 "doofus", "linear(3)", "asinh(12/3)", "symlog(.25,3,9)",
+                 "asinh(0)", "symlog(1,-1)", "symlog(0)",
+              } ) {
+            try {
+                ck.stringToValue( txt );
+                fail( "Valid scale specification??: " + txt );
+            }
+            catch ( ConfigException e ) {
+                // good
             }
         }
     }
