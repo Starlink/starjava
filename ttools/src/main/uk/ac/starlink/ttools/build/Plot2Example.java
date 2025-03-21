@@ -1353,7 +1353,7 @@ public class Plot2Example {
             new Plot2Example( "layer-contour", c, PlotTask.PLANE, new String[] {
                 "*in=" + TName.TGAS,
                 "*x=phot_g_mean_mag", "*y=phot_g_mean_flux_error", null,
-                "ylog=true", "xmax=14", "ymin=10", null,
+                "yscale=log", "xmax=14", "ymin=10", null,
                 "layer1=mark", "shading1=density", "densemap1=greyscale", null,
                 "*layer2=contour", "*scaling2=log", "*nlevel=6",
             } ),
@@ -1367,14 +1367,14 @@ public class Plot2Example {
             } ),
             new Plot2Example( "layer-fill", c, PlotTask.TIME, new String[] {
                 "*layer1=fill", "*in1=" + TName.IERS,
-                "*t1=decYear", "*y1=lodErr", "ylog=true", null,
+                "*t1=decYear", "*y1=lodErr", "yscale=log", null,
                 "texttype=latex", "fontsize=16",
             } ),
             new Plot2Example( "layer-quantile", c, PlotTask.PLANE,
                               new String[] {
                 "*in=" + TName.TGAS,
                 "*x=phot_g_mean_mag", "*y=phot_g_mean_flux_error", null,
-                "ylog=true", "xmax=15", "ymin=10", null,
+                "yscale=log", "xmax=15", "ymin=10", null,
                 "layer.d=mark", "color.d=99ff99", null,
                 "*layer.q4=quantile", "*quantiles.q4=0.25,0.75",
                 "*color.q4=magenta", "*transparency.q4=0.35", null,
@@ -1405,7 +1405,7 @@ public class Plot2Example {
             new Plot2Example( "layer-densogram", c, PlotTask.PLANE,
                               new String[] {
                 "*in=" + TName.TGAS, "*x=hypot(pmra_error,pmdec_error)", null,
-                "xlog=true", "*normalise=maximum", null,
+                "xscale=log", "*normalise=maximum", null,
                 "color=grey", "layer1=histogram", "layer2=kde", null,
                 "*layer3=densogram", "*densemap3=skyblue-yellow-hotpink",
                 "*densefunc3=log", null,
@@ -1472,7 +1472,7 @@ public class Plot2Example {
                 "auxfunc=linear", "auxmap=plasma", "auxclip=0,1", null,
                 "xpix=600", "ypix=320", null,
                 "tmin=2007-11-01T00", "tmax=2007-11-01T12", null,
-                "ylog=true", "ylabel=Frequency/Hz", "ymin=8e4", "ymax=2e7",
+                "yscale=log", "ylabel=Frequency/Hz", "ymin=8e4", "ymax=2e7",
             } ),
             new Plot2Example( "layer-yerror", c, PlotTask.TIME, new String[] {
                 "*in=" + TName.ACE, "*t=epoch", "*y=Bmag", null,
