@@ -44,15 +44,27 @@ public class CubeSurfaceFactory
 
     private final boolean isIso_;
 
-    /** Config key for X axis log scale flag. */
+    /** Config key for X axis scale flag. */
+    public static final ConfigKey<Scale> XSCALE_KEY =
+        PlaneSurfaceFactory.createAxisScaleKey( "X" );
+
+    /** Config key for Y axis scale flag. */
+    public static final ConfigKey<Scale> YSCALE_KEY =
+        PlaneSurfaceFactory.createAxisScaleKey( "Y" );
+
+    /** Config key for Z axis scale flag. */
+    public static final ConfigKey<Scale> ZSCALE_KEY =
+        PlaneSurfaceFactory.createAxisScaleKey( "Z" );
+
+    /** Config key for X axis deprecated log scale flag. */
     public static final ConfigKey<Boolean> XLOG_KEY =
         PlaneSurfaceFactory.createAxisLogKey( "X" );
 
-    /** Config key for Y axis log scale flag. */
+    /** Config key for Y axis deprecated log scale flag. */
     public static final ConfigKey<Boolean> YLOG_KEY =
         PlaneSurfaceFactory.createAxisLogKey( "Y" );
 
-    /** Config key for Z axis log scale flag. */
+    /** Config key for Z axis deprecated log scale flag. */
     public static final ConfigKey<Boolean> ZLOG_KEY =
         PlaneSurfaceFactory.createAxisLogKey( "Z" );
 
@@ -339,6 +351,9 @@ public class CubeSurfaceFactory
         List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         if ( ! isIso_ ) {
             list.addAll( Arrays.asList( new ConfigKey<?>[] {
+                XSCALE_KEY,
+                YSCALE_KEY,
+                ZSCALE_KEY,
                 XLOG_KEY,
                 YLOG_KEY,
                 ZLOG_KEY,
@@ -371,12 +386,18 @@ public class CubeSurfaceFactory
     }
 
     public Profile createProfile( ConfigMap config ) {
-        boolean xlog = isIso_ ? false : config.get( XLOG_KEY );
-        boolean ylog = isIso_ ? false : config.get( YLOG_KEY );
-        boolean zlog = isIso_ ? false : config.get( ZLOG_KEY );
-        Scale xscale = xlog ? Scale.LOG : Scale.LINEAR;
-        Scale yscale = ylog ? Scale.LOG : Scale.LINEAR;
-        Scale zscale = zlog ? Scale.LOG : Scale.LINEAR;
+        Scale xscale =
+              isIso_
+            ? Scale.LINEAR
+            : PlaneSurfaceFactory.getScale( XSCALE_KEY, XLOG_KEY, config );
+        Scale yscale =
+              isIso_
+            ? Scale.LINEAR
+            : PlaneSurfaceFactory.getScale( YSCALE_KEY, YLOG_KEY, config );
+        Scale zscale =
+              isIso_
+            ? Scale.LINEAR
+            : PlaneSurfaceFactory.getScale( ZSCALE_KEY, ZLOG_KEY, config );
         boolean xflip = isIso_ ? false : config.get( XFLIP_KEY );
         boolean yflip = isIso_ ? false : config.get( YFLIP_KEY );
         boolean zflip = isIso_ ? false : config.get( ZFLIP_KEY );

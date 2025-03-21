@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import uk.ac.starlink.ttools.plot.Style;
@@ -37,7 +38,7 @@ public class TimeAxisController
         /* Log/flip tab. */
         mainControl.addSpecifierTab( "Coords",
                                      new ConfigSpecifier( new ConfigKey<?>[] {
-            TimeSurfaceFactory.YLOG_KEY,
+            TimeSurfaceFactory.YSCALE_KEY,
             TimeSurfaceFactory.YFLIP_KEY,
         } ) );
 
@@ -91,7 +92,14 @@ public class TimeAxisController
                                      new ConfigSpecifier( StyleKeys.CAPTIONER
                                                          .getKeys() ) );
 
-        assert assertHasKeys( surfFact.getProfileKeys() );
+        /* Check we have the keys specified by the surface factory,
+         * but exclude redundant/deprecated ones used for CLI
+         * backward compatibility. */
+        List<ConfigKey<?>> reqKeys =
+            new ArrayList<ConfigKey<?>>( Arrays.asList( surfFact
+                                                       .getProfileKeys() ) );
+        reqKeys.remove( TimeSurfaceFactory.YLOG_KEY );
+        assert assertHasKeys( reqKeys.toArray( new ConfigKey<?>[ 0 ] ) );
     }
 
     @Override

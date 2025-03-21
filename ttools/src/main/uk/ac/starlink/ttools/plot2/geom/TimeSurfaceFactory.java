@@ -93,7 +93,11 @@ public class TimeSurfaceFactory
     public static final ConfigKey<Subrange> YSUBRANGE_KEY =
         PlaneSurfaceFactory.YSUBRANGE_KEY;
 
-    /** Config key for Y axis log scale flag. */
+    /** Config key for Y axis scale flag. */
+    public static final ConfigKey<Scale> YSCALE_KEY =
+        PlaneSurfaceFactory.YSCALE_KEY;
+
+    /** Config key for deprecated Y axis log scale flag. */
     public static final ConfigKey<Boolean> YLOG_KEY =
         PlaneSurfaceFactory.YLOG_KEY;
 
@@ -185,6 +189,7 @@ public class TimeSurfaceFactory
     public ConfigKey<?>[] getProfileKeys() {
         List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.addAll( Arrays.asList( new ConfigKey<?>[] {
+            YSCALE_KEY,
             YLOG_KEY,
             YFLIP_KEY,
             TLABEL_KEY,
@@ -207,7 +212,8 @@ public class TimeSurfaceFactory
     }
 
     public Profile createProfile( ConfigMap config ) {
-        Scale yscale = config.get( YLOG_KEY ) ? Scale.LOG : Scale.LINEAR;
+        Scale yscale =
+            PlaneSurfaceFactory.getScale( YSCALE_KEY, YLOG_KEY, config );
         boolean yflip = config.get( YFLIP_KEY );
         String tlabel = config.get( TLABEL_KEY );
         String ylabel = config.get( YLABEL_KEY );
