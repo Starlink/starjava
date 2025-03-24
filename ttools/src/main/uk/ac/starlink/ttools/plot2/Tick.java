@@ -74,6 +74,8 @@ public class Tick {
 
     @Override
     public String toString() {
-        return value_ + "->\"" + label_.toText() + "\"";
+        return label_ == null
+             ? Double.toString( value_ )
+             : value_ + "->\"" + label_.toText() + "\"";
     }
 }
