@@ -15811,6 +15811,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dd><p>
     <ul>
     <li>Fix problem with <code>taplint</code> upload table.</li>
+    <li>Fix <ref id="Maths-asinh"><code>asinh</code></ref> function
+        to cope with large negative numbers.</li>
     </ul>
     </p></dd>
 

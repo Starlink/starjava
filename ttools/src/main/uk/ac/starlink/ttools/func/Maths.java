@@ -268,7 +268,12 @@ public class Maths {
      * @return result
      */
     public static double asinh( double x ) {
-        return Math.log( x + Math.sqrt( x * x + 1 ) );
+
+        /* The first expression here is mathematically correct,
+         * but experiences numerical difficulties for large negative x,
+         * so take advantage of the fact that the function is antisymmetric. */
+        return ! ( x < 0 ) ? Math.log( x + Math.sqrt( x * x + 1 ) )
+                           : - asinh( -x );
     }
 
     /**
