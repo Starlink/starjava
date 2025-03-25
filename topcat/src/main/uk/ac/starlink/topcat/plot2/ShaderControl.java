@@ -172,10 +172,6 @@ public class ShaderControl extends ConfigControl {
                                                   crowd, RAMP_WIDTH );
     }
 
-    public boolean isLog() {
-        return RAMP_KEYS.createValue( getConfig() ).getScaling().isLogLike();
-    }
-
     /**
      * Configures state according to the current state of the control stack.
      *
