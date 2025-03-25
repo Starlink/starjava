@@ -78,6 +78,10 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
      */
     public ComboBoxSpecifier( Class<V> clazz, Collection<V> options ) {
         this( clazz, new JComboBox<V>( new Vector<V>( options ) ), true, true );
+        if ( options.size() > comboBox_.getMaximumRowCount() &&
+             options.size() < 10 ) {
+            comboBox_.setMaximumRowCount( 10 );
+        }
         comboBox_.setSelectedIndex( 0 );
     }
 
