@@ -15823,6 +15823,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="plot2plane-xlog"><code>xlog</code></ref> etc
         can still be used, but are now deprecated in favour
         of these more flexible scaling parameters.</li>
+    <li>New option <code>asinh</code> for plot colour ramp axis scaling
+        in <ref id="plot2plane-auxfunc"><code>auxfunc</code></ref>
+        parameters etc.</li>
     </ul>
     </p></dd>
 

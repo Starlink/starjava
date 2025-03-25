@@ -9241,6 +9241,7 @@ It has the following options:
     <li><code>log</code></li>
     <li><code>histogram</code></li>
     <li><code>histolog</code></li>
+    <li><code>asinh</code></li>
     <li><code>square</code></li>
     <li><code>sqrt</code></li>
     <li><code>acos</code></li>
@@ -9250,9 +9251,12 @@ It has the following options:
     colour bar (though it can be restricted by using the 
     <label>Aux Subrange</label> control in the <label>Range</label> tab,
     described below).
-    The <code>linear</code>, <code>log</code>, <code>square</code>,
+    The <code>linear</code>, <code>log</code>, <code>asinh</code>,
+    <code>square</code>,
     <code>sqrt</code>, <code>acos</code> and <code>cos</code> options
-    just apply the named function to the full data range.
+    just apply the named function to the full data range,
+    in some cases with some normalisation.
+    Note that <code>log</code> scaling will ignore any negative values.
     The histogram options on the other hand use a scaling function
     that corresponds to the actual distribution of the data, so that
     there are about the same number of points (or pixels, or whatever
@@ -13236,11 +13240,13 @@ you to use it.
 <dt>Scaling</dt>
 <dd><p>Determines the function used to map the range of density values
     onto the colour map.
-    Options are <label>linear</label>,
-                <label>logarithmic</label>,
-                <label>square</label> and
+    Options are <label>log</label>,
+                <label>linear</label>,
+                <label>histogram</label>,
+                <label>asinh</label>,
                 <label>square root</label>,
-                <label>arc cosine</label>,
+                <label>square</label>
+                <label>arc cosine</label> and
                 <label>cosine</label>.
     </p></dd>
 <dt>Density Subrange</dt>
@@ -14613,6 +14619,7 @@ user-configurable options.  The options are:
                 <label>logarithmic</label>,
                 <label>histogram</label>,
                 <label>logarithmic histogram</label>,
+                <label>asinh</label>,
                 <label>square</label> and
                 <label>square root</label>,
                 <label>arc cosine</label>,
@@ -14881,6 +14888,7 @@ though only one can have an associated visible ramp.
                 <label>logarithmic</label>,
                 <label>histogram</label>,
                 <label>logarithmic histogram</label>,
+                <label>asinh</label>,
                 <label>square</label> and
                 <label>square root</label>,
                 <label>arc cosine</label>,
@@ -15026,9 +15034,10 @@ though only one can have an associated visible ramp.
                 <label>logarithmic</label>,
                 <label>histogram</label>,
                 <label>logarithmic histogram</label>,
-                <label>square</label> and
+                <label>asinh</label>,
+                <label>square</label>,
                 <label>square root</label>,
-                <label>arc cosine</label>,
+                <label>arc cosine</label> and
                 <label>cosine</label>.
     </p></dd>
 </dl>
@@ -34495,6 +34504,8 @@ introduced since the last version:
     <li>Provide more <ref id="ScaleType">axis scaling options</ref>:
         <label>asinh</label> and <label>symlog</label> as well as
         <label>linear</label> and <label>log</label>.</li>
+    <li>New option Asinh for <ref id="ShaderControl">Aux Axis</ref>
+        <label>Scaling</label> function.</li>
     </ul>
     </p></dd>
 
