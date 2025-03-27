@@ -1800,6 +1800,25 @@ public class Plot2Example {
                 "*leglabel_A=RRAB", "*leglabel_C=RRC", "*legseq=_A_m,_C_m",
                 "*legpos=1,1", "legend=true",
             } ),
+            new Plot2Example( "scales", c, PlotTask.PLANE, new String[] {
+                "xpix=650", "aspect=1", "grid=true", "minor=false",
+                null,
+                "xmin=-3.2", "xmax=10.5", "ymin=-3.2", "ymax=3.5", null,
+                "legend=true", "legpos=0.1,0.9",
+                "thick=4", "antialias=false", "texttype=antialias",
+                "layer1=function", "fexpr1=x", "leglabel1=x",
+                                   "color1=red", null,
+                "layer2=function", "fexpr2=x<.001?-1e10:log10(x)",
+                                   "leglabel2=log10(x)",
+                                   "color2=DodgerBlue", null,
+                "layer3=function", "fexpr3=asinh(x/2)/ln(10)",
+                                   "leglabel3=asinh(x/2)/ln(10)",
+                                   "color3=green", null,
+                "layer4=function", "fexpr4=symlog(1,1,x)",
+                                   "leglabel4=symlog(1,1,x)",
+                                   "color4=orange", null,
+                "seq=1,4,3,2",
+            } ),
         };
     }
 

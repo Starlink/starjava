@@ -338,6 +338,7 @@
            '&figs;ViewDatalinkActivationType.png'>
   <!ENTITY FIG.ServiceActivationType '&figs;ServiceActivationType.png'>
   <!ENTITY FIG.PlotTableActivationType '&figs;PlotTableActivationType.png'>
+  <!ENTITY FIG.ScaleTypes '&figs;ScaleTypes.png'>
 
   <!-- Example plots generated in stilts. -->
   <!ENTITY FIG.plot2-layer-mark '&figs;plot2-layer-mark.png'>
@@ -389,6 +390,7 @@
   <!ENTITY FIG.plot2-shading-weighted '&figs;plot2-shading-weighted.png'>
   <!ENTITY FIG.plot2-shading-paux '&figs;plot2-shading-paux.png'>
   <!ENTITY FIG.plot2-shading-pweighted '&figs;plot2-shading-pweighted.png'>
+  <!ENTITY FIG.plot2-scales '&figs;plot2-scales.png'>
   <!ENTITY FIG.colormaps-abs '&figs;colormaps-abs.svg'>
   <!ENTITY FIG.colormaps-noabs '&figs;colormaps-noabs.svg'>
 
@@ -8345,6 +8347,103 @@ unwieldy than they have to be.</p>
 
 </subsubsubsect>
 
+<subsubsubsect id="ScaleType">
+<subhead><title>Axis Scales</title></subhead>
+
+<p>Cartesian axes with various scaling options are used in the
+<ref id="PlanePlotWindow">Plane</ref>,
+<ref id="CubePlotWindow">Cube</ref> and
+<ref id="TimePlotWindow">Time</ref> plot windows.
+By default, these axes are scaled linearly, meaning a constant difference
+in data values maps to a constant distance on the plot axis,
+but other scalings can be chosen.
+</p>
+
+<p>The available options, mapping data coordinate <m>d</m> to a position
+on the graphical axis <m>g</m> are:
+<dl>
+<dt>Linear</dt>
+<dd><p>Linear scaling, <m>g &#x221d; d</m>.
+    </p></dd>
+<dt>Log</dt>
+<dd><p>Logarithmic scaling, <m>g &#x221d; log(d)</m>.
+    Note that only positions strictly greater than zero
+    can appear on the axis with this scaling,
+    since <m>log(x)</m> is negative infinity for <m>x=0</m>,
+    and undefined for <m>x&lt;0</m>.
+    </p></dd>
+<dt>Asinh</dt>
+<dd><p>Hyperbolic arcsine scaling, <m>g &#x221d; sinh<sup>-1</sup>(d/a)</m>.
+    This function approximates to linear near the origin,
+    and to positive or negative logarithmic
+    (<m>ln(d/2a)</m> or <m>-log(-d/2a)</m>)
+    for large positive or negative values.
+    The parameter <m>a</m> dictates the approximate value of
+    the smooth crossover between these regimes, and must be greater than zero.
+    This scaling can thus accommodate a wide dynamic range
+    like <label>Log</label>, but unlike Log it works with
+    negative as well as positive values.
+    This function is available from the expression language as
+    <code><ref id="Maths-asinh">asinh</ref>(x/a)</code>.
+    </p></dd>
+<dt>Symlog</dt>
+<dd><p>So-called Symmetric Logarithmic scaling,
+    <m>g &#x221d; {|d|&lt;= t : d/s;
+                    d &lt; -t : -s - log<sub>10</sub>(-d) + log<sub>10</sub>(t);
+                    d &gt;  t : s + log<sub>10</sub>(d) - log<sub>10</sub>(t)}
+    </m>. 
+    The parameters <m>t</m> and <m>s</m> are also known as <m>linthresh</m>
+    and <m>linscale</m> respectively.
+    This provides linear scaling within a distance <m>t</m>
+    of the origin, and positive or negative logarithmic scaling outside
+    of that region.
+    The <m>s</m> parameter is the ratio of the half-extent of the
+    linear region to the extent of a decade in the logarithmic region.
+    Both parameters must be greater than zero.
+    The transition between the two regimes is abrupt
+    and derivatives of the function there are in general discontinuous.
+    This function is available from the expression language as
+    <code><ref id="Maths-symlog">symlog</ref>(t,s,x)</code>.
+    It was copied from the 
+    <webref url="https://matplotlib.org/stable/gallery/scales/symlog_demo.html"
+            >matplotlib scale</webref> of the same name.
+    </p></dd>
+</dl>
+</p>
+
+<p>A plot comparing these scaling functions on linear axes is shown
+for reference below:
+</p>
+<figure>
+<caption><px>Scaling functions shown on linear axes.</px></caption>
+<figureimage src="&FIG.plot2-scales;"/>
+</figure>
+
+<p>These scales are selected for use
+in the <label>Coords</label> tab of the <label>Axis Control</label> for
+<ref id="PlaneAxisControl">Plane</ref>,
+<ref id="CubeAxisControl">Cube</ref> and
+<ref id="TimeAxisControl">Time</ref> plot windows.
+</p>
+
+<figure>
+<caption><px>2d scatter plot using asinh and symlog axis scalings</px></caption>
+<figureimage src="&FIG.ScaleTypes;"/>
+</figure>
+
+<p>You can select one of the options from the <label>Scale</label>
+selectors in the normal way using the drop-down list or the little
+left-right arrows to cycle through the choices.
+Some of these options (<label>Asinh</label> and <label>Symlog</label>)
+require parameters, and labelled entry boxes will appear next
+to the selector when they are selected.
+To adjust them you can either type in a number or use the tiny
+up-down arrows to step through larger or smaller values.
+Hovering over the entry box will pop up a tooltip explaining its meaning.
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="MeasurePanel">
 <subhead><title>Distance Measurement</title></subhead>
 
@@ -15505,9 +15604,10 @@ plane plot window has the following tabs:
 <p>The <label>Coords</label> tab controls the axis coordinates.
 It has the following options:
 <dl>
-<dt>X/Y Log</dt>
-<dd><p>If selected, horizontal/vertical axis coordinates are logarithmic,
-    otherwise they are linear.
+<dt>X/Y Scale</dt>
+<dd><p>Selects scaling (linear, log, asinh, symlog) for the
+    horizontal/vertical axis.
+    See <ref id="ScaleType"/>.
     </p></dd>
 <dt>X/Y Flip</dt>
 <dd><p>If selected, horizontal/vertical axis coordinate axes run in the
@@ -16291,9 +16391,9 @@ It has the following options:
     so that the positions may be squashed in some directions.
     This option is ignored if there is a mix of linear and logarithmic axes.
     </p></dd>
-<dt>X/Y/Z Log</dt>
-<dd><p>If selected, X/Y/Z axis coordinates are logarithmic,
-    otherwise they are linear.
+<dt>X/Y/Z Scale</dt>
+<dd><p>Selects scaling (linear, log, asinh, symlog) for the X/Y/Z axes.
+    See <ref id="ScaleType"/>.
     </p></dd>
 <dt>X/Y/Z Flip</dt>
 <dd><p>If selected, X/Y/Z axis coordinate axes run in the
@@ -17465,9 +17565,9 @@ time plot window has the following tabs:
 (you can't flip or rescale the time axis).
 It has the following options:
 <dl>
-<dt>Y Log</dt>
-<dd><p>If selected, vertical axis coordinates are logarithmic,
-    otherwise they are linear.
+<dt>Y Scale</dt>
+<dd><p>Selects scaling (linear, log, asinh, symlog) for the Y axis.
+    See <ref id="ScaleType"/>.
     </p></dd>
 <dt>Y Flip</dt>
 <dd><p>If selected, vertical axis coordinate axes increase down rather
@@ -34392,6 +34492,9 @@ introduced since the last version:
         during tap_schema-based TAP metadata acquisition.</li>
     <li>Fix <ref id="HelpWindow">Help Browser</ref> so that it
         follows links to in-section targets.</li>
+    <li>Provide more <ref id="ScaleType">axis scaling options</ref>:
+        <label>asinh</label> and <label>symlog</label> as well as
+        <label>linear</label> and <label>log</label>.</li>
     </ul>
     </p></dd>
 

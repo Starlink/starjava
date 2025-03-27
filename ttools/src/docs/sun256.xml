@@ -15815,6 +15815,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         to cope with large negative numbers.</li>
     <li>Quote column names from tap_schema tables where necessary 
         during tap_schema-based TAP metadata acquisition.</li>
+    <li>New plot axis scaling parameters
+        <ref id="plot2plane-xscale"><code>xscale</code></ref> etc
+        introduced, offering <code>asinh</code> and <code>symlog</code>
+        options alongside <code>linear</code> and <code>log</code>.
+        The existing log scaling flags
+        <ref id="plot2plane-xlog"><code>xlog</code></ref> etc
+        can still be used, but are now deprecated in favour
+        of these more flexible scaling parameters.</li>
     </ul>
     </p></dd>
 
