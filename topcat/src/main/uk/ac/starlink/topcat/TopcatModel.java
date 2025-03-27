@@ -850,8 +850,8 @@ public class TopcatModel {
         int nset = subsets_.size();
         for ( int is = 0; is < nset && ! done; is++ ) {
             RowSubset rs = subsets_.get( is );
-            if ( rset != RowSubset.ALL &&
-                 rset != activatedSubset_ &&
+            if ( rs != RowSubset.ALL &&
+                 rs != activatedSubset_ &&
                  rset.getName().equalsIgnoreCase( rs.getName() ) ) {
                 rset.setKey( rs.getKey() );
                 subsets_.set( is, rset );

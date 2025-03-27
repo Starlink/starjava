@@ -34381,6 +34381,8 @@ introduced since the last version:
     <ul>
     <li>Fix <ref id="Maths-asinh"><code>asinh</code></ref> function
         to cope with large negative numbers.</li>
+    <li>Disallow overwriting of standard Row Subsets
+        (All and Activated).</li>
     </ul>
     </p></dd>
 

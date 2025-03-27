@@ -290,7 +290,17 @@ public class TopcatCodec1 implements TopcatCodec {
                 }
             }
             for ( RowSubset rset : setList ) {
-                tcModel.addSubset( rset );
+
+                /* This is a hack.  Reassigning the Activated subset doesn't
+                 * work well, so just don't attempt it.  That means the
+                 * value of the activated subset won't get restored properly.
+                 * Since this class (codec for out of date serialization format)
+                 * is more or less obsolete, and activation status is not
+                 * very important to preserve over sessions, just do it. */
+                if ( !rset.getName()
+                     .equals( tcModel.getActivatedSubset().getName() ) ) {
+                    tcModel.addSubset( rset );
+                }
             }
             if ( currentSubset != null ) {
                 tcModel.applySubset( currentSubset );
