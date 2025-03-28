@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.TapUploadMatcher;
 import uk.ac.starlink.ttools.cone.UploadMatcher;
+import uk.ac.starlink.util.Bi;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.IOSupplier;
 import uk.ac.starlink.vo.TapService;
@@ -337,16 +338,26 @@ public class TapUploadSkyMatch extends SingleMapperTask {
             new BlockUploader( umatcher, blocksize, maxrec, tableName,
                                inFixAct, tapFixAct, serviceMode, oneToOne,
                                uploadEmpty );
-        blocker.setTruncationAdvice( "Reduce " + chunkParam_.getName() + "? "
-                                   + "Increase " + tapmaxrecParam_.getName()
-                                   + "?" );
 
         /* Create and return an object which will produce the result. */
         return new TableProducer() {
             public StarTable getTable() throws IOException, TaskException {
                 StarTable inTable = Tables.randomTable( inProd.getTable() );
                 logger_.info( "ADQL query:\n" + adql );
-                return blocker.runMatch( inTable, qsFact, storage );
+                Bi<StarTable,BlockUploader.BlockStats> result =
+                    blocker.runMatch( inTable, qsFact, storage );
+                StarTable outTable = result.getItem1();
+                BlockUploader.BlockStats stats = result.getItem2();
+                int nBlock = stats.getBlockCount();
+                int nTrunc = stats.getTruncatedBlockCount();
+                if ( nTrunc > 0 ) {
+                    String msg =
+                          "Truncations in " + nTrunc + "/" + nBlock + " blocks;"
+                        + " Reduce " + chunkParam_.getName() + "? "
+                        + "Increase " + tapmaxrecParam_.getName() + "?";
+                    logger_.warning( msg );
+                }
+                return outTable;
             }
         };
     }

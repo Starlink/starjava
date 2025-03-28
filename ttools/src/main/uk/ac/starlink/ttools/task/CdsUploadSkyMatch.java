@@ -30,6 +30,7 @@ import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.UploadMatcher;
 import uk.ac.starlink.ttools.cone.UrlMocCoverage;
+import uk.ac.starlink.util.Bi;
 import uk.ac.starlink.util.ContentCoding;
 
 /**
@@ -386,7 +387,6 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             new BlockUploader( umatcher, blocksize, maxrec, tableName,
                                inFixAct, cdsFixAct, serviceMode, oneToOne,
                                uploadEmpty );
-        blocker.setTruncationAdvice( "Reduce " + chunkParam_.getName() + "?" );
 
         /* Create and return an object which will produce the result. */
         return new TableProducer() {
@@ -414,7 +414,19 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
                 if ( presort ) {
                     qsFact1 = new HealpixSortedQuerySequenceFactory( qsFact1 );
                 }
-                return blocker.runMatch( inTable, qsFact1, storage );
+                Bi<StarTable,BlockUploader.BlockStats> result =
+                    blocker.runMatch( inTable, qsFact1, storage );
+                StarTable outTable = result.getItem1();
+                BlockUploader.BlockStats stats = result.getItem2();
+                int nBlock = stats.getBlockCount();
+                int nTrunc = stats.getTruncatedBlockCount();
+                if ( nTrunc > 0 ) {
+                    String msg =
+                          "Truncations in " + nTrunc + "/" + nBlock + " blocks;"
+                        + " Reduce " + chunkParam_.getName() + "?";
+                    logger_.warning( msg );
+                }
+                return outTable;
             }
         };
     }

@@ -23,6 +23,7 @@ import uk.ac.starlink.ttools.cone.RowMapper;
 import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.BlockUploader;
 import uk.ac.starlink.ttools.task.UserFindMode;
+import uk.ac.starlink.util.Bi;
 
 /**
  * Mode for upload crossmatches corresponding to the user options.
@@ -174,9 +175,9 @@ public abstract class UploadFindMode {
             CountSink countSink = new CountSink();
             StoragePolicy countStorage =
                 new MonitorStoragePolicy( storage, countSink );
-            final StarTable outTable;
+            final Bi<StarTable,BlockUploader.BlockStats> result;
             try {
-                outTable = blocker.runMatch( inTable, qsFact, countStorage );
+                result = blocker.runMatch( inTable, qsFact, countStorage );
             }
             catch ( Exception e ) {
                 scheduler.scheduleError( "Upload Match Error", e );
@@ -186,6 +187,7 @@ public abstract class UploadFindMode {
                 scheduler.scheduleMemoryError( e );
                 return;
             }
+            StarTable outTable = result.getItem1();
             final long nMatch = countSink.getRowCount();
             if ( nMatch == 0 ) {
                 scheduler.scheduleMessage( "No rows matched",
@@ -261,7 +263,7 @@ public abstract class UploadFindMode {
             CountSink countSink = new CountSink();
             StoragePolicy countStorage =
                 new MonitorStoragePolicy( storage, countSink );
-            final StarTable result;
+            final Bi<StarTable,BlockUploader.BlockStats> result;
             try {
                 result = blocker.runMatch( rowTable, qsFact, countStorage );
             }
@@ -273,14 +275,15 @@ public abstract class UploadFindMode {
                 scheduler.scheduleMemoryError( e );
                 return;
             }
+            final StarTable outTable = result.getItem1();
             final long nMatch = countSink.getRowCount();
 
             /* The result table has just two columns: input row index and
              * match score.  The match score must be non-null, since this
              * is a BEST match; ignore it and just set a flag true for each
              * row referenced in the result. */
-            assert result.getColumnCount() == 2;
-            assert result.getColumnInfo( 0 ).getContentClass() == Long.class;
+            assert outTable.getColumnCount() == 2;
+            assert outTable.getColumnInfo( 0 ).getContentClass() == Long.class;
             int icolIndex = 0;
             int icolScore = 1;
             int nrow =
@@ -288,7 +291,7 @@ public abstract class UploadFindMode {
             final BitSet matchMask = new BitSet();
             RowSequence rseq = null;
             try {
-                rseq = result.getRowSequence();
+                rseq = outTable.getRowSequence();
                 while ( rseq.next() ) {
                     long irow = ((Long) rseq.getCell( icolIndex )).longValue();
                     assert ! Tables.isBlank( rseq.getCell( icolScore ) );

@@ -12,6 +12,7 @@ import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperStarTable;
+import uk.ac.starlink.util.Bi;
 
 /**
  * Works with an UploadMatcher dividing the input table into chunks and
@@ -32,7 +33,6 @@ public class BlockUploader {
     private final ServiceFindMode serviceMode_;
     private final boolean oneToOne_;
     private final boolean uploadEmpty_;
-    private String truncationAdvice_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
@@ -87,13 +87,21 @@ public class BlockUploader {
      * calls associated with the supplied <code>qsFact</code> object
      * must correspond to the row indices in the supplied <code>inTable</code>.
      *
+     * <p>The service may truncate results for some of the blocks.
+     * Warnings will be written through the logging system if this happens.
+     * Summary information about such truncation will also be returned
+     * in the BlockStats object.
+     *
      * @param  inTable  input table, must have random access
      * @param  qsFact   object to generate positional queries when applied
      *                  to a table
      * @param  storage  storage policy for storing raw result table
+     * @return  the result table and additional information about the match
      */
-    public StarTable runMatch( StarTable inTable, QuerySequenceFactory qsFact,
-                               StoragePolicy storage ) throws IOException {
+    public Bi<StarTable,BlockStats> runMatch( StarTable inTable,
+                                              QuerySequenceFactory qsFact,
+                                              StoragePolicy storage )
+            throws IOException {
         if ( ! inTable.isRandom() ) {
             throw new IllegalArgumentException( "non-random input table" );
         }
@@ -150,19 +158,6 @@ public class BlockUploader {
         int nblock = iblock;
         coneSeq.close();
         rawResultStore.endRows();
-        if ( nOverflow > 0 ) {
-            StringBuffer sbuf = new StringBuffer()
-                .append( "Truncations in " )
-                .append( nOverflow )
-                .append( "/" )
-                .append( nblock )
-                .append( " blocks" );
-            if ( truncationAdvice_ != null ) {
-                sbuf.append( "; " )
-                    .append( truncationAdvice_ );
-            }
-            logger_.warning( sbuf.toString() );
-        }
         StarTable rawResult = rawResultStore.getStarTable();
 
         /* There is a problem here for best-remote matching.
@@ -237,19 +232,18 @@ public class BlockUploader {
                 new XmatchOutputTable( rawResult, inTable, cplan, irPairs );
         }
 
-        /* Return the output table. */
+        /* Return the output table and statistical information. */
+        final int nover = nOverflow;
+        BlockStats blockStats = new BlockStats() {
+            public int getBlockCount() {
+                return nblock;
+            }
+            public int getTruncatedBlockCount() {
+                return nover;
+            }
+        };
         outTable.setName( outName_ );
-        return outTable;
-    }
-
-    /**
-     * Sets a string that can be issued to the user as additional advice
-     * if there are truncations in block results.
-     *
-     * @param  truncationAdvice  user-readable advice string
-     */
-    public void setTruncationAdvice( String truncationAdvice ) {
-        truncationAdvice_ = truncationAdvice;
+        return new Bi<StarTable,BlockStats>( outTable, blockStats );
     }
 
     /**
@@ -261,6 +255,26 @@ public class BlockUploader {
      */
     private static <I> long rowIdToIndex( RowMapper<I> rowMapper, Object id ) {
         return rowMapper.rowIdToIndex( rowMapper.getIdClass().cast( id ) );
+    }
+
+    /**
+     * Provides information about a match.
+     */
+    public static interface BlockStats {
+
+        /**
+         * Returns the number of blocks uploaded.
+         *
+         * @return   uploaded block count
+         */
+        int getBlockCount();
+
+        /**
+         * Returns the number of blocks whose results were truncated.
+         *
+         * @return  truncated block count
+         */
+        int getTruncatedBlockCount();
     }
 
     /**
