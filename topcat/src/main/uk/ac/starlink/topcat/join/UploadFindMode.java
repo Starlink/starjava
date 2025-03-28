@@ -1,7 +1,9 @@
 package uk.ac.starlink.topcat.join;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import uk.ac.starlink.table.ColumnData;
@@ -188,6 +190,9 @@ public abstract class UploadFindMode {
                 return;
             }
             StarTable outTable = result.getItem1();
+            BlockUploader.BlockStats stats = result.getItem2();
+            final int nBlock = stats.getBlockCount();
+            final int nTrunc = stats.getTruncatedBlockCount();
             final long nMatch = countSink.getRowCount();
             if ( nMatch == 0 ) {
                 scheduler.scheduleMessage( "No rows matched",
@@ -216,6 +221,15 @@ public abstract class UploadFindMode {
                                 .append( " rows" );
                         }
                         sbuf.append( ")" );
+                        if ( nTrunc > 0 ) {
+                            sbuf.append( "\n" )
+                                .append( "WARNING: " )
+                                .append( nTrunc )
+                                .append( "/" )
+                                .append( nBlock )
+                                .append( " blocks were truncated by service" )
+                                .append( " - consider reducing block size" );
+                        }
                         String msg = sbuf.toString();
                         JOptionPane
                        .showMessageDialog( parent, msg, "Upload Match Success",
@@ -276,6 +290,9 @@ public abstract class UploadFindMode {
                 return;
             }
             final StarTable outTable = result.getItem1();
+            final BlockUploader.BlockStats stats = result.getItem2();
+            final int nBlock = stats.getBlockCount();
+            final int nTrunc = stats.getTruncatedBlockCount();
             final long nMatch = countSink.getRowCount();
 
             /* The result table has just two columns: input row index and
@@ -322,16 +339,21 @@ public abstract class UploadFindMode {
             final JComponent parent = scheduler.getParent();
             final String dfltName = "xmatch";
             final String title = "Upload Match Success";
-            final String[] msgLines = new String[] {
-                "Upload crossmatch successful; matches found for " +
-                nMatch + "/" + nRow + " rows.",
-                " ",
-                "Define new subset for matched rows:",
-            };
+            List<String> msgLines = new ArrayList<>();
+            msgLines.add( "Upload crossmatch successful; matches found for "
+                        + nMatch + "/" + nRow + " rows." );
+            if ( nTrunc > 0 ) {
+                msgLines.add( "WARNING: " + nTrunc + "/" + nBlock
+                            + " blocks were truncated by the service"
+                            + " - consider reducing block size" );
+            }
+            msgLines.add( " " );
+            msgLines.add( "Define new subset for matched rows:" );
             scheduler.schedule( new Runnable() {
                 public void run() {
-                    TopcatUtils.addSubset( parent, tcModel, matchMask,
-                                           dfltName, msgLines, title );
+                    TopcatUtils.addSubset( parent, tcModel, matchMask, dfltName,
+                                           msgLines.toArray( new String[ 0 ] ),
+                                           title );
                 }
             } );
         }

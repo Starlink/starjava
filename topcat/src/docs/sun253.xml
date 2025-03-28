@@ -26628,6 +26628,8 @@ about how the match will operate:
         There is also the danger (for ALL-type find modes)
         of exceeding the return size limit, which will result in
         truncation of the returned result.
+        If this happens, a warning will be included in the popup window
+        that reports match completion.
         At time of writing, the upload limit is 100Mbyte (about 3Mrow),
         and the maximum return size is 2Mrow.
         </p></dd>
@@ -34383,6 +34385,9 @@ introduced since the last version:
         to cope with large negative numbers.</li>
     <li>Disallow overwriting of standard Row Subsets
         (All and Activated).</li>
+    <li>The <ref id="CdsUploadMatchWindow">CDS Upload X-Match Window</ref>
+        now reports a warning on completion
+        if match block results have been truncated.</li>
     </ul>
     </p></dd>
 
