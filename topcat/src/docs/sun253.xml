@@ -34506,6 +34506,9 @@ introduced since the last version:
         <label>linear</label> and <label>log</label>.</li>
     <li>New option Asinh for <ref id="ShaderControl">Aux Axis</ref>
         <label>Scaling</label> function.</li>
+    <li>You can now copy text using the mouse from cells in the
+        <ref id="StatsWindow">Statistics Window</ref>
+        by double-clicking, as for other JTables.</li>
     </ul>
     </p></dd>
 

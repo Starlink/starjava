@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import javax.swing.Action;
+import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -23,8 +24,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TableColumnModelEvent;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
@@ -108,9 +111,23 @@ public class StatsWindow extends AuxWindow {
          * current calculation. */
         statsTableModel_ = makeStatsTableModel();
 
-        /* Construct, configure and place the JTable which will form the 
-         * main display area. */
-        jtab_ = new JTable( statsTableModel_ );
+        /* Prepare and place the JTable which will form the main display area.
+         * It's not really editable, but fix it so that the edit gesture
+         * (double-click) puts the cell in editing mode, so that the
+         * text can be copied with the mouse.  Any edits are discarded
+         * by the TableModel. */
+        JTextField editorField = new JTextField();
+        editorField.setEditable( false );
+        jtab_ = new JTable( statsTableModel_ ) {
+            @Override
+            public TableCellEditor getCellEditor( int irow, int icol ) {
+                return new DefaultCellEditor( editorField );
+            }
+            @Override
+            public boolean isCellEditable( int irow, int icol ) {
+                return icol > 0;
+            }
+        };
         configureJTable( jtab_ );
         getMainArea().add( new SizingScrollPane( jtab_ ) );
 
@@ -636,6 +653,10 @@ public class StatsWindow extends AuxWindow {
         final MetaColumnTableModel tmodel = new MetaColumnTableModel( metas ) {
             public int getRowCount() {
                 return columnModel_.getColumnCount();
+            }
+            @Override
+            public void setValueAt( Object value, int irow, int icol ) {
+                // Discard edits, which are not able to change the value anyway.
             }
         };
 
