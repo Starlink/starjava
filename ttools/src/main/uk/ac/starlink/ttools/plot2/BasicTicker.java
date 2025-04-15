@@ -23,15 +23,17 @@ public abstract class BasicTicker implements Ticker {
 
     private final boolean logFlag_;
 
+    private static final double TOL = 1e-10;
+
     /** Ticker for linear axes. */
     public static final BasicTicker LINEAR = new BasicTicker( false ) {
         public Rule createRule( double dlo, double dhi,
                                 double approxMajorCount, int adjust ) {
-            return new CheckRule( createRawRule( dlo, dhi, approxMajorCount,
-                                                 adjust, false ) ) {
+            return new CheckRule( createLinearRule( dlo, dhi, approxMajorCount,
+                                                    adjust ) ) {
                 boolean checkLabel( Caption label, double value ) {
                     double diff = Double.parseDouble( label.toText() ) - value;
-                    return diff == 0 || Math.abs( diff / value ) < 1e-10;
+                    return diff == 0 || Math.abs( diff / value ) < TOL;
                 }
             };
         }
@@ -44,12 +46,12 @@ public abstract class BasicTicker implements Ticker {
             if ( dlo <= 0 || dhi <= 0 ) {
                 throw new IllegalArgumentException( "Negative log range?" );
             }
-            return new CheckRule( createRawRule( dlo, dhi, approxMajorCount,
-                                                 adjust, true ) ) {
+            return new CheckRule( createLogRule( dlo, dhi, approxMajorCount,
+                                                 adjust ) ) {
                 boolean checkLabel( Caption label, double value ) {
                    return Math.abs( Double.parseDouble( label.toText() )
                                     / value - 1 )
-                        < 1e-10;
+                        < TOL;
                 }
             };
         }
@@ -196,7 +198,7 @@ public abstract class BasicTicker implements Ticker {
     }
 
     /**
-     * Acquire a rule for labelling a linear or logarithmic axis.
+     * Acquire a rule for labelling a logarithmic axis.
      * The tick density is determined by two parameters,
      * <code>approxMajorCount</code>, which gives a baseline value for
      * the number of ticks required over the given range, and
@@ -209,16 +211,14 @@ public abstract class BasicTicker implements Ticker {
      * @param   approxMajorCount  guide value for number of major ticks
      *                            in range
      * @param   adjust  adjusts density of major ticks
-     * @param   log     true for logarithmic, false for linear
      * @return  tick generation rule
      */
-    private static Rule createRawRule( double dlo, double dhi,
-                                       double approxMajorCount, int adjust,
-                                       final boolean log ) {
+    private static Rule createLogRule( double dlo, double dhi,
+                                       double approxMajorCount, int adjust ) {
 
         /* Use specifically logarithmic labelling only if the axes are
          * logarithmic and the range is greater than a factor of ten. */
-        if ( log && Math.log10( dhi / dlo ) > 1 ) {
+        if ( Math.log10( dhi / dlo ) > 1 ) {
             LogSpacer[] spacers = LogSpacer.SPACERS;
             assert spacers.length == 2;
 
@@ -258,8 +258,28 @@ public abstract class BasicTicker implements Ticker {
              * more dense, though it might not work well for large ranges.
              * Won't happen often though. */
         }
+        return createLinearRule( dlo, dhi, approxMajorCount, adjust );
+    }
 
-        /* Linear tick marks. */
+    /**
+     * Acquire a rule for labelling a linear axis.
+     * The tick density is determined by two parameters,
+     * <code>approxMajorCount</code>, which gives a baseline value for
+     * the number of ticks required over the given range, and
+     * <code>adjust</code>.
+     * Increasing <code>adjust</code> will give more major ticks, and
+     * decreasing it will give fewer ticks.
+     *
+     * @param   dlo     minimum axis data value
+     * @param   dhi     maximum axis data value
+     * @param   approxMajorCount  guide value for number of major ticks
+     *                            in range
+     * @param   adjust  adjusts density of major ticks
+     * @return  tick generation rule
+     */
+    private static Rule createLinearRule( double dlo, double dhi,
+                                          double approxMajorCount,
+                                          int adjust ) {
         double approxMajorInterval = ( dhi - dlo ) / approxMajorCount;
         int exp = (int) Math.floor( Math.log10( approxMajorInterval ) );
         double oversize = approxMajorInterval / exp10( exp );
@@ -381,7 +401,6 @@ public abstract class BasicTicker implements Ticker {
      */
     private static Caption logLabel( long mantissa, int exponent ) {
         assert mantissa > 0 && mantissa < 10;
-        double value = mantissa * exp10( exponent );
 
         /* Some care is required assembling the label, to make sure we
          * avoid rounding issues (like 0.999999999999).
@@ -398,31 +417,37 @@ public abstract class BasicTicker implements Ticker {
             return Caption.createCaption( smantissa + zeros( exponent ) );
         }
         else {
-            return createSciCaption( mantissa == 1 ? null : smantissa,
-                                     exponent );
+            return createSciCaption( smantissa, exponent );
         }
     }
 
     /**
      * Returns a caption representing a number in scientific notation.
      *
-     * @param  mantissa  mantissa string; if null, no mantissa will be rendered,
-     *                   meaning that it is considered to be unity
+     * @param  mantissa  mantissa string
      * @param  exponent  decimal exponent value as an integer
      */
     private static Caption createSciCaption( String mantissa, int exponent ) {
         String txt = new StringBuffer()
-            .append( mantissa == null ? "1" : mantissa )
+            .append( mantissa )
             .append( "e" )
             .append( Integer.toString( exponent ) )
             .toString();
-        String latex = new StringBuffer()
-            .append( mantissa == null ? "" : mantissa + "\\!\\times\\!" )
-            .append( "10^{" )
-            .append( Integer.toString( exponent ) )
-            .append( "}" )
-            .toString();
-        return Caption.createCaption( txt, latex );
+        StringBuffer latexBuf = new StringBuffer();
+        if ( "1".equals( mantissa ) ) {
+        }
+        else if ( "-1".equals( mantissa ) ) {
+            latexBuf.append( "-" );
+        }
+        else {
+            latexBuf.append( mantissa )
+                    .append( "\\!\\times\\!" );
+        }
+        latexBuf.append( "10^{" )
+                .append( Integer.toString( exponent ) )
+                .append( "}" )
+                .toString();
+        return Caption.createCaption( txt, latexBuf.toString() );
     }
 
     /**
