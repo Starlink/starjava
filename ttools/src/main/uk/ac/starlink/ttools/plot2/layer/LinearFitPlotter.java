@@ -22,6 +22,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -206,22 +207,22 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
 
         public Object calculatePlan( Object[] knownPlans,
                                      DataStore dataStore ) {
-            boolean[] logFlags = surface_.getLogFlags();
+            Scale[] scales = surface_.getScales();
 
             /* If one of the known plans matches the one we're about
              * to calculate, just return that. */
             for ( Object knownPlan : knownPlans ) {
                 if ( knownPlan instanceof LinearFitPlan &&
                      ((LinearFitPlan) knownPlan)
-                                     .matches( dataSpec_, logFlags ) ) {
+                                     .matches( dataSpec_, scales ) ) {
                     return knownPlan;
                 }
             }
 
             /* Otherwise, accumulate statistics and return the result. */
             final boolean visibleOnly = false;
-            final boolean xlog = logFlags[ 0 ];
-            final boolean ylog = logFlags[ 1 ];
+            final Scale xscale = scales[ 0 ];
+            final Scale yscale = scales[ 1 ];
             final int icPos = cgrp_.getPosCoordIndex( 0, geom_ );
             final boolean hasWeight;
             final int icWeight;
@@ -245,8 +246,8 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
                         if ( geom_.readDataPos( tseq, icPos, dpos ) &&
                              surface_.dataToGraphics( dpos, visibleOnly, gp ) &&
                              PlotUtil.isPointFinite( gp ) ) {
-                            double x = xlog ? log( dpos[ 0 ] ) : dpos[ 0 ];
-                            double y = ylog ? log( dpos[ 1 ] ) : dpos[ 1 ];
+                            double x = xscale.dataToScale( dpos[ 0 ] );
+                            double y = yscale.dataToScale( dpos[ 1 ] );
                             if ( hasWeight ) {
                                 double w = tseq.getDoubleValue( icWeight );
                                 stats.addPoint( x, y, w );
@@ -264,7 +265,7 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
             };
             WXYStats stats =
                 PlotUtil.tupleCollect( collector, dataSpec_, dataStore );
-            return new LinearFitPlan( stats, dataSpec_, logFlags );
+            return new LinearFitPlan( stats, dataSpec_, scales );
         }
 
         public void paintData( final Object plan, Paper paper,
@@ -290,20 +291,19 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
     private static class LinearFitPlan {
         final WXYStats stats_;
         final DataSpec dataSpec_;
-        final boolean[] logFlags_;
+        final Scale[] scales_;
 
         /**
          * Constructor.
          *
          * @param  stats   bivariate statistics giving fit results
          * @param  dataSpec   characterisation of input data points 
-         * @param  logFlags  2-element array giving true/false for X and Y
-         *                   axis logarithmic/linear scaling
+         * @param  scales   2-element array giving axis scalings for X and Y
          */
-        LinearFitPlan( WXYStats stats, DataSpec dataSpec, boolean[] logFlags ) {
+        LinearFitPlan( WXYStats stats, DataSpec dataSpec, Scale[] scales ) {
             stats_ = stats;
             dataSpec_ = dataSpec;
-            logFlags_ = logFlags;
+            scales_ = scales;
         }
 
         /**
@@ -311,12 +311,11 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
          * a plan calculated for the given input values.
          *
          * @param  dataSpec  characterisation of input data points 
-         * @param  logFlags  2-element array giving true/false for X and Y
-         *                   axis logarithmic/linear scaling
+         * @param  scales   2-element array giving axis scalings for X and Y
          */
-        boolean matches( DataSpec dataSpec, boolean[] logFlags ) {
+        boolean matches( DataSpec dataSpec, Scale[] scales ) {
             return dataSpec.equals( dataSpec_ )
-                && Arrays.equals( logFlags, logFlags_ );
+                && Arrays.equals( scales, scales_ );
         }
 
         /**
@@ -362,9 +361,9 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
          */
         private double yFunction( double x ) {
             double[] coeffs = stats_.getLinearCoefficients();
-            double y = coeffs[ 0 ]
-                     + coeffs[ 1 ] * ( logFlags_[ 0 ] ? log( x ) : x );
-            return logFlags_[ 1 ] ? unlog( y ) : y;
+            double sy = coeffs[ 0 ]
+                      + coeffs[ 1 ] * ( scales_[ 0 ].dataToScale( x ) );
+            return scales_[ 1 ].scaleToData( sy );
         }
 
         /**
@@ -375,11 +374,11 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
         public ReportMap getReport() {
             double[] coeffs = stats_.getLinearCoefficients();
             String equation = new StringBuffer()
-                .append( logFlags_[ 1 ] ? "log10(y)" : "y" )
+                .append( scales_[ 1 ].dataToScaleExpression( "y" ) )
                 .append( " = " )
                 .append( C1_KEY.getMeta().getShortName() )
                 .append( " * " )
-                .append( logFlags_[ 0 ] ? "log10(x)" : "x" )
+                .append( scales_[ 0 ].dataToScaleExpression( "x" ) )
                 .append( " + " )
                 .append( C0_KEY.getMeta().getShortName() )
                 .toString();

@@ -34,6 +34,7 @@ import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
@@ -386,9 +387,10 @@ public class HistogramPlotWindow
             PlaneSurface surface =
                 (PlaneSurface) plotPanel.getLatestSurface( iz );
             double[] xbounds = surface.getDataLimits()[ 0 ];
-            boolean ylogFlag = surface.getLogFlags()[ 1 ];
-            PlotUtil.padRange( yrange, ylogFlag );
-            double[] ybounds = yrange.getFiniteBounds( ylogFlag );
+            Scale yscale = surface.getScales()[ 1 ];
+            PlotUtil.padRange( yrange, yscale );
+            double[] ybounds =
+                yrange.getFiniteBounds( yscale.isPositiveDefinite() );
             PlaneAspect aspect = new PlaneAspect( xbounds, ybounds );
             getZoneController( iz ).setAspect( aspect );
             plotPanel.replot();
@@ -409,9 +411,10 @@ public class HistogramPlotWindow
          * the bars. */
         Range yRange = new Range();
         Surface surface = plotPanel.getSurface( iz );
-        boolean isLog = surface instanceof PlaneSurface
-                     && ((PlaneSurface) surface ).getLogFlags()[ 1 ];
-        yRange.submit( isLog ? 1 : 0 );
+        boolean isPosDef =
+               surface instanceof PlaneSurface
+            && ((PlaneSurface) surface).getScales()[ 1 ].isPositiveDefinite();
+        yRange.submit( isPosDef ? 1 : 0 );
 
         /* Get the heights of the entries in the bin data table.
          * This will cover the HistogramPlotter layers. */

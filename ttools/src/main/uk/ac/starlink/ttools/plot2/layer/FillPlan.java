@@ -7,6 +7,7 @@ import java.util.function.Function;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -279,21 +280,21 @@ public class FillPlan {
             PlaneSurface psurf = (PlaneSurface) surf;
             boolean xflip = psurf.getFlipFlags()[ 0 ];
             boolean yflip = psurf.getFlipFlags()[ 1 ];
-            boolean xlog = psurf.getLogFlags()[ 0 ];
-            boolean ylog = psurf.getLogFlags()[ 1 ];
+            Scale xscale = psurf.getScales()[ 0 ];
+            Scale yscale = psurf.getScales()[ 1 ];
             Axis xAxis = psurf.getAxes()[ 0 ];
             Axis yAxis = psurf.getAxes()[ 1 ];
             double big = Integer.MAX_VALUE / 2;
             double xMinusInf = xflip ? big : -big;
             double yMinusInf = yflip ? -big : big;
-            if ( xlog || ylog ) {
+            if ( xscale.isPositiveDefinite() || yscale.isPositiveDefinite() ) {
                 return ( dpos, gpos ) -> {
                     double dx = dpos[ 0 ];
                     double dy = dpos[ 1 ];
-                    gpos.x = xlog && dx <= 0
+                    gpos.x = xscale.isPositiveDefinite() && dx <= 0
                            ? xMinusInf
                            : xAxis.dataToGraphics( dx );
-                    gpos.y = ylog && dy <= 0
+                    gpos.y = yscale.isPositiveDefinite() && dy <= 0
                            ? yMinusInf
                            : yAxis.dataToGraphics( dy );
                     return PlotUtil.isPointReal( gpos );

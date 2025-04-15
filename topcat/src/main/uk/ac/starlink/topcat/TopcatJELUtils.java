@@ -30,6 +30,7 @@ import uk.ac.starlink.topcat.func.SuperCosmos;
 import uk.ac.starlink.topcat.func.TwoQZ;
 import uk.ac.starlink.topcat.plot2.GuiCoordContent;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 import uk.ac.starlink.ttools.jel.JELUtils;
 
@@ -710,17 +711,16 @@ public class TopcatJELUtils extends JELUtils {
      * @param   expr  JEL expression whose value is to be constrained
      * @param   lo    lowest permissible bound for expr
      * @param   hi    highest permissible bound for expr
-     * @param   isLog  true for logarithmic range, false for linear
+     * @param   scale  scaling
      * @param   npix   approximate number of pixels covered by the range
      * @return  JEL expression with the meaning <code>lo&lt;=expr&lt;=hi</code>
      */
-    public static String betweenExpression( String expr,
-                                            double lo, double hi, boolean isLog,
-                                            int npix ) {
+    public static String betweenExpression( String expr, double lo, double hi,
+                                            Scale scale, int npix ) {
         String exprTxt = isJelIdentifier( expr )
                        ? expr
                        : "(" + expr + ")";
-        String[] limits = PlotUtil.formatAxisRangeLimits( lo, hi, isLog, npix );
+        String[] limits = PlotUtil.formatAxisRangeLimits( lo, hi, scale, npix );
         return new StringBuffer()
               .append( exprTxt )
               .append( " >= " )

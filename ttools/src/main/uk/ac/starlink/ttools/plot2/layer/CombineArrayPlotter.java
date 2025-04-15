@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Span;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -112,9 +113,9 @@ public abstract class CombineArrayPlotter
             }
             @Override
             public void extendCoordinateRanges( Range[] ranges,
-                                                boolean[] logFlags,
+                                                Scale[] scales,
                                                 DataStore dataStore ) {
-                super.extendCoordinateRanges( ranges, logFlags, dataStore );
+                super.extendCoordinateRanges( ranges, scales, dataStore );
                 XYData xyData = collectXYData( style, dataSpec, dataStore );
                 int np = xyData.nbin_;
                 if ( np > 0 ) {

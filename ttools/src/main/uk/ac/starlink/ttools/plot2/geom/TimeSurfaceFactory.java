@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotMetric;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
@@ -92,7 +93,11 @@ public class TimeSurfaceFactory
     public static final ConfigKey<Subrange> YSUBRANGE_KEY =
         PlaneSurfaceFactory.YSUBRANGE_KEY;
 
-    /** Config key for Y axis log scale flag. */
+    /** Config key for Y axis scale flag. */
+    public static final ConfigKey<Scale> YSCALE_KEY =
+        PlaneSurfaceFactory.YSCALE_KEY;
+
+    /** Config key for deprecated Y axis log scale flag. */
     public static final ConfigKey<Boolean> YLOG_KEY =
         PlaneSurfaceFactory.YLOG_KEY;
 
@@ -172,7 +177,7 @@ public class TimeSurfaceFactory
         Profile p = profile;
         return TimeSurface
               .createSurface( plotBounds, aspect,
-                              p.ylog_, p.yflip_,
+                              p.yscale_, p.yflip_,
                               p.tlabel_, p.ylabel_,
                               p.t2func_, p.y2func_,
                               p.t2label_, p.y2label_,
@@ -184,6 +189,7 @@ public class TimeSurfaceFactory
     public ConfigKey<?>[] getProfileKeys() {
         List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.addAll( Arrays.asList( new ConfigKey<?>[] {
+            YSCALE_KEY,
             YLOG_KEY,
             YFLIP_KEY,
             TLABEL_KEY,
@@ -206,7 +212,8 @@ public class TimeSurfaceFactory
     }
 
     public Profile createProfile( ConfigMap config ) {
-        boolean ylog = config.get( YLOG_KEY );
+        Scale yscale =
+            PlaneSurfaceFactory.getScale( YSCALE_KEY, YLOG_KEY, config );
         boolean yflip = config.get( YFLIP_KEY );
         String tlabel = config.get( TLABEL_KEY );
         String ylabel = config.get( YLABEL_KEY );
@@ -225,7 +232,7 @@ public class TimeSurfaceFactory
         boolean shadow = config.get( StyleKeys.SHADOW_TICKS );
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         SideFlags annotateflags = SideFlags.ALL;
-        return new Profile( ylog, yflip, tlabel, ylabel,
+        return new Profile( yscale, yflip, tlabel, ylabel,
                             t2func, y2func, t2label, y2label, captioner,
                             gridcolor, tcrowd, ycrowd, orientpolicy,
                             tformat, minor, shadow, annotateflags );
@@ -283,14 +290,14 @@ public class TimeSurfaceFactory
             }
             double[] tlimits =
                 PlotUtil.scaleRange( tlo1, thi1, config.get( TSUBRANGE_KEY ),
-                                    false );
+                                     Scale.TIME );
 
             /* Determine range on the Y axis using standard technique. */
             Range yrange = ranges == null ? new Range() : ranges[ 1 ];
             double[] ylimits =
                 PlaneSurfaceFactory
                .getLimits( config, YMIN_KEY, YMAX_KEY, YSUBRANGE_KEY,
-                           profile.ylog_, yrange );
+                           profile.yscale_, yrange );
             return new TimeAspect( tlimits, ylimits );
         }
     }
@@ -303,9 +310,9 @@ public class TimeSurfaceFactory
 
     public Range[] readRanges( Profile profile, PlotLayer[] layers,
                                DataStore dataStore ) {
-        boolean[] logFlags = new boolean[] { false, profile.getYLog() };
         Range[] ranges = new Range[] { new Range(), new Range() };
-        PlotUtil.extendCoordinateRanges( layers, ranges, logFlags, true,
+        Scale[] scales = { Scale.TIME, profile.getYScale() };
+        PlotUtil.extendCoordinateRanges( layers, ranges, scales, true,
                                          dataStore );
         return ranges;
     }
@@ -336,11 +343,11 @@ public class TimeSurfaceFactory
         double[] tlimits =
             PlaneSurfaceFactory
            .getLimits( config, TMIN_KEY, TMAX_KEY, TSUBRANGE_KEY,
-                       false, null );
+                       Scale.LINEAR, null );
         double[] ylimits =
             PlaneSurfaceFactory
            .getLimits( config, YMIN_KEY, YMAX_KEY, YSUBRANGE_KEY,
-                       profile.ylog_, null );
+                       profile.yscale_, null );
         return tlimits == null || ylimits == null
              ? null
              : new TimeAspect( tlimits, ylimits );
@@ -524,7 +531,7 @@ public class TimeSurfaceFactory
      * {@link #createProfile createProfile} method.
      */
     public static class Profile {
-        private final boolean ylog_;
+        private final Scale yscale_;
         private final boolean yflip_;
         private final String tlabel_;
         private final String ylabel_;
@@ -545,7 +552,7 @@ public class TimeSurfaceFactory
         /**
          * Constructor.
          *
-         * @param  ylog   whether to use logarithmic scaling on Y axis
+         * @param  yscale  scaling on Y axis
          * @param  yflip  whether to invert direction of Y axis
          * @param  tlabel text for labelling time axis
          * @param  ylabel  text for labelling Y axis
@@ -569,7 +576,7 @@ public class TimeSurfaceFactory
          *                 if no secondary axis
          * @param  annotateflags   which sides to annotate
          */
-        public Profile( boolean ylog, boolean yflip,
+        public Profile( Scale yscale, boolean yflip,
                         String tlabel, String ylabel,
                         DoubleUnaryOperator t2func, DoubleUnaryOperator y2func,
                         String t2label, String y2label, Captioner captioner,
@@ -577,7 +584,7 @@ public class TimeSurfaceFactory
                         OrientationPolicy orientpolicy, TimeFormat tformat,
                         boolean minor, boolean shadow,
                         SideFlags annotateflags ) {
-            ylog_ = ylog;
+            yscale_ = yscale;
             yflip_ = yflip;
             tlabel_ = tlabel;
             ylabel_ = ylabel;
@@ -597,12 +604,12 @@ public class TimeSurfaceFactory
         }
 
         /**
-         * Indicates whether Y axis is logarithmic.
+         * Scaling on Y axis.
          *
-         * @return  true for Y logarithmic scaling, false for linear
+         * @return  scaling
          */
-        public boolean getYLog() {
-            return ylog_;
+        public Scale getYScale() {
+            return yscale_;
         }
 
         /**
@@ -612,7 +619,7 @@ public class TimeSurfaceFactory
          * @param   annotateflags  which sides to annotate
          */
         public Profile fixAnnotation( SideFlags annotateflags ) {
-            return new Profile( ylog_, yflip_, tlabel_, ylabel_,
+            return new Profile( yscale_, yflip_, tlabel_, ylabel_,
                                 t2func_, y2func_, t2label_, y2label_,
                                 captioner_, gridcolor_, tcrowd_, ycrowd_,
                                 orientpolicy_, tformat_, minor_, shadow_,

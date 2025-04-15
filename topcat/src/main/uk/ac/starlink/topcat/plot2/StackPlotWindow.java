@@ -97,6 +97,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.ShadeAxisKit;
 import uk.ac.starlink.ttools.plot2.Slow;
@@ -2111,7 +2112,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private static class RangeDescriber {
         final int ndim_;
         final double[][] dlims_;
-        final boolean[] logFlags_;
+        final Scale[] scales_;
         final int[] npixs_;
 
         /**
@@ -2123,7 +2124,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         RangeDescriber( CartesianRanger ranger, Surface surf ) {
             ndim_ = ranger.getDimCount();
             dlims_ = ranger.getDataLimits( surf );
-            logFlags_ = ranger.getLogFlags( surf );
+            scales_ = ranger.getScales( surf );
             npixs_ = ranger.getPixelDims( surf );
         }
 
@@ -2144,7 +2145,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                             .betweenExpression( varNames[ idim ],
                                                 dlims_[ idim ][ 0 ],
                                                 dlims_[ idim ][ 1 ],
-                                                logFlags_[ idim ],
+                                                scales_[ idim ],
                                                 npixs_[ idim ] ) );
             }
             return sbuf.toString();
@@ -2163,11 +2164,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 if ( idim > 0 ) {
                     sbuf.append( " AND " );
                 }
+                Scale scale = scales_[ idim ];
                 String[] limits =
                     PlotUtil.formatAxisRangeLimits( dlims_[ idim ][ 0 ],
                                                     dlims_[ idim ][ 1 ],
-                                                    logFlags_[ idim ],
-                                                    npixs_[ idim ] );
+                                                    scale, npixs_[ idim ] );
                 sbuf.append( varNames[ idim ] )
                     .append( " BETWEEN " )
                     .append( limits[ 0 ] )

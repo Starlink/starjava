@@ -7,6 +7,8 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import uk.ac.starlink.util.Bi;
 import uk.ac.starlink.util.Pair;
 
@@ -21,35 +23,37 @@ import uk.ac.starlink.util.Pair;
  */
 public abstract class BasicTicker implements Ticker {
 
-    private final boolean logFlag_;
+    private final Scale scale_;
+
+    private static final double TOL = 1e-10;
 
     /** Ticker for linear axes. */
-    public static final BasicTicker LINEAR = new BasicTicker( false ) {
+    public static final BasicTicker LINEAR = new BasicTicker( Scale.LINEAR ) {
         public Rule createRule( double dlo, double dhi,
                                 double approxMajorCount, int adjust ) {
-            return new CheckRule( createRawRule( dlo, dhi, approxMajorCount,
-                                                 adjust, false ) ) {
+            return new CheckRule( createLinearRule( dlo, dhi, approxMajorCount,
+                                                    adjust ) ) {
                 boolean checkLabel( Caption label, double value ) {
                     double diff = Double.parseDouble( label.toText() ) - value;
-                    return diff == 0 || Math.abs( diff / value ) < 1e-10;
+                    return diff == 0 || Math.abs( diff / value ) < TOL;
                 }
             };
         }
     };
 
     /** Ticker for logarithmic axes. */
-    public static final BasicTicker LOG = new BasicTicker( true ) {
+    public static final BasicTicker LOG = new BasicTicker( Scale.LOG ) {
         public Rule createRule( double dlo, double dhi,
                                 double approxMajorCount, int adjust ) {
             if ( dlo <= 0 || dhi <= 0 ) {
                 throw new IllegalArgumentException( "Negative log range?" );
             }
-            return new CheckRule( createRawRule( dlo, dhi, approxMajorCount,
-                                                 adjust, true ) ) {
+            return new CheckRule( createLogRule( dlo, dhi, approxMajorCount,
+                                                 adjust ) ) {
                 boolean checkLabel( Caption label, double value ) {
                    return Math.abs( Double.parseDouble( label.toText() )
                                     / value - 1 )
-                        < 1e-10;
+                        < TOL;
                 }
             };
         }
@@ -58,10 +62,10 @@ public abstract class BasicTicker implements Ticker {
     /**
      * Constructor.
      *
-     * @param  logFlag  true for logarithmic axis, false for linear
+     * @param  scale   axis scaling
      */
-    protected BasicTicker( boolean logFlag ) {
-        logFlag_ = logFlag;
+    protected BasicTicker( Scale scale ) {
+        scale_ = scale;
     }
 
     /**
@@ -131,7 +135,7 @@ public abstract class BasicTicker implements Ticker {
          * they are not so crowded as to overlap.  If that's not possible,
          * back off to lower crowding levels until we have
          * something suitable. */
-        Axis axis = Axis.createAxis( 0, npix, dlo, dhi, logFlag_, false );
+        Axis axis = new Axis( 0, npix, dlo, dhi, scale_, false );
         int maxAdjust = -5;
         for ( int adjust = 0 ; adjust > maxAdjust; adjust-- ) {
             Rule rule = createRule( dlo, dhi, approxMajorCount, adjust );
@@ -147,6 +151,35 @@ public abstract class BasicTicker implements Ticker {
          * labels, too bad. */
         Rule rule = createRule( dlo, dhi, approxMajorCount, maxAdjust );
         return new Bi<Rule,Orientation>( rule, orients[ 0 ] );
+    }
+
+    /**
+     * Returns a ticker instance that is linear within a given distance
+     * of the origin and logarithmic or negative logarithmic for larger
+     * absolute values.
+     *
+     * @param  scale   axis scaling
+     * @param  linthresh  distance from origin within which ticks are linear
+     * @return  new ticker
+     */
+    public static Ticker createHybridTicker( Scale scale, double linthresh ) {
+        return new BasicTicker( scale ) {
+            public Rule createRule( double dlo, double dhi,
+                                    double approxMajorCount, int adjust ) {
+                return new CheckRule( createHybridRule( dlo, dhi,
+                                                        approxMajorCount,
+                                                        adjust, scale,
+                                                        linthresh ) ) {
+                    boolean checkLabel( Caption label, double val ) {
+                        double lval = Double.parseDouble( label.toText() );
+                        return lval == val
+                            || ( ( Math.abs( val ) <= linthresh )
+                                     ? Math.abs( ( lval - val ) / val ) < TOL
+                                     : Math.abs( lval / val - 1 ) < TOL );
+                    }
+                };
+            }
+        };
     }
 
     /**
@@ -196,7 +229,7 @@ public abstract class BasicTicker implements Ticker {
     }
 
     /**
-     * Acquire a rule for labelling a linear or logarithmic axis.
+     * Acquire a rule for labelling a logarithmic axis.
      * The tick density is determined by two parameters,
      * <code>approxMajorCount</code>, which gives a baseline value for
      * the number of ticks required over the given range, and
@@ -209,16 +242,14 @@ public abstract class BasicTicker implements Ticker {
      * @param   approxMajorCount  guide value for number of major ticks
      *                            in range
      * @param   adjust  adjusts density of major ticks
-     * @param   log     true for logarithmic, false for linear
      * @return  tick generation rule
      */
-    private static Rule createRawRule( double dlo, double dhi,
-                                       double approxMajorCount, int adjust,
-                                       final boolean log ) {
+    private static Rule createLogRule( double dlo, double dhi,
+                                       double approxMajorCount, int adjust ) {
 
         /* Use specifically logarithmic labelling only if the axes are
          * logarithmic and the range is greater than a factor of ten. */
-        if ( log && Math.log10( dhi / dlo ) > 1 ) {
+        if ( Math.log10( dhi / dlo ) > 1 ) {
             LogSpacer[] spacers = LogSpacer.SPACERS;
             assert spacers.length == 2;
 
@@ -258,8 +289,28 @@ public abstract class BasicTicker implements Ticker {
              * more dense, though it might not work well for large ranges.
              * Won't happen often though. */
         }
+        return createLinearRule( dlo, dhi, approxMajorCount, adjust );
+    }
 
-        /* Linear tick marks. */
+    /**
+     * Acquire a rule for labelling a linear axis.
+     * The tick density is determined by two parameters,
+     * <code>approxMajorCount</code>, which gives a baseline value for
+     * the number of ticks required over the given range, and
+     * <code>adjust</code>.
+     * Increasing <code>adjust</code> will give more major ticks, and
+     * decreasing it will give fewer ticks.
+     *
+     * @param   dlo     minimum axis data value
+     * @param   dhi     maximum axis data value
+     * @param   approxMajorCount  guide value for number of major ticks
+     *                            in range
+     * @param   adjust  adjusts density of major ticks
+     * @return  tick generation rule
+     */
+    private static Rule createLinearRule( double dlo, double dhi,
+                                          double approxMajorCount,
+                                          int adjust ) {
         double approxMajorInterval = ( dhi - dlo ) / approxMajorCount;
         int exp = (int) Math.floor( Math.log10( approxMajorInterval ) );
         double oversize = approxMajorInterval / exp10( exp );
@@ -269,6 +320,51 @@ public abstract class BasicTicker implements Ticker {
                 + LinearSpacer.getSpacerIndex( oversize ) - adjust;
         int[] div = divFloor( num, maxLevel );
         return new LinearRule( div[ 0 ], LinearSpacer.SPACERS[ div[ 1 ] ] );
+    }
+
+    /**
+     * Acquire a rule for labelling an axis which is linear near the origin
+     * and logarithmic or negative logarithmic otherwise.
+     *
+     * @param   dlo     minimum axis data value
+     * @param   dhi     maximum axis data value
+     * @param   approxMajorCount  guide value for number of major ticks
+     *                            in range
+     * @param   adjust  adjusts density of major ticks
+     * @param   scale   axis scaling
+     * @param   double  linthresh  absolute values lower than this are
+     *                             in the linear regime, others in the
+     *                             logarithmic regime
+     * @return  tick generation rule
+     */
+    private static Rule createHybridRule( double dlo, double dhi,
+                                          double approxMajorCount, int adjust,
+                                          Scale scale, double linthresh ) {
+        double shi = scale.dataToScale( dhi );
+        double slo = scale.dataToScale( dlo );
+        double dloLin = Math.max( -linthresh, dlo );
+        double dhiLin = Math.min( +linthresh, dhi );
+        double sloLin = scale.dataToScale( dloLin );
+        double shiLin = scale.dataToScale( dhiLin );
+        double flin = ( shiLin - sloLin ) / ( shi - slo );
+        Rule linRule = createLinearRule( dloLin, dhiLin,
+                                         flin * approxMajorCount, adjust );
+        final double flog;
+        final double dloLog;
+        final double dhiLog;
+        if ( shi - shiLin > sloLin - slo ) {
+            flog = ( shi - shiLin ) / ( shi - slo );
+            dloLog = dhiLin;
+            dhiLog = dhi;
+        }
+        else {
+            flog = ( sloLin - slo ) / ( shi - slo );
+            dloLog = - dloLin;
+            dhiLog = - dlo;
+        }
+        Rule logRule = createLogRule( dloLog, dhiLog,
+                                      flog * approxMajorCount, adjust );
+        return new HybridRule( linRule, logRule, linthresh );
     }
 
     /**
@@ -381,7 +477,6 @@ public abstract class BasicTicker implements Ticker {
      */
     private static Caption logLabel( long mantissa, int exponent ) {
         assert mantissa > 0 && mantissa < 10;
-        double value = mantissa * exp10( exponent );
 
         /* Some care is required assembling the label, to make sure we
          * avoid rounding issues (like 0.999999999999).
@@ -398,31 +493,37 @@ public abstract class BasicTicker implements Ticker {
             return Caption.createCaption( smantissa + zeros( exponent ) );
         }
         else {
-            return createSciCaption( mantissa == 1 ? null : smantissa,
-                                     exponent );
+            return createSciCaption( smantissa, exponent );
         }
     }
 
     /**
      * Returns a caption representing a number in scientific notation.
      *
-     * @param  mantissa  mantissa string; if null, no mantissa will be rendered,
-     *                   meaning that it is considered to be unity
+     * @param  mantissa  mantissa string
      * @param  exponent  decimal exponent value as an integer
      */
     private static Caption createSciCaption( String mantissa, int exponent ) {
         String txt = new StringBuffer()
-            .append( mantissa == null ? "1" : mantissa )
+            .append( mantissa )
             .append( "e" )
             .append( Integer.toString( exponent ) )
             .toString();
-        String latex = new StringBuffer()
-            .append( mantissa == null ? "" : mantissa + "\\!\\times\\!" )
-            .append( "10^{" )
-            .append( Integer.toString( exponent ) )
-            .append( "}" )
-            .toString();
-        return Caption.createCaption( txt, latex );
+        StringBuffer latexBuf = new StringBuffer();
+        if ( "1".equals( mantissa ) ) {
+        }
+        else if ( "-1".equals( mantissa ) ) {
+            latexBuf.append( "-" );
+        }
+        else {
+            latexBuf.append( mantissa )
+                    .append( "\\!\\times\\!" );
+        }
+        latexBuf.append( "10^{" )
+                .append( Integer.toString( exponent ) )
+                .append( "}" )
+                .toString();
+        return Caption.createCaption( txt, latexBuf.toString() );
     }
 
     /**
@@ -812,6 +913,145 @@ public abstract class BasicTicker implements Ticker {
         public Caption indexToLabel( long index ) {
             long mantissa = index * spacer_.major_;
             return linearLabel( mantissa, exp_ );
+        }
+    }
+
+    /**
+     * Rule instance that provides linear ticks within a given distance
+     * of the origin and logarithmic or negative logarithmic for larger
+     * absolute values.
+     */
+    private static class HybridRule implements Rule {
+
+        private final Rule linRule_;
+        private final Rule logRule_;
+        private final double linthresh_;
+        private final long linIx_;
+        private final long logIx_;
+        private static final Pattern MINUS_REGEX =
+            Pattern.compile( "( *- *)?(.*)");
+
+        /**
+         * Constructor.
+         *
+         * @param  linRule    rule for linear regime
+         * @param  logRule    rule for positive logarithmic regime
+         * @param  linthresh  positive position of crossover between
+         *                    linear and logarithmic regimes
+         */
+        HybridRule( Rule linRule, Rule logRule, double linthresh ) {
+            linRule_ = linRule;
+            logRule_ = logRule;
+            linthresh_ = linthresh;
+            linIx_ = linRule_.floorIndex( linthresh );
+            logIx_ = logRule_.floorIndex( linthresh );
+            assert linRule_.indexToValue( 0 ) == 0;
+        }
+
+        public long floorIndex( double value ) {
+            if ( value > +linthresh_ ) {
+                return +fromLogIndex( logRule_.floorIndex( +value ) );
+            }
+            else if ( value < -linthresh_ ) {
+                return -fromLogIndex( logRule_.floorIndex( -value ) );
+            }
+            else {
+                return linRule_.floorIndex( value );
+            }
+        }
+
+        public double indexToValue( long index ) {
+            if ( index > +linIx_ ) {
+                return +logRule_.indexToValue( toLogIndex( +index ) );
+            }
+            else if ( index < -linIx_ ) {
+                return -logRule_.indexToValue( toLogIndex( -index ) );
+            }
+            else {
+                return linRule_.indexToValue( index );
+            }
+        }
+
+        public double[] getMinors( long index ) {
+            if ( index >= +linIx_ ) {
+                return logRule_.getMinors( toLogIndex( +index ) );
+            }
+            else if ( index < -linIx_ ) {
+                double[] minors =
+                    logRule_.getMinors( toLogIndex( -index - 1 ) );
+                if ( minors != null ) {
+                    for ( int i = 0; i < minors.length; i++ ) {
+                        minors[ i ] = -minors[ i ];
+                    }
+                }
+                return minors;
+            }
+            else {
+                return linRule_.getMinors( index );
+            }
+        }
+
+        public Caption indexToLabel( long index ) {
+            if ( index > +linIx_ ) {
+                return logRule_.indexToLabel( toLogIndex( index ) );
+            }
+            else if ( index < -linIx_ ) {
+                Caption cap = logRule_.indexToLabel( toLogIndex( -index ) );
+
+                // It's a bit hacky to manipulate the caption text here
+                // rather than regenerating it, but it does the right thing
+                // for all cases at time of writing.
+                String txt = negativeText( cap.toText() );
+                String latex = negativeText( cap.toLatex() );
+                return new Caption( txt ) {
+                    @Override
+                    public String toLatex() {
+                        return latex;
+                    }
+                };
+            }
+            else {
+                return linRule_.indexToLabel( index );
+            }
+        }
+
+        /**
+         * Converts an index for this hybrid rule to the equivalent index
+         * for the underlying positive logarithmic rule.
+         *
+         * @param  index  hybrid index
+         * @return  logarithmic index
+         */
+        private long toLogIndex( long index ) {
+            return index - linIx_ + logIx_;
+        }
+
+        /**
+         * Converts an index for the underlying positive logarithmic rule
+         * to the equivalent index for this hybrid rule.
+         *
+         * @param logIndex  logarithmic index
+         * @return  hybrid index
+         */
+        private long fromLogIndex( long logIndex ) {
+            return logIndex - logIx_ + linIx_;
+        }
+
+        /**
+         * Toggles presence of a minus sign at the start of a string.
+         *
+         * @param  txt  string that may or may not start with "-"
+         * @return   same string but with initial "-" added/removed
+         */
+        private static String negativeText( String txt ) {
+            Matcher matcher = MINUS_REGEX.matcher( txt );
+            if ( matcher.matches() ) {
+                return matcher.group( 1 ) == null ? "-" + txt
+                                                  : matcher.group( 2 );
+            }
+            else {
+                return txt;
+            }
         }
     }
 

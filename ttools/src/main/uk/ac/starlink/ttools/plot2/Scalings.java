@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.function.DoubleUnaryOperator;
 import uk.ac.starlink.ttools.func.Maths;
 
 /**
@@ -168,16 +169,16 @@ public class Scalings {
 
     /**
      * Constructs the Auto scaling instance.
-     * This is based on the Asinh function, parameterised such that the
-     * difference between output colours at the bottom end of the range
-     * should be visible.
+     * This is based on the Asinh function for x&gt;=0,
+     * parameterised such that the difference between output colours
+     * at the bottom end of the range should be visible.
      *
      * @param  name  scaling name
      * @return  auto scaling
      */
     static Scaling.RangeScaling createAutoScaling( final String name ) {
         final Scaling.RangeScaling asinh =
-            createAsinhScaling( "Asinh-auto", AUTO_DELTA );
+            createAutoScaling( "Asinh-auto", AUTO_DELTA );
         final double minSpan = 1.0 / AUTO_DELTA + 1;
         final String descrip = "asinh-based scaling with default parameters";
         return new Scaling.RangeScaling() {
@@ -209,6 +210,38 @@ public class Scalings {
                                       return Math.sqrt( val );
                                   }
                               } );
+    }
+
+    /**
+     * Constructs the asinh scaling instance.
+     * This one is a bit strange, since zero input is constrained to equal
+     * zero output.
+     *
+     * @param  name  scaling name
+     * @return  asinh scaling
+     */
+    static Scaling.RangeScaling createAsinhScaling( String name ) {
+        return new ClippedScaling( name, "Asinh scaling", false ) {
+            final Scaling type = this;
+            public Scaler createClippedScaler( double lo, double hi ) {
+                double amax = Math.max( Math.abs( lo ), Math.abs( hi ) );
+
+                /* Fix the scaling so that the linear part of the range
+                 * occupies something like 1/4 of the visible range.
+                 * This is pretty ad-hoc, at time of writing I don't know
+                 * whether it's a good choice numerically. */
+                double a1 = Math.sinh( 4.0 ) / amax;
+                DoubleUnaryOperator f = d -> Maths.asinh( a1 * d );
+                double min = f.applyAsDouble( lo );
+                double max = f.applyAsDouble( hi );
+                double range1 = 1.0 / ( max - min );
+                return new DefaultScaler( false, lo, hi, type ) {
+                    public double scaleValue( double val ) {
+                        return ( f.applyAsDouble( val ) - min ) * range1;
+                    }
+                };
+            }
+        };
     }
 
     /**
@@ -289,14 +322,14 @@ public class Scalings {
     }
 
     /**
-     * Constructs an asinh-based scaling.
+     * Constructs a scaling suitable for automatic density distributions.
      *
      * @param   name  scaling name
      * @param  delta  output difference for lower-end input unit difference
      * @return  scaling
      */
-    public static Scaling.RangeScaling createAsinhScaling( String name,
-                                                           double delta ) {
+    public static Scaling.RangeScaling createAutoScaling( String name,
+                                                          double delta ) {
         String descrip = "asinh-based scaling in which a unit difference "
                        + "at the bottom of the input scale "
                        + "translates to a difference of " + delta + " "

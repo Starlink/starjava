@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
@@ -48,9 +49,9 @@ public class CubeAxisController
             mainControl.addSpecifierTab( "Coords",
                                      new ConfigSpecifier( new ConfigKey<?>[] {
                 CubeSurfaceFactory.FORCEISO_KEY,
-                CubeSurfaceFactory.XLOG_KEY,
-                CubeSurfaceFactory.YLOG_KEY,
-                CubeSurfaceFactory.ZLOG_KEY,
+                CubeSurfaceFactory.XSCALE_KEY,
+                CubeSurfaceFactory.YSCALE_KEY,
+                CubeSurfaceFactory.ZSCALE_KEY,
                 CubeSurfaceFactory.XFLIP_KEY,
                 CubeSurfaceFactory.YFLIP_KEY,
                 CubeSurfaceFactory.ZFLIP_KEY,
@@ -153,7 +154,16 @@ public class CubeAxisController
                                      new ConfigSpecifier( StyleKeys.CAPTIONER
                                                          .getKeys() ) );
 
-        assert assertHasKeys( surfFact.getProfileKeys() );
+        /* Check we have the keys specified by the surface factory,
+         * but exclude redundant/deprecated ones used for CLI
+         * backward compatibility. */
+        List<ConfigKey<?>> reqKeys =
+            new ArrayList<ConfigKey<?>>( Arrays.asList( surfFact
+                                                       .getProfileKeys() ) );
+        reqKeys.remove( CubeSurfaceFactory.XLOG_KEY );
+        reqKeys.remove( CubeSurfaceFactory.YLOG_KEY );
+        reqKeys.remove( CubeSurfaceFactory.ZLOG_KEY );
+        assert assertHasKeys( reqKeys.toArray( new ConfigKey<?>[ 0 ] ) );
     }
 
     @Override
@@ -168,9 +178,9 @@ public class CubeAxisController
     public ConfigMap getConfig() {
         ConfigMap config = super.getConfig();
         if ( isIso_ ) {
-            config.put( CubeSurfaceFactory.XLOG_KEY, false );
-            config.put( CubeSurfaceFactory.YLOG_KEY, false );
-            config.put( CubeSurfaceFactory.ZLOG_KEY, false );
+            config.put( CubeSurfaceFactory.XSCALE_KEY, Scale.LINEAR );
+            config.put( CubeSurfaceFactory.YSCALE_KEY, Scale.LINEAR );
+            config.put( CubeSurfaceFactory.ZSCALE_KEY, Scale.LINEAR );
             config.put( CubeSurfaceFactory.XFLIP_KEY, false );
             config.put( CubeSurfaceFactory.YFLIP_KEY, false );
             config.put( CubeSurfaceFactory.ZFLIP_KEY, false );
@@ -181,7 +191,7 @@ public class CubeAxisController
     @Override
     protected boolean logChanged( CubeSurfaceFactory.Profile prof1,
                                   CubeSurfaceFactory.Profile prof2 ) {
-        return ! Arrays.equals( prof1.getLogFlags(), prof2.getLogFlags() );
+        return logChanged( prof1.getScales(), prof2.getScales() );
     }
 
     @Override
@@ -189,7 +199,7 @@ public class CubeAxisController
                                        CubeSurfaceFactory.Profile prof2 ) {
         return ( ( prof1.isForceIso() ^ prof2.isForceIso() ) &&
                  ! logChanged( prof1, prof2 ) &&
-                 CubeSurface.isIsometricPossible( prof1.getLogFlags() ) )
+                 CubeSurface.isIsometricPossible( prof1.getScales() ) )
             || super.forceClearRange( prof1, prof2 );
     }
 

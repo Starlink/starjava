@@ -22,6 +22,10 @@ public interface Scaling {
     public static final Scaling.RangeScaling LOG =
         Scalings.createLogScaling( "Log" );
 
+    /** Asinh scaling. */
+    public static final Scaling.RangeScaling ASINH =
+        Scalings.createAsinhScaling( "Asinh" );
+
     /** Square root scaling. */
     public static final Scaling.RangeScaling SQRT =
         Scalings.createSqrtScaling( "Sqrt" );
@@ -52,7 +56,7 @@ public interface Scaling {
 
     /** List of standard options for colour map stretch. */
     public static final Scaling[] STRETCHES = new Scaling[] {
-        LOG, LINEAR, HISTO, HISTOLOG, SQRT, SQUARE, ACOS, COS,
+        LOG, LINEAR, HISTO, HISTOLOG, ASINH, SQRT, SQUARE, ACOS, COS,
     };
 
     /**

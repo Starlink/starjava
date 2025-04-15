@@ -19,6 +19,7 @@ import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.LabelledLine;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.geom.PlanarSurface;
 
@@ -157,14 +158,7 @@ public abstract class PlaneFigureMode implements FigureMode {
      */
     private static String referenceName( PlanarSurface surf, String varname,
                                          int icoord ) {
-        return surf.getLogFlags()[ icoord ]
-             ? new StringBuffer()
-                  .append( F_LOG10 )
-                  .append( "(" )
-                  .append( varname )
-                  .append( ")" )
-                  .toString()
-             : varname;
+        return surf.getScales()[ icoord ].dataToScaleExpression( varname );
     }
 
     /**
@@ -179,13 +173,20 @@ public abstract class PlaneFigureMode implements FigureMode {
      */
     private static String referenceAdqlName( PlanarSurface surf, String varname,
                                              int icoord ) {
-        return surf.getLogFlags()[ icoord ]
-             ? new StringBuffer()
+        Scale scale = surf.getScales()[ icoord ];
+        if ( Scale.LINEAR.equals( scale ) ) {
+            return varname;
+        }
+        else if ( Scale.LOG.equals( scale ) ) {
+            return new StringBuffer()
                   .append( "LOG10(" )
                   .append( varname )
                   .append( ")" )
-                  .toString()
-             : varname;
+                  .toString();
+        }
+        else {
+            return "_UNSUPPORTED_SCALING_(" + varname + ")";
+        }       
     }
 
     /**
@@ -236,12 +237,12 @@ public abstract class PlaneFigureMode implements FigureMode {
     private static String referenceValue( PlanarSurface surf, Point gp,
                                           int icoord ) {
         Axis axis = surf.getAxes()[ icoord ];
-        boolean isLog = surf.getLogFlags()[ icoord ];
+        Scale scale = surf.getScales()[ icoord ];
         double gval = new int[] { gp.x, gp.y }[ icoord ];
         double dval = axis.graphicsToData( gval );
-        double rval = isLog ? Math.log10( dval ) : dval;
+        double sval = scale.dataToScale( dval );
         double epsilon = getPixelEpsilon( surf, icoord, gval );
-        return PlotUtil.formatNumber( rval, epsilon );
+        return PlotUtil.formatNumber( sval, epsilon );
     }
 
     /**
@@ -256,15 +257,14 @@ public abstract class PlaneFigureMode implements FigureMode {
      */
     private static double getPixelEpsilon( PlanarSurface surf, int icoord,
                                            double gval ) {
-        boolean isLog = surf.getLogFlags()[ icoord ];
+        Scale scale = surf.getScales()[ icoord ];
         Axis axis = surf.getAxes()[ icoord ];
         double dval = axis.graphicsToData( gval );
         double dval1 = axis.graphicsToData( gval - 0.5 / PIXTOL );
         double dval2 = axis.graphicsToData( gval + 0.5 / PIXTOL );
-        double rval = isLog ? Math.log10( dval ) : dval;
-        double rval1 = isLog ? Math.log10( dval1 ) : dval1;
-        double rval2 = isLog ? Math.log10( dval2 ) : dval2;
-        return Math.abs( rval2 - rval1 );
+        double sval1 = scale.dataToScale( dval1 );
+        double sval2 = scale.dataToScale( dval2 );
+        return Math.abs( sval2 - sval1 );
     }
 
     /**
@@ -743,9 +743,9 @@ public abstract class PlaneFigureMode implements FigureMode {
             Axis[] axes = surf.getAxes();
             Axis xAxis = axes[ 0 ];
             Axis yAxis = axes[ 1 ];
-            boolean[] logFlags = surf.getLogFlags();
-            boolean xlog = logFlags[ 0 ];
-            boolean ylog = logFlags[ 1 ];
+            Scale[] scales = surf.getScales();
+            Scale xscale = scales[ 0 ];
+            Scale yscale = scales[ 1 ];
             double x0 = xAxis.graphicsToData( p0_.x );
             double y0 = yAxis.graphicsToData( p0_.y );
             double x1 = xAxis.graphicsToData( p1_.x );
@@ -759,7 +759,7 @@ public abstract class PlaneFigureMode implements FigureMode {
 
             /* If both axes are linear, a circle in data space is a
              * circle in graphics space too. */
-            if ( !xlog && !ylog ) {
+            if ( xscale.isLinear() && yscale.isLinear() ){
                 double dx = Math.abs( p0.x - xAxis.dataToGraphics( x0 + r_ ) );
                 double dy = Math.abs( p0.y - yAxis.dataToGraphics( y0 + r_ ) );
                 shape_ = new Ellipse2D.Double( p0.x - dx, p0.y - dy,
@@ -902,21 +902,25 @@ public abstract class PlaneFigureMode implements FigureMode {
             Axis[] axes = surf_.getAxes();
             Axis xAxis = axes[ 0 ];
             Axis yAxis = axes[ 1 ];
-            boolean[] logFlags = surf_.getLogFlags();
-            boolean xlog = logFlags[ 0 ];
-            boolean ylog = logFlags[ 1 ];
+            Scale[] scales = surf_.getScales();
+            Scale xscale = scales[ 0 ];
+            Scale yscale = scales[ 1 ];
             double x0 = xAxis.graphicsToData( p0_.x );
             double y0 = yAxis.graphicsToData( p0_.y );
             double x1 = xAxis.graphicsToData( p0_.x + rx );
             double y1 = yAxis.graphicsToData( p0_.y + ry );
-            dx_ = Math.abs( xlog ? Math.log10( x1 / x0 ) : x1 - x0 );
-            dy_ = Math.abs( ylog ? Math.log10( y1 / y0 ) : y1 - y0 );
-            cx_ = xlog ? Math.log10( x0 ) : x0;
-            cy_ = ylog ? Math.log10( y0 ) : y0;
+            dx_ = Math.abs( xscale.dataToScale( x1 ) -
+                            xscale.dataToScale( x0 ) );
+            dy_ = Math.abs( yscale.dataToScale( y1 ) -
+                            yscale.dataToScale( y0 ) );
+            cx_ = xscale.dataToScale( x0 );
+            cy_ = yscale.dataToScale( y0 );
             double xa = xAxis.graphicsToData( p0_.x + 1 );
             double ya = yAxis.graphicsToData( p0_.y + 1 );
-            xEps_ = Math.abs( xlog ? Math.log10( xa / x0 ) : xa - x0 );
-            yEps_ = Math.abs( ylog ? Math.log10( ya / y0 ) : ya - y0 );
+            xEps_ = Math.abs( xscale.dataToScale( xa ) -
+                              xscale.dataToScale( x0 ) );
+            yEps_ = Math.abs( yscale.dataToScale( ya ) -
+                              yscale.dataToScale( y0 ) );
         }
 
         public Area getArea() {
@@ -937,11 +941,13 @@ public abstract class PlaneFigureMode implements FigureMode {
                                                          yEps_ ) );
             xline.drawLine( g );
             yline.drawLine( g );
-            boolean[] logFlags = surf_.getLogFlags();
-            if ( ! logFlags[ 0 ] ) {
+            Scale[] scales = surf_.getScales();
+
+            /* Draw labels for physically meaningful quantities only. */
+            if ( scales[ 0 ].isLinear() ) {
                 xline.drawLabel( g, null );
             }
-            if ( ! logFlags[ 1 ] ) {
+            if ( scales[ 1 ].isLinear() ) {
                 yline.drawLabel( g, null );
             }
         }
@@ -1056,9 +1062,9 @@ public abstract class PlaneFigureMode implements FigureMode {
             Axis[] axes = surf_.getAxes();
             Axis xAxis = axes[ 0 ];
             Axis yAxis = axes[ 1 ];
-            boolean[] logFlags = surf_.getLogFlags();
-            boolean xlog = logFlags[ 0 ];
-            boolean ylog = logFlags[ 1 ];
+            Scale[] scales = surf_.getScales();
+            Scale xscale = scales[ 0 ];
+            Scale yscale = scales[ 1 ];
             int[] xbounds = xAxis.getGraphicsLimits();
             int[] ybounds = yAxis.getGraphicsLimits();
             int xdim = xbounds[ 1 ] - xbounds[ 0 ];
@@ -1081,12 +1087,12 @@ public abstract class PlaneFigureMode implements FigureMode {
             double ya = yAxis.graphicsToData( pa_.y );
             double xb = xAxis.graphicsToData( pb_.x );
             double yb = yAxis.graphicsToData( pb_.y );
-            double cx = xlog ? Math.log10( x0 ) : x0;
-            double cy = ylog ? Math.log10( y0 ) : y0;
-            double vax = xlog ? Math.log10( xa / x0 ) : xa - x0;
-            double vay = ylog ? Math.log10( ya / y0 ) : ya - y0;
-            double vbx = xlog ? Math.log10( xb / x0 ) : xb - x0;
-            double vby = ylog ? Math.log10( yb / y0 ) : yb - y0;
+            double cx = xscale.dataToScale( x0 );
+            double cy = yscale.dataToScale( y0 );
+            double vax = xscale.dataToScale( xa ) - xscale.dataToScale( x0 );
+            double vay = yscale.dataToScale( ya ) - yscale.dataToScale( y0 );
+            double vbx = xscale.dataToScale( xb ) - xscale.dataToScale( x0 );
+            double vby = yscale.dataToScale( yb ) - yscale.dataToScale( y0 );
             double det1 = 1. / ( vax * vby - vbx * vay );
             double kxa =  vby * det1;
             double kya = -vbx * det1;
@@ -1099,8 +1105,10 @@ public abstract class PlaneFigureMode implements FigureMode {
              * strings. */
             double x1 = xAxis.graphicsToData( p0_.x + 1 );
             double y1 = yAxis.graphicsToData( p0_.y + 1 );
-            double xEps = Math.abs( xlog ? Math.log10( x1 / x0 ) : x1 - x0 );
-            double yEps = Math.abs( ylog ? Math.log10( y1 / y0 ) : y1 - y0 );
+            double xEps = Math.abs( xscale.dataToScale( x1 ) -
+                                    xscale.dataToScale( x0 ) );
+            double yEps = Math.abs( yscale.dataToScale( y1 ) -
+                                    yscale.dataToScale( y0 ) );
             int nsf = (int) Math.ceil( Math.log10( Math.max( xdim, ydim ) ) );
             fracA_ = (xref, yref) -> new StringBuffer()
                 .append( PlotUtil.formatNumberSf( kxa, nsf ) )
@@ -1319,7 +1327,7 @@ public abstract class PlaneFigureMode implements FigureMode {
 
         public String createPlaneExpression( String xvar, String yvar ) {
             Axis[] axes = surf_.getAxes();
-            boolean[] logFlags = surf_.getLogFlags();
+            Scale[] scales = surf_.getScales();
             String operator = surf_.getFlipFlags()[ isYfunc_ ? 1 : 0 ]
                             ? ( isLess_ ? ">" : "<=" )
                             : ( isLess_ ? "<" : ">=" );
@@ -1338,8 +1346,8 @@ public abstract class PlaneFigureMode implements FigureMode {
             if ( points_.length == 2 ) {
                 Point p1 = points_[ 0 ];
                 Point p2 = points_[ 1 ];
-                boolean xlog = logFlags[ 0 ];
-                boolean ylog = logFlags[ 1 ];
+                Scale xscale = scales[ 0 ];
+                Scale yscale = scales[ 1 ];
                 Axis xaxis = axes[ 0 ];
                 Axis yaxis = axes[ 1 ];
                 String xref = referenceName( surf_, xvar, 0 );
@@ -1348,10 +1356,10 @@ public abstract class PlaneFigureMode implements FigureMode {
                 double dy1 = yaxis.graphicsToData( p1.y );
                 double dx2 = xaxis.graphicsToData( p2.x );
                 double dy2 = yaxis.graphicsToData( p2.y );
-                double rx1 = xlog ? Math.log10( dx1 ) : dx1;
-                double ry1 = ylog ? Math.log10( dy1 ) : dy1;
-                double rx2 = xlog ? Math.log10( dx2 ) : dx2;
-                double ry2 = ylog ? Math.log10( dy2 ) : dy2;
+                double rx1 = xscale.dataToScale( dx1 );
+                double ry1 = yscale.dataToScale( dy1 );
+                double rx2 = xscale.dataToScale( dx2 );
+                double ry2 = yscale.dataToScale( dy2 );
                 double m = isYfunc_ ? ( ry2 - ry1 ) / ( rx2 - rx1 )
                                     : ( rx2 - rx1 ) / ( ry2 - ry1 );
                 double c = isYfunc_ ? ry1 - m * rx1
@@ -1364,9 +1372,8 @@ public abstract class PlaneFigureMode implements FigureMode {
                  * pixels on either edge of the visible plot bounds. */
                 double mEpsilon = 0;
                 for ( double dlim : surf_.getDataLimits()[ isYfunc_ ? 0 : 1 ] ){
-                    double rlim = ( isYfunc_ ? xlog : ylog )
-                                ? Math.log10( dlim )
-                                : dlim;
+                    double rlim = ( isYfunc_ ? xscale : yscale )
+                                 .dataToScale( dlim );
                     double dm = Math.abs( ( isYfunc_ ? yEpsilon : xEpsilon )
                                         / ( rlim - ( isYfunc_ ? rx1 : ry1 ) ) );
                     mEpsilon = mEpsilon > 0 ? Math.min( mEpsilon, dm ) : dm;

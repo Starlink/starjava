@@ -16,6 +16,7 @@ import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.CoordSequence;
 import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.Surround;
 import uk.ac.starlink.ttools.plot2.Tick;
@@ -38,7 +39,7 @@ public class TimeSurface implements Surface, PlanarSurface {
     private final double dthi_;
     private final double dylo_;
     private final double dyhi_;
-    private final boolean ylog_;
+    private final Scale yscale_;
     private final boolean yflip_;
     private final Tick[] tticks_;
     private final Tick[] yticks_;
@@ -72,7 +73,7 @@ public class TimeSurface implements Surface, PlanarSurface {
      * @param  dthi   data time coordinate upper bound in unix seconds
      * @param  dylo   data Y coordinate lower bound
      * @param  dyhi   data Y coordinate upper bound
-     * @param  ylog   whether to use logarithmic scaling on Y axis
+     * @param  yscale  scaling on Y axis
      * @param  yflip  whether to invert direction of Y axis
      * @param  tticks  array of tickmark objects for time axis
      * @param  yticks  array of tickmark objects for Y axis
@@ -94,7 +95,7 @@ public class TimeSurface implements Surface, PlanarSurface {
     @SuppressWarnings("this-escape")
     public TimeSurface( int gxlo, int gxhi, int gylo, int gyhi,
                         double dtlo, double dthi, double dylo, double dyhi,
-                        boolean ylog, boolean yflip,
+                        Scale yscale, boolean yflip,
                         Tick[] tticks, Tick[] yticks,
                         Orientation torient, Orientation yorient,
                         String tlabel, String ylabel,
@@ -111,7 +112,7 @@ public class TimeSurface implements Surface, PlanarSurface {
         dthi_ = dthi;
         dylo_ = dylo;
         dyhi_ = dyhi;
-        ylog_ = ylog;
+        yscale_ = yscale;
         yflip_ = yflip;
         tticks_ = tticks;
         yticks_ = yticks;
@@ -129,9 +130,9 @@ public class TimeSurface implements Surface, PlanarSurface {
         gridcolor_ = gridcolor;
         tformat_ = tformat;
         annotateflags_ = annotateflags;
-        tAxis_ = Axis.createAxis( gxlo_, gxhi_, dtlo_, dthi_, false, false );
-        yAxis_ = Axis.createAxis( gylo_, gyhi_, dylo_, dyhi_, ylog_,
-                                  yflip_ ^ INVERT_Y );
+        tAxis_ = new Axis( gxlo_, gxhi_, dtlo_, dthi_, Scale.TIME, false );
+        yAxis_ = new Axis( gylo_, gyhi_, dylo_, dyhi_, yscale_,
+                           yflip_ ^ INVERT_Y );
         assert this.equals( this );
     }
 
@@ -232,8 +233,8 @@ public class TimeSurface implements Surface, PlanarSurface {
         return captioner_;
     }
 
-    public boolean[] getLogFlags() {
-        return new boolean[] { false, ylog_ };
+    public Scale[] getScales() {
+        return new Scale[] { Scale.TIME, yscale_ };
     }
 
     public boolean[] getFlipFlags() {
@@ -376,7 +377,7 @@ public class TimeSurface implements Surface, PlanarSurface {
         code = 23 * code + Float.floatToIntBits( (float) dthi_ );
         code = 23 * code + Float.floatToIntBits( (float) dylo_ );
         code = 23 * code + Float.floatToIntBits( (float) dyhi_ );
-        code = 23 * code + ( ylog_ ? 1 : 3 );
+        code = 23 * code + yscale_.hashCode();
         code = 23 * code + ( yflip_ ? 5 : 7 );
         code = 23 * code + Arrays.hashCode( tticks_ );
         code = 23 * code + Arrays.hashCode( yticks_ );
@@ -409,7 +410,7 @@ public class TimeSurface implements Surface, PlanarSurface {
                 && this.dthi_ == other.dthi_
                 && this.dylo_ == other.dylo_
                 && this.dyhi_ == other.dyhi_
-                && this.ylog_ == other.ylog_
+                && this.yscale_.equals( other.yscale_ )
                 && this.yflip_ == other.yflip_
                 && Arrays.equals( this.tticks_, other.tticks_ )
                 && Arrays.equals( this.yticks_, other.yticks_ )
@@ -459,7 +460,7 @@ public class TimeSurface implements Surface, PlanarSurface {
      *
      * @param  plotBounds  rectangle which the plot data should occupy
      * @param  aspect  surface view configuration
-     * @param  ylog   whether to use logarithmic scaling on Y axis
+     * @param  yscale  scaling on Y axis
      * @param  yflip  whether to invert direction of Y axis
      * @param  tlabel  text for labelling time axis
      * @param  ylabel  text for labelling Y axis
@@ -485,7 +486,7 @@ public class TimeSurface implements Surface, PlanarSurface {
      */
     public static TimeSurface createSurface( Rectangle plotBounds,
                                              TimeAspect aspect,
-                                             boolean ylog, boolean yflip,
+                                             Scale yscale, boolean yflip,
                                              String tlabel, String ylabel,
                                              DoubleUnaryOperator t2func,
                                              DoubleUnaryOperator y2func,
@@ -509,7 +510,7 @@ public class TimeSurface implements Surface, PlanarSurface {
                           .getTicks( aspect.getTMin(), aspect.getTMax(), minor,
                                      captioner, orientpolicy.getOrientationsX(),
                                      plotBounds.width, tcrowd );
-        TickRun ytickRun = ( ylog ? BasicTicker.LOG : BasicTicker.LINEAR )
+        TickRun ytickRun = yscale.getTicker()
                           .getTicks( dylo, dyhi, minor,
                                      captioner, orientpolicy.getOrientationsY(),
                                      plotBounds.height, ycrowd );
@@ -517,9 +518,9 @@ public class TimeSurface implements Surface, PlanarSurface {
         Tick[] yticks = ytickRun.getTicks();
         Orientation torient = ttickRun.getOrientation();
         Orientation yorient = ytickRun.getOrientation();
-        Axis tAxis = Axis.createAxis( gxlo, gxhi, dtlo, dthi, false, false );
-        Axis yAxis = Axis.createAxis( gylo, gyhi, dylo, dyhi, ylog,
-                                      yflip ^ PlaneAxisAnnotation.INVERT_Y );
+        Axis tAxis = new Axis( gxlo, gxhi, dtlo, dthi, Scale.TIME, false );
+        Axis yAxis = new Axis( gylo, gyhi, dylo, dyhi, yscale,
+                               yflip ^ PlaneAxisAnnotation.INVERT_Y );
         TickRun t2tickRun =
               t2func == null
             ? ( shadow ? new TickRun( PlotUtil.getShadowTicks( tticks ),
@@ -547,7 +548,7 @@ public class TimeSurface implements Surface, PlanarSurface {
                              ? null
                              : y2tickRun.getOrientation();
         return new TimeSurface( gxlo, gxhi, gylo, gyhi, dtlo, dthi, dylo, dyhi,
-                                ylog, yflip,
+                                yscale, yflip,
                                 tticks, yticks, torient, yorient,
                                 tlabel, ylabel,
                                 t2ticks, y2ticks, t2orient, y2orient,

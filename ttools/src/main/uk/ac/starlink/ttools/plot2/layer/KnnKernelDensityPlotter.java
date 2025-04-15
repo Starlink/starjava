@@ -6,6 +6,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -89,9 +90,6 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
     public static final ConfigKey<BinSizer> MAXSIZER_CKEY =
         createLimitSizerKey( true );
 
-    /** No bin size rounding here. */
-    private static final Rounding ROUNDING = null;
-
     /**
      * Constructor.
      *
@@ -149,8 +147,8 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
         boolean isSymmetric = config.get( SYMMETRIC_CKEY );
         BinSizer minSizer = config.get( MINSIZER_CKEY );
         BinSizer maxSizer = config.get( MAXSIZER_CKEY );
-        if ( minSizer.getWidth( false, 0, 1, ROUNDING ) >
-             maxSizer.getWidth( false, 0, 1, ROUNDING ) ) {
+        if ( minSizer.getScaleWidth( Scale.LINEAR, 0, 1, false ) >
+             maxSizer.getScaleWidth( Scale.LINEAR, 0, 1, false ) ) {
             throw new ConfigException( MINSIZER_CKEY,
                                        "Smoothing min/max are "
                                      + "the wrong way round" );
@@ -218,20 +216,23 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
             maxSizer_ = maxSizer;
         }
 
-        public Kernel1d createKernel( Kernel1dShape shape, Axis xAxis,
-                                      boolean xLog ) {
-            int minWidth = (int) getPixelWidth( minSizer_, xAxis, xLog );
-            int maxWidth = (int) getPixelWidth( maxSizer_, xAxis, xLog );
+        public Kernel1d createKernel( Kernel1dShape shape, Axis xAxis ) {
+            int minWidth = (int) getPixelWidth( minSizer_, xAxis );
+            int maxWidth = (int) getPixelWidth( maxSizer_, xAxis );
             return shape.createKnnKernel( knn_, isSymmetric_,
                                           minWidth, maxWidth );
         }
 
-        public ReportMap getReportMap( boolean xLog, double dlo, double dhi ) {
+        public ReportMap getReportMap( Axis xAxis ) {
+            Scale scale = xAxis.getScale();
+            double[] dLimits = xAxis.getDataLimits();
+            double dlo = dLimits[ 0 ];
+            double dhi = dLimits[ 1 ];
+            double minWidth = minSizer_.getScaleWidth( scale, dlo, dhi, false );
+            double maxWidth = maxSizer_.getScaleWidth( scale, dlo, dhi, false );
             ReportMap report = new ReportMap();
-            report.put( MINWIDTH_RKEY,
-                        minSizer_.getWidth( xLog, dlo, dhi, ROUNDING ) );
-            report.put( MAXWIDTH_RKEY,
-                        maxSizer_.getWidth( xLog, dlo, dhi, ROUNDING ) );
+            report.put( MINWIDTH_RKEY, minWidth );
+            report.put( MAXWIDTH_RKEY, maxWidth );
             return report;
         }
 

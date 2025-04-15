@@ -33,10 +33,10 @@ import uk.ac.starlink.ttools.jel.JELTable;
 import uk.ac.starlink.ttools.mode.CubeMode;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.layer.BinMapper;
 import uk.ac.starlink.ttools.plot2.layer.BinSizer;
 import uk.ac.starlink.ttools.plot2.layer.Combiner;
-import uk.ac.starlink.ttools.plot2.layer.Rounding;
 import uk.ac.starlink.ttools.plot2.layer.Unit;
 
 /**
@@ -238,11 +238,11 @@ public class GridDensityMap extends SingleMapperTask {
 
         /* Get linear/log flags. */
         Boolean[] logFlags = logsParam_.wordsValue( env );
-        final boolean[] isLogs = new boolean[ ndim ];
-        if ( logFlags != null ) {
-            for ( int idim = 0; idim < ndim; idim++ ) {
-                isLogs[ idim ] = Boolean.TRUE.equals( logFlags[ idim ] );
-            }
+        Scale[] scales = new Scale[ ndim ];
+        for ( int idim = 0; idim < ndim; idim++ ) {
+            boolean isLog =
+                logFlags != null && Boolean.TRUE.equals( logFlags[ idim ] );
+            scales[ idim ] = isLog ? Scale.LOG : Scale.LINEAR;
         }
 
         /* Get the explicitly specified bounds for the output grid. */
@@ -315,7 +315,7 @@ public class GridDensityMap extends SingleMapperTask {
         RowRunner runner = runnerParam_.objectValue( env );
         boolean isSparse = sparseParam_.booleanValue( env );
         final SingleTableMapping mapping =
-            new GridMapMapping( coordExprs, isLogs, loBounds, hiBounds,
+            new GridMapMapping( coordExprs, scales, loBounds, hiBounds,
                                 nbins, binsizes,
                                 qcList.toArray( new CombinedColumn[ 0 ] ),
                                 isSparse, runner );
@@ -333,7 +333,7 @@ public class GridDensityMap extends SingleMapperTask {
     private static class GridMapMapping implements SingleTableMapping {
 
         final String[] coordExprs_;
-        final boolean[] isLogs_;
+        final Scale[] scales_;
         final double[] loBounds_;
         final double[] hiBounds_;
         final int[] nbins_;
@@ -349,7 +349,7 @@ public class GridDensityMap extends SingleMapperTask {
          *
          * @param  coordExprs  JEL expressions defining grid coordinate values
          *                     (ndim-element array)
-         * @param  isLogs    log/linear coordinate flags (ndim-element array)
+         * @param  scales    axis scales (ndim-element array)
          * @param  loBounds  grid coordinate fixed lower bounds
          *                   (ndim-element array, some elements may be NaN)
          * @param  hiBounds  grid coordinate fixed upper bounds
@@ -363,12 +363,12 @@ public class GridDensityMap extends SingleMapperTask {
          * @param  isSparse   true for sparse table output, false for dense
          * @param  rowRunner  control for parallel execution
          */
-        GridMapMapping( String[] coordExprs, boolean[] isLogs,
+        GridMapMapping( String[] coordExprs, Scale[] scales,
                         double[] loBounds, double[] hiBounds, int[] nbins,
                         double[] binSizes, CombinedColumn[] qcols,
                         boolean isSparse, RowRunner rowRunner ) {
             coordExprs_ = coordExprs;
-            isLogs_ = isLogs;
+            scales_ = scales;
             loBounds_ = loBounds;
             hiBounds_ = hiBounds;
             nbins_ = nbins;
@@ -419,7 +419,7 @@ public class GridDensityMap extends SingleMapperTask {
 
             /* Scan the table to accumulate statistics, possibly in parallel. */
             List<Map<BinKey,Combiner.Container>> qMaps =
-                rowRunner_.collect( new BinsCollector( binMappers, isLogs_,
+                rowRunner_.collect( new BinsCollector( binMappers, scales_,
                                                        qCombiners,
                                                        loBounds_, hiBounds_ ),
                                     cqTable );
@@ -427,7 +427,7 @@ public class GridDensityMap extends SingleMapperTask {
             /* Construct and return output table. */
             RowControl rowControl = createRowControl( binMappers, qMaps );
             GridTable outTable =
-                new GridTable( binMappers, isLogs_, qcols_,
+                new GridTable( binMappers, scales_, qcols_,
                                Tables.getColumnInfos( cqTable ),
                                qMaps, rowControl );
             for ( int idim = 0; idim < ndim_; idim++ ) {
@@ -463,13 +463,12 @@ public class GridDensityMap extends SingleMapperTask {
             /* If we have bin extents, we can proceed directly. */
             if ( binSizes_ != null ) {
                 for ( int idim = 0; idim < ndim_; idim++ ) {
-                    boolean isLog = isLogs_[ idim ];
+                    Scale scale = scales_[ idim ];
                     double binPoint = getExampleCoordinate( cqTable, idim );
                     double binSize = binSizes_[ idim ];
                     double binPhase = getBinPhase( binSize, idim );
                     mappers[ idim ] =
-                        BinMapper.createMapper( isLog, binSize,
-                                                binPhase, binPoint );
+                        new BinMapper( scale, binSize, binPhase, binPoint );
                 }
                 return mappers;
             }
@@ -490,19 +489,20 @@ public class GridDensityMap extends SingleMapperTask {
                 /* For each dimension use supplied bounds where available,
                  * otherwise the ones we just calculated from the data. */
                 for ( int idim = 0; idim < ndim_; idim++ ) {
-                    boolean isLog = isLogs_[ idim ];
+                    Scale scale = scales_[ idim ];
+                    boolean posdef = scale.isPositiveDefinite();
                     double lo = Double.isNaN( loBounds_[ idim ] )
-                              ? ranges[ idim ].getFiniteBounds( isLog )[ 0 ]
+                              ? ranges[ idim ].getFiniteBounds( posdef )[ 0 ]
                               : loBounds_[ idim ];
                     double hi = Double.isNaN( hiBounds_[ idim ] )
-                              ? ranges[ idim ].getFiniteBounds( isLog )[ 1 ]
+                              ? ranges[ idim ].getFiniteBounds( posdef )[ 1 ]
                               : hiBounds_[ idim ];
                     double binSize =
                         BinSizer.createCountBinSizer( nbins_[ idim ] )
-                                .getWidth( isLog, lo, hi, Rounding.DECIMAL );
+                                .getScaleWidth( scale, lo, hi, true );
                     double binPhase = getBinPhase( binSize, idim );
                     mappers[ idim ] =
-                        BinMapper.createMapper( isLog, binSize, binPhase, lo );
+                        new BinMapper( scale, binSize, binPhase, lo );
                 }
                 return mappers;
             }
@@ -537,7 +537,8 @@ public class GridDensityMap extends SingleMapperTask {
                         if ( obj instanceof Number ) {
                             Double dval = ((Number) obj).doubleValue();
                             if ( !Double.isNaN( dval ) &&
-                                 ( !isLogs_[ idim ] || dval > 0 ) ) {
+                                 ( !scales_[ idim ].isPositiveDefinite()
+                                   || dval > 0 ) ) {
                                 return dval;
                             }
                         }
@@ -557,20 +558,24 @@ public class GridDensityMap extends SingleMapperTask {
          * @return  phase value in range 0..1
          */
         private double getBinPhase( double binSize, int idim ) {
-            final double point;
+            final double dpoint;
             if ( !Double.isNaN( loBounds_[ idim ] ) ) {
-                point = loBounds_[ idim ];
+                dpoint = loBounds_[ idim ];
             }
             else if ( !Double.isNaN( hiBounds_[ idim ] ) ) {
-                point = hiBounds_[ idim ];
+                dpoint = hiBounds_[ idim ];
             }
             else {
                 return 0;
             }
-            double phase = isLogs_[ idim ]
-                         ? ( BinMapper.log( point ) % BinMapper.log( binSize ) )
-                           / BinMapper.log( binSize )
-                         : ( point % binSize ) / binSize;
+            Scale scale = scales_[ idim ];
+
+            /* This makes some assumptions about the details of the Scale
+             * implementations.  They happen to be correct at time of writing
+             * for the Scales.LINEAR, and for others the value of the phase
+             * is somewhat moot anyway. */
+            double phase = ( scale.dataToScale( dpoint ) % binSize )
+                         / scale.dataToScale( binSize );
             if ( phase < 0 ) {
                 phase += 1;
             }
@@ -796,7 +801,7 @@ public class GridDensityMap extends SingleMapperTask {
     private static class GridTable extends ColumnStarTable {
 
         private final BinMapper[] binMappers_;
-        private final boolean[] isLogs_;
+        private final Scale[] scales_;
         private final CombinedColumn[] qcols_;
         private final ColumnInfo[] cqInfos_;
         private final List<Map<BinKey,Combiner.Container>> qMaps_;
@@ -806,7 +811,7 @@ public class GridDensityMap extends SingleMapperTask {
          * Constructor.
          *
          * @param  binMappers   ndim-element array defining grid
-         * @param  isLogs    ndim-element array for log/linear grid coordinates
+         * @param  scales    ndim-element array of axis scales
          * @param  qcols     nq-element array defining quantities accumulated
          * @param  cqInfos  column metadata for table contaning
          *                  ndim coordinate columns followed by
@@ -814,12 +819,12 @@ public class GridDensityMap extends SingleMapperTask {
          * @param  qMaps   accumulation results
          * @param  rowControl   defines output row organisation
          */
-        GridTable( BinMapper[] binMappers, boolean[] isLogs,
+        GridTable( BinMapper[] binMappers, Scale[] scales,
                    CombinedColumn[] qcols, ColumnInfo[] cqInfos,
                    List<Map<BinKey,Combiner.Container>> qMaps,
                    RowControl rowControl ) {
             binMappers_ = binMappers;
-            isLogs_ = isLogs;
+            scales_ = scales;
             qcols_ = qcols;
             cqInfos_ = cqInfos;
             qMaps_ = qMaps;
@@ -869,7 +874,7 @@ public class GridDensityMap extends SingleMapperTask {
                     double[] limits = binMapper.getBinLimits( ibin );
                     double dval =
                         PlotUtil.scaleValue( limits[ 0 ], limits[ 1 ],
-                                             frac, isLogs_[ icoord ] );
+                                             frac, scales_[ icoord ] );
                     return Double.valueOf( dval );
                 }
             } );
@@ -987,7 +992,7 @@ public class GridDensityMap extends SingleMapperTask {
          * Constructor.
          *
          * @param  binMappers  ndim-element array defining grid geometry
-         * @param  isLogs      ndim-element array indicating linear/log axis
+         * @param  scales      ndim-element array of axis scales
          * @param  qCombiners  nq-element array defining how accumulation
          *                     is done for accumulated colums
          * @param  loBounds    ndim-element array of grid fixed lower bounds,
@@ -995,7 +1000,7 @@ public class GridDensityMap extends SingleMapperTask {
          * @param  hiBounds    ndim-element array of grid fixed upper bounds,
          *                     elements may be NaN
          */
-        BinsCollector( BinMapper[] binMappers, boolean[] isLogs,
+        BinsCollector( BinMapper[] binMappers, Scale[] scales,
                        Combiner[] qCombiners,
                        double[] loBounds, double[] hiBounds ) {
             binMappers_ = binMappers;
@@ -1014,7 +1019,7 @@ public class GridDensityMap extends SingleMapperTask {
             coordTests_ = new DoublePredicate[ ndim_ ];
             for ( int idim = 0; idim < ndim_; idim++ ) {
                 BinMapper mapper = binMappers[ idim ];
-                boolean isLog = isLogs[ idim ];
+                Scale scale = scales[ idim ];
                 double blo = loBounds[ idim ];
                 double bhi = hiBounds[ idim ];
                 final double dlo;
@@ -1032,7 +1037,7 @@ public class GridDensityMap extends SingleMapperTask {
                     double[] hiBin = getPointBinLimits( mapper, bhi );
                     dhi = bhi == hiBin[ 0 ] ? hiBin[ 0 ] : hiBin[ 1 ];
                 }
-                coordTests_[ idim ] = createCoordTest( dlo, dhi, isLog );
+                coordTests_[ idim ] = createCoordTest( dlo, dhi, scale );
             }
         }
 
@@ -1144,12 +1149,12 @@ public class GridDensityMap extends SingleMapperTask {
          *
          * @param   loBound  fixed lower bound, may be NaN
          * @param   hiBound  fixed upper bound, may be NaN
-         * @param   isLog    true for logarithmic, false for linear
+         * @param   scale    axis scaling
          * @return   function testing whether coordinate is usable
          */
         private static DoublePredicate createCoordTest( double loBound,
                                                         double hiBound,
-                                                        boolean isLog ) {
+                                                        Scale scale ) {
             boolean hasLo = !Double.isNaN( loBound );
             boolean hasHi = !Double.isNaN( hiBound );
             if ( hasLo && hasHi ) {
@@ -1159,12 +1164,12 @@ public class GridDensityMap extends SingleMapperTask {
                 return d -> d >= loBound;
             }
             else if ( hasHi ) {
-                return isLog ? d -> d < hiBound && d > 0
-                             : d -> d < hiBound;
+                return scale.isPositiveDefinite() ? d -> d < hiBound && d > 0
+                                                  : d -> d < hiBound;
             }
             else {
-                return isLog ? d -> d > 0
-                             : d -> !Double.isNaN( d );
+                return scale.isPositiveDefinite() ? d -> d > 0
+                                                  : d -> !Double.isNaN( d );
             }
         }
     }

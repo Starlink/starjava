@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
 import uk.ac.starlink.ttools.plot2.Axis;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Surface;
 
 /**
@@ -15,10 +16,9 @@ public interface PlanarSurface extends Surface {
     /**
      * Indicates the scaling along the two axes.
      *
-     * @return  2-element array giving horizontal, vertical scaling flags:
-     *          false for linear, true for logarithmic
+     * @return  2-element array giving horizontal, vertical axis scales
      */
-    public boolean[] getLogFlags();
+    public Scale[] getScales();
 
     /**
      * Indicates which axes are reversed.

@@ -8,6 +8,7 @@ import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.RangeCollector;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -78,9 +79,9 @@ public class ArrayShapePlotter extends ShapePlotter {
         return new WrapperPlotLayer( baseLayer ) {
             @Override
             public void extendCoordinateRanges( Range[] ranges,
-                                                boolean[] logFlags,
+                                                Scale[] scales,
                                                 DataStore dataStore ) {
-                super.extendCoordinateRanges( ranges, logFlags, dataStore );
+                super.extendCoordinateRanges( ranges, scales, dataStore );
                 RangeCollector<TupleSequence> rangeCollector =
                         new RangeCollector<TupleSequence>( 2 ) {
                     public void accumulate( TupleSequence tseq,

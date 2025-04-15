@@ -20,11 +20,13 @@ import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.Ganger;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
+import uk.ac.starlink.ttools.plot2.config.ScaleConfigKey;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.config.ToggleNullConfigKey;
@@ -312,8 +314,8 @@ public class MatrixAxesController
             SpecifierArrayPanel<String> labelSpecifiersPanel =
                 axesController_.labelSpecifiersPanel_;
             if ( ix != iy || XDIAG ) {
-                config.put( PlaneSurfaceFactory.XLOG_KEY,
-                            xconfig.get( LOG_KEY ) );
+                config.put( PlaneSurfaceFactory.XSCALE_KEY,
+                            xconfig.get( LOG_KEY ) ? Scale.LOG : Scale.LINEAR );
                 config.put( PlaneSurfaceFactory.XFLIP_KEY,
                             xconfig.get( FLIP_KEY ) );
                 config.put( PlaneSurfaceFactory.XLABEL_KEY,
@@ -321,8 +323,8 @@ public class MatrixAxesController
                                                 .getSpecifiedValue() );
             }
             if ( ix != iy || !XDIAG ) {
-                config.put( PlaneSurfaceFactory.YLOG_KEY,
-                            yconfig.get( LOG_KEY ) );
+                config.put( PlaneSurfaceFactory.YSCALE_KEY,
+                            yconfig.get( LOG_KEY ) ? Scale.LOG : Scale.LINEAR );
                 config.put( PlaneSurfaceFactory.YFLIP_KEY,
                             yconfig.get( FLIP_KEY ) );
                 config.put( PlaneSurfaceFactory.YLABEL_KEY,

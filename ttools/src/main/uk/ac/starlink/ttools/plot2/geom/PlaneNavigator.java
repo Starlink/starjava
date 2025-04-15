@@ -12,6 +12,7 @@ import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.NavAction;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Surface;
 
 /**
@@ -182,16 +183,16 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
                      .graphicsToData( surface.getPlotBounds().getLocation(),
                                       null );
         Point2D.Double pc = new Point2D.Double();
-        boolean[] logFlags = surface.getLogFlags();
+        Scale[] scales = surface.getScales();
         int xoff = ! Double.isNaN( xAnchor_ ) &&
-                   ( xAnchor_ > 0 || ! logFlags[ 0 ] ) &&
+                   ( xAnchor_ > 0 || ! scales[ 0 ].isPositiveDefinite() ) &&
                    surface.dataToGraphics( new double[] { xAnchor_, d0[ 1 ] },
                                            false, pc ) &&
                    PlotUtil.isPointFinite( pc )
                  ? (int) Math.round( pc.x - refpos.x )
                  : 0;
         int yoff = ! Double.isNaN( yAnchor_ ) &&
-                   ( yAnchor_ > 0 || ! logFlags[ 1 ] ) &&
+                   ( yAnchor_ > 0 || ! scales[ 1 ].isPositiveDefinite() ) &&
                    surface.dataToGraphics( new double[] { d0[ 0 ], yAnchor_ },
                                            false, pc ) &&
                    PlotUtil.isPointFinite( pc )

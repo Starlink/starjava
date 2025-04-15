@@ -67,8 +67,8 @@ public class HistogramAxisController
         /* Log/flip tab. */
         mainControl.addSpecifierTab( "Coords",
                                      new ConfigSpecifier( new ConfigKey<?>[] {
-            PlaneSurfaceFactory.XLOG_KEY,
-            PlaneSurfaceFactory.YLOG_KEY,
+            PlaneSurfaceFactory.XSCALE_KEY,
+            PlaneSurfaceFactory.YSCALE_KEY,
             PlaneSurfaceFactory.XFLIP_KEY,
             PlaneSurfaceFactory.YFLIP_KEY,
             PlaneSurfaceFactory.XYFACTOR_KEY,
@@ -165,13 +165,21 @@ public class HistogramAxisController
         barControl.addSpecifierTab( "General", genSpecifier );
         addControl( barControl );
 
-        assert assertHasKeys( surfFact.getProfileKeys() );
+        /* Check we have the keys specified by the surface factory,
+         * but exclude redundant/deprecated ones used for CLI
+         * backward compatibility. */
+        List<ConfigKey<?>> reqKeys =
+            new ArrayList<ConfigKey<?>>( Arrays.asList( surfFact
+                                                       .getProfileKeys() ) );
+        reqKeys.remove( PlaneSurfaceFactory.XLOG_KEY );
+        reqKeys.remove( PlaneSurfaceFactory.YLOG_KEY );
+        assert assertHasKeys( reqKeys.toArray( new ConfigKey<?>[ 0 ] ) );
     }
 
     @Override
     protected boolean logChanged( PlaneSurfaceFactory.Profile prof1,
                                   PlaneSurfaceFactory.Profile prof2 ) {
-        return ! Arrays.equals( prof1.getLogFlags(), prof2.getLogFlags() );
+        return logChanged( prof1.getScales(), prof2.getScales() );
     }
 
     @Override

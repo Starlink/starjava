@@ -7,7 +7,10 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.DoubleUnaryOperator;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import uk.ac.starlink.ttools.jel.JELFunction;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Axis;
@@ -17,6 +20,8 @@ import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotMetric;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Scale;
+import uk.ac.starlink.ttools.plot2.ScaleType;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
@@ -28,6 +33,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
+import uk.ac.starlink.ttools.plot2.config.ScaleConfigKey;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StringConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
@@ -50,6 +56,8 @@ public class PlaneSurfaceFactory
         new XyKeyPair<Double>( a -> createAxisLimitKey( a, true ) );
     private static final XyKeyPair<Subrange> SUBRANGE_XYKEY =
         new XyKeyPair<Subrange>( a -> createAxisSubrangeKey( a ) );
+    private static final XyKeyPair<Scale> SCALE_XYKEY =
+        new XyKeyPair<Scale>( a -> createAxisScaleKey( a ) );
     private static final XyKeyPair<Boolean> LOG_XYKEY =
         new XyKeyPair<Boolean>( a -> createAxisLogKey( a ) );
     private static final XyKeyPair<Boolean> FLIP_XYKEY =
@@ -85,10 +93,16 @@ public class PlaneSurfaceFactory
     public static final ConfigKey<Subrange> YSUBRANGE_KEY =
         SUBRANGE_XYKEY.getKeyY();
 
-    /** Config key for X axis log scale flag. */
+    /** Config key for X axis scale. */
+    public static final ConfigKey<Scale> XSCALE_KEY = SCALE_XYKEY.getKeyX();
+
+    /** Config key for Y axis scale. */
+    public static final ConfigKey<Scale> YSCALE_KEY = SCALE_XYKEY.getKeyY();
+
+    /** Config key for deprecated X axis log scale flag. */
     public static final ConfigKey<Boolean> XLOG_KEY = LOG_XYKEY.getKeyX();
 
-    /** Config key for Y axis log scale flag. */
+    /** Config key for deprecated Y axis log scale flag. */
     public static final ConfigKey<Boolean> YLOG_KEY = LOG_XYKEY.getKeyY();
 
     /** Config key for X axis flip flag. */
@@ -203,6 +217,9 @@ public class PlaneSurfaceFactory
         }
     };
 
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.plot2.geom" );
+
     private final PlotMetric plotMetric_;
     private final boolean hasSecondaryAxes_;
     private final boolean labelFormattedPosition_;
@@ -232,7 +249,7 @@ public class PlaneSurfaceFactory
         Profile p = profile;
         return PlaneSurface
               .createSurface( plotBounds, aspect,
-                              p.xlog_, p.ylog_, p.xflip_, p.yflip_,
+                              p.xscale_, p.yscale_, p.xflip_, p.yflip_,
                               p.xlabel_, p.ylabel_, p.x2func_, p.y2func_,
                               p.x2label_, p.y2label_, p.captioner_,
                               p.annotateflags_, p.xyfactor_,
@@ -245,6 +262,8 @@ public class PlaneSurfaceFactory
     public ConfigKey<?>[] getProfileKeys() {
         List<ConfigKey<?>> list = new ArrayList<ConfigKey<?>>();
         list.addAll( Arrays.asList( new ConfigKey<?>[] {
+            XSCALE_KEY,
+            YSCALE_KEY,
             XLOG_KEY,
             YLOG_KEY,
             XFLIP_KEY,
@@ -276,8 +295,8 @@ public class PlaneSurfaceFactory
     }
 
     public Profile createProfile( ConfigMap config ) {
-        boolean xlog = config.get( XLOG_KEY );
-        boolean ylog = config.get( YLOG_KEY );
+        Scale xscale = getScale( XSCALE_KEY, XLOG_KEY, config );
+        Scale yscale = getScale( YSCALE_KEY, YLOG_KEY, config );
         boolean xflip = config.get( XFLIP_KEY );
         boolean yflip = config.get( YFLIP_KEY );
         String xlabel = config.get( XLABEL_KEY );
@@ -300,7 +319,7 @@ public class PlaneSurfaceFactory
         Color axlabelcolor = config.get( StyleKeys.AXLABEL_COLOR );
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         SideFlags annotateflags = SideFlags.ALL;
-        return new Profile( xlog, ylog, xflip, yflip, xlabel, ylabel,
+        return new Profile( xscale, yscale, xflip, yflip, xlabel, ylabel,
                             x2func, y2func, x2label, y2label,
                             captioner, annotateflags, xyfactor, xcrowd, ycrowd,
                             orientpolicy, minor, shadow,
@@ -329,10 +348,10 @@ public class PlaneSurfaceFactory
             Range yrange = ranges == null ? new Range() : ranges[ 1 ];
             double[] xlimits =
                 getLimits( config, XMIN_KEY, XMAX_KEY, XSUBRANGE_KEY,
-                           profile.xlog_, xrange );
+                           profile.xscale_, xrange );
             double[] ylimits =
                 getLimits( config, YMIN_KEY, YMAX_KEY, YSUBRANGE_KEY,
-                           profile.ylog_, yrange );
+                           profile.yscale_, yrange );
             return new PlaneAspect( xlimits, ylimits );
         }
     }
@@ -345,10 +364,9 @@ public class PlaneSurfaceFactory
 
     public Range[] readRanges( Profile profile, PlotLayer[] layers,
                                DataStore dataStore ) {
-        boolean[] logFlags = profile.getLogFlags();
-        assert logFlags.length == 2;
         Range[] ranges = new Range[] { new Range(), new Range() };
-        PlotUtil.extendCoordinateRanges( layers, ranges, logFlags, true,
+        Scale[] scales = { profile.xscale_, profile.yscale_ };
+        PlotUtil.extendCoordinateRanges( layers, ranges, scales, true,
                                          dataStore );
         return ranges;
     }
@@ -388,7 +406,7 @@ public class PlaneSurfaceFactory
             MIN_XYKEY,
             MAX_XYKEY,
             SUBRANGE_XYKEY,
-            LOG_XYKEY,
+            SCALE_XYKEY,
             FLIP_XYKEY,
             LABEL_XYKEY,
             CROWD_XYKEY,
@@ -463,6 +481,73 @@ public class PlaneSurfaceFactory
     }
 
     /**
+     * Creates a config key for determining the scaling of
+     * a named Cartesian axis.
+     *
+     * @param  axname  axis name
+     * @return  new config key, true for log scaling
+     */
+    public static ConfigKey<Scale> createAxisScaleKey( String axname ) {
+        String axl = axname.toLowerCase();
+        String axL = ConfigMeta.capitalise( axname );
+        ConfigMeta meta = new ConfigMeta( axl + "scale", axL + " Scale" );
+        ScaleType[] types = ScaleType.getInstances();
+        meta.setShortDescription( "Axis scaling for " + axL + " axis" );
+        meta.setXmlDescription( new String[] {
+            "<p>Defines the mapping of data to graphical coordinates",
+            "on the " + axL + " axis.",
+            "Options are:",
+            "<ul>",
+            Arrays.stream( types )
+                  .map( s -> "<li><code>" + s.getName() + "</code>: "
+                           + s.getDescription() + "</li>" )
+                  .collect( Collectors.joining( "\n" ) ),
+            "</ul>",
+            "</p>",
+            "<p>For those options which have parameters,",
+            "the values are specified after the name in brackets,",
+            "e.g. \"<code>symlog(10,0.5)</code>\".",
+            "If the parameters are missing (e.g. \"<code>symlog</code>\")",
+            "some default values are used.",
+            "</p>",
+            "<p>The <code>linear</code> and <code>log</code> options",
+            "should be self-explanatory.",
+            "<code>symlog</code> and <code>asinh</code> allow plots over",
+            "a wide dynamic range like <code>log</code>,",
+            "but unlike <code>log</code> they can accommodate",
+            "negative as well as positive values.",
+            "In both cases scaling near the origin is more or less linear",
+            "(like <m>x</m>),",
+            "and scaling far from the origin is more or less logarithmic,",
+            "(like <m>(log(x)</m> or <m>-log(-x)</m>).",
+            "The <code>symlog</code> option simply switches between the",
+            "two regimes at a given threshold,",
+            "while <code>asinh</code> transitions smoothly.",
+            "These options were copied from the equivalent functionality in",
+            "<webref "
+            + "url='https://matplotlib.org/stable/gallery/scales/index.html'"
+            + ">matplotlib</webref>.",
+            "</p>",
+        } );
+        String usage = Arrays.stream( types )
+                      .map( s -> {
+                               String txt = s.getName();
+                               ScaleType.Param[] params = s.getParams();
+                               if ( params.length > 0 ) {
+                                   txt += "("
+                                        + Arrays.stream( params )
+                                         .map( p -> "<" + p.getName() + ">" )
+                                         .collect( Collectors .joining( "," ) )
+                                        + ")";
+                                }
+                                return txt;
+                       } )
+                      .collect( Collectors.joining( "|" ) );
+        meta.setStringUsage( usage );
+        return new ScaleConfigKey( meta );
+    }
+
+    /**
      * Creates a config key for determining whether a named Cartesian axis
      * is logarithmic or linear.
      *
@@ -473,11 +558,17 @@ public class PlaneSurfaceFactory
         String axl = axname.toLowerCase();
         String axL = ConfigMeta.capitalise( axname );
         ConfigMeta meta = new ConfigMeta( axl + "log", axL + " Log" );
-        meta.setShortDescription( "Logarithmic scale on " + axL + " axis?" );
+        meta.setShortDescription( "[Deprecated] "
+                                + "Logarithmic scale on " + axL + " axis?" );
         meta.setXmlDescription( new String[] {
             "<p>If false (the default), the scale on the " + axL + " axis",
             "is linear,",
             "if true it is logarithmic.",
+            "</p>",
+            "<p>Note this option is <strong>deprecated</strong> in favour of",
+            "the <code>" + createAxisScaleKey( axname ).getMeta().getShortName()
+                         + "</code> option,",
+            "which offers more flexible axis scaling options.",
             "</p>",
         } );
         return new BooleanConfigKey( meta );
@@ -702,7 +793,7 @@ public class PlaneSurfaceFactory
      * @param  minKey  config key giving axis lower bound before subranging
      * @param  maxKey  config key giving axis upper bound before subranging
      * @param  subrangeKey  config key giving subrange value
-     * @param  isLog  true for logarithmic axis, false for linear
+     * @param  scale   axis scale
      * @param  range   data range on axis; may be partially populated or null
      * @return  2-element array giving definite axis (lower,upper) bounds,
      *          or null
@@ -711,9 +802,9 @@ public class PlaneSurfaceFactory
                                       ConfigKey<Double> minKey,
                                       ConfigKey<Double> maxKey,
                                       ConfigKey<Subrange> subrangeKey,
-                                      boolean isLog, Range range ) {
+                                      Scale scale, Range range ) {
         return getLimits( config.get( minKey ), config.get( maxKey ),
-                          config.get( subrangeKey ), isLog, range );
+                          config.get( subrangeKey ), scale, range );
     }
 
     /**
@@ -725,30 +816,58 @@ public class PlaneSurfaceFactory
      * @param  lo   requested lower bound before subranging, may be NaN
      * @param  hi   requested upper bound before subranging, may be NaN
      * @param  subrange  requested subrange
-     * @param  isLog  true for logarithmic axis, false for linear
+     * @param  scale  axis scale
      * @param  range   actual data range on axis;
      *                 may be partially populated or null
      * @return  2-element array giving definite axis (lower,upper) bounds,
      *          or null
      */
     public static double[] getLimits( double lo, double hi, Subrange subrange,
-                                      boolean isLog, Range range ) {
+                                      Scale scale, Range range ) {
         boolean isFinite = lo < hi                 // entails neither is NaN
                         && ! Double.isInfinite( lo )
                         && ! Double.isInfinite( hi )
-                        && ! ( isLog && lo <= 0 );
+                        && ! ( scale.isPositiveDefinite() && lo <= 0 );
         if ( isFinite ) {
-            return PlotUtil.scaleRange( lo, hi, subrange, isLog );
+            return PlotUtil.scaleRange( lo, hi, subrange, scale );
         }
         else if ( range != null ) {
             Range r1 = new Range( range );
             r1.limit( lo, hi );
-            double[] b1 = r1.getFiniteBounds( isLog );
-            return PlotUtil.scaleRange( b1[ 0 ], b1[ 1 ], subrange, isLog );
+            double[] b1 = r1.getFiniteBounds( scale.isPositiveDefinite() );
+            return PlotUtil.scaleRange( b1[ 0 ], b1[ 1 ], subrange, scale );
         }
         else {
             return null;
         }
+    }
+
+    /**
+     * Acquires a Scale value from a config map given the scale config key
+     * and a deprecated log config key.
+     * The log key is for backward compatibility only, and deprecated
+     * in favour of the scale key.
+     * If both scale and log keys are set to a non-default value,
+     * a warning is issued.
+     *
+     * @param  scaleKey  key for axis scale
+     * @param  logKey   deprecated key for log axis scale flag
+     * @param  config   config map
+     * @return  scale value as specified in the config
+     */
+    public static Scale getScale( ConfigKey<Scale> scaleKey,
+                                  ConfigKey<Boolean> logKey,
+                                  ConfigMap config ) {
+        Scale kscale = config.get( scaleKey );
+        Boolean klog = config.get( logKey );
+        if ( ! Objects.equals( kscale, scaleKey.getDefaultValue() ) &&
+             ! Objects.equals( klog, logKey.getDefaultValue() ) ) {
+            logger_.warning( "Both keys set: "
+                           + scaleKey.getMeta().getShortName() + "=" + kscale
+                           + " and "
+                           + logKey.getMeta().getShortName() + "=" + klog );
+        }
+        return klog ? Scale.LOG : kscale;
     }
 
     /**
@@ -764,10 +883,10 @@ public class PlaneSurfaceFactory
                                                      ConfigMap config ) {
         double[] xlimits =
             getLimits( config, XMIN_KEY, XMAX_KEY, XSUBRANGE_KEY,
-                       profile.xlog_, null );
+                       profile.xscale_, null );
         double[] ylimits =
             getLimits( config, YMIN_KEY, YMAX_KEY, YSUBRANGE_KEY,
-                       profile.ylog_, null );
+                       profile.yscale_, null );
         return xlimits == null || ylimits == null
              ? null
              : new PlaneAspect( xlimits, ylimits );
@@ -863,9 +982,10 @@ public class PlaneSurfaceFactory
             lineList.add( new LabelledLine( gp10, gp1, yLabel ) );
 
             /* If the plane is linear in both directions, add a vector line.
-             * If either axis is logarithmic, there isn't really a sensible
+             * If either axis is nonlinear, there isn't really a sensible
              * metric on the space, so in that case don't. */
-            if ( has2dMetric_ && xAxis.isLinear() && yAxis.isLinear() ) {
+            if ( has2dMetric_ && xAxis.getScale().isLinear()
+                              && yAxis.getScale().isLinear() ) {
                 double gx01 = gx1 - gx0;
                 double gy01 = gy1 - gy0;
                 double g01 = Math.hypot( gx01, gy01 );
@@ -890,8 +1010,8 @@ public class PlaneSurfaceFactory
      * {@link #createProfile createProfile} method.
      */
     public static class Profile {
-        private final boolean xlog_;
-        private final boolean ylog_;
+        private final Scale xscale_;
+        private final Scale yscale_;
         private final boolean xflip_;
         private final boolean yflip_;
         private final String xlabel_;
@@ -914,8 +1034,8 @@ public class PlaneSurfaceFactory
         /**
          * Constructor.
          *
-         * @param  xlog   whether to use logarithmic scaling on X axis
-         * @param  ylog   whether to use logarithmic scaling on Y axis
+         * @param  xscale  X axis scaling
+         * @param  yscale  Y axis scaling
          * @param  xflip  whether to invert direction of X axis
          * @param  yflip  whether to invert direction of Y axis
          * @param  xlabel  text for labelling X axis
@@ -942,7 +1062,7 @@ public class PlaneSurfaceFactory
          * @param  gridcolor  colour of grid lines, or null for none
          * @param  axlabelcolor  colour of axis labels
          */
-        public Profile( boolean xlog, boolean ylog,
+        public Profile( Scale xscale, Scale yscale,
                         boolean xflip, boolean yflip,
                         String xlabel, String ylabel,
                         DoubleUnaryOperator x2func, DoubleUnaryOperator y2func,
@@ -952,8 +1072,8 @@ public class PlaneSurfaceFactory
                         OrientationPolicy orientpolicy,
                         boolean minor, boolean shadow,
                         Color gridcolor, Color axlabelcolor ) {
-            xlog_ = xlog;
-            ylog_ = ylog;
+            xscale_ = xscale;
+            yscale_ = yscale;
             xflip_ = xflip;
             yflip_ = yflip;
             xlabel_ = xlabel;
@@ -975,12 +1095,12 @@ public class PlaneSurfaceFactory
         }
 
         /**
-         * Returns a 2-element array giving X and Y log flags.
+         * Returns a 2-element array giving X and Y axis scales.
          *
-         * @return  (xlog, ylog) array
+         * @return  (xscale, yscale) array
          */
-        public boolean[] getLogFlags() {
-            return new boolean[] { xlog_, ylog_ };
+        public Scale[] getScales() {
+            return new Scale[] { xscale_, yscale_ };
         }
 
         /**
@@ -995,7 +1115,8 @@ public class PlaneSurfaceFactory
          */
         public Profile fixAnnotation( SideFlags annotateFlags,
                                       boolean addSecondary ) {
-            return new Profile( xlog_, ylog_, xflip_, yflip_, xlabel_, ylabel_,
+            return new Profile( xscale_, yscale_, xflip_, yflip_,
+                                xlabel_, ylabel_,
                                 addSecondary ? x -> x : x2func_,
                                 addSecondary ? y -> y : y2func_,
                                 addSecondary ? xlabel_ : x2label_,

@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.swing.ListModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.Scale;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.geom.CubeAspect;
 import uk.ac.starlink.ttools.plot2.geom.CubeDataGeom;
@@ -98,8 +99,8 @@ public class CubePlotWindow
                 csurf.getDataLimits( 2 ),
             };
         }
-        public boolean[] getLogFlags( Surface surf ) {
-            return ((CubeSurface) surf).getLogFlags();
+        public Scale[] getScales( Surface surf ) {
+            return ((CubeSurface) surf).getScales();
         }
         public int[] getPixelDims( Surface surf ) {
             Rectangle bounds = ((CubeSurface) surf).getPlotBounds();

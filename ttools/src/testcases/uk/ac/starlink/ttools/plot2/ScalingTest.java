@@ -16,7 +16,7 @@ public class ScalingTest extends TestCase {
     public void testAsinh() {
         double delta = 0.125;
         Scaling.RangeScaling scaling =
-            Scalings.createAsinhScaling( "Test", delta );
+            Scalings.createAutoScaling( "Test", delta );
         Scaler s10 = scaling.createScaler( 0, 10 );
         assertEquals( 0.0, s10.scaleValue( 0 ), err );
         assertEquals( delta, s10.scaleValue( 1 ), err );

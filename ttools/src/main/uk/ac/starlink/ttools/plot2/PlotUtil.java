@@ -517,9 +517,7 @@ public class PlotUtil {
      * @param   layers   plot layers
      * @param   ranges   <code>nDataDim</code>-element array of range objects
      *                   to extend
-     * @param   logFlags  <code>nDataDim</code>-element array indicating
-     *                    whether data dimensions are
-     *                    linear (false) or logarithmic (true),
+     * @param   scales   <code>nDataDim</code>-element array of axis scales
      * @param   doPad    whether to add a small standard amount of padding
      *                   to the result
      * @param   dataStore  data storage
@@ -527,7 +525,7 @@ public class PlotUtil {
     @Slow
     public static void extendCoordinateRanges( PlotLayer[] layers,
                                                Range[] ranges,
-                                               boolean[] logFlags,
+                                               Scale[] scales,
                                                boolean doPad,
                                                DataStore dataStore ) {
         final int nDataDim = ranges.length;
@@ -568,13 +566,13 @@ public class PlotUtil {
         /* If any of the layers wants to supply non-data-position points
          * to mark out additional space, take account of those too. */
         for ( int il = 0; il < layers.length; il++ ) {
-            layers[ il ].extendCoordinateRanges( ranges, logFlags, dataStore );
+            layers[ il ].extendCoordinateRanges( ranges, scales, dataStore );
         }
 
         /* Pad the ranges with a bit of space. */
         if ( doPad ) {
             for ( int idim = 0; idim < nDataDim; idim++ ) {
-                padRange( ranges[ idim ], logFlags[ idim ] );
+                padRange( ranges[ idim ], scales[ idim ] );
             }
         }
     }
@@ -586,10 +584,10 @@ public class PlotUtil {
      * it is padded to (very nearly) zero instead of adding a fixed amount.
      *
      * @param  range  range to pad
-     * @param  logFlag  true for logarithmic scaling, false for linear
+     * @param  scale  axis scale
      */
-    public static void padRange( Range range, boolean logFlag ) {
-        double[] bounds = range.getFiniteBounds( logFlag );
+    public static void padRange( Range range, Scale scale ) {
+        double[] bounds = range.getFiniteBounds( scale.isPositiveDefinite() );
         double lo = bounds[ 0 ];
         double hi = bounds[ 1 ];
         if ( lo < hi ) {
@@ -597,13 +595,13 @@ public class PlotUtil {
             double tinyFrac = TINY_FRACTION;
             final boolean loNearZero;
             final boolean hiNearZero;
-            if ( logFlag ) {
+            if ( scale.isPositiveDefinite() ) {
                 loNearZero = false;
                 hiNearZero = false;
             }
             else {
                 double ztol = 2 * padFrac;
-                double zfrac = unscaleValue( lo, hi, 0., logFlag );
+                double zfrac = unscaleValue( lo, hi, 0., scale );
                 loNearZero = 0 - zfrac >= 0 && 0 - zfrac <= ztol;
                 hiNearZero = zfrac - 1 >= 0 && zfrac - 1 <= ztol;
             }
@@ -617,8 +615,8 @@ public class PlotUtil {
              * include all the values from which the range was generated. */
             double loPadFrac = loNearZero ? tinyFrac : padFrac; 
             double hiPadFrac = hiNearZero ? tinyFrac : padFrac;
-            range.submit( scaleValue( lo, hi, 0 - loPadFrac, logFlag ) );
-            range.submit( scaleValue( lo, hi, 1 + hiPadFrac, logFlag ) );
+            range.submit( scaleValue( lo, hi, 0 - loPadFrac, scale ) );
+            range.submit( scaleValue( lo, hi, 1 + hiPadFrac, scale ) );
         }
     }
 
@@ -925,15 +923,13 @@ public class PlotUtil {
      * @param  min  minimum of range
      * @param  max  maximum of range
      * @param  frac  fractional scale point
-     * @param  isLog  true iff the range is logarithmic
+     * @param  scale  axis scale
      * @return   data value corresponding to fractional scale point
      */
     public static double scaleValue( double min, double max, double frac,
-                                     boolean isLog ) {
-        return isLog
-             ? Math.exp( Math.log( min ) * ( 1. - frac )
-                       + Math.log( max ) * frac )
-             : min * ( 1. - frac ) + max * frac;
+                                     Scale scale ) {
+        return scale.scaleToData( scale.dataToScale( min ) * ( 1. - frac )
+                                + scale.dataToScale( max ) * frac );
     }
 
     /**
@@ -947,7 +943,7 @@ public class PlotUtil {
      * @return   data value corresponding to fractional scale point
      */
     public static double scaleValue( double min, double max, double frac ) {
-        return scaleValue( min, max, frac, false );
+        return scaleValue( min, max, frac, Scale.LINEAR );
     }
 
     /**
@@ -959,15 +955,13 @@ public class PlotUtil {
      * @param  min  minimum of range
      * @param  max  maximum of range
      * @param  point  data value
-     * @param  isLog  true iff the range is logarithmic
+     * @param  scale  axis scale
      * @return  fractional value corresponding to data point
      */
     public static double unscaleValue( double min, double max, double point,
-                                       boolean isLog ) {
-        return isLog
-             ? ( Math.log( point ) - Math.log( min ) )
-               / ( Math.log( max ) - Math.log( min ) )
-             : ( point - min ) / ( max - min );
+                                       Scale scale ) {
+        return ( scale.dataToScale( point ) - scale.dataToScale( min ) )
+             / ( scale.dataToScale( max ) - scale.dataToScale( min ) );
     }
 
     /**
@@ -977,14 +971,14 @@ public class PlotUtil {
      * @param  min  minimum of range
      * @param  max  maximum of range
      * @param  subrange  sub-range, both ends between 0 and 1
-     * @param  isLog  true iff the range is logarithmic
+     * @param  scale   axis scale
      * @return   2-element array giving low, high values of scaled range
      */
     public static double[] scaleRange( double min, double max,
-                                       Subrange subrange, boolean isLog ) {
+                                       Subrange subrange, Scale scale ) {
         return new double[] {
-            scaleValue( min, max, subrange.getLow(), isLog ),
-            scaleValue( min, max, subrange.getHigh(), isLog ),
+            scaleValue( min, max, subrange.getLow(), scale ),
+            scaleValue( min, max, subrange.getHigh(), scale ),
         };
     }
 
@@ -1144,32 +1138,27 @@ public class PlotUtil {
 
     /**
      * Formats a pair of values representing data bounds of a range
-     * along a graphics axis. nge.  The number of pixels separating the
+     * along a graphics axis.  The number of pixels separating the
      * values is used to determine the formatting precision.
      *
-     * @param  lo   data lower bound
-     * @param  hi   data upper bound
-     * @param  isLog  true for logarithmic axis, false for linear
+     * @param  dlo   data lower bound
+     * @param  dhi   data upper bound
+     * @param  scale   axis scaling
      * @param   npix   approximate number of pixels covered by the range
      * @return   2-element array giving (lower,upper) bounds formatted
      *           and ready for presentation to the user
      */
-    public static String[] formatAxisRangeLimits( double lo, double hi,
-                                                  boolean isLog, int npix ) {
-        if ( isLog ) {
-            double dl = ( Math.log( hi ) - Math.log( lo ) ) / npix;
-            return new String[] {
-                formatNumber( lo, Math.min( lo * dl, lo / dl ) ),
-                formatNumber( hi, Math.min( hi * dl, hi / dl ) ),
-            };
-        }
-        else {
-            double eps = ( hi - lo ) / npix;
-            return new String[] {
-                formatNumber( lo, eps ),
-                formatNumber( hi, eps ),
-            };
-        }
+    public static String[] formatAxisRangeLimits( double dlo, double dhi,
+                                                  Scale scale, int npix ) {
+        double slo = scale.dataToScale( dlo );
+        double shi = scale.dataToScale( dhi );
+        double spix = ( shi - slo ) / npix;
+        return new String[] {
+            formatNumber( dlo,
+                          Math.abs( scale.scaleToData( slo + spix ) - dlo ) ),
+            formatNumber( dhi,
+                          Math.abs( scale.scaleToData( shi + spix ) - dhi ) ),
+        };
     }
 
     /**
@@ -1239,6 +1228,25 @@ public class PlotUtil {
                               base.y + insets.top,
                               base.width - insets.left - insets.right,
                               base.height - insets.top - insets.bottom );
+    }
+
+    /**
+     * Returns the constant extent in scale units of a single pixel
+     * on a given axis.
+     *
+     * @param  axis  axis
+     * @return   extent in scale units of a pixel on the axis
+     */
+    public static double getPixelScaleExtent( Axis axis ) {
+        int[] glimits = axis.getGraphicsLimits();
+        int g0 = glimits[ 0 ];
+        int g1 = g0 + 1;
+        double d0 = axis.graphicsToData( g0 );
+        double d1 = axis.graphicsToData( g1 );
+        Scale scale = axis.getScale();
+        double s0 = scale.dataToScale( d0 );
+        double s1 = scale.dataToScale( d1 );
+        return Math.abs( s1 - s0 );
     }
 
     /**
