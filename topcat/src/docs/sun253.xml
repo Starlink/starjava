@@ -34388,6 +34388,8 @@ introduced since the last version:
     <li>The <ref id="CdsUploadMatchWindow">CDS Upload X-Match Window</ref>
         now reports a warning on completion
         if match block results have been truncated.</li>
+    <li>Quote column names from tap_schema tables where necessary
+        during tap_schema-based TAP metadata acquisition.</li>
     </ul>
     </p></dd>
 

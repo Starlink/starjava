@@ -748,7 +748,7 @@ public class TapSchemaInterrogator {
                 if ( ic > 0 ) {
                     sbuf.append( ", " );
                 }
-                sbuf.append( queryCols[ ic ] );
+                sbuf.append( syntax_.quoteIfNecessary( queryCols[ ic ] ) );
             }
             sbuf.append( " FROM " )
                 .append( tableName_ );
