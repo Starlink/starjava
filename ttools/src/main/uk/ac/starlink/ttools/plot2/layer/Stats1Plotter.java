@@ -593,13 +593,13 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             String function = new StringBuffer()
                 .append( CONST_KEY.toText( factor ) )
                 .append( " * " )
-                .append( "exp(-0.5 * pow((" )
+                .append( "exp(-0.5 * square((" )
                 .append( isLog_ ? "log10(x)" : "x" )
                 .append( "-" )
                 .append( MEAN_KEY.toText( mean_ ) )
                 .append( ")/" )
                 .append( STDEV_KEY.toText( sigma_ ) )
-                .append( ", 2))" )
+                .append( "))" )
                 .toString();
             report.put( FUNCTION_KEY, function );
             return report;
