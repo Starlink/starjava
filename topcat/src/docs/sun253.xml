@@ -34390,6 +34390,8 @@ introduced since the last version:
         if match block results have been truncated.</li>
     <li>Quote column names from tap_schema tables where necessary
         during tap_schema-based TAP metadata acquisition.</li>
+    <li>Fix <ref id="HelpWindow">Help Browser</ref> so that it
+        follows links to in-section targets.</li>
     </ul>
     </p></dd>
 
