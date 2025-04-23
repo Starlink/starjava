@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * IvoaAuthScheme concrete subclass for working with cookies.
@@ -125,6 +126,18 @@ public class CookieIvoaAuthScheme extends IvoaAuthScheme {
     }
 
     /**
+     * Concatenates a list of field values for a Cookie or Cookie2 header.
+     * The values are delimited using a semicolon.
+     *
+     * @param  cookieValues  list of field values for cookie request headers
+     * @return  input items joined using a semicolon delimiter
+     * @see   java.net.CookieManager#get
+     */
+    private static String getCookieHeaderValue( List<String> cookieValues ) {
+        return cookieValues.stream().collect( Collectors.joining( "; " ) );
+    }
+
+    /**
      * AuthContext implementation used by this class.
      */
     private static class CookieContext implements AuthContext {
@@ -177,10 +190,9 @@ public class CookieIvoaAuthScheme extends IvoaAuthScheme {
                     cookieManager_.get( uri, connection.getRequestProperties());
                 for ( Map.Entry<String,List<String>> entry :
                       cookieProps.entrySet() ) {
-                    String cookieKey = entry.getKey();
-                    for ( String cookieValue : entry.getValue() ) {
-                        connection.addRequestProperty( cookieKey, cookieValue );
-                    }
+                    String hdrKey = entry.getKey();
+                    String hdrValue = getCookieHeaderValue( entry.getValue() );
+                    connection.addRequestProperty( hdrKey, hdrValue );
                 }
             }
         }
@@ -209,11 +221,10 @@ public class CookieIvoaAuthScheme extends IvoaAuthScheme {
                 List<String> args = new ArrayList<String>();
                 for ( Map.Entry<String,List<String>> entry :
                       cookieProps.entrySet() ) {
-                    String cookieKey = entry.getKey();
-                    for ( String cookieValue : entry.getValue() ) {
-                        args.add( "--header" );
-                        args.add( cookieKey + ": " + cookieValue );
-                    }
+                    String hdrKey = entry.getKey();
+                    String hdrValue = getCookieHeaderValue( entry.getValue() );
+                    args.add( "--header" );
+                    args.add( hdrKey + ": " + hdrValue );
                 }
                 return args.toArray( new String[ 0 ] );
             }

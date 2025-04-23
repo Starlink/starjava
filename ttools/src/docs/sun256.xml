@@ -15828,6 +15828,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         parameters etc.</li>
     <li>Add <code>kvmap</code> config option to
         <ref id="outParquet">parquet output handler</ref>.</li>
+    <li>Fix <code>ivoa_cookie</code> authentication handling
+        to work in presence of multiple cookies.</li>
     </ul>
     </p></dd>
 
