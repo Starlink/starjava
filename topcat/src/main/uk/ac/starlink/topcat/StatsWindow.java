@@ -377,6 +377,7 @@ public class StatsWindow extends AuxWindow {
         jtab.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
         jtab.setColumnSelectionAllowed( false );
         jtab.setRowSelectionAllowed( false );
+        jtab.setCellSelectionEnabled( true );
         TableColumnModel tcm = jtab.getColumnModel();
         TableModel tmodel = jtab.getModel();
         StarJTable.configureColumnWidth( jtab, 200, Integer.MAX_VALUE, 0 );
