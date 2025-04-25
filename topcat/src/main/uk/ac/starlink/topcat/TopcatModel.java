@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -31,6 +32,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.table.DefaultTableColumnModel;
@@ -939,6 +941,8 @@ public class TopcatModel {
      * In case of a material change this causes a
      * {@link TopcatEvent#CURRENT_ORDER} event to be sent to listeners.
      *
+     * <p>Note that sorting may be done asynchronously.
+     *
      * @param  order  sort order
      * @param  ascending  sort sense (true for up, false for down)
      */
@@ -956,42 +960,55 @@ public class TopcatModel {
         }
 
         /* There is a material change.  Recalculate the rowMap array. */
-        int[] rowMap;
+        Consumer<int[]> rowmapConsumer = rowMap -> {
+            sortSense_ = ascending;
+            sortOrder_ = order;
+            viewModel_.setOrder( rowMap );
+            sortSenseModel_.setSelected( ascending );
+            sortSelectionModel_.setSelectedSortOrder( order );
+            fireModelChanged( TopcatEvent.CURRENT_ORDER, null );
+        };
         if ( order.equals( SortOrder.NONE ) ) {
-            rowMap = null;
+            rowmapConsumer.accept( null );
         }
         else if ( order.equals( sortOrder_ ) ) {
 
             /* If only the sense has changed, reverse the row map
              * in place. */
             assert ascending != sortSense_;
-                rowMap = viewModel_.getRowMap();
-                for ( int i = 0, j = rowMap.length - 1; i < j; i++, j-- ) {
-                    int c = rowMap[ i ];
-                    rowMap[ i ] = rowMap[ j ];
-                    rowMap[ j ] = c;
-                }
+            int[] rowMap = viewModel_.getRowMap();
+            for ( int i = 0, j = rowMap.length - 1; i < j; i++, j-- ) {
+                int c = rowMap[ i ];
+                rowMap[ i ] = rowMap[ j ];
+                rowMap[ j ] = c;
+            }
+            rowmapConsumer.accept( rowMap );
         }
         else {
-            try {
-                rowMap = getSortedRowMap( order, ascending );
-            }
-            catch ( CompilationException | IOException e ) {
-                ErrorDialog.showError( ControlWindow.getInstance(),
-                                       "Sort Error", e );
-                return;
-            }
+            Runnable sorter = () -> {
+                final int[] rowMap;
+                try {
+                    rowMap = getSortedRowMap( order, ascending );
+                }
+                catch ( CompilationException | IOException e ) {
+                    SwingUtilities.invokeLater( () -> {
+                        ErrorDialog.showError( ControlWindow.getInstance(),
+                                               "Sort Error", e );
+                    } );
+                    return;
+                }
+                finally {
+                    SwingUtilities.invokeLater( () -> {
+                        sortSelectionModel_.setUpdating( false );
+                    } );
+                }
+                SwingUtilities.invokeLater( () -> {
+                    rowmapConsumer.accept( rowMap );
+                } );
+            };
+            sortSelectionModel_.setUpdating( true );
+            new Thread( sorter, "Row Sort" ).start();
         }
-
-        /* Store the changed state. */
-        sortSense_ = ascending;
-        sortOrder_ = order;
-        viewModel_.setOrder( rowMap );
-        sortSenseModel_.setSelected( ascending );
-        sortSelectionModel_.setSelectedSortOrder( order );
-
-        /* Inform listeners. */
-        fireModelChanged( TopcatEvent.CURRENT_ORDER, null );
     }
 
     /**

@@ -34508,6 +34508,8 @@ introduced since the last version:
         <label>Scaling</label> function.</li>
     <li>You can now copy text from cells
         in the <ref id="StatsWindow">Statistics Window</ref>.</li>
+    <li><ref id="order">Row sorting</ref> is now done asynchronously
+        to improve GUI responsiveness.</li>
     </ul>
     </p></dd>
 

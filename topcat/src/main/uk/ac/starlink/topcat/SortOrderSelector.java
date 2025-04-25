@@ -12,6 +12,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import uk.ac.starlink.table.ColumnData;
 
@@ -129,30 +130,39 @@ public class SortOrderSelector extends JPanel {
         cdataBoxes_.clear();
         removeAll();
 
-        /* Add new combo boxes for each selector in the model. */
-        for ( ColumnDataComboBoxModel cdataModel : model_.cdataModels_ ) {
-            ColumnDataComboBox cdataBox = new ColumnDataComboBox();
-            cdataBox.setModel( cdataModel );
-            cdataBox.addActionListener( forwarder_ );
-            add( cdataBox );
-            add( Box.createHorizontalStrut( 5 ) );
-            cdataBoxes_.add( cdataBox );
-        }
-        
-        /* Just for cosmetic reasons, paint a useless JComboBox in case of
-         * a table-less model. */
-        if ( cdataBoxes_.size() == 0 ) {
-            JComboBox<?> dummyBox = new JComboBox<Object>();
-            dummyBox.setEnabled( false );
-            add( dummyBox );
-            add( Box.createHorizontalStrut( 5 ) );
+        /* While an update is in progress, replace controls with a message. */
+        if ( model_.isUpdating() ) {
+            add( new JLabel( "Sorting ..." ) );
         }
 
-        /* Add buttons for adding/removing selectors. */
-        if ( cdataBoxes_.size() > 1 ) {
-            add( removeButton_ );
+        /* Otherwise, post the controls. */
+        else {
+
+            /* Add new combo boxes for each selector in the model. */
+            for ( ColumnDataComboBoxModel cdataModel : model_.cdataModels_ ) {
+                ColumnDataComboBox cdataBox = new ColumnDataComboBox();
+                cdataBox.setModel( cdataModel );
+                cdataBox.addActionListener( forwarder_ );
+                add( cdataBox );
+                add( Box.createHorizontalStrut( 5 ) );
+                cdataBoxes_.add( cdataBox );
+            }
+        
+            /* Just for cosmetic reasons, paint a useless JComboBox in case of
+             * a table-less model. */
+            if ( cdataBoxes_.size() == 0 ) {
+                JComboBox<?> dummyBox = new JComboBox<Object>();
+                dummyBox.setEnabled( false );
+                add( dummyBox );
+                add( Box.createHorizontalStrut( 5 ) );
+            }
+
+            /* Add buttons for adding/removing selectors. */
+            if ( cdataBoxes_.size() > 1 ) {
+                add( removeButton_ );
+            }
+            add( addButton_ );
         }
-        add( addButton_ );
 
         /* Inform listeners that a change may have been made. */
         forwarder_.actionPerformed( new ActionEvent( this, 1, "change" ) );
@@ -168,7 +178,7 @@ public class SortOrderSelector extends JPanel {
      * to match this component's state.
      */
     private void updateEnabled() {
-        boolean isEnabled = isEnabled();
+        boolean isEnabled = isEnabled() && !model_.isUpdating();
         for ( ColumnDataComboBox cdataBox : cdataBoxes_ ) {
             cdataBox.setEnabled( isEnabled );
         }
@@ -184,6 +194,7 @@ public class SortOrderSelector extends JPanel {
         private final TopcatModel tcModel_;
         private final List<ColumnDataComboBoxModel> cdataModels_;
         private final List<PropertyChangeListener> listeners_;
+        private boolean isUpdating_;
         private static final ColumnDataComboBoxModel.Filter comparableFilter_ =
             info -> Comparable.class.isAssignableFrom( info.getContentClass() );
 
@@ -257,6 +268,32 @@ public class SortOrderSelector extends JPanel {
                     listener.propertyChange( evt );
                 }
             }
+        }
+
+        /**
+         * Sets whether this model is in the middle of an update.
+         *
+         * @param  isUpdating  true iff an update is in progress
+         */
+        public void setUpdating( boolean isUpdating ) {
+            if ( isUpdating != isUpdating_ ) {
+                PropertyChangeEvent evt =
+                    new PropertyChangeEvent( this, "updating",
+                                             isUpdating_, isUpdating );
+                isUpdating_ = isUpdating;
+                for ( PropertyChangeListener listener : listeners_ ) {
+                    listener.propertyChange( evt );
+                }
+            }
+        }
+
+        /**
+         * Indicates whether this model is in the middle of an update.
+         *
+         * @return  true iff an update is in progress
+         */
+        public boolean isUpdating() {
+            return isUpdating_;
         }
 
         /**
