@@ -60,6 +60,7 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
         private final StarTable table_;
         private boolean groupArray_;
         private VOTableVersion votmetaVersion_;
+        private Map<String,String> kvItems_;
 
         /**
          * Constructor based on a hadoop Path.
@@ -117,6 +118,19 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
             return self();
         }
 
+        /**
+         * Configures additional content for the key-value metadata in
+         * the parquet footer.  Any items supplied here will override
+         * values supplied in other ways.  An entry with a null value
+         * will have the effect of removing the corresponding key.
+         *
+         * @param  kvItems  additional key-value metadata for parquet footer
+         */
+        public StarBuilder withKeyValueItems( Map<String,String> kvItems ) {
+            kvItems_ = kvItems;
+            return self();
+        }
+
         public StarBuilder self() {
             return this;
         }
@@ -126,7 +140,8 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
                 throw new IllegalStateException( "builder.withTable"
                                                + " not called" );
             }
-            return new StarWriteSupport( table_, groupArray_, votmetaVersion_ );
+            return new StarWriteSupport( table_, groupArray_, votmetaVersion_,
+                                         kvItems_ );
         }
     }
 
@@ -151,9 +166,14 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
          *                       false for repeated primitives
          * @param   votmetaVersion  version of dummy metadata VOTable to write,
          *                          or null if not required
+         * @param   kvItems  additional items for the key-value
+         *                   extended metadata map; these will overwrite
+         *                   anything otherwise put there, and keys with
+         *                   a null value will remove the entry
          */
         StarWriteSupport( StarTable table, boolean groupArray,
-                          VOTableVersion votmetaVersion ) {
+                          VOTableVersion votmetaVersion,
+                          Map<String,String> kvItems ) {
             List<OutCol<?>> outcols = new ArrayList<>();
             Types.MessageTypeBuilder schemaBuilder = Types.buildMessage();
             int jc = 0;
@@ -188,6 +208,18 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
                     metaMap_.put( ParquetStarTable.VOTMETA_KEY, votmeta );
                     metaMap_.put( ParquetStarTable.VOTMETAVERSION_KEY,
                                   ParquetStarTable.REQUIRED_VOTMETAVERSION );
+                }
+            }
+            if ( kvItems != null ) {
+                for ( Map.Entry<String,String> entry : kvItems.entrySet() ) {
+                    String key = entry.getKey();
+                    String value = entry.getValue();
+                    if ( value == null ) {
+                        metaMap_.remove( key );
+                    }
+                    else {
+                        metaMap_.put( key, value );
+                    }
                 }
             }
         }

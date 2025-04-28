@@ -2,6 +2,7 @@ package uk.ac.starlink.parquet;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Map;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
@@ -26,6 +27,7 @@ public class ParquetTableWriter
     private CompressionCodecName codec_;
     private Boolean useDict_;
     private boolean votMeta_;
+    private Map<String,String> kvItems_;
     private VOTableVersion votVersion_;
 
     public ParquetTableWriter() {
@@ -259,6 +261,27 @@ public class ParquetTableWriter
      */
     public boolean isVOTableMetadata() {
         return votMeta_;
+    }
+
+    /**
+     * Sets additional items for the key-value map in the parquet file footer.
+     * Any items here will override whatever was going to be written otherwise.
+     * Entries with a null value will delete the corresponding key.
+     *
+     * @param  kvItems   map of key-value pairs to be written to parquet footer
+     */
+    public void setKeyValueItems( Map<String,String> kvItems ) {
+        kvItems_ = kvItems;
+    }
+
+    /**
+     * Returns a map of additional items for the key-value map in the
+     * parquet file footer.
+     *
+     * @return   additional key-value metadata items
+     */
+    public Map<String,String> getKeyValueItems() {
+        return kvItems_;
     }
 
     /**

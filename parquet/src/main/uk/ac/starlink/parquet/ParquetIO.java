@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.hadoop.conf.Configuration;
@@ -209,10 +210,12 @@ public class ParquetIO {
         else {
             votmetaVersion = null;
         }
+        Map<String,String> kvItems = writer.getKeyValueItems();
         builder.withWriteMode( ParquetFileWriter.Mode.OVERWRITE )
                .withGroupArray( writer.isGroupArray() )
                .withVOTableMetadata( votmetaVersion )
-               .withValidation( true );
+               .withValidation( true )
+               .withKeyValueItems( kvItems );
         CompressionCodecName codec = writer.getCompressionCodec();
         if ( codec != null ) {
             builder.withCompressionCodec( codec );
