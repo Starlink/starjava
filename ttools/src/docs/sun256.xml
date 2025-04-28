@@ -15826,6 +15826,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New option <code>asinh</code> for plot colour ramp axis scaling
         in <ref id="plot2plane-auxfunc"><code>auxfunc</code></ref>
         parameters etc.</li>
+    <li>Add <code>kvmap</code> config option to
+        <ref id="outParquet">parquet output handler</ref>.</li>
     </ul>
     </p></dd>
 

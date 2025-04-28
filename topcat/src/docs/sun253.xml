@@ -34510,6 +34510,8 @@ introduced since the last version:
         in the <ref id="StatsWindow">Statistics Window</ref>.</li>
     <li><ref id="order">Row sorting</ref> is now done asynchronously
         to improve GUI responsiveness.</li>
+    <li>Add <code>kvmap</code> config option to
+        <ref id="outParquet">parquet output handler</ref>.</li>
     </ul>
     </p></dd>
 

@@ -1,13 +1,18 @@
 package uk.ac.starlink.parquet;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
 import uk.ac.starlink.table.formats.DocumentedIOHandler;
 import uk.ac.starlink.util.ConfigMethod;
+import uk.ac.starlink.util.IOUtils;
 import uk.ac.starlink.votable.VOTableVersion;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
@@ -110,6 +115,7 @@ public class ParquetTableWriter
      */
     @ConfigMethod(
         property = "groupArray",
+        sequence = 5,
         usage = "true|false",
         example = "false",
         doc = "<p>Controls the low-level detail of how array-valued columns\n"
@@ -168,6 +174,7 @@ public class ParquetTableWriter
      */
     @ConfigMethod(
         property = "compression",
+        sequence = 2,
         example = "gzip",
         usage = "uncompressed|snappy|zstd|gzip|lz4_raw",
         doc = "<p>Configures the type of compression used for output.\n"
@@ -203,6 +210,7 @@ public class ParquetTableWriter
     @ConfigMethod(
         property = "usedict",
         example = "false",
+        sequence = 4,
         doc = "<p>Determines whether dictionary encoding is used for output.\n"
             + "This will work well to compress the output\n"
             + "for columns with a small number of distinct values.\n"
@@ -234,6 +242,7 @@ public class ParquetTableWriter
      */
     @ConfigMethod(
         property = "votmeta",
+        sequence = 1,
         example = "false",
         doc = "<p>If true, rich metadata for the table will be written out\n"
             + "in the form of a DATA-less VOTable that is stored in the\n"
@@ -285,6 +294,38 @@ public class ParquetTableWriter
     }
 
     /**
+     * Calls setKeyValueItems.
+     * But the KVMap argument means that this can be configured from a
+     * user-supplied string value.
+     *
+     * @return   additional key-value metadata items
+     */
+    @ConfigMethod(
+        property = "kvmap",
+        sequence = 3,
+        example = "author:Messier",
+        usage = "key1:value1;key2:value2;...",
+        doc = "<p>Can be used to doctor the map of key-value metadata\n"
+            + "stored in the parquet footer.\n"
+            + "Map items are specified with a colon, like\n"
+            + "<code>&lt;key&gt;:&lt;value&gt;</code>\n"
+            + "and separated with a semicolon,\n"
+            + "so for instance you could write\n"
+            + "\"<code>kvmap=author:Messier;year:1774</code>\".\n"
+            + "This will overwrite any map entries that would otherwise\n"
+            + "have been written.\n"
+            + "If a value starts with the at sign (\"<code>@</code>\")\n"
+            + "it is interpreted as giving the name of a file\n"
+            + "whose contents will be used instead of the literal value.\n"
+            + "Specifying an empty entry will ensure it is not written\n"
+            + "into the key=value list."
+            + "</p>"
+    )
+    public void setKVMap( KVMap kvItems ) {
+        setKeyValueItems( kvItems );
+    }
+
+    /**
      * Sets the version of VOTable used to write metadata, if any.
      *
      * @param  votVersion  preferred VOTable version, or null for default
@@ -300,5 +341,74 @@ public class ParquetTableWriter
      */
     public VOTableVersion getVOTableVersion() {
         return votVersion_;
+    }
+
+    /**
+     * Map of key-value pairs.
+     * Instance behaviour is inherited from LinkedHashMap.
+     * The reason to have this as a separate class is that it has its
+     * own {@link #valueOf} method, which can be used reflectively
+     * to configure the output handler using a config parameter,
+     * via {@link uk.ac.starlink.util.BeanConfig}.
+     */
+    public static class KVMap extends LinkedHashMap<String,String> {
+
+        /**
+         * Deserializes a string to a KVMap instance.
+         * Syntax is "key1:value1;key2:value2,...".
+         *
+         * @param  txt   textual representation of map
+         * @return  map instance
+         */
+        public static KVMap valueOf( String txt ) {
+            KVMap map = new KVMap();
+            String[] words = txt.split( ";", 0 );
+            for ( String word : words ) {
+                String[] kv = word.split( ":", 2 );
+                if ( kv.length == 2 ) {
+                    String key = kv[ 0 ];
+                    String val = kv[ 1 ];
+                    final String value;
+                    if ( val.length() == 0 ) {
+                        value = null;
+                    }
+                    else if ( val.charAt( 0 ) == '@' ) {
+                        String fname = val.substring( 1 );
+                        try {
+                            value = readFile( fname );
+                        }
+                        catch ( IOException e ) {
+                            throw new RuntimeException( "Failed to read file "
+                                                      + fname, e );
+                        }
+                    }
+                    else {
+                        value = val;
+                    }
+                    map.put( key, value );
+                }
+                else {
+                    String msg = new StringBuffer()
+                       .append( "Don't understand \"" )
+                       .append( word )
+                       .append( "\", should be <key>:[<value>]" )
+                       .toString();
+                    throw new IllegalArgumentException( msg );
+                }
+            }
+            return map;
+        }
+
+        /**
+         * Reads a file as UTF-8.
+         *
+         * @param  fname  filename
+         */
+        private static String readFile( String fname ) throws IOException {
+            try ( InputStream in = new FileInputStream( fname ) ) {
+                return new String( IOUtils.readBytes( in, 1024 * 1024 ),
+                                   StandardCharsets.UTF_8 );
+            }
+        }
     }
 }
