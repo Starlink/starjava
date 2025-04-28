@@ -1,6 +1,7 @@
 package uk.ac.starlink.util;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
@@ -535,7 +536,9 @@ public class BeanConfig {
      * @param  ownerClazz   class to search for static members
      * @param  methodName  name of public static method to invoke
      * @return   instance of required class,
-     *           or null if method doesn't exist or if anything else went wrong
+     *           or null if method doesn't exist or
+     *           invocation can't be performed if anything else went wrong
+     * @throws  RuntimeException  if invocation failed
      */
     private static <T> T invokeValueOf( Class<T> reqClazz, String txt,
                                         Class<?> ownerClass,
@@ -554,6 +557,11 @@ public class BeanConfig {
                 final Object value;
                 try {
                     value = method.invoke( null, new Object[] { txt } );
+                }
+                catch ( InvocationTargetException e ) {
+                    throw new RuntimeException( "Invocation failed for "
+                                              + methodName,
+                                                e.getTargetException() );
                 }
                 catch ( ReflectiveOperationException e ) {
                     return null;
