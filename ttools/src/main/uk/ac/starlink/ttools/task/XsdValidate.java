@@ -61,6 +61,7 @@ public class XsdValidate implements Task {
     private final Parameter<String> topelParam_;
     private final BooleanParameter verboseParam_;
     private final BooleanParameter usevolocalsParam_;
+    private final BooleanParameter nsurldfltParam_;
 
     public XsdValidate() {
         docParam_ = new InputStreamParameter( "doc" );
@@ -116,6 +117,32 @@ public class XsdValidate implements Task {
         } );
         usevolocalsParam_.setBooleanDefault( false );
 
+        nsurldfltParam_ = new BooleanParameter( "nsurl" );
+        nsurldfltParam_.setPrompt( "Use namespace as URL by default?" );
+        nsurldfltParam_.setDescription( new String[] {
+            "<p>Whether to use the namespace URI itself as a",
+            "dereferencable URL to download a schema",
+            "if no location has been supplied from elsewhere.",
+            "For a namespace <code>http://example.com/ns1</code>",
+            "this is like assuming the presence of a",
+            "<code>xsi:schemaLocation="
+                + "\"http://example.com/ns1 http://example.com/ns1\"</code>",
+            "entry.",
+            "Of course the XSD must be available at the location given",
+            "by the namespace URI for this to work.",
+            "</p>",
+            "<p>Setting this true usually does the right thing,",
+            "but it may risk hitting schema-hosting web servers too hard,",
+            "and maybe it's too lenient on XML documents that don't have",
+            "the right <code>xsi:schemaLocation</code> attributes;",
+            "but <webref url='https://www.w3.org/TR/xmlschema-1/#schema-loc'",
+            ">XMLSchema-1 Sec 4.3.2</webref>",
+            "says it's up to the processor (i.e. this command)",
+            "to figure out where to get schemas from.",
+            "</p>",
+        } );
+        nsurldfltParam_.setBooleanDefault( true );
+
         topelParam_ = new StringParameter( "topel" );
         topelParam_.setUsage( "[{<ns-uri>}][<local-name>]" );
         topelParam_.setPrompt( "Local name of required top-level element" );
@@ -141,6 +168,7 @@ public class XsdValidate implements Task {
             topelParam_,
             verboseParam_,
             usevolocalsParam_,
+            nsurldfltParam_,
         };
     }
 
@@ -166,6 +194,7 @@ public class XsdValidate implements Task {
         String[] schemalocs = schemalocsParam_.objectValue( env );
         boolean isVerbose = verboseParam_.booleanValue( env );
         boolean useVoLocals = usevolocalsParam_.booleanValue( env );
+        boolean nsUrlDflt = nsurldfltParam_.booleanValue( env );
 
         /* Prepare reporting object. */
         final Recorder recorder =
@@ -209,7 +238,8 @@ public class XsdValidate implements Task {
         final Map<String,URL> schemaMap = new LinkedHashMap<>();
         schemaMap.putAll( localSchemaMap );
         schemaMap.putAll( customSchemaMap );
-        IvoaSchemaResolver resolver = new IvoaSchemaResolver( schemaMap );
+        IvoaSchemaResolver resolver =
+            new IvoaSchemaResolver( schemaMap, nsUrlDflt );
 
         /* Prepare validator.
          * Schemas are taken only from their declarations in the validated
@@ -262,6 +292,9 @@ public class XsdValidate implements Task {
                 }
                 else if ( localSchemaMap.containsKey( ns ) ) {
                     recorder.info( "Local schema location: " + ns );
+                }
+                else if ( nsUrlDflt ) {
+                    recorder.info( "Schema location from namespace: " + ns );
                 }
                 else {
                     assert false : ns;

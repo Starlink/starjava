@@ -14,7 +14,8 @@ public class ResourceTest extends TestCase {
     public void testResources()
             throws IOException, SAXException, ParserConfigurationException {
         int nSchema = 0;
-        Map<String,URL> schemaMap = new IvoaSchemaResolver().getSchemaMap();
+        Map<String,URL> schemaMap =
+            new IvoaSchemaResolver( false ).getSchemaMap();
         for ( Map.Entry<String,URL> entry : schemaMap.entrySet() ) {
             String namespace = entry.getKey();
             URL url = entry.getValue();

@@ -15830,6 +15830,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="outParquet">parquet output handler</ref>.</li>
     <li>Fix <code>ivoa_cookie</code> authentication handling
         to work in presence of multiple cookies.</li>
+    <li>Add parameter <code>nsurl</code> to
+        <ref id="xsdvalidate"><code>xsdvalidate</code></ref>,
+        defaulting to true;
+        if there's no other option, schema docs will be downloaded
+        from their namespace URI.</li>
     </ul>
     </p></dd>
 

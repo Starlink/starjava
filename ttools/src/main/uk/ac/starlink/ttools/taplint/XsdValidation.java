@@ -101,7 +101,8 @@ public class XsdValidation {
          * parse, but in that case the entity resolver doesn't seem to
          * get invoked for schema entities.  Even like this, it only seems
          * to work for java6 and greater (I'm using Oracle J2SE). */
-        IvoaSchemaResolver resolver = new IvoaSchemaResolver();
+        boolean nsUrlDflt = false;
+        IvoaSchemaResolver resolver = new IvoaSchemaResolver( nsUrlDflt );
         val.setResourceResolver( resolver );
 
         /* Install a reporting error handler on the validator. */

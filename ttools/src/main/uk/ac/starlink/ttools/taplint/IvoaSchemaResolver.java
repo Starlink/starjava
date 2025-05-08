@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import org.w3c.dom.ls.LSInput;
 import org.w3c.dom.ls.LSResourceResolver;
 
@@ -26,6 +27,7 @@ import org.w3c.dom.ls.LSResourceResolver;
  */
 public class IvoaSchemaResolver implements LSResourceResolver {
 
+    private final boolean nsUrlDflt_;
     private final Map<String,URL> schemaMap_;
     private final Set<String> resolvedNamespaces_;
     private final Set<String> unresolvedNamespaces_;
@@ -69,13 +71,20 @@ public class IvoaSchemaResolver implements LSResourceResolver {
 
     private static final String SCHEMA_TYPE =
         "http://www.w3.org/2001/XMLSchema";
+    private static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.taplint" );
 
     /**
      * Constructs a resolver with a supplied schema map.
      *
      * @param  schemaMap  of known namespace to schema URLs
+     * @param  nsUrlDflt  whether, if a systemID is not supplied,
+     *                    an attempt will be made to download a schema
+     *                    by dereferencing its namespace URI
      */
-    public IvoaSchemaResolver( Map<String,URL> schemaMap ) {
+    public IvoaSchemaResolver( Map<String,URL> schemaMap,
+                               boolean nsUrlDflt ) {
+        nsUrlDflt_ = nsUrlDflt;
         if ( schemaMap == null ) {
             schemaMap = new HashMap<String,URL>();
             schemaMap.putAll( W3C_SCHEMA_MAP );
@@ -88,9 +97,13 @@ public class IvoaSchemaResolver implements LSResourceResolver {
 
     /**
      * Constructs a resolver with a default schema map.
+     *
+     * @param  nsUrlDflt  if a systemID is not supplied, an attempt will be
+     *                    made to download a schema by dereferencing
+     *                    its namespace URI
      */
-    public IvoaSchemaResolver() {
-        this( null );
+    public IvoaSchemaResolver( boolean nsUrlDflt ) {
+        this( null, nsUrlDflt );
     }
 
     /**
@@ -118,12 +131,29 @@ public class IvoaSchemaResolver implements LSResourceResolver {
                 return new UrlInput( location );
             }
 
-            /* No local copy, return null to fall back to default resolution
-             * behaviour, and warn that a non-standard schema is in use. */
-            else {
-                unresolvedNamespaces_.add( namespaceURI );
-                return null;
+            /* Otherwise, if we're allowed to use the namespaceURI as
+             * a dereferencable URL, try that. */
+            if ( systemId == null && nsUrlDflt_ ) {
+                URL nsloc;
+                try {
+                    nsloc = new URL( namespaceURI );
+                }
+                catch ( MalformedURLException e ) {
+                    nsloc = null;
+                    logger_.info( "Namespace URI \"" + namespaceURI
+                                + "\" not a URL, can't use for systemId" );
+                }
+                if ( nsloc != null ) {
+                    resolvedNamespaces_.add( namespaceURI );
+                    return new UrlInput( nsloc );
+                }
             }
+
+            /* If none of that worked, return null to fall back to
+             * default resolution behaviour, and warn that a
+             * non-standard schema is in use. */
+            unresolvedNamespaces_.add( namespaceURI );
+            return null;
         }
 
         /* It's not a schema - fall back to default resolution behaviour. */
