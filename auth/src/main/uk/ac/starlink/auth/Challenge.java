@@ -37,9 +37,13 @@ public class Challenge {
         TOKEN + BWS + "=" + BWS + "(?:" + TOKEN + "|" + QUOTED_STRING + ")";
     private static final String CHALLENGE =
            OWS
-         + "(" + TOKEN + ") +" 
-         + "(" + TOKEN68 + "|"
-            + "(?:" + AUTH_PARAM + "(?:" + OWS + "," + OWS + AUTH_PARAM + ")*))"
+         + "(" + TOKEN + ")" 
+         + "("
+           + "" + "|"
+           + " +" + TOKEN68 + "|"
+           + " +" + "(?:" + AUTH_PARAM
+                          + "(?:" + OWS + "," + OWS + AUTH_PARAM + ")*)"
+         + ")"
          + OWS + "(?:,|$)";
     private static final String PPAIR =
           "(" + TOKEN + ")"
@@ -242,8 +246,8 @@ public class Challenge {
         List<Challenge> list = new ArrayList<>();
         Matcher matcher = CHALLENGE_REGEX.matcher( challengeTxt );
         while ( matcher.find() ) {
-            list.add( createChallenge( matcher.group( 1 ),
-                                       matcher.group( 2 ) ) );
+            list.add( createChallenge( matcher.group( 1 ).trim(),
+                                       matcher.group( 2 ).trim() ) );
         }
         return list;
     }
