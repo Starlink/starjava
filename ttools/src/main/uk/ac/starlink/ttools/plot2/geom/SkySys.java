@@ -68,7 +68,8 @@ public class SkySys {
                                          { "alpha", "delta" },
                                          { "ra2000", "dec2000" },
                                          { "ra2000", "de2000" },
-                                         { "_RAJ2000", "_DEJ2000" } },
+                                         { "_RAJ2000", "_DEJ2000" },
+                                         { "right_ascension", "declination" } },
                         new double[] { 1, 0, 0, 0, 1, 0, 0, 0, 1 } ),
 
         GALACTIC =

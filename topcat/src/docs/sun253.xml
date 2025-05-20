@@ -34514,6 +34514,9 @@ introduced since the last version:
         <ref id="outParquet">parquet output handler</ref>.</li>
     <li>Fix <code>ivoa_cookie</code> authentication handling
         to work in presence of multiple cookies.</li>
+    <li>Recognise "<code>right_ascension</code>" and
+        "<code>declination</code>" column names in coordinate
+        heuristics.</li>
     </ul>
     </p></dd>
 
