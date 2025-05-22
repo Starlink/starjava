@@ -298,7 +298,7 @@ public class ParquetTableWriter
      * But the KVMap argument means that this can be configured from a
      * user-supplied string value.
      *
-     * @return   additional key-value metadata items
+     * @param  kvItems   additional key-value metadata items
      */
     @ConfigMethod(
         property = "kvmap",
