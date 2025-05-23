@@ -35,13 +35,15 @@ public class ParquetTableWriter
     private Map<String,String> kvItems_;
     private VOTableVersion votVersion_;
 
+    private static final String FMT_NAME = "parquet";
+
     public ParquetTableWriter() {
         groupArray_ = true;
         votMeta_ = true;
     }
 
     public String getFormatName() {
-        return "parquet";
+        return FMT_NAME;
     }
 
     public String[] getExtensions() {
@@ -319,6 +321,15 @@ public class ParquetTableWriter
             + "whose contents will be used instead of the literal value.\n"
             + "Specifying an empty entry will ensure it is not written\n"
             + "into the key=value list."
+            + "</p>"
+            + "<p>The following output format specification would write\n"
+            + "parquet output including VOParquet metadata from\n"
+            + "a manually prepared VOTable file <code>meta.vot</code>:\n"
+            + "<blockcode>\n"
+            + "   " + FMT_NAME + "(votmeta=false,"
+                               + "kvmap=IVOA.VOTable-Parquet.version:1.0;"
+                               + "IVOA.VOTable-Parquet.content:@meta.vot)"
+            + "</blockcode>\n"
             + "</p>"
     )
     public void setKVMap( KVMap kvItems ) {
