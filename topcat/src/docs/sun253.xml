@@ -34518,6 +34518,7 @@ introduced since the last version:
     <li>Recognise "<code>right_ascension</code>" and
         "<code>declination</code>" column names in coordinate
         heuristics.</li>
+    <li>Improve TAP metadata table name fix guessing.</li>
     </ul>
     </p></dd>
 

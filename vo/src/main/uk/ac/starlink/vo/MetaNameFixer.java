@@ -268,9 +268,10 @@ public abstract class MetaNameFixer {
                     if ( sname != null && sname.length() > 0 ) {
                         String sprefix = sname + ".";
                         if ( tname.startsWith( sprefix ) ) {
-                            return sprefix
-                                 + syntax
-                                  .quote( tname.substring( sprefix.length() ) );
+                            String tsub = tname.substring( sprefix.length() );
+                            return syntax.quoteIfNecessary( sname )
+                                 + "."
+                                 + syntax.quoteIfNecessary( tsub );
                         }
                     }
                     return syntax.quote( tname );
