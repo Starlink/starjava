@@ -25688,7 +25688,8 @@ using the expression language.
         e.g. "<code>2018A&amp;A...616A...2L</code>" turns into
         <webref url="https://ui.adsabs.harvard.edu/abs/2018A%26A...616A...2L"
            >https://ui.adsabs.harvard.edu/abs/2018A%26A...616A...2L</webref>.
-        See the <ref id="Strings"><code>bibcodeUrl</code></ref> function.
+        See the <ref id="URLs-bibcodeUrl"><code>bibcodeUrl</code></ref>
+        function.
         </p></dd>
     <dt>DOI:</dt>
     <dd><p>The string is interpreted as a
@@ -25698,7 +25699,7 @@ using the expression language.
         e.g. "<code>10.3390/informatics4030018</code>" turns into
         <webref url="https://doi.org/10.3390/informatics4030018"
                     >https://doi.org/10.3390/informatics4030018</webref>.
-        See the <ref id="Strings"><code>doiUrl</code></ref> function.
+        See the <ref id="URLs-doiUrl"><code>doiUrl</code></ref> function.
         </p></dd>
     <dt>arXiv:</dt>
     <dd><p>The string is interpreted as an
@@ -25707,7 +25708,7 @@ using the expression language.
         e.g. "<code>arXiv:1804.09379</code>" turns into
         <webref url="https://arxiv.org/abs/1804.09381"
                     >https://arxiv.org/abs/1804.09381</webref>.
-        See the <ref id="Strings"><code>arxivUrl</code></ref> function.
+        See the <ref id="URLs-arxivUrl"><code>arxivUrl</code></ref> function.
         </p></dd>
     <dt>SIMBAD:</dt>
     <dd><p>The string is assumed to be a source identfier,
@@ -25718,7 +25719,7 @@ using the expression language.
         <webref
            url="http://simbad.u-strasbg.fr/simbad/sim-id?Ident=Beta%20Pictoris"
        >http://simbad.u-strasbg.fr/simbad/sim-id?Ident=Beta%20Pictoris</webref>.
-        See the <ref id="Strings"><code>simbadUrl</code></ref> function.
+        See the <ref id="URLs-simbadUrl"><code>simbadUrl</code></ref> function.
         </p></dd>
     <dt>NED:</dt>
     <dd><p>The string is assumed to be a source identifier,
@@ -25727,7 +25728,7 @@ using the expression language.
         e.g. "<code>NGC 3952</code>" turns into
         <webref url="http://ned.ipac.caltech.edu/byname?objname=NGC%203952"
               >http://ned.ipac.caltech.edu/byname?objname=NGC%203952</webref>.
-        See the <ref id="Strings"><code>nedUrl</code></ref> function.
+        See the <ref id="URLs-nedUrl"><code>nedUrl</code></ref> function.
         </p></dd>
     </dl>
     </p></dd>
