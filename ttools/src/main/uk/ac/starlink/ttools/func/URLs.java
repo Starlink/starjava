@@ -211,7 +211,7 @@ public class URLs {
     }
 
     /**
-     * Maps a DOI (Digital Object Identifier) to its dislay URL.
+     * Maps a DOI (Digital Object Identifier) to its display URL.
      * If the supplied string does not appear to be a DOI,
      * null will be returned. 
      * 
