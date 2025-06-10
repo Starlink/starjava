@@ -15835,6 +15835,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         defaulting to true;
         if there's no other option, schema docs will be downloaded
         from their namespace URI.</li>
+    <li>Update Ucidy library to v1.4;
+        <ref id="VO-ucdStatus">UCD validation</ref> is now done based on
+        <webref url="https://www.ivoa.net/documents/UCD1+/20241218/"
+                >v1.6 of the UCD1+ list of terms</webref>.</li>
     </ul>
     </p></dd>
 

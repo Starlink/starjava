@@ -34519,6 +34519,10 @@ introduced since the last version:
         "<code>declination</code>" column names in coordinate
         heuristics.</li>
     <li>Improve TAP metadata table name fix guessing.</li>
+    <li>Update Ucidy library to v1.4;
+        <ref id="VO-ucdStatus">UCD validation</ref> is now done based on
+        <webref url="https://www.ivoa.net/documents/UCD1+/20241218/"
+                >v1.6 of the UCD1+ list of terms</webref>.</li>
     </ul>
     </p></dd>
 

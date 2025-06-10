@@ -10,6 +10,7 @@ public class CodeTest extends TestCase {
                   "stat.likelihood",
                   "TIME.PERIOD;STAT.MAX",
                   "pos.eq.ra;meta.main",
+                  "phys.voltage",
               } ) {
             UcdStatus status = UcdStatus.getStatus( ucd );
             UcdStatus.Code code = status.getCode();
