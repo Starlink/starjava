@@ -70,7 +70,7 @@ public class LineInvoker {
      */
     public int invoke( String[] args, Runnable loggedConfig ) {
         List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
-        LineTableEnvironment env = new LineTableEnvironment();
+        LineTableEnvironment env = createEnvironment();
         int verbosity = 0;
         boolean bench = false;
         boolean memgui = false;
@@ -300,7 +300,7 @@ public class LineInvoker {
                     }
                     JFrame monwin = memgui ? startMemoryMonitor( "STILTS" )
                                            : null;
-                    exec.execute();
+                    execute( exec );
                     if ( monwin != null ) {
                         monwin.dispose();
                     }
@@ -385,6 +385,28 @@ public class LineInvoker {
             err.flush();
             return 1;
         }
+    }
+
+    /**
+     * Creates a LineTableEnvironment for use with this invoker.
+     * May be overridden by customising subclasses.
+     *
+     * @return  new environment for use with invocation
+     */
+    protected LineTableEnvironment createEnvironment() {
+        return new LineTableEnvironment();
+    }
+
+    /**
+     * Executes the given executable.
+     * This simply calls the {@link uk.ac.starlink.task.Executable#execute}
+     * method, but subclasses can override it to do something different.
+     *
+     * @param  exec   executable
+     */
+    protected void execute( Executable exec )
+            throws TaskException, IOException {
+        exec.execute();
     }
 
     /**

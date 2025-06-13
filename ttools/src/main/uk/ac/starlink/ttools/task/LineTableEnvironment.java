@@ -51,6 +51,15 @@ public class LineTableEnvironment extends LineEnvironment
     }
 
     /**
+     * Sets the table factory that should be used with this environment.
+     *
+     * @param  tfact  table factory
+     */
+    public void setTableFactory( StarTableFactory tfact ) {
+        tfact_ = tfact;
+    }
+
+    /**
      * Returns a table output marshaller suitable for use in this environment.
      *
      * @return  table output
