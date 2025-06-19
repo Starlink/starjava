@@ -25,6 +25,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.UnrepeatableSequenceException;
 import uk.ac.starlink.util.DataBufferedOutputStream;
 import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.StringElementSizer;
 import uk.ac.starlink.votable.TableContentHandler;
 import uk.ac.starlink.votable.TableHandler;
 import uk.ac.starlink.votable.VOSerializer;
@@ -351,7 +352,8 @@ public class VotCopyHandler
                                ? version_
                                : VOTableVersion.V13;
         VOSerializerConfig config =
-            new VOSerializerConfig( format_, serVers );
+            new VOSerializerConfig( format_, serVers,
+                                    StringElementSizer.NOCALC );
         VOSerializer voser = VOSerializer.makeSerializer( config, table );
 
         /* If it's out-of-line, open a new file for output and write data

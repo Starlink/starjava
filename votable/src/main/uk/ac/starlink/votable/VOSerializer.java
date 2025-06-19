@@ -996,16 +996,21 @@ public abstract class VOSerializer {
      * @param allowXtype  whether xtype attributes are permitted in the output;
      *        if not, any keys which might give rise to them in the
      *        serialization are removed
+     * @param  stringSizer  can work out lengths of strings in String[]-valued
+     *         columns
      * @return   prepared table (possibly the same as input).
      */
-    private static StarTable prepareForSerializer( StarTable table,
-                                                   boolean magicNulls,
-                                                   boolean allowXtype ) {
+    private static StarTable
+            prepareForSerializer( StarTable table, boolean magicNulls,
+                                  boolean allowXtype,
+                                  StringElementSizer stringSizer )
+                throws IOException {
         ValueInfo badKey = Tables.NULL_VALUE_INFO;
         ValueInfo ubyteKey = Tables.UBYTE_FLAG_INFO;
         int ncol = table.getColumnCount();
         final ColumnInfo[] colInfos = new ColumnInfo[ ncol ];
         int modified = 0;
+        IntList varStringArrayIcols = new IntList();
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo cinfo = new ColumnInfo( table.getColumnInfo( icol ) );
             boolean isUbyte =
@@ -1051,7 +1056,26 @@ public abstract class VOSerializer {
                     modified++;
                 }
             }
+            if ( String[].class.equals( clazz ) &&
+                 cinfo.getElementSize() < 0 ) {
+                varStringArrayIcols.add( icol );
+            }
             colInfos[ icol ] = cinfo;
+        }
+        if ( varStringArrayIcols.size() > 0 ) {
+            int[] vsaIcols = varStringArrayIcols.toIntArray();
+            int[] elSizes =
+                stringSizer.calculateStringArrayElementSizes( table, vsaIcols );
+            for ( int i = 0; i < vsaIcols.length; i++ ) {
+                int icol = vsaIcols[ i ];
+                ColumnInfo cinfo = table.getColumnInfo( icol );
+                if ( elSizes[ i ] != cinfo.getElementSize() ) {
+                    ColumnInfo cinfo1 = new ColumnInfo( cinfo );
+                    cinfo1.setElementSize( elSizes[ i ] );
+                    colInfos[ icol ] = cinfo1;
+                    modified++;
+                }
+            }
         }
         if ( modified > 0 ) {
             table = new WrapperStarTable( table ) {
@@ -1081,7 +1105,8 @@ public abstract class VOSerializer {
             throws IOException {
         VOSerializerConfig config =
             new VOSerializerConfig( dataFormat,
-                                    VOTableVersion.getDefaultVersion() );
+                                    VOTableVersion.getDefaultVersion(),
+                                    StringElementSizer.NOCALC );
         return makeSerializer( config, table );
     }
 
@@ -1105,7 +1130,8 @@ public abstract class VOSerializer {
                                                StarTable table )
             throws IOException {
         VOSerializerConfig config =
-            new VOSerializerConfig( dataFormat, version );
+            new VOSerializerConfig( dataFormat, version,
+                                    StringElementSizer.NOCALC );
         return makeSerializer( config, table );
     }
 
@@ -1122,13 +1148,15 @@ public abstract class VOSerializer {
             throws IOException {
         DataFormat dataFormat = config.getDataFormat();
         VOTableVersion version = config.getVersion();
+        StringElementSizer stringSizer = config.getStringSizer();
 
         /* Prepare. */
         boolean magicNulls =
             ( dataFormat == DataFormat.BINARY ) ||
             ( dataFormat == DataFormat.FITS ) ||
             ( dataFormat == DataFormat.TABLEDATA && ! version.allowEmptyTd() );
-        table = prepareForSerializer( table, magicNulls, version.allowXtype() );
+        table = prepareForSerializer( table, magicNulls, version.allowXtype(),
+                                      stringSizer );
 
         /* Return a serializer. */
         if ( dataFormat == DataFormat.TABLEDATA ) {
@@ -1197,7 +1225,19 @@ public abstract class VOSerializer {
             throws IOException {
         boolean magicNulls = false;
         boolean allowXtype = true;
-        table = prepareForSerializer( table, magicNulls, allowXtype );
+        StringElementSizer stringSizer = new StringElementSizer() {
+            public int[] calculateStringArrayElementSizes( StarTable table,
+                                                           int[] icols ) {
+                int[] elSizes = new int[ icols.length ];
+                for ( int i = 0; i < icols.length; i++ ) {
+                    int[] shape = fitser.getDimensions( icols[ i ] );
+                    elSizes[ i ] = shape[ 0 ];
+                }
+                return elSizes;
+            }
+        };
+        table = prepareForSerializer( table, magicNulls, allowXtype,
+                                      stringSizer );
         return new FITSVOSerializer( table, version, fitser );
     }
 

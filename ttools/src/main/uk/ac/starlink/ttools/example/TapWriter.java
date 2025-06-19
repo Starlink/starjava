@@ -17,6 +17,7 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.jdbc.SequentialResultSetStarTable;
 import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.StringElementSizer;
 import uk.ac.starlink.votable.VOSerializer;
 import uk.ac.starlink.votable.VOSerializerConfig;
 import uk.ac.starlink.votable.VOTableVersion;
@@ -35,6 +36,7 @@ public class TapWriter {
     private final DataFormat dfmt_;
     private final VOTableVersion version_;
     private final long maxrec_;
+    private final StringElementSizer stringSizer_;
 
     /**
      * Constructor.
@@ -49,6 +51,22 @@ public class TapWriter {
         dfmt_ = dfmt;
         version_ = version;
         maxrec_ = maxrec;
+
+        // When writing VOTable columns containing arrays of strings,
+        // the length of each string has to be known up front.
+        // This setting determines how that length will be determined
+        // in the case that that information is not already available
+        // from the column metadata (via a non-negative
+        // ValueInfo.getElementSize() value).
+        // The ERROR_IF_USED value will cause a write error if this happens,
+        // so that it's no possible to write string arrays with elements
+        // of unknown length.
+        // An alternative is to detect the value from the table data
+        // by setting it to StringElementSizer.READ instead,
+        // but that would inhibit output streaming.
+        // If you don't have any string-array-valued columns,
+        // you don't need to worry about this setting.
+        stringSizer_ = StringElementSizer.ERROR_IF_USED;
     }
 
     /**
@@ -65,7 +83,8 @@ public class TapWriter {
             new LimitedResultSetStarTable( rset, maxrec_ );
 
         /* Prepares the object that will do the serialization work. */
-        VOSerializerConfig config = new VOSerializerConfig( dfmt_, version_ );
+        VOSerializerConfig config =
+            new VOSerializerConfig( dfmt_, version_, stringSizer_ );
         VOSerializer voser = VOSerializer.makeSerializer( config, table );
         BufferedWriter out =
             new BufferedWriter( new OutputStreamWriter( ostrm ) );

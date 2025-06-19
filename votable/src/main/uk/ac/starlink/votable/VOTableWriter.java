@@ -61,6 +61,7 @@ public class VOTableWriter
     private DataFormat dataFormat_;
     private boolean inline_;
     private VOTableVersion version_;
+    private StringElementSizer stringSizer_;
     private Boolean compact_;
     private Charset encoding_;
     private boolean writeSchemaLocation_;
@@ -109,6 +110,7 @@ public class VOTableWriter
         dataFormat_ = dataFormat;
         inline_ = inline;
         version_ = version;
+        stringSizer_ = StringElementSizer.READ;
         encoding_ = StandardCharsets.UTF_8;
         writeDate_ = true;
     }
@@ -211,7 +213,7 @@ public class VOTableWriter
                                  File file )
             throws IOException {
         VOSerializerConfig config =
-            new VOSerializerConfig( dataFormat_, version_ );
+            new VOSerializerConfig( dataFormat_, version_, stringSizer_ );
 
         /* Set up the XML output. */
         Charset encoding = encoding_;
@@ -316,7 +318,7 @@ public class VOTableWriter
                                        BufferedWriter writer )
             throws IOException {
         VOSerializerConfig config =
-            new VOSerializerConfig( dataFormat_, version_ );
+            new VOSerializerConfig( dataFormat_, version_, stringSizer_ );
         writePreTableXML( writer );
         for ( int i = 0; i < startabs.length; i++ ) {
             if ( i > 0 ) {
@@ -741,6 +743,26 @@ public class VOTableWriter
      */
     public boolean getWriteSchemaLocation() {
         return writeSchemaLocation_;
+    }
+
+    /**
+     * Configures behaviour when the string length of strings in a
+     * String[] array-valued table output column is not known.
+     *
+     * @param  stringSizer  string length determination option
+     */
+    public void setStringElementSizer( StringElementSizer stringSizer ) {
+        stringSizer_ = stringSizer;
+    }
+
+    /**
+     * Describes behaviour when the string length of strings in a
+     * String[] array-valued table output column is not known.
+     *
+     * @return  string length determination option
+     */
+    public StringElementSizer getStringElementSizer() {
+        return stringSizer_;
     }
 
     @Override

@@ -15839,6 +15839,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="VO-ucdStatus">UCD validation</ref> is now done based on
         <webref url="https://www.ivoa.net/documents/UCD1+/20241218/"
                 >v1.6 of the UCD1+ list of terms</webref>.</li>
+    <li>VOTable and related output handlers can now write
+        String-array-valued columns with unknown element length
+        (previously they sometimes just refused).</li>
     </ul>
     </p></dd>
 

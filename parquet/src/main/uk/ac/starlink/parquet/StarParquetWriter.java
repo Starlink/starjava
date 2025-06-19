@@ -24,6 +24,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.IntList;
 import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.StringElementSizer;
 import uk.ac.starlink.votable.VOSerializer;
 import uk.ac.starlink.votable.VOSerializerConfig;
 import uk.ac.starlink.votable.VOTableVersion;
@@ -299,8 +300,14 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
         VOTableWriter votWriter =
             new VOTableWriter( (DataFormat) null, false, version ) {};
         votWriter.setWriteDate( false );
+
+        /* We use a fixed-value StringElementSizer here since it at least
+         * gives the right dimensionality which is enough to keep
+         * validators happy.  The actual string element sizes will be
+         * variable, since that's handled by the parquet not VOTable output. */
         VOSerializerConfig config =
-            new VOSerializerConfig( DataFormat.TABLEDATA, version );
+            new VOSerializerConfig( DataFormat.TABLEDATA, version,
+                                    StringElementSizer.FIXED2 );
         try {
             VOSerializer voser = VOSerializer.makeSerializer( config, table );
             votWriter.writePreTableXML( writer );

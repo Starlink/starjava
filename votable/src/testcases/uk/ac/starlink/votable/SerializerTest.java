@@ -80,20 +80,24 @@ public class SerializerTest extends TestCase {
         
     public void testURLs() 
             throws IOException, TransformerException, SAXException {
+        StringElementSizer stringSizer = StringElementSizer.READ;
         exerciseStreamSerializer(
             VOSerializer
            .makeSerializer( new VOSerializerConfig( DataFormat.BINARY,
-                                                    VOTableVersion.V10 ),
+                                                    VOTableVersion.V10,
+                                                    stringSizer ),
                             table0 ) );
         exerciseStreamSerializer(
             VOSerializer
            .makeSerializer( new VOSerializerConfig( DataFormat.BINARY2,
-                                                    VOTableVersion.V13 ),
+                                                    VOTableVersion.V13, 
+                                                    stringSizer ),
                             table0 ) );
         exerciseStreamSerializer(
             VOSerializer
            .makeSerializer( new VOSerializerConfig( DataFormat.FITS,
-                                                    VOTableVersion.V12 ),
+                                                    VOTableVersion.V12,
+                                                    stringSizer ),
                             table0 ) );
     }
 
@@ -225,6 +229,7 @@ public class SerializerTest extends TestCase {
 
     private void exerciseSerializers( VOTableVersion version )
             throws IOException, SAXException, TransformerException {
+        StringElementSizer stringSizer = StringElementSizer.READ;
         try {
 
             int ncol = table0.getColumnCount();
@@ -232,23 +237,24 @@ public class SerializerTest extends TestCase {
             VOSerializer tSer =
                 VOSerializer
                .makeSerializer( new VOSerializerConfig( DataFormat.TABLEDATA,
-                                                        version ),
+                                                        version, stringSizer ),
                                 table0 );
             VOSerializer bSer =
                 VOSerializer
                .makeSerializer( new VOSerializerConfig( DataFormat.BINARY,
-                                                        version ),
+                                                        version, stringSizer ),
                                 table0 );
             VOSerializer fSer =
                 VOSerializer
                .makeSerializer( new VOSerializerConfig( DataFormat.FITS,
-                                                        version ),
+                                                        version, stringSizer ),
                                 table0 );
             VOSerializer b2Ser =
                 version.allowBinary2()
                 ? VOSerializer
                  .makeSerializer( new VOSerializerConfig( DataFormat.BINARY2,
-                                                          version ),
+                                                          version,
+                                                          stringSizer ),
                                   table0 )
                 : null;
 
