@@ -325,11 +325,11 @@ public class ParquetTableWriter
             + "<p>The following output format specification would write\n"
             + "parquet output including VOParquet metadata from\n"
             + "a manually prepared VOTable file <code>meta.vot</code>:\n"
-            + "<blockcode>\n"
+            + "<verbatim>\n"
             + "   " + FMT_NAME + "(votmeta=false,"
                                + "kvmap=IVOA.VOTable-Parquet.version:1.0;"
                                + "IVOA.VOTable-Parquet.content:@meta.vot)"
-            + "</blockcode>\n"
+            + "</verbatim>\n"
             + "</p>"
     )
     public void setKVMap( KVMap kvItems ) {
