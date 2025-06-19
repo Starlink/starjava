@@ -80,18 +80,21 @@ public class SerializerTest extends TestCase {
         
     public void testURLs() 
             throws IOException, TransformerException, SAXException {
-        exerciseStreamSerializer( VOSerializer
-                                 .makeSerializer( DataFormat.BINARY,
-                                                  VOTableVersion.V10,
-                                                  table0 ) );
-        exerciseStreamSerializer( VOSerializer
-                                 .makeSerializer( DataFormat.BINARY2,
-                                                  VOTableVersion.V13, 
-                                                  table0 ) );
-        exerciseStreamSerializer( VOSerializer
-                                 .makeSerializer( DataFormat.FITS,
-                                                  VOTableVersion.V12,
-                                                  table0 ) );
+        exerciseStreamSerializer(
+            VOSerializer
+           .makeSerializer( new VOSerializerConfig( DataFormat.BINARY,
+                                                    VOTableVersion.V10 ),
+                            table0 ) );
+        exerciseStreamSerializer(
+            VOSerializer
+           .makeSerializer( new VOSerializerConfig( DataFormat.BINARY2,
+                                                    VOTableVersion.V13 ),
+                            table0 ) );
+        exerciseStreamSerializer(
+            VOSerializer
+           .makeSerializer( new VOSerializerConfig( DataFormat.FITS,
+                                                    VOTableVersion.V12 ),
+                            table0 ) );
     }
 
     private void exerciseStreamSerializer( VOSerializer ser ) 
@@ -226,20 +229,28 @@ public class SerializerTest extends TestCase {
 
             int ncol = table0.getColumnCount();
 
-            VOSerializer tSer = VOSerializer
-                               .makeSerializer( DataFormat.TABLEDATA,
-                                                version, table0 );
-            VOSerializer bSer = VOSerializer
-                               .makeSerializer( DataFormat.BINARY,
-                                                version, table0 );
-            VOSerializer fSer = VOSerializer
-                               .makeSerializer( DataFormat.FITS,
-                                                version, table0 );
-            VOSerializer b2Ser = version.allowBinary2()
-                               ? VOSerializer
-                                .makeSerializer( DataFormat.BINARY2,
-                                                 version, table0 )
-                               : null;
+            VOSerializer tSer =
+                VOSerializer
+               .makeSerializer( new VOSerializerConfig( DataFormat.TABLEDATA,
+                                                        version ),
+                                table0 );
+            VOSerializer bSer =
+                VOSerializer
+               .makeSerializer( new VOSerializerConfig( DataFormat.BINARY,
+                                                        version ),
+                                table0 );
+            VOSerializer fSer =
+                VOSerializer
+               .makeSerializer( new VOSerializerConfig( DataFormat.FITS,
+                                                        version ),
+                                table0 );
+            VOSerializer b2Ser =
+                version.allowBinary2()
+                ? VOSerializer
+                 .makeSerializer( new VOSerializerConfig( DataFormat.BINARY2,
+                                                          version ),
+                                  table0 )
+                : null;
 
             ByteArrayOutputStream bytestream = new ByteArrayOutputStream();
             BufferedWriter writer = 

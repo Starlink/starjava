@@ -25,6 +25,7 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.IntList;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.VOSerializer;
+import uk.ac.starlink.votable.VOSerializerConfig;
 import uk.ac.starlink.votable.VOTableVersion;
 import uk.ac.starlink.votable.VOTableWriter;
 
@@ -298,10 +299,10 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
         VOTableWriter votWriter =
             new VOTableWriter( (DataFormat) null, false, version ) {};
         votWriter.setWriteDate( false );
+        VOSerializerConfig config =
+            new VOSerializerConfig( DataFormat.TABLEDATA, version );
         try {
-            VOSerializer voser =
-                VOSerializer
-               .makeSerializer( DataFormat.TABLEDATA, version, table );
+            VOSerializer voser = VOSerializer.makeSerializer( config, table );
             votWriter.writePreTableXML( writer );
             voser.writePreDataXML( writer );
             writer.write( "<!-- Dummy VOTable - no DATA element -->" );

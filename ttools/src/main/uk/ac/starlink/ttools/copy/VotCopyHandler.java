@@ -28,6 +28,7 @@ import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableContentHandler;
 import uk.ac.starlink.votable.TableHandler;
 import uk.ac.starlink.votable.VOSerializer;
+import uk.ac.starlink.votable.VOSerializerConfig;
 import uk.ac.starlink.votable.VOTableVersion;
 
 /**
@@ -349,8 +350,9 @@ public class VotCopyHandler
         VOTableVersion serVers = version_ != null
                                ? version_
                                : VOTableVersion.V13;
-        VOSerializer voser =
-            VOSerializer.makeSerializer( format_, serVers, table );
+        VOSerializerConfig config =
+            new VOSerializerConfig( format_, serVers );
+        VOSerializer voser = VOSerializer.makeSerializer( config, table );
 
         /* If it's out-of-line, open a new file for output and write data
          * to it. */

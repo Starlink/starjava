@@ -18,6 +18,7 @@ import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.jdbc.SequentialResultSetStarTable;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.VOSerializer;
+import uk.ac.starlink.votable.VOSerializerConfig;
 import uk.ac.starlink.votable.VOTableVersion;
 
 /**
@@ -64,8 +65,8 @@ public class TapWriter {
             new LimitedResultSetStarTable( rset, maxrec_ );
 
         /* Prepares the object that will do the serialization work. */
-        VOSerializer voser =
-            VOSerializer.makeSerializer( dfmt_, version_, table );
+        VOSerializerConfig config = new VOSerializerConfig( dfmt_, version_ );
+        VOSerializer voser = VOSerializer.makeSerializer( config, table );
         BufferedWriter out =
             new BufferedWriter( new OutputStreamWriter( ostrm ) );
 

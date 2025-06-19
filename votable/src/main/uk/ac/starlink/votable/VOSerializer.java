@@ -45,8 +45,9 @@ import uk.ac.starlink.votable.datalink.ServiceParam;
  * this class can be used in a more flexible way, by writing only
  * the elements which are required.
  *
- * <p>Obtain an instance of this class using the {@link #makeSerializer}
- * method.
+ * <p>Obtain an instance of this class using the
+ * {@link #makeSerializer(VOSerializerConfig,uk.ac.starlink.table.StarTable)
+ *        makeSerializer} method.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -1066,20 +1067,31 @@ public abstract class VOSerializer {
      * Returns a serializer capable of serializing a given table to
      * given data format, using the default VOTable output version.
      *
+     * @deprecated use instead
+     *             {@link #makeSerializer(VOSerializerConfig,
+     *                                    uk.ac.starlink.table.StarTable)}
+     *
      * @param  dataFormat  one of the supported VOTable serialization formats
      * @param  table  the table to be serialized
      * @return  serializer
      */
+    @Deprecated
     public static VOSerializer makeSerializer( DataFormat dataFormat,
                                                StarTable table )
             throws IOException {
-        return makeSerializer( dataFormat, VOTableVersion.getDefaultVersion(),
-                               table );
+        VOSerializerConfig config =
+            new VOSerializerConfig( dataFormat,
+                                    VOTableVersion.getDefaultVersion() );
+        return makeSerializer( config, table );
     }
 
     /**
      * Returns a serializer capable of serializing
      * a given table to a given data format using a given VOTable version.
+     *
+     * @deprecated use instead
+     *             {@link #makeSerializer(VOSerializerConfig,
+     *                                    uk.ac.starlink.table.StarTable)}
      *
      * @param  dataFormat  one of the supported VOTable serialization formats
      * @param  version  specifies the version of the VOTable standard
@@ -1087,10 +1099,29 @@ public abstract class VOSerializer {
      * @param  table  the table to be serialized
      * @return  serializer
      */
+    @Deprecated
     public static VOSerializer makeSerializer( DataFormat dataFormat,
                                                VOTableVersion version,
                                                StarTable table )
             throws IOException {
+        VOSerializerConfig config =
+            new VOSerializerConfig( dataFormat, version );
+        return makeSerializer( config, table );
+    }
+
+    /**
+     * Returns a serializer capable of serializing a given table
+     * in accordance with a supplied configuration object.
+     *
+     * @param   config  configuration
+     * @param   table   table for output
+     * @return  serializer
+     */
+    public static VOSerializer makeSerializer( VOSerializerConfig config,
+                                               StarTable table )
+            throws IOException {
+        DataFormat dataFormat = config.getDataFormat();
+        VOTableVersion version = config.getVersion();
 
         /* Prepare. */
         boolean magicNulls =
@@ -1112,7 +1143,8 @@ public abstract class VOSerializer {
              * It would be possible to provide user-level configuration
              * options, but the FITS serialization format is very little used,
              * so don't bother unless some compelling use case arises. */
-            FitsTableSerializerConfig config = new FitsTableSerializerConfig() {
+            FitsTableSerializerConfig fitsConfig =
+                    new FitsTableSerializerConfig() {
                 public boolean allowSignedByte() {
                     return false;
                 }
@@ -1127,7 +1159,7 @@ public abstract class VOSerializer {
                 }
             };
             return new FITSVOSerializer( table, version,
-                new StandardFitsTableSerializer( config, table ) );
+                new StandardFitsTableSerializer( fitsConfig, table ) );
         }
         else if ( dataFormat == DataFormat.BINARY ) {
             return new BinaryVOSerializer( table, version, magicNulls );
@@ -1163,7 +1195,9 @@ public abstract class VOSerializer {
                                                    FitsTableSerializer fitser,
                                                    VOTableVersion version )
             throws IOException {
-        table = prepareForSerializer( table, false, true );
+        boolean magicNulls = false;
+        boolean allowXtype = true;
+        table = prepareForSerializer( table, magicNulls, allowXtype );
         return new FITSVOSerializer( table, version, fitser );
     }
 

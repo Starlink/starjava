@@ -210,6 +210,8 @@ public class VOTableWriter
     public void writeStarTables( TableSequence tableSeq, OutputStream out,
                                  File file )
             throws IOException {
+        VOSerializerConfig config =
+            new VOSerializerConfig( dataFormat_, version_ );
 
         /* Set up the XML output. */
         Charset encoding = encoding_;
@@ -231,7 +233,7 @@ public class VOTableWriter
             /* Get the format to provide a configuration object which describes
              * exactly how the data from each cell is going to get written. */
             VOSerializer serializer =
-                VOSerializer.makeSerializer( dataFormat_, version_, startab );
+                VOSerializer.makeSerializer( config, startab );
             if ( compact_ != null ) {
                 serializer.setCompact( compact_.booleanValue() );
             }
@@ -313,12 +315,14 @@ public class VOTableWriter
     public void writeInlineStarTables( StarTable[] startabs,
                                        BufferedWriter writer )
             throws IOException {
+        VOSerializerConfig config =
+            new VOSerializerConfig( dataFormat_, version_ );
         writePreTableXML( writer );
         for ( int i = 0; i < startabs.length; i++ ) {
             if ( i > 0 ) {
                 writeBetweenTableXML( writer );
             }
-            VOSerializer.makeSerializer( dataFormat_, version_, startabs[ i ] )
+            VOSerializer.makeSerializer( config, startabs[ i ] )
                         .writeInlineTableElement( writer );
         }
         writePostTableXML( writer );
