@@ -20,7 +20,7 @@ public class HeaderTest extends TestCase {
     private Logger logger_ = Logger.getLogger( "uk.ac.starlink.fits" );
 
     public HeaderTest() {
-        logger_.setLevel( Level.WARNING );
+        logger_.setLevel( Level.SEVERE );
     }
 
     public void testCardFactories() {

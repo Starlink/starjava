@@ -238,9 +238,11 @@ public class CardFactory {
         }
         else {
             if ( config_.allowTrim() ) {
-                logger_.info( "Trim overlength value for " + key );
-                sbuf.append( trimLiteralString( literal,
-                                                80 - sbuf.length() ) );
+                String trimmed =
+                    trimLiteralString( literal, 80 - sbuf.length() );
+                logger_.warning( "Trim overlength value for " + key
+                               + " (" + literal + " -> " + trimmed + ")" );
+                sbuf.append( trimmed );
             }
             else {
                 throw new IllegalArgumentException( "Value too long: "
@@ -296,8 +298,10 @@ public class CardFactory {
             sbuf.append( literal );
         }
         else if ( config_.allowTrim() && sbuf.length() < 75 ) {
-            logger_.info( "Trim overlength value for key " + key );
-            sbuf.append( trimLiteralString( literal, 80 - sbuf.length() ) );
+            String trimmed = trimLiteralString( literal, 80 - sbuf.length() );
+            logger_.warning( "Trim overlength value for key " + key
+                           + " (" + literal + " -> " + trimmed + ")" );
+            sbuf.append( trimmed );
         }
         else {
             throw new IllegalArgumentException( "key + value too long: "

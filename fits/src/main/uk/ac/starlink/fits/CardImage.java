@@ -23,8 +23,10 @@ public class CardImage {
      */
     public CardImage( byte[] buf80 ) {
         if ( buf80.length != 80 ) {
+            String txt = new String( buf80, StandardCharsets.US_ASCII );
             throw new IllegalArgumentException( "Buffer wrong length ("
-                                              + buf80.length + " != 80" );
+                                              + buf80.length + " != 80): "
+                                              + txt );
         }
         for ( int i = 0; i < 80; i++ ) {
             checkFitsCharacter( ( (int) buf80[ i ] ) & 0xff );
