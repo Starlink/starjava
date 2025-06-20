@@ -34526,6 +34526,8 @@ introduced since the last version:
     <li>VOTable and related output handlers can now write
         String-array-valued columns with unknown element length
         (previously they sometimes just refused).</li>
+    <li>Fix bug when writing long HIERARCH FITS headers
+        that could cause output failure.</li>
     </ul>
     </p></dd>
 

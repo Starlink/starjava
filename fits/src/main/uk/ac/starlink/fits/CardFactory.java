@@ -305,7 +305,7 @@ public class CardFactory {
         }
         assert sbuf.length() <= 80;
         if ( comment != null && comment.trim().length() > 0 &&
-             comment.length() + 3 < 80 ) {
+             sbuf.length() + comment.length() + 3 < 80 ) {
             sbuf.append( " / " );
             for ( int i = 0; i < comment.length() && sbuf.length() < 80;
                   i++ ) {

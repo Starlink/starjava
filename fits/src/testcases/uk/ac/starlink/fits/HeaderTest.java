@@ -117,6 +117,31 @@ public class HeaderTest extends TestCase {
                      CardType.LOGICAL_HIER )
         );
 
+        assertCardEquals(
+            "HIERARCH XT TTYPE1014",
+            "fluxerr_i_ext_panstarrs_2fwhm_aper_euclid_Corrected_GA", null,
+            parseAs( CardFactory.HIERARCH.createLiteralCard(
+                "HIERARCH XT TTYPE1014",
+                "'fluxerr_i_ext_panstarrs_2fwhm_aper_euclid_Corrected_GAL'",
+                null ), CardType.STRING_HIER )
+        );
+        assertCardEquals(
+            "HIERARCH XT TTYPE1000",
+            "fluxerr_u_ext_megacam_Corrected_GAL", "Short comment",
+            parseAs( CardFactory.HIERARCH.createLiteralCard(
+                "HIERARCH XT TTYPE1000",
+                "'fluxerr_u_ext_megacam_Corrected_GAL'",
+                "Short comment" ), CardType.STRING_HIER )
+        );
+        assertCardEquals(
+            "HIERARCH XT TTYPE1000",
+            "fluxerr_u_ext_megacam_Corrected_GAL", null,
+            parseAs( CardFactory.HIERARCH.createLiteralCard(
+                "HIERARCH XT TTYPE1000",
+                "'fluxerr_u_ext_megacam_Corrected_GAL'",
+                "Comment is too long" ), CardType.STRING_HIER )
+        );
+
         assertCardEqualsExact(
             "HIERARCH ESO INS OPTI-3 ID = 'ESO#427 ' " +
             "/ Optical element identifier",
