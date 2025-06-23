@@ -52,7 +52,7 @@ public class Vosi11TapMetaReader implements TapMetaReader {
     public Vosi11TapMetaReader( URL tablesetUrl, MetaNameFixer fixer,
                                 ContentCoding coding, DetailMode detailMode ) {
         url_ = tablesetUrl;
-        fixer_ = fixer = fixer == null ? MetaNameFixer.NONE : fixer;
+        fixer_ = fixer == null ? MetaNameFixer.NONE : fixer;
         coding_ = coding;
         detailMode_ = detailMode;
     }
@@ -90,6 +90,8 @@ public class Vosi11TapMetaReader implements TapMetaReader {
         TapMetaPolicy.sortSchemas( schemas );
         int nTable = 0;
         int nDetail = 0;
+        int nCol = 0;
+        int nKey = 0;
         for ( SchemaMeta schema : schemas ) {
             TableMeta[] tables = schema.getTables();
             if ( tables != null ) {
@@ -107,9 +109,19 @@ public class Vosi11TapMetaReader implements TapMetaReader {
                     else {
                         nDetail++;
                     }
+                    if ( cols != null ) {
+                        nCol += cols.length;
+                    }
+                    if ( fkeys != null ) {
+                        nKey += fkeys.length;
+                    }
                 }
             }
         }
+        logger_.info( "Metadata loaded for "
+                    + nTable + " tables, "
+                    + nCol + " columns, "
+                    + nKey + " foreign keys" );
 
         /* If the service apparently rejected our request for max or min
          * detail, log it.  The service is perfectly within its rights
