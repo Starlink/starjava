@@ -23753,8 +23753,9 @@ by clicking on the appropriate tab at the top.
         <ul>
         <li><label>Auto:</label>
             make a sensible decision; this generally means
-            <label>TAP_SCHEMA-C</label> for services with very many tables,
-            and <label>TableSet-VOSI1.1</label> otherwise.
+            <label>TableSet-VOSI1.1</label> variant
+            <label>1-step</label> or <label>2-step</label>
+            depending on the size of the service.
             </li>
         <li><label>TAP_SCHEMA-C:</label>
             reads metadata from TAP_SCHEMA tables;
@@ -34583,6 +34584,12 @@ introduced since the last version:
         inferred when reading tables.</li>
     <li>New activation action
         <ref id="ViewUrlActivationType">View URL</ref>.</li>
+    <li>Modify the default ("Auto") <label>metadata acquisition</label>
+        policy used by the <ref id="TapTableLoadDialog">TAP window</ref>;
+        it's now more likely to use VOSI tables than TAP_SCHEMA
+        queries.
+        This may make metadata reading a bit faster,
+        and for some services picks up metadata better.</li>
     </ul>
     </p></dd>
 
