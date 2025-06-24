@@ -327,6 +327,9 @@ public class BeanConfig {
         else if ( optClazz == Boolean.class ) {
             return "true|false|null";
         }
+        else if ( optClazz == char.class ) {
+            return "<char>|0xNN";
+        }
         else if ( optClazz.isEnum() ) {
             return Arrays.stream( optClazz.getEnumConstants() )
                          .map( Object::toString )
@@ -426,11 +429,32 @@ public class BeanConfig {
         }
         else if ( clazz.equals( char.class ) ||
                   clazz.equals( Character.class ) ) {
-            return (T) ( hexValue == null
-                             ? Character.valueOf( txt.replaceAll( "\\", "," )
-                                                 .replaceAll( "\\\\", "\\" )
-                                                 .charAt( 0 ) )
-                             : Character.valueOf( (char) hexValue.intValue() ));
+            if ( "comma".equals( txt ) ) {
+                return (T) Character.valueOf( ',' );
+            }
+            else if ( "backslash".equals( txt ) ) {
+                return (T) Character.valueOf( '\\' );
+            }
+            else if ( "space".equals( txt ) ) {
+                return (T) Character.valueOf( ' ' );
+            }
+            else if ( "tab".equals( txt ) ) {
+                return (T) Character.valueOf( '\t' );
+            }
+            else if ( hexValue != null ) {
+                return (T) Character.valueOf( (char) hexValue.intValue() );
+            }
+            else {
+                String ctxt = txt.replaceAll( "\\,", "," )
+                                 .replaceAll( "\\\\", "\\" );
+                if ( ctxt.length() == 1 ) {
+                    return (T) Character.valueOf( ctxt.charAt( 0 ) );
+                }
+                else {
+                    throw new IllegalArgumentException( "Not single character: "
+                                                      + "\"" + ctxt + "\"" );
+                }
+            }
         }
         else if ( clazz.equals( String.class ) ) {
             return (T) txt.replaceAll( "\\,", "," )
