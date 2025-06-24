@@ -19,16 +19,8 @@ import uk.ac.starlink.table.TimeMapper;
  */
 public class RowEvaluator {
 
-    private boolean[] maybeBlank_;
-    private boolean[] maybeBoolean_;
-    private boolean[] maybeShort_;
-    private boolean[] maybeInteger_;
-    private boolean[] maybeLong_;
-    private boolean[] maybeFloat_;
-    private boolean[] maybeDouble_;
-    private boolean[] maybeDate_;
-    private boolean[] maybeHms_;
-    private boolean[] maybeDms_;
+    private final Decoder<?>[] decoders_;
+    private boolean[][] flagArrays_;
     private int[] stringLength_;
     private long nrow_;
     private int ncol_ = -1;
@@ -56,7 +48,7 @@ public class RowEvaluator {
     );
 
     /** Decoder for values that are all blank. */
-    private static Decoder<Void> BLANK_DECODER =
+    public static final Decoder<Void> BLANK_DECODER =
             new Decoder<Void>( Void.class, "blank" ) {
         private Pattern blankRegex_ = Pattern.compile( " *" );
         public Void decode( String value ) {
@@ -69,7 +61,7 @@ public class RowEvaluator {
     };
 
     /** Decoder for booleans. */
-    private static Decoder<Boolean> BOOLEAN_DECODER =
+    public static final Decoder<Boolean> BOOLEAN_DECODER =
             new Decoder<Boolean>( Boolean.class, "boolean" ) {
         public Boolean decode( String value ) {
             char v1 = value.trim().charAt( 0 );
@@ -93,7 +85,7 @@ public class RowEvaluator {
      * (see uk.ac.starlink.topcat.func.Angles.dmsToRadians). */
 
     /** Decoder for shorts. */
-    private static Decoder<Short> SHORT_DECODER =
+    public static final Decoder<Short> SHORT_DECODER =
             new Decoder<Short>( Short.class, "short" ) {
         public Short decode( String value ) {
             return Short.valueOf( value.trim() );
@@ -110,7 +102,7 @@ public class RowEvaluator {
     };
 
     /** Decoder for integers. */
-    private static Decoder<Integer> INTEGER_DECODER =
+    public static final Decoder<Integer> INTEGER_DECODER =
             new Decoder<Integer>( Integer.class, "int" ) {
         public Integer decode( String value ) {
             return Integer.valueOf( value.trim() );
@@ -128,7 +120,7 @@ public class RowEvaluator {
     };
 
     /** Decoder for longs. */
-    private static Decoder<Long> LONG_DECODER =
+    public static final Decoder<Long> LONG_DECODER =
             new Decoder<Long>( Long.class, "long" ) {
         public Long decode( String value ) {
             return Long.valueOf( value.trim() );
@@ -145,7 +137,7 @@ public class RowEvaluator {
     };
 
     /** Decoder for floats. */
-    private static Decoder<Float> FLOAT_DECODER =
+    public static final Decoder<Float> FLOAT_DECODER =
             new Decoder<Float>( Float.class, "float" ) {
         public Float decode( String value ) {
             return Float.valueOf( (float) parseFloating( value.trim() ).dValue);
@@ -170,7 +162,7 @@ public class RowEvaluator {
     };
 
     /** Decoder for doubles. */
-    private static Decoder<Double> DOUBLE_DECODER =
+    public static final Decoder<Double> DOUBLE_DECODER =
             new Decoder<Double>( Double.class, "double" ) {
         public Double decode( String value ) {
             return Double.valueOf( parseFloating( value.trim() ).dValue );
@@ -187,7 +179,8 @@ public class RowEvaluator {
     };
 
     /** Decoder for ISO-8601 dates. */
-    private static Decoder<String> DATE_DECODER = new StringDecoder( "date" ) {
+    public static final Decoder<String> DATE_DECODER =
+            new StringDecoder( "date" ) {
         public ColumnInfo createColumnInfo( String name ) {
             ColumnInfo info = super.createColumnInfo( name );
             info.setXtype( "timestamp" );
@@ -200,7 +193,8 @@ public class RowEvaluator {
     };
 
     /** Decoder for HMS sexagesimal strings. */
-    private static Decoder<String> HMS_DECODER = new StringDecoder( "hms" ) {
+    public static final Decoder<String> HMS_DECODER =
+            new StringDecoder( "hms" ) {
         public ColumnInfo createColumnInfo( String name ) {
             ColumnInfo info = super.createColumnInfo( name );
             info.setUnitString( "hms" );
@@ -212,7 +206,8 @@ public class RowEvaluator {
     };
 
     /** Decoder for DMS sexagesimal strings. */
-    private static Decoder<String> DMS_DECODER = new StringDecoder( "dms" ) {
+    public static final Decoder<String> DMS_DECODER =
+            new StringDecoder( "dms" ) {
         public ColumnInfo createColumnInfo( String name ) {
             ColumnInfo info = super.createColumnInfo( name );
             info.setUnitString( "dms" );
@@ -224,23 +219,56 @@ public class RowEvaluator {
     };
 
     /** Decoder for any old string. */
-    private static Decoder<String> STRING_DECODER =
+    public static final Decoder<String> STRING_DECODER =
             new StringDecoder( "string" ) {
         public boolean isValid( String value ) {
             return true;
         }
     };
 
+    /** Ordered list of known decoders. */
+    private static final Decoder<?>[] DECODERS = {
+        BLANK_DECODER,
+        BOOLEAN_DECODER,
+        SHORT_DECODER,
+        INTEGER_DECODER,
+        LONG_DECODER,
+        FLOAT_DECODER,
+        DOUBLE_DECODER,
+        DATE_DECODER,
+        HMS_DECODER,
+        DMS_DECODER,
+        STRING_DECODER,
+    };
+
     /**
      * Constructs a new RowEvaluator which will work out the number of
-     * columns from the data.
+     * columns from the data using the standard list of decoders.
      */
     public RowEvaluator() {
+        this( DECODERS );
+    }
+
+    /**
+     * Constructs a new RowEvaluator which will work out the number of
+     * columns from the data using a supplied list of decoders.
+     *
+     * <p>Note the order of the supplied decoder list is significant;
+     * a type earlier in the list will be preferred over one later in
+     * the list where the data is consistent with both.
+     *
+     * <p>In case of no match, a string decoder will be used,
+     * even if it does not appear in the supplied list.
+     *
+     * @param  decoders   list of allowed decoders
+     */
+    public RowEvaluator( Decoder<?>[] decoders ) {
+        decoders_ = decoders.clone();
     }
 
     /**
      * Constructs a new RowEvaluator which will examine rows with a
-     * fixed number of columns.
+     * fixed number of columns using the standard list of decoders.
      *
      * @param  ncol  column count
      */
@@ -254,19 +282,11 @@ public class RowEvaluator {
      */
     private void init( int ncol ) {
         ncol_ = ncol; 
-
-        /* This data could be set up more compactly, indexing via type-specific
-         * decoders rather than having a named array for each possible type. */
-        maybeBlank_ = makeFlagArray( true );
-        maybeBoolean_ = makeFlagArray( true );
-        maybeShort_ = makeFlagArray( true );
-        maybeInteger_ = makeFlagArray( true );
-        maybeLong_ = makeFlagArray( true );
-        maybeFloat_ = makeFlagArray( true );
-        maybeDouble_ = makeFlagArray( true );
-        maybeDate_ = makeFlagArray( true );
-        maybeHms_ = makeFlagArray( true );
-        maybeDms_ = makeFlagArray( true );
+        flagArrays_ = new boolean[ decoders_.length ][];
+        for ( int idec = 0; idec < decoders_.length; idec++ ) {
+            flagArrays_[ idec ] = new boolean[ ncol_ ];
+            Arrays.fill( flagArrays_[ idec ], true );
+        }
         stringLength_ = new int[ ncol ];
     }
 
@@ -298,16 +318,10 @@ public class RowEvaluator {
                 stringLength_[ icol ] = leng0;
             }
             if ( leng > 0 ) {
-                updateColFlag( icol, cell, maybeBlank_, BLANK_DECODER );
-                updateColFlag( icol, cell, maybeBoolean_, BOOLEAN_DECODER );
-                updateColFlag( icol, cell, maybeShort_, SHORT_DECODER );
-                updateColFlag( icol, cell, maybeInteger_, INTEGER_DECODER );
-                updateColFlag( icol, cell, maybeLong_, LONG_DECODER );
-                updateColFlag( icol, cell, maybeFloat_, FLOAT_DECODER );
-                updateColFlag( icol, cell, maybeDouble_, DOUBLE_DECODER );
-                updateColFlag( icol, cell, maybeDate_, DATE_DECODER );
-                updateColFlag( icol, cell, maybeHms_, HMS_DECODER );
-                updateColFlag( icol, cell, maybeDms_, DMS_DECODER );
+                for ( int idec = 0; idec < decoders_.length; idec++ ) {
+                    updateColFlag( icol, cell, flagArrays_[ idec ],
+                                   decoders_[ idec ] );
+                }
             }
         }
     }
@@ -344,39 +358,15 @@ public class RowEvaluator {
         ColumnInfo[] colInfos = new ColumnInfo[ ncol_ ];
         Decoder<?>[] decoders = new Decoder<?>[ ncol_ ];
         for ( int icol = 0; icol < ncol_; icol++ ) {
-            final Decoder<?> decoder;
             String name = "col" + ( icol + 1 );
-            if ( maybeBlank_[ icol ] ) {
-                decoder = BLANK_DECODER;
+            Decoder<?> decoder = null;
+            for ( int idec = 0; idec < decoders_.length && decoder == null;
+                  idec++ ) {
+                if ( flagArrays_[ idec ][ icol ] ) {
+                    decoder = decoders_[ idec ];
+                }
             }
-            else if ( maybeBoolean_[ icol ] ) {
-                decoder = BOOLEAN_DECODER;
-            }
-            else if ( maybeShort_[ icol ] ) {
-                decoder = SHORT_DECODER;
-            }
-            else if ( maybeInteger_[ icol ] ) {
-                decoder = INTEGER_DECODER;
-            }
-            else if ( maybeLong_[ icol ] ) {
-                decoder = LONG_DECODER;
-            }
-            else if ( maybeFloat_[ icol ] ) {
-                decoder = FLOAT_DECODER;
-            }
-            else if ( maybeDouble_[ icol ] ) {
-                decoder = DOUBLE_DECODER;
-            }
-            else if ( maybeDate_[ icol ] ) {
-                decoder = DATE_DECODER;
-            }
-            else if ( maybeHms_[ icol ] ) {
-                decoder = HMS_DECODER;
-            }
-            else if ( maybeDms_[ icol ] ) {
-                decoder = DMS_DECODER;
-            }
-            else {
+            if ( decoder == null ) {
                 decoder = STRING_DECODER;
             }
             decoders[ icol ] = decoder;
@@ -387,18 +377,6 @@ public class RowEvaluator {
             colInfos[ icol ] = info;
         }
         return new Metadata( colInfos, decoders, nrow_ );
-    }
-
-    /**
-     * Returns a new <code>ncol</code>-element boolean array.
-     *
-     * @param   val  initial value of all flags
-     * @return  new flag array initialized to <code>val</code>
-     */
-    private boolean[] makeFlagArray( boolean val ) {
-        boolean[] flags = new boolean[ ncol_ ];
-        Arrays.fill( flags, val );
-        return flags;
     }
 
     /**
@@ -476,6 +454,16 @@ public class RowEvaluator {
         /* Parse the number. */
         double dvalue = Double.parseDouble( item );
         return new ParsedFloat( sigFig, dvalue );
+    }
+
+    /**
+     * Returns the standard list of decoder implementation used for
+     * identifying column types.
+     *
+     * @return   standard decoder list
+     */
+    public static Decoder<?>[] getStandardDecoders() {
+        return DECODERS.clone();
     }
 
     /**
