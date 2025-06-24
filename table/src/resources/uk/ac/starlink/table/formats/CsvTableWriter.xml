@@ -9,3 +9,9 @@ such as some databases or spreadsheets.
 but this can be inhibited using the <code>header=false</code>
 configuration option.
 </p>
+
+<p>The <code>delimiter</code> option makes it possible to use non-comma
+characters to separate fields.  Depending on the character used this
+may behave in surprising ways; in particular for space-separated fields
+the <ref id="outAscii"><code>ascii</code></ref> format may be a better choice.
+</p>

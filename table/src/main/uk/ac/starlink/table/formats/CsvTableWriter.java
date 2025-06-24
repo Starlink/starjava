@@ -20,7 +20,18 @@ import uk.ac.starlink.util.ConfigMethod;
 public class CsvTableWriter extends DocumentedStreamStarTableWriter {
 
     private boolean writeHeader_ = true;
+    private char delimiter_;
     private int maxFieldChars_ = Integer.MAX_VALUE;
+
+    static final String SET_DELIMITER_DOC =
+          "<p>Field delimiter character, by default a comma. "
+        + "Permitted values are a single character like \"<code>|</code>\", "
+        + "a hexadecimal character code like \"<code>0x7C</code>\", "
+        + "or one of the names \"<code>comma</code>\", "
+        + "\"<code>space</code>\" or \"<code>tab</code>\". "
+        + "Some choices of delimiter, for instance whitespace characters, "
+        + "might not work well or might behave in surprising ways."
+        + "</p>";
 
     /**
      * Constructs a default CSV table writer.
@@ -39,6 +50,7 @@ public class CsvTableWriter extends DocumentedStreamStarTableWriter {
     @SuppressWarnings("this-escape")
     public CsvTableWriter( boolean writeHeader ) {
         super( new String[] { "csv" } );
+        setDelimiter( ',' );
         setWriteHeader( writeHeader );
     }
 
@@ -72,6 +84,31 @@ public class CsvTableWriter extends DocumentedStreamStarTableWriter {
     }
 
     /**
+     * Sets the delimiter character.
+     * Non-comma delimiters are not guaranteed to work.
+     *
+     * @param  delimiter  delimiter character
+     */
+    @ConfigMethod(
+        property = "delimiter",
+        doc = SET_DELIMITER_DOC,
+        example = "|",
+        sequence = 2
+    )
+    public void setDelimiter( char delimiter ) {
+        delimiter_ = delimiter;
+    }
+
+    /**
+     * Returns the delimiter character.
+     *
+     * @return  delimiter
+     */
+    public char getDelimiter() {
+        return delimiter_;
+    }
+
+    /**
      * Sets a limit on the number of characters that will be written
      * in a single field.  Fields beyond this length will be truncated.
      *
@@ -82,7 +119,7 @@ public class CsvTableWriter extends DocumentedStreamStarTableWriter {
         doc = "<p>Maximum width in characters of an output table cell. "
             + "Cells longer than this will be truncated.</p>",
         example = "160",
-        sequence = 2
+        sequence = 3
     )
     public void setMaxFieldChars( int maxFieldChars ) {
         maxFieldChars_ = maxFieldChars;
@@ -164,7 +201,7 @@ public class CsvTableWriter extends DocumentedStreamStarTableWriter {
         int ncol = row.length;
         for ( int icol = 0; icol < ncol; icol++ ) {
             writeField( out, row[ icol ] );
-            out.write( icol < ncol - 1 ? ',' : '\n' );
+            out.write( icol < ncol - 1 ? delimiter_ : '\n' );
         }
     }
 
@@ -198,12 +235,9 @@ public class CsvTableWriter extends DocumentedStreamStarTableWriter {
                     quoted = true;
             }
             for ( int i = 0; i < nchar && ! quoted; i++ ) {
-                switch ( value.charAt( i ) ) {
-                    case '\n':
-                    case '\r':
-                    case ',':
-                    case '"':
-                       quoted = true;
+                char c = value.charAt( i );
+                if ( c == '\n' || c == '\r' || c == '"' || c == delimiter_ ) {
+                   quoted = true;
                 }
             }
 

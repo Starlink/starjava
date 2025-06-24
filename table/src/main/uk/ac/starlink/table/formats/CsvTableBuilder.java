@@ -22,9 +22,11 @@ public class CsvTableBuilder extends DocumentedTableBuilder {
 
     private Boolean hasHeader_;
     private int maxSample_;
+    private char delimiter_;
 
     public CsvTableBuilder() {
         super( new String[] { "csv" } );
+        setDelimiter( ',' );
     }
 
     public String getFormatName() {
@@ -38,7 +40,7 @@ public class CsvTableBuilder extends DocumentedTableBuilder {
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy policy )
             throws TableFormatException, IOException {
-        return new CsvStarTable( datsrc, hasHeader_, maxSample_ );
+        return new CsvStarTable( datsrc, hasHeader_, maxSample_, delimiter_ );
     }
 
     public void streamStarTable( InputStream in, TableSink sink, String pos )
@@ -105,6 +107,31 @@ public class CsvTableBuilder extends DocumentedTableBuilder {
     }
 
     /**
+     * Sets the delimiter character.
+     * Non-comma delimiters are not guaranteed to work.
+     *
+     * @param  delimiter  delimiter character
+     */
+    @ConfigMethod(
+        property = "delimiter",
+        doc = CsvTableWriter.SET_DELIMITER_DOC,
+        example = "|",
+        sequence = 2
+    )
+    public void setDelimiter( char delimiter ) {
+        delimiter_ = delimiter;
+    }
+
+    /**
+     * Returns the delimiter character.
+     *
+     * @return  delimiter
+     */
+    public char getDelimiter() {
+        return delimiter_;
+    }
+
+    /**
      * Sets the maximum number of rows that will be sampled to determine
      * column data types.
      *
@@ -130,7 +157,7 @@ public class CsvTableBuilder extends DocumentedTableBuilder {
             + "</p>",
         usage = "<int>",
         example = "100000",
-        sequence = 2
+        sequence = 3
     )
     public void setMaxSample( int maxSample ) {
         maxSample_ = maxSample;

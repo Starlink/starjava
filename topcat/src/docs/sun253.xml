@@ -34528,6 +34528,9 @@ introduced since the last version:
         (previously they sometimes just refused).</li>
     <li>Fix bug when writing long HIERARCH FITS headers
         that could cause output failure.</li>
+    <li>Add new <code>delimiter</code> config option to
+        <ref id="inCsv">CSV input</ref> and
+        <ref id="outCsv">CSV output</ref> handlers.</li>
     </ul>
     </p></dd>
 

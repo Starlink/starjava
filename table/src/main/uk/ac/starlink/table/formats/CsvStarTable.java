@@ -41,6 +41,7 @@ public class CsvStarTable extends StreamStarTable {
 
     private final Boolean fixHasHeaderLine_;
     private final int maxSample_;
+    private final char delimiter_;
     private boolean hasHeading_;
 
     /**
@@ -50,7 +51,7 @@ public class CsvStarTable extends StreamStarTable {
      */
     public CsvStarTable( DataSource datsrc )
             throws TableFormatException, IOException {
-        this( datsrc, null, 0 );
+        this( datsrc, null, 0, ',' );
     }
 
     /**
@@ -61,14 +62,16 @@ public class CsvStarTable extends StreamStarTable {
      *                           to be column names: yes, no or auto-determine
      * @param  maxSample  maximum number of rows sampled to determine
      *                    column data types; if &lt;=0, all rows are sampled
+     * @param  delimiter  field delimiter character
      */
     @SuppressWarnings("this-escape")
     public CsvStarTable( DataSource datsrc, Boolean fixHasHeaderLine,
-                         int maxSample )
+                         int maxSample, char delimiter )
             throws TableFormatException, IOException {
         super();
         fixHasHeaderLine_ = fixHasHeaderLine;
         maxSample_ = maxSample;
+        delimiter_ = delimiter;
         init( datsrc );
     }
 
@@ -196,58 +199,61 @@ public class CsvStarTable extends StreamStarTable {
         while ( cellList.size() == 0 && ! endFile ) {
             for ( boolean endLine = false; ! endLine; ) {
                 char c = (char) in.read();
-                switch ( c ) {
-                    case END:
-                        endFile = true;
-                    case '\r':
-                    case '\n':
-                        for ( boolean endLineChar = true; endLineChar; ) {
-                            int b = in.read();
-                            endLineChar = b == '\r' || b == '\n';
-                            if ( ! endLineChar ) {
-                                in.unread( b );
+                if ( c == delimiter_ ) {
+                    if ( discard ) {
+                        discard = false;
+                    }
+                    else {
+                        cellList.add( buffer.toString().trim() );
+                    }
+                    buffer.setLength( 0 );
+                }
+                else {
+                    switch ( c ) {
+                        case END:
+                            endFile = true;
+                        case '\r':
+                        case '\n':
+                            for ( boolean endLineChar = true; endLineChar; ) {
+                                int b = in.read();
+                                endLineChar = b == '\r' || b == '\n';
+                                if ( ! endLineChar ) {
+                                    in.unread( b );
+                                }
                             }
-                        }
-                        if ( discard ) {
-                            discard = false;
-                        }
-                        else if ( cellList.size() > 0 || ! endFile ) {
-                            cellList.add( buffer.toString().trim() );
-                        }
-                        buffer.setLength( 0 );
-                        endLine = true;
-                        break;
-                    case ',':
-                        if ( discard ) {
-                            discard = false;
-                        }
-                        else {
-                            cellList.add( buffer.toString().trim() );
-                        }
-                        buffer.setLength( 0 );
-                        break;
-                    case '"':
-                        if ( buffer.toString().trim().length() > 0 ) {
-                            throw new TableFormatException(
-                                "Mixed quoted/unquoted cell '" + buffer + "'" );
-                        }
-                        cellList.add( readString( in ) );
-                        discard = true;
-                        break;
-                    case ' ':
-                    case '\t':
-                        if ( ! discard ) {
-                            buffer.append( c );
-                        }
-                        break;
-                    default:
-                        if ( discard ) {
-                            throw new TableFormatException(
-                                "Mixed quoted/unquoted cell '" + c + "'" );
-                        }
-                        else {
-                            buffer.append( c );
-                        }
+                            if ( discard ) {
+                                discard = false;
+                            }
+                            else if ( cellList.size() > 0 || ! endFile ) {
+                                cellList.add( buffer.toString().trim() );
+                            }
+                            buffer.setLength( 0 );
+                            endLine = true;
+                            break;
+                        case '"':
+                            if ( buffer.toString().trim().length() > 0 ) {
+                                String msg = "Mixed quoted/unquoted cell"
+                                           + " '" + buffer + "'";
+                                throw new TableFormatException( msg );
+                            }
+                            cellList.add( readString( in ) );
+                            discard = true;
+                            break;
+                        case ' ':
+                        case '\t':
+                            if ( ! discard ) {
+                                buffer.append( c );
+                            }
+                            break;
+                        default:
+                            if ( discard ) {
+                                throw new TableFormatException(
+                                    "Mixed quoted/unquoted cell '" + c + "'" );
+                            }
+                            else {
+                                buffer.append( c );
+                            }
+                    }
                 }
             }
         }
@@ -255,7 +261,7 @@ public class CsvStarTable extends StreamStarTable {
     }
 
     /**
-     * Reads a double-quoted string from a stream.  The string, may contain
+     * Reads a double-quoted string from a stream.  The string may contain
      * line breaks (or any other character) but it is an error for the 
      * stream to finish within it.  A double quote may be represented by
      * an adjacent pair of double quotes.

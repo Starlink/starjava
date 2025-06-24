@@ -102,6 +102,8 @@ public class FormatsTest extends TableCase {
         LogUtils.getLogger( "uk.ac.starlink.parquet" ).setLevel( Level.WARNING);
     }
 
+    private StarTableFactory tfact_;
+    private StarTableOutput tout_;
     private StarTable table;
 
     public FormatsTest( String name ) {
@@ -111,6 +113,8 @@ public class FormatsTest extends TableCase {
     public void setUp() {
         AutoStarTable ctable = new AutoStarTable( 200 );
         table = ctable;
+        tfact_ = new StarTableFactory();
+        tout_ = new StarTableOutput();
         ctable.setName( "Test Table" );
 
         List params = new ArrayList();
@@ -579,6 +583,8 @@ public class FormatsTest extends TableCase {
                            new AsciiTableBuilder(), "text" );
         exerciseReadWrite( new CsvTableWriter( true ),
                            new CsvTableBuilder(), "text" );
+        exerciseReadWrite( "csv(delimiter=|)", "csv(delimiter=0x7c)",
+                           "text" );
         exerciseReadWrite( new IpacTableWriter(),
                            new IpacTableBuilder(), "ipac" );
         exerciseReadWrite( new TstTableWriter(),
@@ -600,6 +606,14 @@ public class FormatsTest extends TableCase {
                 exerciseReadWrite( writer, builder, equalMethod );
             }
         }
+    }
+
+    public void exerciseReadWrite( String writerSpec, String readerSpec,
+                                   String equalMethod )
+            throws IOException {
+        exerciseReadWrite( tout_.getHandler( writerSpec ),
+                           tfact_.getTableBuilder( readerSpec ),
+                           equalMethod );
     }
 
     public void exerciseReadWrite( StarTableWriter writer,

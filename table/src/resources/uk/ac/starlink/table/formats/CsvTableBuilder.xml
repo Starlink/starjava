@@ -44,3 +44,8 @@ to use, one possibility is to turn it into an ECSV file
 file by adding some header lines by hand.
 </p>
 
+<p>The <code>delimiter</code> option makes it possible to use non-comma
+characters to separate fields.  Depending on the character used this
+may behave in surprising ways; in particular for space-separated fields
+the <ref id="outAscii"><code>ascii</code></ref> format may be a better choice.
+</p>
