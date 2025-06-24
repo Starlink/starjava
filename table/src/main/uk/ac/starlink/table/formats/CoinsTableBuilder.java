@@ -95,7 +95,7 @@ public class CoinsTableBuilder implements TableBuilder {
                 throw new TableFormatException( "No rows" );
             }
             ColumnInfo[] colinfos = meta.colInfos_;
-            RowEvaluator.Decoder[] decoders = meta.decoders_;
+            RowEvaluator.Decoder<?>[] decoders = meta.decoders_;
             int ncol = meta.ncol_;
             long nrow = meta.nrow_;
             for ( int icol = 0; icol < ncol; icol++ ) {

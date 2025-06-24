@@ -38,9 +38,9 @@ public class PostgresAsciiStarTable extends StreamStarTable {
         Logger.getLogger( "uk.ac.starlink.table.formats" );
 
     /** Decoder for Postgres double precision type. */
-    private static RowEvaluator.Decoder DOUBLE_DECODER =
-            new RowEvaluator.Decoder( Double.class ) {
-        public Object decode( String value ) {
+    private static RowEvaluator.Decoder<Double> DOUBLE_DECODER =
+            new RowEvaluator.Decoder<Double>( Double.class ) {
+        public Double decode( String value ) {
             return "\\N".equals( value )
                  ? null
                  : Double.valueOf( value );
@@ -62,9 +62,9 @@ public class PostgresAsciiStarTable extends StreamStarTable {
     };
 
     /** Decoder for Postgres real type. */
-    private static RowEvaluator.Decoder REAL_DECODER =
-            new RowEvaluator.Decoder( Float.class ) {
-        public Object decode( String value ) {
+    private static RowEvaluator.Decoder<Float> REAL_DECODER =
+            new RowEvaluator.Decoder<Float>( Float.class ) {
+        public Float decode( String value ) {
             return "\\N".equals( value )
                  ? null
                  : Float.valueOf( value );
@@ -86,9 +86,9 @@ public class PostgresAsciiStarTable extends StreamStarTable {
     };
 
     /** Decoder for Postgres smallint type. */
-    private static RowEvaluator.Decoder SMALLINT_DECODER =
-            new RowEvaluator.Decoder( Short.class ) {
-        public Object decode( String value ) {
+    private static RowEvaluator.Decoder<Short> SMALLINT_DECODER =
+            new RowEvaluator.Decoder<Short>( Short.class ) {
+        public Short decode( String value ) {
             return "\\N".equals( value )
                  ? null
                  : Short.valueOf( value );
@@ -110,9 +110,9 @@ public class PostgresAsciiStarTable extends StreamStarTable {
     };
 
     /** Decoder for Postgres integer type. */
-    private static RowEvaluator.Decoder INTEGER_DECODER =
-            new RowEvaluator.Decoder( Integer.class ) {
-        public Object decode( String value ) {
+    private static RowEvaluator.Decoder<Integer> INTEGER_DECODER =
+            new RowEvaluator.Decoder<Integer>( Integer.class ) {
+        public Integer decode( String value ) {
             return "\\N".equals( value )
                  ? null
                  : Integer.valueOf( value );
@@ -134,9 +134,9 @@ public class PostgresAsciiStarTable extends StreamStarTable {
     };
 
     /** Decoder for Postgres date type. */
-    private static RowEvaluator.Decoder DATE_DECODER =
-            new RowEvaluator.Decoder( String.class ) {
-        public Object decode( String value ) {
+    private static RowEvaluator.Decoder<String> DATE_DECODER =
+            new RowEvaluator.Decoder<String>( String.class ) {
+        public String decode( String value ) {
             return "\\N".equals( value )
                  ? null
                  : value;
@@ -153,9 +153,9 @@ public class PostgresAsciiStarTable extends StreamStarTable {
     };
 
     /** Decoder for Postgres character type. */
-    private static RowEvaluator.Decoder CHARACTER_DECODER =
-            new RowEvaluator.Decoder( String.class ) {
-        public Object decode( String value ) {
+    private static RowEvaluator.Decoder<String> CHARACTER_DECODER =
+            new RowEvaluator.Decoder<String>( String.class ) {
+        public String decode( String value ) {
             return "\\N".equals( value )
                  ? null
                  : value;
@@ -235,8 +235,7 @@ public class PostgresAsciiStarTable extends StreamStarTable {
             Pattern.compile( "^ +([a-z_]+) ([a-z ]+)(\\(([0-9]+)\\))?,? *$" );
         BufferedReader rdr =
             new BufferedReader( new InputStreamReader( in ) );
-        List<RowEvaluator.Decoder> decoderList =
-            new ArrayList<RowEvaluator.Decoder>();
+        List<RowEvaluator.Decoder<?>> decoderList = new ArrayList<>();
         List<ColumnInfo> infoList =
             new ArrayList<ColumnInfo>();
         for ( String line; ( line = rdr.readLine() ) != null; ) {
@@ -245,7 +244,7 @@ public class PostgresAsciiStarTable extends StreamStarTable {
                 String name = matcher.group( 1 );
                 String type = matcher.group( 2 );
                 String ssiz = matcher.group( 4 );
-                final RowEvaluator.Decoder decoder;
+                final RowEvaluator.Decoder<?> decoder;
                 if ( "double precision".equals( type ) ) {
                     decoder = DOUBLE_DECODER;
                 }
@@ -285,7 +284,7 @@ public class PostgresAsciiStarTable extends StreamStarTable {
         }
         return new RowEvaluator
               .Metadata( infoList.toArray( new ColumnInfo[ 0 ]),
-                         decoderList.toArray( new RowEvaluator.Decoder[ 0 ] ),
+                         decoderList.toArray( new RowEvaluator.Decoder<?>[ 0 ]),
                          -1L );
     }
 }

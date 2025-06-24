@@ -56,9 +56,10 @@ public class RowEvaluator {
     );
 
     /** Decoder for values that are all blank. */
-    private static Decoder BLANK_DECODER = new StringDecoder() {
+    private static Decoder<Void> BLANK_DECODER =
+            new Decoder<Void>( Void.class ) {
         private Pattern blankRegex_ = Pattern.compile( " *" );
-        public Object decode( String value ) {
+        public Void decode( String value ) {
             return null;
         }
         public boolean isValid( String value ) {
@@ -68,8 +69,9 @@ public class RowEvaluator {
     };
 
     /** Decoder for booleans. */
-    private static Decoder BOOLEAN_DECODER = new Decoder( Boolean.class ) {
-        public Object decode( String value ) {
+    private static Decoder<Boolean> BOOLEAN_DECODER =
+            new Decoder<Boolean>( Boolean.class ) {
+        public Boolean decode( String value ) {
             char v1 = value.trim().charAt( 0 );
             return ( v1 == 't' || v1 == 'T' ) ? Boolean.TRUE
                                               : Boolean.FALSE;
@@ -91,8 +93,9 @@ public class RowEvaluator {
      * (see uk.ac.starlink.topcat.func.Angles.dmsToRadians). */
 
     /** Decoder for shorts. */
-    private static Decoder SHORT_DECODER = new Decoder( Short.class ) {
-        public Object decode( String value ) {
+    private static Decoder<Short> SHORT_DECODER =
+            new Decoder<Short>( Short.class ) {
+        public Short decode( String value ) {
             return Short.valueOf( value.trim() );
         }
         public boolean isValid( String value ) {
@@ -107,8 +110,9 @@ public class RowEvaluator {
     };
 
     /** Decoder for integers. */
-    private static Decoder INTEGER_DECODER = new Decoder( Integer.class ) {
-        public Object decode( String value ) {
+    private static Decoder<Integer> INTEGER_DECODER =
+            new Decoder<Integer>( Integer.class ) {
+        public Integer decode( String value ) {
             return Integer.valueOf( value.trim() );
 
         }
@@ -124,8 +128,9 @@ public class RowEvaluator {
     };
 
     /** Decoder for longs. */
-    private static Decoder LONG_DECODER = new Decoder( Long.class ) {
-        public Object decode( String value ) {
+    private static Decoder<Long> LONG_DECODER =
+            new Decoder<Long>( Long.class ) {
+        public Long decode( String value ) {
             return Long.valueOf( value.trim() );
         }
         public boolean isValid( String value ) {
@@ -140,8 +145,9 @@ public class RowEvaluator {
     };
 
     /** Decoder for floats. */
-    private static Decoder FLOAT_DECODER = new Decoder( Float.class ) {
-        public Object decode( String value ) {
+    private static Decoder<Float> FLOAT_DECODER =
+            new Decoder<Float>( Float.class ) {
+        public Float decode( String value ) {
             return Float.valueOf( (float) parseFloating( value.trim() ).dValue);
         }
         public boolean isValid( String value ) {
@@ -164,8 +170,9 @@ public class RowEvaluator {
     };
 
     /** Decoder for doubles. */
-    private static Decoder DOUBLE_DECODER = new Decoder( Double.class ) {
-        public Object decode( String value ) {
+    private static Decoder<Double> DOUBLE_DECODER =
+            new Decoder<Double>( Double.class ) {
+        public Double decode( String value ) {
             return Double.valueOf( parseFloating( value.trim() ).dValue );
         }
         public boolean isValid( String value ) {
@@ -180,7 +187,7 @@ public class RowEvaluator {
     };
 
     /** Decoder for ISO-8601 dates. */
-    private static Decoder DATE_DECODER = new StringDecoder() {
+    private static Decoder<String> DATE_DECODER = new StringDecoder() {
         public ColumnInfo createColumnInfo( String name ) {
             ColumnInfo info = super.createColumnInfo( name );
             info.setXtype( "timestamp" );
@@ -193,7 +200,7 @@ public class RowEvaluator {
     };
 
     /** Decoder for HMS sexagesimal strings. */
-    private static Decoder HMS_DECODER = new StringDecoder() {
+    private static Decoder<String> HMS_DECODER = new StringDecoder() {
         public ColumnInfo createColumnInfo( String name ) {
             ColumnInfo info = super.createColumnInfo( name );
             info.setUnitString( "hms" );
@@ -205,7 +212,7 @@ public class RowEvaluator {
     };
 
     /** Decoder for DMS sexagesimal strings. */
-    private static Decoder DMS_DECODER = new StringDecoder() {
+    private static Decoder<String> DMS_DECODER = new StringDecoder() {
         public ColumnInfo createColumnInfo( String name ) {
             ColumnInfo info = super.createColumnInfo( name );
             info.setUnitString( "dms" );
@@ -217,7 +224,7 @@ public class RowEvaluator {
     };
 
     /** Decoder for any old string. */
-    private static Decoder STRING_DECODER = new StringDecoder() {
+    private static Decoder<String> STRING_DECODER = new StringDecoder() {
         public boolean isValid( String value ) {
             return true;
         }
@@ -237,6 +244,7 @@ public class RowEvaluator {
      * @param  ncol  column count
      */
     public RowEvaluator( int ncol ) {
+        this();
         init( ncol );
     }
 
@@ -314,7 +322,8 @@ public class RowEvaluator {
      *                   then <code>colFlags[icol]</code> will be set false
      */
     private static void updateColFlag( int icol, String cell,
-                                       boolean[] colFlags, Decoder decoder ) {
+                                       boolean[] colFlags,
+                                       Decoder<?> decoder ) {
 
         /* Get the short circuiting right for efficiency; a failed validity
          * test can throw an exception and so be expensive, so it's important
@@ -332,9 +341,9 @@ public class RowEvaluator {
      */
     public Metadata getMetadata() {
         ColumnInfo[] colInfos = new ColumnInfo[ ncol_ ];
-        Decoder[] decoders = new Decoder[ ncol_ ];
+        Decoder<?>[] decoders = new Decoder<?>[ ncol_ ];
         for ( int icol = 0; icol < ncol_; icol++ ) {
-            final Decoder decoder;
+            final Decoder<?> decoder;
             String name = "col" + ( icol + 1 );
             if ( maybeBlank_[ icol ] ) {
                 decoder = BLANK_DECODER;
@@ -474,10 +483,10 @@ public class RowEvaluator {
      */
     public static class Metadata {
         public final ColumnInfo[] colInfos_;
-        public final Decoder[] decoders_;
+        public final Decoder<?>[] decoders_;
         public final long nrow_;
         public final int ncol_;
-        public Metadata( ColumnInfo[] colInfos, Decoder[] decoders,
+        public Metadata( ColumnInfo[] colInfos, Decoder<?>[] decoders,
                          long nrow ) {
             colInfos_ = colInfos;
             decoders_ = decoders;
@@ -493,15 +502,15 @@ public class RowEvaluator {
      * Interface for an object that can turn a string into a cell content
      * object.
      */
-    public static abstract class Decoder {
-        private final Class<?> clazz_;
+    public static abstract class Decoder<T> {
+        private final Class<T> clazz_;
 
         /**
          * Constructor.
          *
          * @param   clazz  class of object to be returned by decode method
          */
-        public Decoder( Class<?> clazz ) {
+        public Decoder( Class<T> clazz ) {
             clazz_ = clazz;
         }
 
@@ -524,7 +533,7 @@ public class RowEvaluator {
          * @param  value  string to decode
          * @return   typed object corresponding to <code>value</code>
          */
-        public abstract Object decode( String value );
+        public abstract T decode( String value );
 
         /**
          * Indicates whether this decoder is capable of decoding a 
@@ -539,7 +548,7 @@ public class RowEvaluator {
     /**
      * Partial Decoder implementation for strings..
      */
-    private static abstract class StringDecoder extends Decoder {
+    private static abstract class StringDecoder extends Decoder<String> {
         StringDecoder() {
             super( String.class );
         }
@@ -547,7 +556,7 @@ public class RowEvaluator {
         /**
          * Returns the value unchanged.
          */
-        public Object decode( String value ) {
+        public String decode( String value ) {
             return value;
         }
     }

@@ -45,7 +45,7 @@ public class AllWiseAsciiStarTable extends StreamStarTable {
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.examples" );
 
-    private static final RowEvaluator.Decoder DOUBLE_DECODER =
+    private static final RowEvaluator.Decoder<Double> DOUBLE_DECODER =
             new WiseDecoder<Double>( Double.class ) {
         Double decodeNonEmpty( String value ) {
             return Double.valueOf( value );
@@ -54,7 +54,7 @@ public class AllWiseAsciiStarTable extends StreamStarTable {
             Double.parseDouble( value );
         }
     };
-    private static final RowEvaluator.Decoder FLOAT_DECODER =
+    private static final RowEvaluator.Decoder<Float> FLOAT_DECODER =
             new WiseDecoder<Float>( Float.class ) {
         Float decodeNonEmpty( String value ) {
             return Float.valueOf( value );
@@ -63,7 +63,7 @@ public class AllWiseAsciiStarTable extends StreamStarTable {
             Float.parseFloat( value );
         }
     };
-    private static final RowEvaluator.Decoder SHORT_DECODER =
+    private static final RowEvaluator.Decoder<Short> SHORT_DECODER =
             new WiseDecoder<Short>( Short.class ) {
         Short decodeNonEmpty( String value ) {
             return Short.valueOf( value );
@@ -72,7 +72,7 @@ public class AllWiseAsciiStarTable extends StreamStarTable {
             Short.parseShort( value );
         }
     };
-    private static final RowEvaluator.Decoder INT_DECODER =
+    private static final RowEvaluator.Decoder<Integer> INT_DECODER =
             new WiseDecoder<Integer>( Integer.class ) {
         Integer decodeNonEmpty( String value ) {
             return Integer.valueOf( value );
@@ -81,7 +81,7 @@ public class AllWiseAsciiStarTable extends StreamStarTable {
             Integer.parseInt( value );
         }
     };
-    private static final RowEvaluator.Decoder LONG_DECODER =
+    private static final RowEvaluator.Decoder<Long> LONG_DECODER =
             new WiseDecoder<Long>( Long.class ) {
         Long decodeNonEmpty( String value ) {
             return Long.valueOf( value );
@@ -90,9 +90,9 @@ public class AllWiseAsciiStarTable extends StreamStarTable {
             Long.parseLong( value );
         }
     };
-    private static final RowEvaluator.Decoder CHAR_DECODER =
-            new RowEvaluator.Decoder( String.class ) {
-        public Object decode( String value ) {
+    private static final RowEvaluator.Decoder<String> CHAR_DECODER =
+            new RowEvaluator.Decoder<String>( String.class ) {
+        public String decode( String value ) {
             return value.length() == 0 ? null : value;
         }
         public boolean isValid( String value ) {
@@ -176,10 +176,8 @@ public class AllWiseAsciiStarTable extends StreamStarTable {
         RowSequence rseq = metaTable.getRowSequence();
         Pattern typeRegex =
             Pattern.compile( "([a-z0-9]+)(\\(([0-9,]+)\\))?" );
-        List<RowEvaluator.Decoder> decoderList =
-            new ArrayList<RowEvaluator.Decoder>();
-        List<ColumnInfo> infoList =
-            new ArrayList<ColumnInfo>();
+        List<RowEvaluator.Decoder<?>> decoderList = new ArrayList<>();
+        List<ColumnInfo> infoList = new ArrayList<>();
         while( rseq.next() ) {
             Object[] row = rseq.getRow();
             String name = row[ 0 ].toString();
@@ -197,7 +195,7 @@ public class AllWiseAsciiStarTable extends StreamStarTable {
             else {
                 throw new IOException( "bad type: " + fulltype );
             }
-            final RowEvaluator.Decoder decoder;
+            final RowEvaluator.Decoder<?> decoder;
             Number badnum = null;;
             if ( "decimal".equals( type ) ) {
                 decoder = DOUBLE_DECODER;
@@ -260,14 +258,15 @@ public class AllWiseAsciiStarTable extends StreamStarTable {
         /* Return the result as a metadata object. */
         return new RowEvaluator
               .Metadata( infoList.toArray( new ColumnInfo[ 0 ]),
-                         decoderList.toArray( new RowEvaluator.Decoder[ 0 ] ),
+                         decoderList.toArray( new RowEvaluator.Decoder<?>[ 0 ]),
                          nrow_ );
     }
 
     /**
      * Abstract superclass for decoding text strings.
      */
-    private static abstract class WiseDecoder<T> extends RowEvaluator.Decoder {
+    private static abstract class WiseDecoder<T>
+            extends RowEvaluator.Decoder<T> {
 
         /**
          * Constructor.

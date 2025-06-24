@@ -29,7 +29,7 @@ public abstract class StreamStarTable extends AbstractStarTable {
     private DataSource datsrc_;
     private int ncol_;
     private long nrow_;
-    private RowEvaluator.Decoder[] decoders_;
+    private RowEvaluator.Decoder<?>[] decoders_;
     private ColumnInfo[] colInfos_;
 
     /** Char representation of -1 (as returned end-of-stream read) */

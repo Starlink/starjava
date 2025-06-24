@@ -84,7 +84,7 @@ public class TransposeFilter extends BasicFilter {
         private final int nBaseCol_;
         private final int nBaseRow_;
         private final ColumnInfo[] colInfos_;
-        private final RowEvaluator.Decoder[] decoders_;
+        private final RowEvaluator.Decoder<?>[] decoders_;
 
         /**
          * Constructor.

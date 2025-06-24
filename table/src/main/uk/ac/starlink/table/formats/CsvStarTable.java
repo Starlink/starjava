@@ -124,7 +124,7 @@ public class CsvStarTable extends StreamStarTable {
         if ( meta.nrow_ == 0 ) {
             throw new TableFormatException( "No rows" );
         }
-        RowEvaluator.Decoder[] decoders = meta.decoders_;
+        RowEvaluator.Decoder<?>[] decoders = meta.decoders_;
         int ncol = meta.ncol_;
 
         /* Now return to the first row.  See if it's a data row. */
