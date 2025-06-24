@@ -57,7 +57,7 @@ public class RowEvaluator {
 
     /** Decoder for values that are all blank. */
     private static Decoder<Void> BLANK_DECODER =
-            new Decoder<Void>( Void.class ) {
+            new Decoder<Void>( Void.class, "blank" ) {
         private Pattern blankRegex_ = Pattern.compile( " *" );
         public Void decode( String value ) {
             return null;
@@ -70,7 +70,7 @@ public class RowEvaluator {
 
     /** Decoder for booleans. */
     private static Decoder<Boolean> BOOLEAN_DECODER =
-            new Decoder<Boolean>( Boolean.class ) {
+            new Decoder<Boolean>( Boolean.class, "boolean" ) {
         public Boolean decode( String value ) {
             char v1 = value.trim().charAt( 0 );
             return ( v1 == 't' || v1 == 'T' ) ? Boolean.TRUE
@@ -94,7 +94,7 @@ public class RowEvaluator {
 
     /** Decoder for shorts. */
     private static Decoder<Short> SHORT_DECODER =
-            new Decoder<Short>( Short.class ) {
+            new Decoder<Short>( Short.class, "short" ) {
         public Short decode( String value ) {
             return Short.valueOf( value.trim() );
         }
@@ -111,7 +111,7 @@ public class RowEvaluator {
 
     /** Decoder for integers. */
     private static Decoder<Integer> INTEGER_DECODER =
-            new Decoder<Integer>( Integer.class ) {
+            new Decoder<Integer>( Integer.class, "int" ) {
         public Integer decode( String value ) {
             return Integer.valueOf( value.trim() );
 
@@ -129,7 +129,7 @@ public class RowEvaluator {
 
     /** Decoder for longs. */
     private static Decoder<Long> LONG_DECODER =
-            new Decoder<Long>( Long.class ) {
+            new Decoder<Long>( Long.class, "long" ) {
         public Long decode( String value ) {
             return Long.valueOf( value.trim() );
         }
@@ -146,7 +146,7 @@ public class RowEvaluator {
 
     /** Decoder for floats. */
     private static Decoder<Float> FLOAT_DECODER =
-            new Decoder<Float>( Float.class ) {
+            new Decoder<Float>( Float.class, "float" ) {
         public Float decode( String value ) {
             return Float.valueOf( (float) parseFloating( value.trim() ).dValue);
         }
@@ -171,7 +171,7 @@ public class RowEvaluator {
 
     /** Decoder for doubles. */
     private static Decoder<Double> DOUBLE_DECODER =
-            new Decoder<Double>( Double.class ) {
+            new Decoder<Double>( Double.class, "double" ) {
         public Double decode( String value ) {
             return Double.valueOf( parseFloating( value.trim() ).dValue );
         }
@@ -187,7 +187,7 @@ public class RowEvaluator {
     };
 
     /** Decoder for ISO-8601 dates. */
-    private static Decoder<String> DATE_DECODER = new StringDecoder() {
+    private static Decoder<String> DATE_DECODER = new StringDecoder( "date" ) {
         public ColumnInfo createColumnInfo( String name ) {
             ColumnInfo info = super.createColumnInfo( name );
             info.setXtype( "timestamp" );
@@ -200,7 +200,7 @@ public class RowEvaluator {
     };
 
     /** Decoder for HMS sexagesimal strings. */
-    private static Decoder<String> HMS_DECODER = new StringDecoder() {
+    private static Decoder<String> HMS_DECODER = new StringDecoder( "hms" ) {
         public ColumnInfo createColumnInfo( String name ) {
             ColumnInfo info = super.createColumnInfo( name );
             info.setUnitString( "hms" );
@@ -212,7 +212,7 @@ public class RowEvaluator {
     };
 
     /** Decoder for DMS sexagesimal strings. */
-    private static Decoder<String> DMS_DECODER = new StringDecoder() {
+    private static Decoder<String> DMS_DECODER = new StringDecoder( "dms" ) {
         public ColumnInfo createColumnInfo( String name ) {
             ColumnInfo info = super.createColumnInfo( name );
             info.setUnitString( "dms" );
@@ -224,7 +224,8 @@ public class RowEvaluator {
     };
 
     /** Decoder for any old string. */
-    private static Decoder<String> STRING_DECODER = new StringDecoder() {
+    private static Decoder<String> STRING_DECODER =
+            new StringDecoder( "string" ) {
         public boolean isValid( String value ) {
             return true;
         }
@@ -503,15 +504,37 @@ public class RowEvaluator {
      * object.
      */
     public static abstract class Decoder<T> {
+
         private final Class<T> clazz_;
+        private final String name_;
 
         /**
          * Constructor.
          *
          * @param   clazz  class of object to be returned by decode method
+         * @param   name   instance name
          */
-        public Decoder( Class<T> clazz ) {
+        public Decoder( Class<T> clazz, String name ) {
             clazz_ = clazz;
+            name_ = name;
+        }
+
+        /**
+         * Returns the class to which this decoder decodes.
+         *
+         * @return  destination class
+         */
+        public Class<T> getDecodedClass() {
+            return clazz_;
+        }
+
+        /**
+         * Returns the name of this decoder.
+         *
+         * @return  name
+         */
+        public String getName() {
+            return name_;
         }
 
         /**
@@ -549,8 +572,8 @@ public class RowEvaluator {
      * Partial Decoder implementation for strings..
      */
     private static abstract class StringDecoder extends Decoder<String> {
-        StringDecoder() {
-            super( String.class );
+        StringDecoder( String name ) {
+            super( String.class, name );
         }
 
         /**

@@ -91,7 +91,7 @@ public class AllWiseAsciiStarTable extends StreamStarTable {
         }
     };
     private static final RowEvaluator.Decoder<String> CHAR_DECODER =
-            new RowEvaluator.Decoder<String>( String.class ) {
+            new RowEvaluator.Decoder<String>( String.class, "string" ) {
         public String decode( String value ) {
             return value.length() == 0 ? null : value;
         }
@@ -274,7 +274,7 @@ public class AllWiseAsciiStarTable extends StreamStarTable {
          * @param  clazz  output class
          */
         WiseDecoder( Class<T> clazz ) {
-            super( clazz );
+            super( clazz, clazz.getSimpleName() );
         }
 
         public T decode( String value ) {

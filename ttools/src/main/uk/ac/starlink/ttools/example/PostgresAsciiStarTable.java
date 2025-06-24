@@ -39,7 +39,7 @@ public class PostgresAsciiStarTable extends StreamStarTable {
 
     /** Decoder for Postgres double precision type. */
     private static RowEvaluator.Decoder<Double> DOUBLE_DECODER =
-            new RowEvaluator.Decoder<Double>( Double.class ) {
+            new RowEvaluator.Decoder<Double>( Double.class, "double" ) {
         public Double decode( String value ) {
             return "\\N".equals( value )
                  ? null
@@ -63,7 +63,7 @@ public class PostgresAsciiStarTable extends StreamStarTable {
 
     /** Decoder for Postgres real type. */
     private static RowEvaluator.Decoder<Float> REAL_DECODER =
-            new RowEvaluator.Decoder<Float>( Float.class ) {
+            new RowEvaluator.Decoder<Float>( Float.class, "real" ) {
         public Float decode( String value ) {
             return "\\N".equals( value )
                  ? null
@@ -87,7 +87,7 @@ public class PostgresAsciiStarTable extends StreamStarTable {
 
     /** Decoder for Postgres smallint type. */
     private static RowEvaluator.Decoder<Short> SMALLINT_DECODER =
-            new RowEvaluator.Decoder<Short>( Short.class ) {
+            new RowEvaluator.Decoder<Short>( Short.class, "short" ) {
         public Short decode( String value ) {
             return "\\N".equals( value )
                  ? null
@@ -111,7 +111,7 @@ public class PostgresAsciiStarTable extends StreamStarTable {
 
     /** Decoder for Postgres integer type. */
     private static RowEvaluator.Decoder<Integer> INTEGER_DECODER =
-            new RowEvaluator.Decoder<Integer>( Integer.class ) {
+            new RowEvaluator.Decoder<Integer>( Integer.class, "int" ) {
         public Integer decode( String value ) {
             return "\\N".equals( value )
                  ? null
@@ -135,7 +135,7 @@ public class PostgresAsciiStarTable extends StreamStarTable {
 
     /** Decoder for Postgres date type. */
     private static RowEvaluator.Decoder<String> DATE_DECODER =
-            new RowEvaluator.Decoder<String>( String.class ) {
+            new RowEvaluator.Decoder<String>( String.class, "date" ) {
         public String decode( String value ) {
             return "\\N".equals( value )
                  ? null
@@ -154,7 +154,7 @@ public class PostgresAsciiStarTable extends StreamStarTable {
 
     /** Decoder for Postgres character type. */
     private static RowEvaluator.Decoder<String> CHARACTER_DECODER =
-            new RowEvaluator.Decoder<String>( String.class ) {
+            new RowEvaluator.Decoder<String>( String.class, "character" ) {
         public String decode( String value ) {
             return "\\N".equals( value )
                  ? null
