@@ -79,6 +79,7 @@ import uk.ac.starlink.util.DataSource;
 public class AsciiStarTable extends StreamStarTable {
 
     private final int maxSample_;
+    private final RowEvaluator.Decoder<?>[] decoders_;
     private List<String> comments_;
     private boolean dataStarted_;
 
@@ -92,7 +93,7 @@ public class AsciiStarTable extends StreamStarTable {
      */
     public AsciiStarTable( DataSource datsrc )
             throws TableFormatException, IOException {
-        this( datsrc, 0 );
+        this( datsrc, 0, RowEvaluator.getStandardDecoders() );
     }
 
     /**
@@ -101,15 +102,18 @@ public class AsciiStarTable extends StreamStarTable {
      * @param  datsrc  the data source containing the table text
      * @param  maxSample  maximum number of rows sampled to determine
      *                    column data types; if &lt;=0, all rows are sampled
+     * @param  decoders   permitted data type decoders
      * @throws TableFormatException  if the input stream doesn't appear to
      *         form a ASCII-format table
      * @throws IOException if some I/O error occurs
      */
     @SuppressWarnings("this-escape")
-    public AsciiStarTable( DataSource datsrc, int maxSample )
+    public AsciiStarTable( DataSource datsrc, int maxSample,
+                           RowEvaluator.Decoder<?>[] decoders )
             throws TableFormatException, IOException {
         super();
         maxSample_ = maxSample;
+        decoders_ = decoders;
         init( datsrc );
     }
 
@@ -121,7 +125,7 @@ public class AsciiStarTable extends StreamStarTable {
 
         /* Look at each row in it counting cells and assessing what sort of
          * data they look like. */
-        RowEvaluator evaluator = new RowEvaluator();
+        RowEvaluator evaluator = new RowEvaluator( decoders_ );
         comments_ = new ArrayList<String>();
         long lrow = 0;
         try {

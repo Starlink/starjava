@@ -33,7 +33,7 @@ public class CsvTableBuilder extends RowEvaluatorTableBuilder {
                                     StoragePolicy policy )
             throws TableFormatException, IOException {
         return new CsvStarTable( datsrc, hasHeader_, getMaxSample(),
-                                 getDelimiter() );
+                                 getDelimiter(), getDecoders() );
     }
 
     public boolean docIncludesExample() {

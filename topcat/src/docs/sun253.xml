@@ -34531,6 +34531,10 @@ introduced since the last version:
     <li>Add new <code>delimiter</code> config option to
         <ref id="inCsv">CSV input</ref> and
         <ref id="outCsv">CSV output</ref> handlers.</li>
+    <li>Add new <code>notypes</code> config option to
+        <ref id="inCsv">CSV</ref> and <ref id="inAscii">ASCII</ref>
+        input handlers; this gives more control over datatypes
+        inferred when reading tables.</li>
     </ul>
     </p></dd>
 

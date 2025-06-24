@@ -26,7 +26,7 @@ public class AsciiTableBuilder extends RowEvaluatorTableBuilder {
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy policy )
             throws TableFormatException, IOException {
-        return new AsciiStarTable( datsrc, getMaxSample() );
+        return new AsciiStarTable( datsrc, getMaxSample(), getDecoders() );
     }
 
     public boolean docIncludesExample() {

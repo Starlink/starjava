@@ -30,6 +30,7 @@ public abstract class RowEvaluatorTableBuilder extends DocumentedTableBuilder {
      */
     protected RowEvaluatorTableBuilder( String[] extensions ) {
         super( extensions );
+        setDecoders( RowEvaluator.getStandardDecoders() );
     }
 
     public boolean canImport( DataFlavor flavor ) {
@@ -87,5 +88,74 @@ public abstract class RowEvaluatorTableBuilder extends DocumentedTableBuilder {
      */
     public int getMaxSample() {
         return maxSample_;
+    }
+
+    /**
+     * Sets the list of permitted decoders.
+     *
+     * <p>Note the order of the supplied decoder list is significant;
+     * a type earlier in the list will be preferred over one later in
+     * the list where the data is consistent with both.
+     *
+     * <p>In case of no match, a string decoder will be used,
+     * even if it does not appear in the supplied list.
+     *
+     * @param  decoders  decoders that may be used to interpret CSV columns
+     */
+    public void setDecoders( RowEvaluator.Decoder<?>[] decoders ) {
+        decoders_ = decoders;
+    }
+
+    /**
+     * Returns the list of permitted decoders.
+     *
+     * @return   decoders that may be used to interpret CSV columns
+     */
+    public RowEvaluator.Decoder<?>[] getDecoders() {
+        return decoders_;
+    }
+
+    /**
+     * Sets the list of decoders from a user-supplied string naming
+     * decoders not to use.
+     *
+     * @param  excludeSemicolonList  semicolon-separated list of decoder
+     *                               names not to use
+     */
+    @ConfigMethod(
+        property = "notypes",
+        doc = "<p>Specifies a semicolon-separated list of names for "
+            + "datatypes that will <em>not</em> appear in the columns "
+            + "of the table as read. "
+            + "Type names that can be excluded are <code>blank</code>, "
+            + "<code>boolean</code>, <code>short</code>, <code>int</code>, "
+            + "<code>long</code>, <code>float</code>, <code>double</code>, "
+            + "<code>date</code>, <code>hms</code> and <code>dms</code>. "
+            + "So if you want to make sure that all integer and floating-point "
+            + "columns are 64-bit "
+            + "(i.e. <code>long</code> and <code>double</code> respectively) "
+            + "you can set this value to \"<code>short;int;float</code>\"."
+            + "</p>",
+        usage = "<type>[;<type>...]",
+        example = "short;float",
+        sequence = 11
+    )
+    public void setDecoderExcludeList( String excludeSemicolonList ) {
+        Map<String,RowEvaluator.Decoder<?>> decoderMap = new LinkedHashMap<>();
+        for ( RowEvaluator.Decoder<?> decoder :
+              RowEvaluator.getStandardDecoders() ) {
+            decoderMap.put( decoder.getName(), decoder );
+        }
+        String optList = decoderMap.keySet().toString();
+        List<RowEvaluator.Decoder<?>> decoders = new ArrayList<>();
+        for ( String excludeName : excludeSemicolonList.split( ";" ) ) {
+            if ( decoderMap.remove( excludeName ) == null ) {
+                String msg = "Unknown type name \"" + excludeName + "\"; "
+                           + "options are " + optList;
+                throw new IllegalArgumentException( msg );
+            }
+        }
+        setDecoders( decoderMap.values()
+                               .toArray( new RowEvaluator.Decoder<?>[ 0 ] ) );
     }
 }

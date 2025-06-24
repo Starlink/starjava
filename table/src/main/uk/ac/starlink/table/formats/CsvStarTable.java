@@ -41,6 +41,7 @@ public class CsvStarTable extends StreamStarTable {
 
     private final Boolean fixHasHeaderLine_;
     private final int maxSample_;
+    private final RowEvaluator.Decoder<?>[] decoders_;
     private final char delimiter_;
     private boolean hasHeading_;
 
@@ -51,7 +52,7 @@ public class CsvStarTable extends StreamStarTable {
      */
     public CsvStarTable( DataSource datsrc )
             throws TableFormatException, IOException {
-        this( datsrc, null, 0, ',' );
+        this( datsrc, null, 0, ',', RowEvaluator.getStandardDecoders() );
     }
 
     /**
@@ -62,16 +63,19 @@ public class CsvStarTable extends StreamStarTable {
      *                           to be column names: yes, no or auto-determine
      * @param  maxSample  maximum number of rows sampled to determine
      *                    column data types; if &lt;=0, all rows are sampled
+     * @param  decoders   permitted data type decoders
      * @param  delimiter  field delimiter character
      */
     @SuppressWarnings("this-escape")
     public CsvStarTable( DataSource datsrc, Boolean fixHasHeaderLine,
-                         int maxSample, char delimiter )
+                         int maxSample, char delimiter,
+                         RowEvaluator.Decoder<?>[] decoders )
             throws TableFormatException, IOException {
         super();
         fixHasHeaderLine_ = fixHasHeaderLine;
         maxSample_ = maxSample;
         delimiter_ = delimiter;
+        decoders_ = decoders;
         init( datsrc );
     }
 
@@ -99,7 +103,7 @@ public class CsvStarTable extends StreamStarTable {
 
         /* Look at each subsequent row assessing what sort of data they
          * look like. */
-        RowEvaluator evaluator = new RowEvaluator();
+        RowEvaluator evaluator = new RowEvaluator( decoders_ );
         try {
             for ( List<String> row;
                   ( ( row = readRow( in ) ) != null &&
