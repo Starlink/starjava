@@ -31,6 +31,7 @@ import uk.ac.starlink.topcat.func.TwoQZ;
 import uk.ac.starlink.topcat.plot2.GuiCoordContent;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Scale;
+import uk.ac.starlink.ttools.jel.Constant;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 import uk.ac.starlink.ttools.jel.JELUtils;
 
@@ -346,6 +347,47 @@ public class TopcatJELUtils extends JELUtils {
 
         /* Return the result. */
         return idSet;
+    }
+
+    /**
+     * Returns a set of the Constant values that are directly or indirectly
+     * referenced by a given JEL expression.
+     * If the expression cannot be compiled, an empty set is returned.
+     *
+     * @param  tcModel   topcat model
+     * @param  expr      JEL expression
+     * @return   set of Constant instances referenced
+     */
+    public static Set<Constant<?>> getReferencedConstants( TopcatModel tcModel,
+                                                           String expr ) {
+        Set<Constant<?>> constSet = new HashSet<>();
+
+        /* Compile the expression using a RowReader that we can later
+         * interrogate to find out which symbols the expression referenced. */
+        TopcatJELRowReader rdr =
+            TopcatJELRowReader.createDummyReader( tcModel );
+        boolean activation = false;
+        Library lib = getLibrary( rdr, activation );
+        try {
+            Evaluator.compile( expr, lib );
+        }
+        catch ( CompilationException e ) {
+            return constSet;
+        }
+
+        /* Record direct references to constants. */
+        constSet.addAll( Arrays.asList( rdr.getTranslatedConstants() ) );
+
+        /* Recursively record constant references in the expression symbols
+         * that were referenced. */
+        for ( String subExpr : getReferencedExpressions( rdr ) ) {
+            constSet.addAll( getReferencedConstants( tcModel, subExpr ) );
+        }
+
+        /**
+         * Return the result.
+         */
+        return constSet;
     }
 
     /**
