@@ -19,6 +19,7 @@ public class SyntheticRowSubset extends RowSubset {
 
     private final TopcatModel tcModel_;
     private TopcatJELEvaluator evaluator_;
+    private String expression_;
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
 
@@ -49,6 +50,7 @@ public class SyntheticRowSubset extends RowSubset {
         evaluator_ = TopcatJELEvaluator
                     .createEvaluator( tcModel_, expression, false,
                                       boolean.class );
+        expression_ = expression;
     }
 
     /**
@@ -57,7 +59,12 @@ public class SyntheticRowSubset extends RowSubset {
      * @return  expression
      */
     public String getExpression() {
-        return evaluator_.getExpression();
+        return expression_;
+    }
+
+    @Override
+    public String getMaskId() {
+        return TopcatJELUtils.getContentIdentifier( tcModel_, expression_ );
     }
 
     public boolean isIncluded( long lrow ) {
