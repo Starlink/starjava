@@ -904,6 +904,7 @@ public class ActivationWindow extends AuxWindow {
             new ViewImageActivationType(),
             new RegionViewImageActivationType(),
             new ServiceActivationType(),
+            new ViewUrlActivationType(),
             new LoadTableActivationType(),
             new PlotTableActivationType(),
             new SendTableActivationType(),

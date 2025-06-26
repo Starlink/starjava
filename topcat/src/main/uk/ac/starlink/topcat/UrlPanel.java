@@ -145,6 +145,7 @@ public class UrlPanel extends JPanel {
         cline.add( Box.createHorizontalStrut( 5 ) );
         cline.add( Box.createHorizontalGlue() );
         cline.add( new LineBox( "Action", invokeSelector_ ) );
+        cline.add( Box.createHorizontalStrut( 5 ) );
         cline.add( Box.createHorizontalGlue() );
         if ( hasAutoInvoke ) {
             cline.add( autoInvokeModel_.createCheckBox() );

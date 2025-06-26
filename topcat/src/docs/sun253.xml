@@ -326,6 +326,7 @@
   <!ENTITY FIG.SendIndexActivationType '&figs;SendIndexActivationType.png'>
   <!ENTITY FIG.LoadTableActivationType '&figs;LoadTableActivationType.png'>
   <!ENTITY FIG.BrowserActivationType '&figs;BrowserActivationType.png'>
+  <!ENTITY FIG.ViewUrlActivationType '&figs;ViewUrlActivationType.png'>
   <!ENTITY FIG.DownloadActivationType '&figs;DownloadActivationType.png'>
   <!ENTITY FIG.DelayActivationType '&figs;DelayActivationType.png'>
   <!ENTITY FIG.JelActivationType '&figs;JelActivationType.png'>
@@ -25621,6 +25622,51 @@ are not included when a session is saved.
 
 </subsubsubsect>
 
+<subsubsubsect id="ViewUrlActivationType">
+<subhead><title>View URL</title></subhead>
+
+<figure>
+<caption><px>Configuration for View URL action</px></caption>
+<figureimage src="&FIG.ViewUrlActivationType;"/>
+</figure>
+
+<p>The <label>View URL</label> activation type uses a URL column
+and a column giving the MIME type from the activated row,
+and tries to display the resource in a suitable way for
+content of the indicated type.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>Resource URL</dt>
+<dd><p>Identifies a column giving the URL of the remote resource to display.
+    </p></dd>
+<dt>MIME Type</dt>
+<dd><p>Identifies a column in the table giving the MIME type (Content Type)
+    of the resource at the URL.
+    Different types of resource will be displayed by default
+    in different ways.
+    </p></dd>
+<dt>Auto Invoke</dt>
+<dd><p>If set true (checked) the URL will be displayed without further
+    user intervention.  By default, this tries to do something sensible
+    according to the MIME type; if it's a DataLink table it displays it
+    in a DataLink window, if it's another VOTable it loads it into TOPCAT,
+    if it's a PNG it displays it in an image window, etc.
+    If set false, then a View URL window will be popped up which lets
+    you configure the action required per resource type, and invoke it
+    manually using an <label>Invoke</label> button.
+    This window is like the panel at the bottom of the
+    <ref id="DatalinkWindow">Datalink Window</ref>.
+    If you can configure it to your satisfaction,
+    you can set the Auto Invoke setting back to false and future
+    activations will proceed without the View URL window popping up again.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="BrowserActivationType">
 <subhead><title>View in Web Browser</title></subhead>
 
@@ -34535,6 +34581,8 @@ introduced since the last version:
         <ref id="inCsv">CSV</ref> and <ref id="inAscii">ASCII</ref>
         input handlers; this gives more control over datatypes
         inferred when reading tables.</li>
+    <li>New activation action
+        <ref id="ViewUrlActivationType">View URL</ref>.</li>
     </ul>
     </p></dd>
 

@@ -298,7 +298,7 @@ public abstract class UrlColumnConfigurator
      *                    as default values for the URL column selector;
      *                    earlier entries are preferred over later ones
      */
-    private static void
+    public static void
             configureDefaultSelection( ColumnDataComboBoxModel cdataModel,
                                        TopcatModelInfo tinfo,
                                        ColFlag[] urlFlags ) {
