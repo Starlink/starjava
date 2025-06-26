@@ -161,14 +161,20 @@ public class TopcatModelInfo {
             boolean isVotable = false;
             boolean isSpectrum = false;
             boolean isWebref = false;
+            boolean isMime = false;
             if ( isString ) {
-                if ( ucd != null && ucd.startsWith( "meta.ref.url" ) ) {
+                if ( ucd != null &&
+                     ucd.toLowerCase().startsWith( "meta.ref.url" ) ) {
                     isUrl = true;
                 }
                 if ( ucd != null &&
                      ucd.equalsIgnoreCase( "VOX:Image_AccessReference" ) ) {
                     isUrl = true;
                     isImage = true;
+                }
+                if ( ucd != null &&
+                     ucd.toLowerCase().equalsIgnoreCase( "meta.code.mime" ) ) {
+                    isMime = true;
                 }
                 if ( utype != null &&
                      utype.equalsIgnoreCase( "Access.Reference" ) ) {
@@ -181,6 +187,11 @@ public class TopcatModelInfo {
                 if ( name.toLowerCase().indexOf( "datalink" ) >= 0 ) {
                     isUrl = true;
                     isDatalink = true;
+                }
+                if ( name.equalsIgnoreCase( "access_format" ) ||
+                     name.equalsIgnoreCase( "content_type" ) ||
+                     name.equalsIgnoreCase( "mime_type" ) ) {
+                    isMime = true;
                 }
                 String sval1 = null;
                 try {
@@ -229,7 +240,8 @@ public class TopcatModelInfo {
                                  | ColFlag.IMAGE.toMask( isImage )
                                  | ColFlag.VOTABLE.toMask( isVotable )
                                  | ColFlag.SPECTRUM.toMask( isSpectrum )
-                                 | ColFlag.WEBREF.toMask( isWebref );
+                                 | ColFlag.WEBREF.toMask( isWebref )
+                                 | ColFlag.MIME.toMask( isMime );
             }
         }
         boolean hasSkyCoords = hasColumn( tcModel, Tables.RA_INFO ) 

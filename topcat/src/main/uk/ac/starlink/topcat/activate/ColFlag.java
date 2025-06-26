@@ -34,7 +34,10 @@ public enum ColFlag {
      * Column (probably) contains a reference that can be mapped to a web page.
      * An example is a DOI or Bibcode.
      */
-    WEBREF;
+    WEBREF,
+
+    /** Column (probably) contains a MIME type. */
+    MIME;
 
     private final int mask1_;
 
