@@ -28,6 +28,7 @@ import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ColumnDataComboBox;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.DomainMapperComboBox;
+import uk.ac.starlink.topcat.IdentifiedColumnData;
 import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -382,14 +383,16 @@ public class BasicCoordPanel implements CoordPanel {
             ColumnData[] coldats = new ColumnData[ nu ];
             String[] datlabs = new String[ nu ];
             DomainMapper[] dms = new DomainMapper[ nu ];
+            String[] valueIds = new String[ nu ];
             for ( int iu = 0; iu < nu; iu++ ) {
                 ColumnDataComboBox colsel = colsels.get( iu );
-                Object colitem = colsel.getSelectedItem();
-                if ( colitem instanceof ColumnData ) {
-                    DomainMapper dm = colsel.getDomainMapper();
-                    coldats[ iu ] = (ColumnData) colitem;
-                    datlabs[ iu ] = colitem.toString();
-                    dms[ iu ] = dm;
+                IdentifiedColumnData icdata = colsel.getIdentifiedColumnData();
+                if ( icdata != null ) {
+                    ColumnData cdata = icdata.getColumnData();
+                    coldats[ iu ] = cdata;
+                    datlabs[ iu ] = cdata.toString();
+                    dms[ iu ] = colsel.getDomainMapper();
+                    valueIds[ iu ] = icdata.getId();
                 }
                 else if ( ! coord.isRequired() ) {
                     Input input = coord.getInputs()[ iu ];
@@ -401,13 +404,14 @@ public class BasicCoordPanel implements CoordPanel {
                     coldats[ iu ] = new ConstantColumn( info, null );
                     datlabs[ iu ] = null;
                     dms[ iu ] = dm;
+                    valueIds[ iu ] = null;
                 }
                 else {
                     return null;
                 }
             }
             contents[ ic ] =
-                new GuiCoordContent( coord, datlabs, coldats, dms );
+                new GuiCoordContent( coord, datlabs, coldats, dms, valueIds );
         }
         return contents;
     }

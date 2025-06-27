@@ -97,6 +97,34 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
         }
     }
 
+    /**
+     * Returns an object that aggregates the selected column data
+     * with an identifier that can be used to assess content equality.
+     *
+     * @return  identified column data for currently selected choice
+     */
+    public IdentifiedColumnData getIdentifiedColumnData() {
+        Object item = getSelectedItem();
+        if ( item instanceof ColumnData ) {
+            ColumnData cdata = (ColumnData) item;
+            ComboBoxModel<ColumnData> model = getModel();
+            if ( model instanceof ColumnDataComboBoxModel ) {
+                TopcatModel tcModel =
+                    ((ColumnDataComboBoxModel) model).getTopcatModel();
+                String id = tcModel.getColumnDataContentIdentifier( cdata );
+                return new IdentifiedColumnData() {
+                    public ColumnData getColumnData() {
+                        return cdata;
+                    }
+                    public String getId() {
+                        return id;
+                    }
+                };
+            }
+        }
+        return null;
+    }
+
     @Override
     public void addActionListener( ActionListener listener ) {
         super.addActionListener( listener );

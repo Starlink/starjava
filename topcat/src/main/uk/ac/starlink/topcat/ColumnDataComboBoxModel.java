@@ -136,6 +136,15 @@ public class ColumnDataComboBoxModel
         this( tcModel, dataClazz, hasNone, false );
     }
 
+    /**
+     * Returns the TopcatModel from which this model offers columns.
+     *
+     * @return  topcat model
+     */
+    public TopcatModel getTopcatModel() {
+        return tcModel_;
+    }
+
     public ColumnData getElementAt( int index ) {
         return activeColumns_.get( index );
     }

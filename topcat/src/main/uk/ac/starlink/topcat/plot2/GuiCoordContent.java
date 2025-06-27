@@ -29,6 +29,7 @@ public class GuiCoordContent {
     private final String[] dataLabels_;
     private final ColumnData[] colDatas_;
     private final DomainMapper[] domainMappers_;
+    private final String[] valueIds_;
 
     /**
      * Constructor.
@@ -41,14 +42,19 @@ public class GuiCoordContent {
      *                   for the user variables constituting the coord value
      * @param  domainMappers  array of DomainMappers used to decode values
      *                        from the user variables
+     * @param  valueIds  array of strings identifying the values returned
+     *                   by the column datas; if these values change,
+     *                   the numeric content of the colDatas can be expected
+     *                   to change
      */
     public GuiCoordContent( Coord coord, String[] dataLabels,
-                            ColumnData[] colDatas,
-                            DomainMapper[] domainMappers ) {
+                            ColumnData[] colDatas, DomainMapper[] domainMappers,
+                            String[] valueIds ) {
         coord_ = coord;
         dataLabels_ = dataLabels;
         colDatas_ = colDatas;
         domainMappers_ = domainMappers;
+        valueIds_ = valueIds;
     }
 
     /**
@@ -76,6 +82,17 @@ public class GuiCoordContent {
      */
     public ColumnData[] getColDatas() {
         return colDatas_;
+    }
+
+    /**
+     * Returns value identifiers for user input variables.
+     * If these values change, the numeric values supplied by the column datas
+     * may change.
+     *
+     * @return  value identifiers
+     */
+    public String[] getValueIds() {
+        return valueIds_;
     }
 
     /**

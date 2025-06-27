@@ -59,10 +59,11 @@ public class GuiDataSpec extends AbstractDataSpec {
     public String getCoordId( int ic ) {
         String[] dataLabels = contents_[ ic ].getDataLabels();
         DomainMapper[] dms = contents_[ ic ].getDomainMappers();
+        String[] valueIds = contents_[ ic ].getValueIds();
         StringBuffer sbuf = new StringBuffer();
         int nu = dataLabels.length;
         for ( int iu = 0; iu < nu; iu++ ) {
-            sbuf.append( dataLabels[ iu ] );
+            sbuf.append( valueIds[ iu ] );
             DomainMapper dm = dms[ iu ];
             if ( dm != null ) {
                 sbuf.append( "|" )

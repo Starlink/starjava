@@ -288,6 +288,7 @@ public class TopcatModel {
         return tableBuilder_;
     }
 
+    @Override
     public String toString() {
         return id_ + ": " + getLabel();
     }
@@ -1039,6 +1040,25 @@ public class TopcatModel {
      */
     public void showSubset( RowSubset rset ) {
         fireModelChanged( TopcatEvent.SHOW_SUBSET, rset );
+    }
+
+    /**
+     * Returns a content-sensitive label for a given ColumnData
+     * controlled by this model.
+     * This identifier can be used to assess equality of content,
+     * and is sensitive (where applicable) to the value of external
+     * variables (JEL constants such as global variables)
+     * on which the column data expression is known to be dependent.
+     *
+     * @param   cdata  column data
+     * @return   column data value identification string
+     */
+    public String getColumnDataContentIdentifier( ColumnData cdata ) {
+        String expr = cdata.getColumnInfo()
+                     .getAuxDatumValue( TopcatUtils.EXPR_INFO, String.class );
+        return expr == null
+             ? cdata.toString()
+             : TopcatJELUtils.getContentIdentifier( this, expr );
     }
 
     /**
