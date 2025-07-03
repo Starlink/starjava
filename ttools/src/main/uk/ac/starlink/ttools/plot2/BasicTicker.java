@@ -347,8 +347,10 @@ public abstract class BasicTicker implements Ticker {
         double sloLin = scale.dataToScale( dloLin );
         double shiLin = scale.dataToScale( dhiLin );
         double flin = ( shiLin - sloLin ) / ( shi - slo );
-        Rule linRule = createLinearRule( dloLin, dhiLin,
-                                         flin * approxMajorCount, adjust );
+        Rule linRule = dhiLin > dloLin
+                     ? createLinearRule( dloLin, dhiLin,
+                                         flin * approxMajorCount, adjust )
+                     : createLinearRule( 0, dloLin, 1, 0 );
         final double flog;
         final double dloLog;
         final double dhiLog;
