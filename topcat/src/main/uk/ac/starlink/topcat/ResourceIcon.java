@@ -152,6 +152,7 @@ public class ResourceIcon implements Icon {
         MULTISSA = makeIcon( "ssas.png" ),
         DATALINK = makeIcon( "datalink2.png" ),
         SAMP = makeIcon( "comms2.png" ),
+        SLIDERS = makeIcon( "sliders.png" ),
         GAVO = makeIcon( "virgo3.png" ),
         VIZIER = makeIcon( "vizmini.png" ),
         BASTI = makeIcon( "BaSTI_icon_B.png" ),

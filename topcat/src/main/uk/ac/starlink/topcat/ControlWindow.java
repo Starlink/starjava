@@ -200,6 +200,7 @@ public class ControlWindow extends AuxWindow
     private SiaMultiWindow multisiaWindow_;
     private SsaMultiWindow multissaWindow_;
     private CdsUploadMatchWindow cdsmatchWindow_;
+    private VariableWindow variableWindow_;
     private ExtApp extApp_;
     private TopcatModel currentModel_;
     private int iPlotwin_;
@@ -229,6 +230,7 @@ public class ControlWindow extends AuxWindow
     private final Action multisiaAct_;
     private final Action multissaAct_;
     private final Action cdsmatchAct_;
+    private final Action variableAct_;
     private final ModelViewAction datalinkAct_;
     private final Action logAct_;
     private final Action authResetAct_;
@@ -384,6 +386,10 @@ public class ControlWindow extends AuxWindow
             new ControlAction( "CDS Upload X-Match", ResourceIcon.CDSXMATCH,
                                "Sky crossmatch against remote tables from the "
                              + "CDS VizieR or SIMBAD services" );
+        variableAct_ =
+            new ControlAction( "Global Variables", ResourceIcon.SLIDERS,
+                               "Control global variables available from the "
+                             + "expression language" );
         logAct_ = new ControlAction( "View Log", ResourceIcon.LOG,
                                      "Display the log of events" );
         authResetAct_ =
@@ -604,6 +610,7 @@ public class ControlWindow extends AuxWindow
 
         /* Add miscellaneous actions to the toolbar. */
         toolBar.add( MethodWindow.getWindowAction( this, false ) );
+        toolBar.add( variableAct_ );
         for ( TopcatToolAction tact :
               Loader.getClassInstances( TOPCAT_TOOLS_PROP,
                                         TopcatToolAction.class ) ) {
@@ -641,6 +648,7 @@ public class ControlWindow extends AuxWindow
             fileMenu.insert( mirageAct_, fileMenuPos++ );
         }
         fileMenu.insertSeparator( fileMenuPos++ );
+        fileMenu.insert( variableAct_, fileMenuPos++ );
         fileMenu.insert( logAct_, fileMenuPos++ );
         fileMenu.insert( authResetAct_, fileMenuPos++ );
         fileMenu.insertSeparator( fileMenuPos++ );
@@ -1130,6 +1138,19 @@ public class ControlWindow extends AuxWindow
             cdsmatchWindow_ = new CdsUploadMatchWindow( this );
         }
         return cdsmatchWindow_;
+    }
+
+    /**
+     * Returns the window that displays and keeps track of global variables.
+     *
+     * @return  global variables window
+     */
+    public VariableWindow getVariableWindow() {
+        if ( variableWindow_ == null ) {
+            variableWindow_ =
+                new VariableWindow( this, VariablePanel.getInstance() );
+        }
+        return variableWindow_;
     }
 
     /**
@@ -1670,6 +1691,9 @@ public class ControlWindow extends AuxWindow
             }
             else if ( this == cdsmatchAct_ ) {
                 getCdsUploadMatchWindow().makeVisible();
+            }
+            else if ( this == variableAct_ ) {
+                getVariableWindow().makeVisible();
             }
             else if ( this == logAct_ ) {
                 LogHandler.getInstance().showWindow( ControlWindow.this );
