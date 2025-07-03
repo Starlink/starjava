@@ -122,11 +122,22 @@ public class ScaleConfigKey extends ConfigKey<Scale> {
         }
 
         protected JComponent createComponent() {
+            ComboBoxBumper bumper = new ComboBoxBumper( typeBox_ );
             Box box = Box.createHorizontalBox();
             box.add( typeBox_ );
             box.add( Box.createHorizontalStrut( 2 ) );
-            box.add( new ComboBoxBumper( typeBox_ ) );
+            box.add( bumper );
             box.add( fieldContainer_ );
+            box.addPropertyChangeListener( "enabled", evt -> {
+                boolean isEnabled = box.isEnabled();
+                typeBox_.setEnabled( isEnabled );
+                bumper.setEnabled( isEnabled );
+                for ( ArgField[] fields : fieldsMap_.values() ) {
+                    for ( ArgField field : fields ) {
+                        field.setEnabled( isEnabled );
+                    }
+                }
+            } );
             typeBox_.addActionListener( evt -> {
                 Object typeObj = typeBox_.getSelectedItem();
                 if ( typeObj instanceof ScaleType ) {
