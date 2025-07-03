@@ -153,6 +153,8 @@ public class ResourceIcon implements Icon {
         DATALINK = makeIcon( "datalink2.png" ),
         SAMP = makeIcon( "comms2.png" ),
         SLIDERS = makeIcon( "sliders.png" ),
+        SLIDERS_TRIGGER = makeIcon( "sliders-trigger.png" ),
+        SLIDERS_TRIGGERED = makeIcon( "sliders-trigger1.png" ),
         GAVO = makeIcon( "virgo3.png" ),
         VIZIER = makeIcon( "vizmini.png" ),
         BASTI = makeIcon( "BaSTI_icon_B.png" ),

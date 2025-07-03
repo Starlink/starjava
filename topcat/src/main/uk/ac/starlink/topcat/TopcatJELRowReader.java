@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
@@ -57,6 +58,7 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
     private final TopcatModel tcModel_;
     private final List<RowSubset> rdrSubsets_;
     private final Set<Integer> translatedSubsetIds_;
+    private final Map<String,UserConstant<?>> constMap_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat" );
 
@@ -75,6 +77,7 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
         tcModel_ = tcModel;
         rdrSubsets_ = new ArrayList<RowSubset>();
         translatedSubsetIds_ = new LinkedHashSet<Integer>();
+        constMap_ = VariablePanel.getInstance().getVariables();
     }
 
     /**
@@ -358,10 +361,14 @@ public abstract class TopcatJELRowReader extends RandomJELRowReader {
             };
         }
 
-        /* Otherwise fall back to superclass behaviour. */
-        else {
-            return super.getSpecialByName( name );
+        /* Look for user constants. */
+        Constant<?> userConst = constMap_.get( name );
+        if ( userConst != null ) {
+            return userConst;
         }
+
+        /* Otherwise fall back to superclass behaviour. */
+        return super.getSpecialByName( name );
     }
 
     /**

@@ -51,10 +51,12 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.ListModel;
 import javax.swing.OverlayLayout;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.RowRunner;
@@ -76,6 +78,7 @@ import uk.ac.starlink.topcat.TopcatJELUtils;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.topcat.VariablePanel;
 import uk.ac.starlink.topcat.WindowToggle;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -169,6 +172,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final ToggleButtonModel axisLockModel_;
     private final ToggleButtonModel auxLockModel_;
     private final ToggleButtonModel parallelCacheModel_;
+    private final ToggleButtonModel watchVarsModel_;
+    private final JToggleButton watchVarsButton_;
+    private final Timer watchVarsTimer_;
     private final ZoneId dfltZone_;
     private DataStoreFactory storeFact_;
     private boolean hasShader_;
@@ -199,6 +205,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         canSelectPoints_ = plotTypeGui.hasPositions();
         final CartesianRanger cartRanger = plotTypeGui.getCartesianRanger();
         dfltZone_ = zoneFact_.getDefaultZone();
+        VariablePanel variablePanel = VariablePanel.getInstance();
 
         /* Use a compositor with a fixed boost.  Maybe make the compositor
          * implementation controllable from the GUI at some point, but
@@ -324,6 +331,46 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         for ( Control c : axesController_.getStackControls() ) {
             c.addActionListener( plotPanel_ );
         }
+
+        /* Arrange for changes to global variables to trigger a replot,
+         * or not.  Ensure that such replots only take place when the
+         * window is potentially visible and not iconified.
+         * Briefly adjust the button icon when variable-based replots may be
+         * in progress; this gives the user a subtle hint that these updates
+         * can be disabled if they are unwanted (slowing things down). */
+        watchVarsModel_ =
+            new ToggleButtonModel( "Replot on Data Change",
+                                   ResourceIcon.SLIDERS_TRIGGER,
+                                   "Automatically redraw plot when global "
+                                 + "variables or table columns/subsets change");
+        watchVarsModel_.setSelected( true );
+        watchVarsButton_ = watchVarsModel_.createToolbarButton();
+        watchVarsTimer_ =
+            new Timer( 250, evt -> watchVarsButton_
+                                  .setIcon( ResourceIcon.SLIDERS_TRIGGER ) );
+        ActionListener variableListener = evt -> {
+            assert TopcatUtils.isWindowVisible( this );
+            dataChangedReplot();
+        };
+        addWindowListener( new WindowAdapter() {
+            @Override
+            public void windowOpened( WindowEvent evt ) {
+                variablePanel.addVariableValueListener( variableListener );
+            }
+            @Override
+            public void windowClosed( WindowEvent evt ) {
+                variablePanel.removeVariableValueListener( variableListener );
+            }
+            @Override
+            public void windowIconified( WindowEvent evt ) {
+                variablePanel.removeVariableValueListener( variableListener );
+            }
+            @Override
+            public void windowDeiconified( WindowEvent evt ) {
+                variablePanel.addVariableValueListener( variableListener );
+                plotPanel_.replot();
+            }
+        } );
 
         /* Arrange for user navigation actions to adjust the view. */
         new GuiNavigationListener<A>( plotPanel_ ) {
@@ -644,7 +691,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         }
         getToolBar().add( auxLockModel_.createToolbarButton() );
         getToolBar().add( sketchModel_.createToolbarButton() );
-        getToolBar().add( showProgressModel_.createToolbarButton() );
+        getToolBar().add( watchVarsButton_ );
         getToolBar().add( exportAction );
         for ( int i = 0; i < stackActions.length; i++ ) {
             stackToolbar.add( stackActions[ i ] );
@@ -690,6 +737,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         }
         plotMenu.add( auxLockModel_.createMenuItem() );
         plotMenu.add( sketchModel_.createMenuItem() );
+        plotMenu.add( watchVarsModel_.createMenuItem() );
         plotMenu.add( showProgressModel_.createMenuItem() );
         plotMenu.add( navdecModel.createMenuItem() );
         plotMenu.add( parallelCacheModel_.createMenuItem() );
@@ -949,13 +997,26 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      */
     private void updateDataStoreFactory() {
         RowRunner rowRunner = parallelCacheModel_.isSelected()
-                            ? ControlWindow.getInstance().getRowRunner()
+                            ? ControlWindow.getInstance( false ).getRowRunner()
                             : null;
         storeFact_ = new CachedDataStoreFactory(
                          new SmartColumnFactory( new MemoryColumnFactory() ),
                          TupleRunner.DEFAULT, rowRunner ) {};
         if ( plotPanel_ != null ) {
             plotPanel_.replot();
+        }
+    }
+
+    /**
+     * Called when the data in a table may have changed, to conditionally
+     * trigger a replot.  User configuration may inhibit such replots
+     * from actually happening.
+     */
+    private void dataChangedReplot() {
+        if ( watchVarsModel_.isSelected() ) {
+            plotPanel_.replot();
+            watchVarsButton_.setIcon( ResourceIcon.SLIDERS_TRIGGERED );
+            watchVarsTimer_.restart();
         }
     }
 
