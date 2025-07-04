@@ -3,6 +3,8 @@ package uk.ac.starlink.ttools.taplint;
 import java.io.InputStream;
 import java.io.Reader;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
@@ -136,9 +138,9 @@ public class IvoaSchemaResolver implements LSResourceResolver {
             if ( systemId == null && nsUrlDflt_ ) {
                 URL nsloc;
                 try {
-                    nsloc = new URL( namespaceURI );
+                    nsloc = new URI( namespaceURI ).toURL();
                 }
-                catch ( MalformedURLException e ) {
+                catch ( URISyntaxException | MalformedURLException e ) {
                     nsloc = null;
                     logger_.info( "Namespace URI \"" + namespaceURI
                                 + "\" not a URL, can't use for systemId" );
