@@ -96,6 +96,7 @@
            '&figs;SyntheticSubsetQueryWindow.png'>
   <!ENTITY FIG.ClassifyWindow '&figs;ClassifyWindow.png'>
   <!ENTITY FIG.MethodWindow '&figs;MethodWindow.png'>
+  <!ENTITY FIG.VariableWindow '&figs;VariableWindow.png'>
   <!ENTITY FIG.HtmlWindow '&figs;HtmlWindow.png'>
   <!ENTITY FIG.LogWindow '&figs;LogWindow.png'>
   <!ENTITY FIG.PointSelector '&figs;PointSelector.png'>
@@ -2574,6 +2575,48 @@ as follows:
 </dl>
 Note that if a parameter has a name in an unsuitable form (e.g. containing
 spaces) and has no UCD then it cannot be referenced in an expression.
+</p>
+
+</subsect>
+
+<subsect id="UserConstant">
+<subhead><title>Global Variables</title></subhead>
+
+<p>As well as values defined by the tables you're working with,
+you can introduce independent variables into your expressions.
+At any given time these have a fixed value (they don't vary between
+rows of a table), but you can adjust them interactively using the
+<ref id="VariableWindow">Variables Window</ref> with a slider
+or by typing in a number.
+They are not attached to any single table.
+</p>
+
+<p>This means you can for instance set up a parameterised expression
+for a synthetic
+<ref id="SyntheticColumnQueryWindow">column</ref> or
+<ref id="SyntheticSubsetQueryWindow">subset</ref>,
+and then change the value of the parameter
+without having to edit the algebraic expression used for the
+column or subset definition.
+</p>
+
+<p>By default, adjustments to these variables have an instant
+effect on plots or other displays that depend on the values so defined.
+That's usually what you want, but if very large or numerous plots
+depend on a given variable, adjusting it can cause a lot of computation
+or I/O and slow things down.
+The <ref id="StackPlotWindow">plot windows</ref> therefore have a
+<label>Replot on Data Change</label> (&IMG.SLIDERS_TRIGGER;) button
+that allow you to prevent such immediate updates, which will then
+only take place on a replot which is triggered in some other way.
+</p>
+
+<p>By default two global variables are set up and visible in the
+<label>Variables Window</label>,
+a floating point one <code>var$x</code>
+and an integer one <code>var$i</code>,
+and they are referenced in the expression language using these names.
+But you can define new ones with names of your choice as well.
 </p>
 
 </subsect>
@@ -5782,6 +5825,11 @@ functions.  They are grouped as follows:
         for writing algebraic expressions (see <ref id="jel"/>).
         </p></dd>
 
+    <dt>&IMG.SLIDERS; <ref id="VariableWindow">Variables Window</ref></dt>
+    <dd><p>Displays a window that allows you to change the values of
+        global variables that can be referenced in algebraic expressions.
+        </p></dd>
+
     <dt>&IMG.HELP; <ref id="HelpWindow">Help</ref></dt>
     <dd><p>Displays the help browser, open at the entry on the
         Control Window.
@@ -7734,13 +7782,21 @@ contains the following actions (repeated in the menus):
     that frame updates happen more frequently, so it's a bit more responsive.
     </p></dd>
 
-<dt>&IMG.PROGRESS; Show Plot Progress</dt>
-<dd><p>If selected a progress bar at the bottom of the window is active
-    when large (slow) plots are in progress.  This can be useful if you
-    are navigating round a very large plot so that you can see something
-    is happening rather than the application apparently just doing nothing.
-    On the other hand a flickering progress bar can be distracting.
-    Updating the progress bar may also slow the plot down a little.
+<dt>&IMG.SLIDERS_TRIGGER; Replot on Data Change</dt>
+<dd><p>Controls whether adjusting the value of global variables in the
+    <ref id="VariableWindow">Variables Window</ref>,
+    or redefining the expressions for Synthetic Columns or Row Subsets,
+    will cause immediate updates to the plot in this window.
+    If set true (the default) you can immediately see the effect of
+    adjusting global variables with the slider etc.
+    This is usually a good thing, but if there are very large or numerous
+    plots it can result in slowing things down.
+    By setting this false, the plot here will not automatically react to
+    variable/subset/column changes, but you can replot taking into
+    account the current variable values
+    using the <label>Replot</label> (&IMG.REDO;) button,
+    or by doing anything else that would cause a replot
+    such as a drag/zoom action.
     </p></dd>
 
 <dt>&IMG.IMAGE; Export Plot</dt>
@@ -7760,6 +7816,27 @@ They also provide some additional options:
     each one adds a new Layer Control of one of the available
     types to the stack, or <label>Remove</label>s (&IMG.DELETE;)
     the currently selected control.
+    </p></dd>
+<dt>Plot menu</dt>
+<dd><p>
+    <dl>
+    <dt>&IMG.PROGRESS; Show Plot Progress</dt>
+    <dd><p>If selected (the default) a progress bar at the bottom
+        of the window is active
+        when large (slow) plots are in progress.  This can be useful if you
+        are navigating round a very large plot so that you can see something
+        is happening rather than the application apparently just doing nothing.
+        On the other hand a flickering progress bar can be distracting.
+        Updating the progress bar may also slow the plot down a little.
+        </p></dd>
+    <dt>&IMG.NAV_DEC; Show Navigation Graphics</dt>
+    <dd><p>If selected (the default) navigation gestures like pan and zoom
+        cause lines to show up briefly on the plot to give you a clue
+        what navigation operation you have just performed.
+        If these get annoying you can turn them off by deselecting
+        this option.
+        </p></dd>
+    </dl>
     </p></dd>
 <dt>Export menu</dt>
 <dd><p>This menu provides some options for exporting graphics and
@@ -10728,7 +10805,8 @@ and has the following fields:
 <dt>Function Expression</dt>
 <dd><p>An expression using TOPCAT's <ref id="jel">expression language</ref>
     in terms of the independent variable that defines the function.
-    This expression must be standalone - it cannot reference any tables.
+    This expression must be standalone, it cannot reference any tables.
+    It can however reference <ref id="UserConstant">Global Variables</ref>.
     </p></dd>
 </dl>
 </p>
@@ -21582,6 +21660,7 @@ The saved items include:
 <li>The current Row Subset</li>
 <li>All Activation Actions</li>
 <li>The label</li>
+<li>Values of Global Variables</li>
 </ul>
 </p>
 
@@ -27721,6 +27800,141 @@ the <code>jel.classes</code> or <code>jel.classes.activation</code>
 system properties will be visible in the tree in this window,
 but they may not have proper documentation
 (clicking on them may not reveal a description in the right hand panel).
+</p>
+
+</subsubsect>
+
+<subsubsect id="VariableWindow">
+<subhead><title>Variables Window</title></subhead>
+
+<p>This window displays <ref id="UserConstant">global variables</ref>
+and allows you to adjust their values.
+You can find it by using the <label>Global Variables</label>
+(&IMG.SLIDERS;) toolbar button
+in the main <ref id="ControlWindow">Control Window</ref>
+or the equivalent menu option in its <label>File</label> menu.
+</p>
+
+<p>The variables controlled here can be used in the expression language
+for instance when defining new synthetic
+<ref id="SyntheticColumnQueryWindow">columns</ref> and
+<ref id="SyntheticSubsetQueryWindow">subsets</ref>,
+or in <ref id="columnSelector">column selectors</ref>
+such as those used for plot coordinates,
+or for the funcction expression in
+<ref id="FunctionLayerControl">function plots</ref>.
+Adjusting the values of the variables in this window will then have
+an instant effect on the columns, subsets and plots that depend on them.
+</p>
+
+<p>This can allow you for instance to experiment with aspects of a
+plot such as subset inclusion or coordinate definitions by
+changing variable values using the slider in this window
+and seeing how plots dependent on the variable in question change.
+There is one caveat to this: if visible plots dependent on a variable
+being changed in this way are very large or numerous,
+such adjustments can result in a lot of computation or I/O and slow
+things down.
+The <ref id="StackPlotWindow">plot windows</ref> therefore have a
+<label>Replot on Data Change</label> (&IMG.SLIDERS_TRIGGER;) button
+that allow you to prevent such immediate updates, which will then
+only take place on a replot which is triggered in some other way.
+</p>
+
+<figure>
+<caption><px>Variables Window</px></caption>
+<figureimage src="&FIG.VariableWindow;"/>
+</figure>
+
+<p>The window is in two parts.
+On the left is a list of the currently defined variables.
+By default there are two of these:
+<code>var$x</code> is a floating point variable, and
+<code>var$i</code> is an integer variable,
+but new ones can be added.
+Selecting one of the names in the list by clicking on it
+shows the corresponding value panel on the right.
+</p>
+
+<p>The right hand panel lets you adjust the selected variable's value.
+Its appearance differs slightly depending on whether the variable is
+floating point or integer.
+There are two ways to change the value,
+the <label>Entry</label> and the <label>Slider</label> controls.
+Only one of these is active at a time, use the radio buttons
+on the left to choose which one to use.
+<dl>
+<dt>Entry</dt>
+<dd><p>Type the new variable value into the <label>Value</label> field
+    to change it.  If you enter an invalid value, it will go back to
+    its previous value.
+    As long as this widget is active, the value is not constrained
+    by the current slider limits.
+    </p>
+    <p>In the case of integer variables, there are also
+    <label>+1</label>/<label>-1</label> buttons that will nudge
+    the value up and down by 1.
+    </p></dd>
+<dt>Slider</dt>
+<dd><p>The value can be continuously adjusted by dragging the slider.
+    Resolution can only be at the pixel level, so if you want more
+    precision, you can resize the window to be wider.
+    You can use the <label>Range</label> fields to reset the lower and
+    upper bounds for the slider.
+    </p>
+    <p>In the case of floating point variables,
+    there is also a <label>Scale</label> selector that lets you
+    choose the scaling between the lower and upper slider bounds
+    to one of the available <ref id="ScaleType">scaling options</ref>
+    (<label>linear</label>,
+     <label>log</label>,
+     <label>asinh</label> and
+     <label>symlog</label>).
+    Since some of these options (logarithmic) require positive definite
+    values, changing the scaling may force a reset of the range values.
+    </p></dd>
+</dl>
+</p>
+
+<!-- Currently disabled.  It's a one-liner to enable it,
+ !   but the functionality is probably more trouble than it's worth.
+ !
+ ! <p>You can rename the variable by typing a new name into the
+ ! <label>Name</label> field.
+ ! The new name must be a syntactically legal identifier
+ ! (first character alphabetic including <code>$</code> and <code>_</code>,
+ ! other characters alphanumeric).
+ ! Note however that changing the name here will not change any expressions
+ ! that currently depend on it,
+ ! so if the variable is already in use then renaming it may cause
+ ! some expressions to stop working.
+ ! </p>
+ !-->
+
+<p>The following toolbar/menu items are available:
+<dl>
+
+<dt>&IMG.ADD; Add new variable</dt>
+<dd><p>This will pop up a window asking you for the name and type
+    of a new variable.
+    The type may be <label>Floating Point</label> point or 
+    <label>Integer</label>.
+    The name must be a syntactically legal identifier
+    (first character alphabetic including <code>$</code> and <code>_</code>,
+    other characters alphanumeric).
+    Any unused name matching that constraint is allowed,
+    but beware of choosing names that may clash with other terms
+    in the expression language such as column or subset names.
+    Sticking to the <code>var$xxx</code> convention is a good way
+    to prevent that happening.
+    </p></dd>
+
+<dt>&IMG.DELETE; Remove selected variable</dt>
+<dd><p>The variable currently selected in the list and visible
+    in the right hand panel will be deleted following confirmation.
+    </p></dd>
+
+</dl>
 </p>
 
 </subsubsect>
@@ -34592,6 +34806,21 @@ introduced since the last version:
         and for some services picks up metadata better.</li>
     <li>Fix some bugs in plot commands generated by the
         <ref id="StiltsControl">STILTS Control</ref>.</li>
+    <li>Introduce <ref id="UserConstant">Global Variables</ref>
+        into the expression language, adjustable using the
+        <ref id="VariableWindow">Variables Window</ref>.</li>
+    <li>New toolbar toggle button
+        <label>Replot on Data Change</label>
+        in <ref id="StackPlotWindow">plot windows</ref>
+        to control whether global variable changes
+        instantly affect plots.
+        This button replaces the <label>Show Plot Progress</label>
+        toggle button, which can still be found
+        in the <label>Plot</label> menu.</li>
+    <li>Editing expressions for synthetic Columns and Row Subsets
+        now instantly affects any plots depending on them
+        (unless inhibited by <label>Replot on Data Change</label>
+        selection).</li>
     </ul>
     </p></dd>
 
