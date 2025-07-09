@@ -68,8 +68,6 @@ public class PlaneSurfaceFactory
         new XyKeyPair<JELFunction>( a -> createSecondaryAxisFunctionKey( a ) );
     private static final XyKeyPair<String> LABEL2_XYKEY =
         new XyKeyPair<String>( a -> createSecondaryAxisLabelKey( a ) );
-    private static final XyKeyPair<Double> CROWD_XYKEY =
-        new XyKeyPair<Double>( a -> createAxisCrowdKey( a ) );
     private static final XyKeyPair<Boolean> ANCHOR_XYKEY =
         new XyKeyPair<Boolean>( a -> createAxisAnchorKey( a, false ) );
 
@@ -162,10 +160,12 @@ public class PlaneSurfaceFactory
         , false );
 
     /** Config key to control tick mark crowding on X axis. */
-    public static final ConfigKey<Double> XCROWD_KEY = CROWD_XYKEY.getKeyX();
+    public static final ConfigKey<Double> XCROWD_KEY =
+        createAxisCrowdKey( "X" );
 
     /** Config key to control tick mark crowding on Y axis. */
-    public static final ConfigKey<Double> YCROWD_KEY = CROWD_XYKEY.getKeyY();
+    public static final ConfigKey<Double> YCROWD_KEY =
+        createAxisCrowdKey( "Y" );
 
     /** Config key to select which axes navigation actions will operate on. */
     public static final ConfigKey<boolean[]> NAVAXES_KEY =
@@ -397,6 +397,8 @@ public class PlaneSurfaceFactory
 
     /**
      * Returns a list of those keys which apply equally to the X and Y axes.
+     * This is used by the matrix plot to assemble indexed parameters
+     * that apply to each element of the plot grid.
      *
      * @return   paired X/Y key objects
      */
@@ -409,7 +411,6 @@ public class PlaneSurfaceFactory
             SCALE_XYKEY,
             FLIP_XYKEY,
             LABEL_XYKEY,
-            CROWD_XYKEY,
             ANCHOR_XYKEY,
         } ) );
         if ( hasSecondaryAxes_ ) {
