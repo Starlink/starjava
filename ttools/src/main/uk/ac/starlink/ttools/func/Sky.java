@@ -152,8 +152,8 @@ public class Sky {
      * on the sky, but for instance it may get the sense wrong for
      * regions that extend to cover both poles.
      *
-     * @param  lon0  test point latitude in degrees
-     * @param  lat0  test point longitude in degrees
+     * @param  lon0  test point longitude in degrees
+     * @param  lat0  test point latitude in degrees
      * @param  lonLats  2N arguments (<code>lon1</code>, <code>lat1</code>,
      *                                <code>lon2</code>, <code>lat2</code>, ...,
      *                                <code>lonN</code>, <code>latN</code>)
