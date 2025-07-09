@@ -268,10 +268,13 @@ public class PlotStiltsCommand extends StiltsCommand {
             lsettings.add( null );
 
             /* Legend label, if any. */
-            TrimmingSpec.LegendSpec legSpec =
+            TrimmingSpec ztrimSpec =
                   iz >= 0 && iz < trimSpecs.length && trimSpecs[ iz ] != null
-                ? trimSpecs[ iz ].getLegendSpec()
-                : null;
+                ? trimSpecs[ iz ]
+                : trimSpec;
+            TrimmingSpec.LegendSpec legSpec = ztrimSpec == null
+                                            ? null
+                                            : ztrimSpec.getLegendSpec();
             if ( legSpec != null ) {
                 String leglabel = lspec.getLegendLabel();
                 if ( leglabel != null ) {
