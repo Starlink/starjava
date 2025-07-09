@@ -168,15 +168,19 @@ public class StiltsCommand {
             }
 
             /* Row selection. */
+            final Setting selectSetting;
             if ( selection != null ) {
                 String filterCmd = new SelectFilter().getName()
                                  + " "
                                  + argQuote( selection.getValue() );
-                Setting selectSetting =
+                selectSetting =
                     new Setting( filterParam.getName(), filterCmd, null );
                 selectSetting.setCredibility( selection.getCredibility() );
-                settings.add( selectSetting );
             }
+            else {
+                selectSetting = new Setting( filterParam.getName(), null, null);
+            }
+            settings.add( selectSetting );
         }
         return settings;
     }
