@@ -14,8 +14,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
+import uk.ac.starlink.ttools.jel.Constant;
 import uk.ac.starlink.ttools.jel.JELFunction;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -55,6 +57,7 @@ public class FunctionPlotter extends
         AbstractPlotter<FunctionPlotter.FunctionStyle> {
 
     private final FuncAxis[] axes_;
+    private Map<String,? extends Constant<?>> constMap_;
     private static final Pattern TOKEN_REGEXP =
         Pattern.compile( "[A-Za-z_][A-Za-z0-9_]*" );
 
@@ -134,6 +137,30 @@ public class FunctionPlotter extends
         }.setOptionUsage();
     }
 
+    /**
+     * Sets a map from constant name to constant objects
+     * for values that may be referenced by expressions plotted here.
+     * The identity and/or content of this map may change over the
+     * lifetime of this plotter.
+     *
+     * @param  constMap  map of JEL constants by name, may be null
+     */
+    public void setConstantMap( Map<String,? extends Constant<?>> constMap ) {
+        constMap_ = constMap;
+    }
+
+    /**
+     * Returns the map of constant objects 
+     * for values that may be referenced by expressions plotted here.
+     * The identity and/or content of this map may change over the
+     * lifetime of this plotter.
+     *
+     * @return  map of JEL constants by name, may be null
+     */
+    public Map<String,? extends Constant<?>> getConstantMap() {
+        return constMap_;
+    }
+
     public String getPlotterDescription() {
         return PlotUtil.concatLines( new String[] {
             "<p>Plots an analytic function.",
@@ -180,7 +207,7 @@ public class FunctionPlotter extends
         }
         JELFunction jelfunc;
         try {
-            jelfunc = new JELFunction( xname, fexpr );
+            jelfunc = new JELFunction( xname, fexpr, constMap_ );
         }
         catch ( CompilationException e ) {
             throw new ConfigException( FEXPR_KEY,
@@ -238,6 +265,10 @@ public class FunctionPlotter extends
             functionId_ = Arrays.asList( new String[] {
                 function_.getXVarName(),
                 function_.getExpression(),
+                Arrays.stream( function_.getReferencedConstants() )
+                      .map( Constant::getValue )
+                      .map( String::valueOf )
+                      .collect( Collectors.joining( "," ) ),
             } );
             axis_ = axis;
         }
