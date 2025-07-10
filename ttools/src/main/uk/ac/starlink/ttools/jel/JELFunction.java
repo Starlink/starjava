@@ -2,9 +2,12 @@ package uk.ac.starlink.ttools.jel;
 
 import gnu.jel.CompilationException;
 import gnu.jel.CompiledExpression;
-import gnu.jel.DVMap;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.DoubleUnaryOperator;
 import uk.ac.starlink.ttools.jel.JELUtils;
 
@@ -24,12 +27,13 @@ public class JELFunction implements DoubleUnaryOperator {
 
     private final String xvarname_;
     private final String fexpr_;
-    private final XResolver xResolver_;
+    private final XConstant xconst_;
     private final CompiledExpression fCompex_;
+    private final Constant<?>[] usedConsts_;
     private final Object[] args_;
 
     /**
-     * Constructor.
+     * Constructs a function with no external constants.
      *
      * @param   xvarname  name of the independent variable (for instance "x")
      * @param   fexpr  text of expression giving the function value,
@@ -37,16 +41,53 @@ public class JELFunction implements DoubleUnaryOperator {
      */
     public JELFunction( String xvarname, String fexpr )
             throws CompilationException {
+        this( xvarname, fexpr, null );
+    }
+
+    /**
+     * Constructs a function that can reference provided constants.
+     *
+     * @param   xvarname  name of the independent variable (for instance "x")
+     * @param   fexpr  text of expression giving the function value,
+     *                 in terms of <code>xvarname</code> (for instance "x+1")
+     * @param   constMap  map by name of constant values that can be
+     *                    referenced in the expression, may be null
+     */
+    public JELFunction( String xvarname, String fexpr,
+                        Map<String,? extends Constant<?>> constMap )
+            throws CompilationException {
         xvarname_ = xvarname;
         fexpr_ = fexpr;
+        xconst_ = new XConstant();
+        Map<String,Constant<?>> fconstMap = new HashMap<>();
+        if ( constMap != null ) {
+            fconstMap.putAll( constMap );
+        }
+        fconstMap.put( xvarname, xconst_ );
+        ConstantResolver resolver = new ConstantResolver( fconstMap );
         Class<?>[] staticLib =
             JELUtils.getStaticClasses().toArray( new Class<?>[ 0 ] );
-        xResolver_ = new XResolver( xvarname );
-        Class<?>[] dynamicLib = new Class<?>[] { xResolver_.getClass() };
+        Class<?>[] dynamicLib = new Class<?>[] { resolver.getClass() };
         Library lib =
-            JELUtils.createLibrary( staticLib, dynamicLib, xResolver_ );
+            JELUtils.createLibrary( staticLib, dynamicLib, resolver );
         fCompex_ = Evaluator.compile( fexpr, lib, double.class );
-        args_ = new Object[] { xResolver_ };
+        args_ = new Object[] { resolver };
+        Set<Constant<?>> usedConstSet =
+            new HashSet<>( resolver.getTranslatedConstants() );
+        usedConstSet.remove( xconst_ );
+        usedConsts_ = usedConstSet.toArray( new Constant<?>[ 0 ] );
+    }
+
+    /**
+     * Returns an array of any constants that were referenced in this
+     * function's expression.  This list does not include an entry
+     * for the X value expression.
+     *
+     * @return  constants from the map supplied at construction time
+     *          that are referenced in this function's expression
+     */
+    public Constant<?>[] getReferencedConstants() {
+        return usedConsts_.clone();
     }
 
     /**
@@ -57,7 +98,7 @@ public class JELFunction implements DoubleUnaryOperator {
      * @return  function value
      */
     public double evaluate( double x ) {
-        xResolver_.setXValue( x );
+        xconst_.value_ = x;
         try {
             return fCompex_.evaluate_double( args_ );
         }
@@ -92,27 +133,18 @@ public class JELFunction implements DoubleUnaryOperator {
     }
 
     /**
-     * This public class is an implementation detail,
-     * not intended for external use.
+     * Constant implementation for the independent variable of this function.
      */
-    public static class XResolver extends DVMap {
-        private final String xvarname_;
-        private double dValue_;
-
-        private XResolver( String xvarname ) {
-            xvarname_ = xvarname;
+    private static class XConstant implements Constant<Double> {
+        volatile double value_;
+        public Class<Double> getContentClass() {
+            return Double.class;
         }
-
-        public String getTypeName( String name ) {
-            return name.equals( xvarname_ ) ? "Double" : null;
+        public Double getValue() {
+            return Double.valueOf( value_ );
         }
-
-        public double getDoubleProperty( String name ) {
-            return name.equals( xvarname_ ) ? dValue_ : Double.NaN;
-        }
-
-        private void setXValue( double dval ) {
-            dValue_ = dval;
+        public boolean requiresRowIndex() {
+            return false;
         }
     }
 

@@ -4,6 +4,8 @@ import gnu.jel.CompiledExpression;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import gnu.jel.CompilationException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
@@ -107,6 +109,20 @@ public class JELTest extends TableTestCase {
         }
         catch ( CompilationException e ) {
         }
+        Map<String,Constant<?>> constMap = new HashMap<>();
+        constMap.put( "i23", new Constant<Integer>() {
+            public Class<Integer> getContentClass() {
+                return Integer.class;
+            }
+            public Integer getValue() {
+                return Integer.valueOf( 23 );
+            }
+            public boolean requiresRowIndex() {
+                return false;
+            }
+        } );
+        assertEquals( 123, new JELFunction( "x", "x+i23", constMap )
+                          .evaluate( 100 ) );
     }
 
     public void testJELArrayFunction() throws CompilationException {
