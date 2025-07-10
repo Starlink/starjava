@@ -121,6 +121,7 @@ import uk.ac.starlink.ttools.plot2.data.MemoryColumnFactory;
 import uk.ac.starlink.ttools.plot2.data.SmartColumnFactory;
 import uk.ac.starlink.ttools.plot2.data.TupleRunner;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.util.SplitCollector;
 
@@ -206,6 +207,14 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         final CartesianRanger cartRanger = plotTypeGui.getCartesianRanger();
         dfltZone_ = zoneFact_.getDefaultZone();
         VariablePanel variablePanel = VariablePanel.getInstance();
+
+        /* Doctor plotters for use with topcat. */
+        for ( Plotter<?> plotter : plotType.getPlotters() ) {
+            if ( plotter instanceof FunctionPlotter ) {
+                ((FunctionPlotter) plotter).setConstantMap( variablePanel
+                                                           .getVariables() );
+            }
+        }
 
         /* Use a compositor with a fixed boost.  Maybe make the compositor
          * implementation controllable from the GUI at some point, but
