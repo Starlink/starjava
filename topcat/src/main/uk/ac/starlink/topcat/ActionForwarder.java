@@ -2,8 +2,8 @@ package uk.ac.starlink.topcat;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListDataEvent;
@@ -23,8 +23,7 @@ import javax.swing.event.ListDataListener;
 public class ActionForwarder
              implements ActionListener, ChangeListener, ListDataListener {
 
-    private final List<ActionListener> listeners_ =
-        new ArrayList<ActionListener>();
+    private final Collection<ActionListener> listeners_ = new LinkedHashSet<>();
 
     /**
      * Adds a new listener to the list of forwardees.
