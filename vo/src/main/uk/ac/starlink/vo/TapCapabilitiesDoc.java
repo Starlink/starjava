@@ -178,7 +178,12 @@ public class TapCapabilitiesDoc {
     public static TapCapability getTapCapability( Element capsEl )
             throws XPathExpressionException {
         XPath xpath = XPathFactory.newInstance().newXPath();
-        String capXpath = "capability[@standardID='ivo://ivoa.net/std/TAP']";
+
+        /* Jump through a hoop to do case-insensitive matching of the ivoid. */
+        String capXpath =
+            "capability[translate(@standardID,'IVOANETSDP',"
+                                           + "'ivoanetsdp')="
+                     + "'ivo://ivoa.net/std/tap']";
         Node capNode =
             (Node) xpath.evaluate( capXpath, capsEl, XPathConstants.NODE );
         if ( capNode == null ) {
