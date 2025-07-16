@@ -808,12 +808,17 @@ public class TopcatUtils {
     /**
      * Encodes a TopcatModel as a StarTable including per-table session
      * information, suitable for serialization.
+     * Optionally, the output table may include global information
+     * associated with the state of the application as a whole
+     * alongside state specific to the provided TopcatModel.
      *
      * @param  tcModel   model
+     * @param  withGlobals  if true, include global state in the output
      * @return   table
      */
-    public static StarTable encodeSession( TopcatModel tcModel ) {
-        StarTable table = DFLT_SESSION_ENCODER.encode( tcModel );
+    public static StarTable encodeSession( TopcatModel tcModel,
+                                           boolean withGlobals ) {
+        StarTable table = DFLT_SESSION_ENCODER.encode( tcModel, withGlobals );
         assert DFLT_SESSION_ENCODER.isEncoded( table );
         return table;
     }

@@ -67,7 +67,7 @@ public class TopcatCodec1 implements TopcatCodec {
     }
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
 
-    public StarTable encode( TopcatModel tcModel ) {
+    public StarTable encode( TopcatModel tcModel, boolean withGlobals ) {
 
         /* Prepare table data and metadata for use and adjustment. */
         final StarTable dataModel = tcModel.getDataModel();

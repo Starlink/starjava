@@ -30,11 +30,15 @@ public interface TopcatCodec {
 
     /**
      * Turns a TopcatModel into a StarTable, ready for serialization.
+     * Optionally, the output table may include global information
+     * associated with the state of the application as a whole
+     * alongside state specific to the provided TopcatModel.
      *
      * @param  tcModel  model
+     * @param  withGlobals  if true, include global state in the output
      * @return   table
      */
-    StarTable encode( TopcatModel tcModel );
+    StarTable encode( TopcatModel tcModel, boolean withGlobals );
 
     /**
      * Indicates whether a given table is a candidate for this codec's

@@ -153,7 +153,8 @@ public class CodecTest extends TableCase {
 
     private TopcatModel roundTrip( TopcatCodec codec, TopcatModel tcModel )
                                    throws IOException {
-        StarTable oTable = codec.encode( tcModel );
+        boolean withGlobals = false;
+        StarTable oTable = codec.encode( tcModel, withGlobals );
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         tWriter_.writeStarTable( oTable, bout );
         bout.close();

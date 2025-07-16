@@ -99,7 +99,7 @@ public class TopcatCodec2 implements TopcatCodec {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat" );
 
-    public StarTable encode( TopcatModel tcModel ) {
+    public StarTable encode( TopcatModel tcModel, boolean withGlobals ) {
 
         /* Prepare storage for columns and parameters in the output table. */
         List<DescribedValue> paramList = new ArrayList<DescribedValue>();
@@ -116,6 +116,12 @@ public class TopcatCodec2 implements TopcatCodec {
                                            CODEC_VERSION_VALUE ) );
         paramList.add( new DescribedValue( TCVERSION_INFO,
                                            TopcatUtils.getVersion() ) );
+
+        /* If required, record global information in the parameter list. */
+        if ( withGlobals ) {
+            paramList.addAll( encodeGlobalParameters( VariablePanel
+                                                     .getInstance() ) );
+        }
 
         /* Record label. */
         paramList.add( new DescribedValue( LABEL_INFO, tcModel.getLabel() ) );
@@ -313,6 +319,19 @@ public class TopcatCodec2 implements TopcatCodec {
                          "Error parsing TOPCAT session file: " + e, e );
             return null;
         }
+    }
+
+    /**
+     * Extracts application-wide state from the supplied ControlWindow,
+     * and encodes it in a list of DescribedValues that can be recorded
+     * in a table and later restored.
+     *
+     * @param  variablePanel  controls global variables
+     * @return   global application state encoded as parameter list
+     */
+    private List<DescribedValue>
+            encodeGlobalParameters( VariablePanel variablePanel ) {
+        return new ArrayList<DescribedValue>();
     }
 
     /**

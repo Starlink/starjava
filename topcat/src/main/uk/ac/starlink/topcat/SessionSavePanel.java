@@ -86,7 +86,9 @@ public class SessionSavePanel extends SavePanel {
         TopcatModel[] tcModels = tSelector_.getSelectedTables();
         StarTable[] tables = new StarTable[ tcModels.length ];
         for ( int i = 0; i < tcModels.length; i++ ) {
-            tables[ i ] = TopcatUtils.encodeSession( tcModels[ i ] );
+            boolean withGlobals = i == 0;
+            tables[ i ] =
+                TopcatUtils.encodeSession( tcModels[ i ], withGlobals );
         }
         return tables;
     }
