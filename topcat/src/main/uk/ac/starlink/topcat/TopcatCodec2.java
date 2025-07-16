@@ -13,6 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import org.json.JSONArray;
@@ -25,6 +26,8 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
+import uk.ac.starlink.util.DoubleList;
 
 /**
  * Second version of TopcatCodec implementation.
@@ -78,6 +81,13 @@ public class TopcatCodec2 implements TopcatCodec {
         createCodecInfo( "synthExprs", String[].class );
     private static final ValueInfo SYNTH_UTYPS_INFO =
         createCodecInfo( "synthUtypes", String[].class );
+
+    private static final ValueInfo VARS_NAME_INFO =
+        createCodecInfo( "variableNames", String[].class );
+    private static final ValueInfo VARS_TYPE_INFO =
+        createCodecInfo( "variableClasses", String[].class );
+    private static final ValueInfo VARS_VALUE_INFO =
+        createCodecInfo( "variableValues", double[].class );
 
     private static final String FLAGS_PREFIX = "flags_";
     private static final String SYNTHMETA_PREFIX = "synthmeta_";
@@ -331,7 +341,32 @@ public class TopcatCodec2 implements TopcatCodec {
      */
     private List<DescribedValue>
             encodeGlobalParameters( VariablePanel variablePanel ) {
-        return new ArrayList<DescribedValue>();
+
+        /* Prepare information about global variables. */
+        List<String> varNames = new ArrayList<>();
+        List<String> varTypes = new ArrayList<>();
+        DoubleList varValues = new DoubleList();
+        for ( Map.Entry<String,UserConstant<?>> entry :
+              variablePanel.getVariables().entrySet() ) {
+            String name = entry.getKey();
+            UserConstant<?> konst = entry.getValue();
+            Object varVal = konst.getValue();
+            if ( varVal instanceof Number ) {
+                varNames.add( name );
+                varTypes.add( konst.getContentClass().getName() );
+                varValues.add( ((Number) varVal).doubleValue() );
+            }
+        }
+
+        /* Return information in a parameter list. */
+        return Arrays.asList(
+            new DescribedValue( VARS_NAME_INFO,
+                                varNames.toArray( new String[ 0 ] ) ),
+            new DescribedValue( VARS_TYPE_INFO,
+                                varTypes.toArray( new String[ 0 ] ) ),
+            new DescribedValue( VARS_VALUE_INFO,
+                                varValues.toDoubleArray() )
+        );
     }
 
     /**
@@ -370,6 +405,34 @@ public class TopcatCodec2 implements TopcatCodec {
         /* Check the table looks like it has been serialized by this codec. */
         if ( ! isEncoded( pset ) ) {
             return null;
+        }
+
+        /* Restore encoded global variables if present. */
+        String[] varNames = (String[]) pset.getCodecValue( VARS_NAME_INFO );
+        String[] varTypes = (String[]) pset.getCodecValue( VARS_TYPE_INFO );
+        double[] varValues = (double[]) pset.getCodecValue( VARS_VALUE_INFO );
+        if ( varNames != null && varTypes != null && varValues != null ) {
+            int nvar = varNames.length;
+            VariablePanel varPanel = VariablePanel.getInstance();
+            for ( int ivar = 0; ivar < nvar; ivar++ ) {
+                String name = varNames[ ivar ];
+                double value = varValues[ ivar ];
+                Class<?> clazz;
+                try {
+                    clazz = Class.forName( varTypes[ ivar ] );
+                }
+                catch ( ClassNotFoundException e ) {
+                    logger_.warning( "Unsupported class " + varTypes[ ivar ]
+                                   + " for global variable " + name );
+                    clazz = null;
+                }
+                if ( clazz != null ) {
+                    Class<?> clazz0 = clazz;
+                    SwingUtilities.invokeLater( () ->
+                        setGlobalVariableValue( varPanel, name, clazz0, value )
+                    );
+                }
+            }
         }
 
         /* Get extra information required to reconstruct synthetic columns. */
@@ -838,6 +901,60 @@ public class TopcatCodec2 implements TopcatCodec {
         }
         if ( hasValues ) {
             paramList.add( new DescribedValue( info, arrayValue ) );
+        }
+    }
+
+    /**
+     * Sets the value for a variable with a given name.
+     *
+     * @param  varPanel  panel that manages variable settings
+     * @param  name   variable name
+     * @param  clazz   variable type; at time of writing this must be either
+     *                 Double or Integer
+     * @param  value   variable value
+     */
+    private void setGlobalVariableValue( VariablePanel varPanel, String name,
+                                         Class<?> clazz, double value ) {
+
+        /* If the variable already exists in the variables window,
+         * try to reset its value. */
+        UserConstant<?> konst = varPanel.getVariables().get( name );
+        if ( konst != null ) {
+            Specifier<?> specifier = varPanel.getSpecifier( konst );
+            Class<?> kclazz = konst.getContentClass();
+            if ( Integer.class.equals( kclazz ) ) {
+                @SuppressWarnings("unchecked")
+                Specifier<Integer> ispecifier = (Specifier<Integer>) specifier;
+                ispecifier.setSpecifiedValue( Integer.valueOf( (int) value ) );
+            }
+            else if ( Double.class.equals( kclazz ) ) {
+                @SuppressWarnings("unchecked")
+                Specifier<Double> dspecifier = (Specifier<Double>) specifier;
+                dspecifier.setSpecifiedValue( Double.valueOf( value ) );
+            }
+            else {
+                logger_.warning( "Unsupported type " + clazz
+                               + " for global variable " + konst.getName() );
+            }
+        }
+
+        /* Otherwise, add a new variable of the right type and initialise
+         * its value. */
+        else {
+            if ( Integer.class.equals( clazz ) ) {
+                UserConstant<Integer> ikonst =
+                    new UserConstant<>( Integer.class, name, (int) value );
+                varPanel.addIntegerVariable( ikonst );
+            }
+            else if ( Number.class.isAssignableFrom( clazz ) ) {
+                UserConstant<Double> dkonst =
+                    new UserConstant<>( Double.class, name, value );
+                varPanel.addDoubleVariable( dkonst );
+            }
+            else {
+                logger_.warning( "Unsupported type " + clazz
+                               + " for global variable " + name );
+            }
         }
     }
 
