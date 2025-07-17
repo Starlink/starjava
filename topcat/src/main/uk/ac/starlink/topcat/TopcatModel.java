@@ -35,6 +35,7 @@ import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -89,6 +90,7 @@ public class TopcatModel {
     private final Map<ValueInfo,ColumnSelectorModel> columnSelectorMap_;
     private final TableBuilder tableBuilder_;
     private final ActionListener variableListener_;
+    private String[] colIds_;
     private SortOrder sortOrder_;
     private boolean sortSense_;
     private ActivationWindow activationWindow_;
@@ -1185,6 +1187,46 @@ public class TopcatModel {
                 updateSubsetCount( rset, -1 );
             }
         }
+
+        /* If the content of any of the columns has changed since last time
+         * we looked, message the table view model.  This will trigger
+         * an update to the TableViewerWindow if any of the visible columns
+         * in the table have been affected by a variable change.
+         * Only bother looking at changes in the columns we've actually
+         * seen before, new columns will be messaged as a result of
+         * other actions. */
+        if ( colIds_ == null ) {
+            colIds_ = new String[ 0 ];
+        }
+        String[] colIds = getColumnContentIds();
+        for ( int ic = 0; ic < Math.min( colIds.length, colIds_.length );
+              ic++ ) {
+            if ( ! colIds[ ic ].equals( colIds_[ ic ] ) ) {
+                TableModelEvent evt =
+                    new TableModelEvent( viewModel_, 0,
+                                         viewModel_.getRowCount(), ic );
+                viewModel_.fireTableChanged( evt );
+            }
+        }
+        colIds_ = colIds;
+    }
+
+    /**
+     * Returns an array of strings providing a hash of the content for
+     * each column in the table.  This is sensitive to current values of
+     * global variables, so if those variables have changed these strings
+     * will change.
+     *
+     * @return   array of column content identifiers
+     */
+    private String[] getColumnContentIds() {
+        int ncol = dataModel_.getColumnCount();
+        String[] colIds = new String[ ncol ];
+        for ( int ic = 0; ic < ncol; ic++ ) {
+            ColumnData cdata = dataModel_.getColumnData( ic );
+            colIds[ ic ] = getColumnDataContentIdentifier( cdata );
+        }
+        return colIds;
     }
 
     /**
