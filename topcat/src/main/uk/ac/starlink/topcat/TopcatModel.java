@@ -80,7 +80,7 @@ public class TopcatModel {
     private final TableColumnModel columnModel_;
     private final ColumnList columnList_;
     private final OptionsListModel<RowSubset> subsets_;
-    private final Map<RowSubset,Long> subsetCounts_;
+    private final Map<RowSubset,LabelledCount> subsetCounts_;
     private final SingleRowSubset activatedSubset_;
     private final SortOrderSelector.Model sortSelectionModel_;
     private final ComboBoxModel<RowSubset> subsetSelectionModel_;
@@ -204,11 +204,10 @@ public class TopcatModel {
         subsetSelectionModel_ = new SubsetSelectionModel();
 
         /* Initialise count of subsets. */
-        subsetCounts_ = new HashMap<RowSubset,Long>();
-        subsetCounts_.put( RowSubset.NONE, Long.valueOf( 0 ) );
-        subsetCounts_.put( RowSubset.ALL,
-                           Long.valueOf( startab.getRowCount() ) );
-        subsetCounts_.put( activatedSubset_, Long.valueOf( 0 ) );
+        subsetCounts_ = new HashMap<RowSubset,LabelledCount>();
+        updateSubsetCount( RowSubset.NONE, 0 );
+        updateSubsetCount( RowSubset.ALL, startab.getRowCount() );
+        updateSubsetCount( activatedSubset_, 0 );
 
         /* Set up a map to contain column selector models. */
         columnSelectorMap_ = new HashMap<ValueInfo,ColumnSelectorModel>();
@@ -371,15 +370,21 @@ public class TopcatModel {
 
     /**
      * Returns the Map which contains the number of rows believed to be
-     * in each subset.  The keys of this map are the subsets themselves,
-     * and the values are Long objects giving the row counts.
-     * If the subset has not been counted, it will not appear in the map.
-     * The count in the map may not be accurate, if the table data or
-     * subset definitions have changed since the count was last done.
+     * in each subset.
+     *
+     * <p>The keys in the map are row subsets, and the values are labelled
+     * counts.  The count value is the number of rows believed to be
+     * in the subset or maybe -1 if not known, and the label is a hash
+     * for the subset content, equivalent to {@link RowSubset#getMaskId}
+     * at the time the subset was counted.  If this label is no longer
+     * equal to <code>RowSubset.getMaskId</code>, the count is probably
+     * incorrect.
+     *
+     * <p>If the subset has not been counted, it will not appear in the map.
      *
      * @return  subset count map
      */
-    public Map<RowSubset,Long> getSubsetCounts() {
+    public Map<RowSubset,LabelledCount> getSubsetCounts() {
         return subsetCounts_;
     }
 
@@ -907,10 +912,13 @@ public class TopcatModel {
      * Stores the known row count value for a given subset.
      *
      * @param  rset  subset
-     * @param  nrow  row count known for the subset
+     * @param  nrow  row count known for the subset, or -1 if not known
      */
     public void updateSubsetCount( RowSubset rset, long nrow ) {
-        subsetCounts_.put( rset, nrow >= 0 ? Long.valueOf( nrow ) : null );
+        LabelledCount lcount = nrow >= 0
+                             ? new LabelledCount( rset.getMaskId(), nrow )
+                             : null;
+        subsetCounts_.put( rset, lcount );
         int irset = subsets_.indexOf( rset );
         if ( irset >= 0 ) {
             subsets_.fireContentsChanged( irset, irset );

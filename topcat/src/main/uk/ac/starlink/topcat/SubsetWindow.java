@@ -43,7 +43,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
 
     private final TopcatModel tcModel;
     private final OptionsListModel<RowSubset> subsets;
-    private final Map<RowSubset,Long> subsetCounts;
+    private final Map<RowSubset,LabelledCount> subsetCounts;
     private final PlasticStarTable dataModel;
     private final MetaColumnTableModel subsetsTableModel;
     private final ToggleButtonModel autoCountModel;
@@ -369,7 +369,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
 
         /* Size column. */
         MetaColumn sizeCol = new MetaColumn( CNAME_SIZE, Long.class ) {
-            public Object getValue( int irow ) {
+            public Long getValue( int irow ) {
                 return getSubsetSize( irow );
             }
         };
@@ -385,10 +385,10 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
             }
             public Object getValue( int irow ) {
                 RowSubset rset = getSubset( irow );
-                Long count = subsetCounts.get( rset );
-                return count == null
+                LabelledCount lcount = subsetCounts.get( rset );
+                return lcount == null
                      ? null
-                     : fmt.format( count.doubleValue()
+                     : fmt.format( (double) lcount.getCount()
                                  / tcModel.getDataModel().getRowCount() );
             }
         };
@@ -517,12 +517,12 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
      * in the subsets list (row in the presentation table).
      *
      * @param   irow  index into subsets list (unsorted table model)
-     * @return  subset count object (probably a Number or null)
+     * @return  non-negative subset count or null
      */
-    private Object getSubsetSize( int irow ) {
+    private Long getSubsetSize( int irow ) {
         RowSubset rset = getSubset( irow );
-        Long count = subsetCounts.get( rset );
-        if ( count == null || count.longValue() < 0 ) {
+        LabelledCount lcount = subsetCounts.get( rset );
+        if ( lcount == null || lcount.getCount() < 0 ) {
 
             /* If the value is unknown and autocount mode is on, then kick
              * off a thread to count the included rows.  Make sure this is
@@ -541,7 +541,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
             return null;
         }
         else {
-            return count;
+            return Long.valueOf( lcount.getCount() );
         }
     }
 
@@ -782,12 +782,9 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
 
                         /* Update the subset counts. */
                         for ( int i = 0; i < nrset; i++ ) {
-                            subsetCounts.put( rsets[ i ],
-                                              Long.valueOf( counts[ i ] ) );
+                            tcModel.updateSubsetCount( rsets[ i ],
+                                                       counts[ i ] );
                         }
-
-                        /* Notify listeners that the counts have changed. */
-                        subsets.fireContentsChanged( 0, nrset - 1 );
 
                         /* Deactivate the progress bar. */
                         if ( activeCounter == SubsetCounter.this ) {

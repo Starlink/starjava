@@ -7,6 +7,7 @@ import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.RowData;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.topcat.LabelledCount;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.Slow;
@@ -181,8 +182,8 @@ public class GuiDataSpec extends AbstractDataSpec {
      * @return   row count or -1
      */
     public long getKnownRowCount() {
-        Long count = tcModel_.getSubsetCounts().get( subset_ );
-        return count == null ? -1L : count.longValue();
+        LabelledCount lcount = tcModel_.getSubsetCounts().get( subset_ );
+        return lcount == null ? -1L : lcount.getCount();
     }
 
     /**
@@ -216,7 +217,7 @@ public class GuiDataSpec extends AbstractDataSpec {
             }
 
             /* Having got the result, save it for later. */
-            tcModel_.getSubsetCounts().put( subset_, Long.valueOf( count ) );
+            tcModel_.updateSubsetCount( subset_, count );
             return count;
         }
     }
