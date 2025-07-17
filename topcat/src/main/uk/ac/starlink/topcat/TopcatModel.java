@@ -88,6 +88,7 @@ public class TopcatModel {
     private final Collection<TopcatListener> listeners_;
     private final Map<ValueInfo,ColumnSelectorModel> columnSelectorMap_;
     private final TableBuilder tableBuilder_;
+    private final ActionListener variableListener_;
     private SortOrder sortOrder_;
     private boolean sortSense_;
     private ActivationWindow activationWindow_;
@@ -233,6 +234,11 @@ public class TopcatModel {
         unsortAct_ = new ModelAction( "Unsort", ResourceIcon.UNSORT,
                                       "Use natural row order" );
 
+        /* Listen for global variable changes. */
+        variableListener_ = evt -> variableValuesChanged();
+        VariablePanel.getInstance()
+                     .addVariableValueListener( variableListener_ );
+
         /* Set up the listeners. */
         listeners_ = new ArrayList<TopcatListener>();
     }
@@ -242,6 +248,8 @@ public class TopcatModel {
      * be used again.
      */
     public void dispose() {
+        VariablePanel.getInstance()
+                     .removeVariableValueListener( variableListener_ );
     }
 
     /**
@@ -1159,6 +1167,24 @@ public class TopcatModel {
             colMap[ icol ] = columnModel_.getColumn( icol ).getModelIndex();
         }
         return new ColumnPermutedStarTable( viewModel_.getSnapshot(), colMap );
+    }
+
+    /**
+     * Called if global variable values may have changed.
+     */
+    private void variableValuesChanged() {
+
+        /* Invalidate subset counts for those subsets that have apparently
+         * been affected by the variable value changes. */
+        for ( Map.Entry<RowSubset,LabelledCount> entry :
+              subsetCounts_.entrySet() ) {
+            RowSubset rset = entry.getKey();
+            LabelledCount lcount = entry.getValue();
+            if ( lcount != null &&
+                 ! lcount.getLabel().equals( rset.getMaskId() ) ) {
+                updateSubsetCount( rset, -1 );
+            }
+        }
     }
 
     /**
