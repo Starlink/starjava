@@ -879,6 +879,7 @@ public class ControlWindow extends AuxWindow
             setViewsVisible( model, false );
             tablesList_.clearSelection();
             tablesModel_.removeElement( model );
+            model.dispose();
         }
     }
 

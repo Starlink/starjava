@@ -239,6 +239,13 @@ public class TopcatModel {
     }
 
     /**
+     * Releases resources on the assumption that this model will not
+     * be used again.
+     */
+    public void dispose() {
+    }
+
+    /**
      * Returns the location of the table described by this model.  
      * This is some indication of its provenance, and will not normally
      * change over its lifetime.
