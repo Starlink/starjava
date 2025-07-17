@@ -391,6 +391,69 @@ public class TopcatJELUtils extends JELUtils {
     }
 
     /**
+     * Returns a string characterising the content of the expression
+     * in the context of a given topcat model.
+     *
+     * <p>The returned string is likely to differ if the expression itself
+     * changes, or if the definitions of any expressions it depends on
+     * (synthetic columns or row subsets) change, or if any constants
+     * it depends on change.  This assessment is done recursively.
+     *
+     * <p>Collisions may be possible, but I think they're unlikely.
+     *
+     * @param  tcModel  topcat model
+     * @param  expr    expression to evaluate
+     * @return  opaque string that can be used to determine whether the
+     *          result of evaluating the expression will change
+     */
+    public static String getContentIdentifier( TopcatModel tcModel,
+                                               String expr ) {
+        TopcatJELRowReader rdr =
+            TopcatJELRowReader.createDummyReader( tcModel );
+        boolean activation = false;
+        Library lib = getLibrary( rdr, activation );
+        Set<String> seenExprs = new LinkedHashSet<>();
+        try {
+            recursiveCompile( expr, rdr, lib, seenExprs );
+        }
+        catch ( CompilationException e ) {
+            return "(error)";
+        }
+        StringBuffer sbuf = new StringBuffer();
+        for ( String seen : seenExprs ) {
+            sbuf.append( seen )
+                .append( "," );
+        }
+        for ( Constant<?> konst : rdr.getTranslatedConstants() ) {
+            if ( ! konst.requiresRowIndex() ) {
+                sbuf.append( konst.getValue() );
+            }
+        }
+        return sbuf.toString();
+    }
+
+    /**
+     * Recursively compiles an expression and any expressions it depends on.
+     *
+     * @param  expr  expression to compile
+     * @param  rdr   row reader for evaluation context
+     * @param  lib   library for evaluation context
+     * @param  seenExprs  list of expressions so far evaluated during this
+     *                    recursive compilation
+     */
+    private static void recursiveCompile( String expr, TopcatJELRowReader rdr,
+                                          Library lib, Set<String> seenExprs )
+            throws CompilationException {
+        Evaluator.compile( expr, lib );
+        seenExprs.add( expr );
+        for ( String subExpr : getReferencedExpressions( rdr ) ) {
+            if ( ! seenExprs.contains( subExpr ) ) {
+                recursiveCompile( subExpr, rdr, lib, seenExprs );
+            }
+        }
+    }
+
+    /**
      * Indicates whether a given JEL expression makes direct or indirect
      * reference to a named subset in a given topcat model.
      * If the expression cannot be compiled, or no subset with the given
