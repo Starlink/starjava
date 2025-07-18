@@ -54,6 +54,20 @@ public class TopcatEvent {
     public static final int SHOW_SUBSET = 9;
 
     /**
+     * Code indicating that the definition of one of the existing columns
+     * may have changed.  The datum is the relevant 
+     * {@link uk.ac.starlink.table.gui.StarTableColumn},
+     * if known (may be null).
+     */
+    public static final int COLUMN_DEF = 10;
+
+    /**
+     * Code indicating that the definition of one of the existing subsets
+     * may have changed.  The datum is the relevant {@link RowSubset}.
+     */
+    public static final int SUBSET_DEF = 11;
+
+    /**
      * Constructor.
      *
      * @param  model  the model which generated this event

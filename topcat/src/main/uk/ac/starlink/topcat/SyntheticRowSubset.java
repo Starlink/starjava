@@ -51,6 +51,7 @@ public class SyntheticRowSubset extends RowSubset {
                     .createEvaluator( tcModel_, expression, false,
                                       boolean.class );
         expression_ = expression;
+        tcModel_.fireModelChanged( TopcatEvent.SUBSET_DEF, this );
     }
 
     /**

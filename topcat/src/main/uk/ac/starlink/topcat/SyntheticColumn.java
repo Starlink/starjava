@@ -79,6 +79,9 @@ public class SyntheticColumn extends ColumnData {
         /* Store the value of the expression in the column metadata. */
         ValueInfo exprInfo = TopcatUtils.EXPR_INFO;
         colinfo.setAuxDatum( new DescribedValue( exprInfo, expression ) );
+
+        /* Notify listeners. */
+        tcModel_.fireModelChanged( TopcatEvent.COLUMN_DEF, null );
     }
 
     /**
