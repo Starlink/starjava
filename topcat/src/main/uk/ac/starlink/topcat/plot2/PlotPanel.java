@@ -261,6 +261,14 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     public void replot() {
 
+        /* Replot should only happen if this component is visible.
+         * If GUI actions continue to trigger replots after this window
+         * has been disposed or while it's iconified, we could be wasting
+         * a lot of resource. */
+        if ( ! TopcatUtils.isComponentVisible( this ) ) {
+            return;
+        }
+
         /* We create the plot job here and queue it for (slightly)
          * later execution on the (same) event dispatch thread.
          * The point of this is that it is common for a single user
