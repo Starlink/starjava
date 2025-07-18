@@ -6,6 +6,7 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.io.FileNotFoundException;
@@ -34,6 +35,7 @@ import java.util.regex.Pattern;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
@@ -643,6 +645,38 @@ public class TopcatUtils {
         Dimension prefSize = new Dimension( maxw, maxh );
         for ( int i = 0; i < comps.length; i++ ) {
             comps[ i ].setPreferredSize( prefSize );
+        }
+    }
+
+    /**
+     * Indicates whether the given window is currently visible.
+     * If it's disposed or iconified, this will return false.
+     * It can't detect whether it's hidden behind other windows though.
+     *
+     * @param   window  window to test
+     * @return   true if the window is potentially visible to the user
+     */
+    public static boolean isWindowVisible( JFrame window ) {
+        return window.isVisible()
+            && ( window.getExtendedState() & JFrame.ICONIFIED ) == 0;
+    }
+
+    /**
+     * Indicates whether the given component is currently visible.
+     * If its window is disposed or iconified, this will return false.
+     * It can't detect whether it's hidden behind other windows though.
+     *
+     * @param  component  component to test
+     * @return   true if the component is potentially visible to the user
+     */
+    public static boolean isComponentVisible( JComponent component ) {
+        if ( component.isShowing() ) {
+            Window window = SwingUtilities.getWindowAncestor( component );
+            return window instanceof JFrame
+                && isWindowVisible( (JFrame) window );
+        }
+        else {
+            return false;
         }
     }
 
