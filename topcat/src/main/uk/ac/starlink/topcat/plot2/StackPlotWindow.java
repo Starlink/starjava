@@ -575,12 +575,19 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * with data layers appropriate to this window's plot type. */
         TopcatListener tcListener = new TopcatListener() {
             public void modelChanged( TopcatEvent evt ) {
-                if ( evt.getCode() == TopcatEvent.ROW ) {
-                    Object datum = evt.getDatum();
-                    long lrow = datum instanceof Long
-                              ? ((Long) datum).longValue()
-                              : -1;
-                    highlightRow( evt.getModel(), lrow );
+                int code = evt.getCode();
+                if ( TopcatUtils.isWindowVisible( StackPlotWindow.this ) ) {
+                    if ( code == TopcatEvent.ROW ) {
+                        Object datum = evt.getDatum();
+                        long lrow = datum instanceof Long
+                                  ? ((Long) datum).longValue()
+                                  : -1;
+                        highlightRow( evt.getModel(), lrow );
+                    }
+                    else if ( code == TopcatEvent.COLUMN_DEF ||
+                              code == TopcatEvent.SUBSET_DEF ) {
+                        dataChangedReplot();
+                    }
                 }
             }
         };
