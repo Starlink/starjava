@@ -533,7 +533,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>7 March 2025</docdate>
+<docdate>30 July 2025</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -5822,12 +5822,13 @@ functions.  They are grouped as follows:
 
     <dt>&IMG.FUNCTION; <ref id="MethodWindow">Available Functions</ref></dt>
     <dd><p>Displays a window containing all the functions which can be used 
-        for writing algebraic expressions (see <ref id="jel"/>).
+        for writing <ref id="jel">algebraic expressions</ref>.
         </p></dd>
 
-    <dt>&IMG.SLIDERS; <ref id="VariableWindow">Variables Window</ref></dt>
+    <dt>&IMG.SLIDERS; <ref id="VariableWindow">Global Variables</ref></dt>
     <dd><p>Displays a window that allows you to change the values of
-        global variables that can be referenced in algebraic expressions.
+        global variables that can be referenced in
+        <ref id="jel">algebraic expressions</ref>.
         </p></dd>
 
     <dt>&IMG.HELP; <ref id="HelpWindow">Help</ref></dt>
@@ -7790,7 +7791,7 @@ contains the following actions (repeated in the menus):
     If set true (the default) you can immediately see the effect of
     adjusting global variables with the slider etc.
     This is usually a good thing, but if there are very large or numerous
-    plots it can result in slowing things down.
+    plots dependent on the changed values it can result in slowing things down.
     By setting this false, the plot here will not automatically react to
     variable/subset/column changes, but you can replot taking into
     account the current variable values
@@ -14699,9 +14700,9 @@ user-configurable options.  The options are:
                 <label>histogram</label>,
                 <label>logarithmic histogram</label>,
                 <label>asinh</label>,
-                <label>square</label> and
+                <label>square</label>,
                 <label>square root</label>,
-                <label>arc cosine</label>,
+                <label>arc cosine</label> and
                 <label>cosine</label>.
     </p></dd>
 <dt>Density Subrange</dt>
@@ -14968,9 +14969,9 @@ though only one can have an associated visible ramp.
                 <label>histogram</label>,
                 <label>logarithmic histogram</label>,
                 <label>asinh</label>,
-                <label>square</label> and
+                <label>square</label>,
                 <label>square root</label>,
-                <label>arc cosine</label>,
+                <label>arc cosine</label> and
                 <label>cosine</label>.
     </p></dd>
 <dt>Null Colour</dt>
@@ -27815,13 +27816,14 @@ in the main <ref id="ControlWindow">Control Window</ref>
 or the equivalent menu option in its <label>File</label> menu.
 </p>
 
-<p>The variables controlled here can be used in the expression language
+<p>The variables controlled here can be used in the
+<ref id="jel">expression language</ref>,
 for instance when defining new synthetic
 <ref id="SyntheticColumnQueryWindow">columns</ref> and
 <ref id="SyntheticSubsetQueryWindow">subsets</ref>,
 or in <ref id="columnSelector">column selectors</ref>
 such as those used for plot coordinates,
-or for the funcction expression in
+or for the function expression in
 <ref id="FunctionLayerControl">function plots</ref>.
 Adjusting the values of the variables in this window will then have
 an instant effect on the columns, subsets and plots that depend on them.
@@ -34749,79 +34751,98 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v4.10-4">Version 4.10-4 (30 July 2025)</dt>
 <dd><p>
-    <ul>
-    <li>Fix <ref id="Maths-asinh"><code>asinh</code></ref> function
-        to cope with large negative numbers.</li>
-    <li>Disallow overwriting of standard Row Subsets
-        (All and Activated).</li>
-    <li>The <ref id="CdsUploadMatchWindow">CDS Upload X-Match Window</ref>
-        now reports a warning on completion
-        if match block results have been truncated.</li>
-    <li>Quote column names from tap_schema tables where necessary
-        during tap_schema-based TAP metadata acquisition.</li>
-    <li>Fix <ref id="HelpWindow">Help Browser</ref> so that it
-        follows links to in-section targets.</li>
-    <li>Provide more <ref id="ScaleType">axis scaling options</ref>:
-        <label>asinh</label> and <label>symlog</label> as well as
-        <label>linear</label> and <label>log</label>.</li>
-    <li>New option Asinh for <ref id="ShaderControl">Aux Axis</ref>
-        <label>Scaling</label> function.</li>
-    <li>You can now copy text from cells
-        in the <ref id="StatsWindow">Statistics Window</ref>.</li>
-    <li><ref id="order">Row sorting</ref> is now done asynchronously
-        to improve GUI responsiveness.</li>
-    <li>Add <code>kvmap</code> config option to
-        <ref id="outParquet">parquet output handler</ref>.</li>
-    <li>Fix <code>ivoa_cookie</code> authentication handling
-        to work in presence of multiple cookies.</li>
-    <li>Recognise "<code>right_ascension</code>" and
-        "<code>declination</code>" column names in coordinate
-        heuristics.</li>
-    <li>Improve TAP metadata table name fix guessing.</li>
-    <li>Update Ucidy library to v1.4;
-        <ref id="VO-ucdStatus">UCD validation</ref> is now done based on
-        <webref url="https://www.ivoa.net/documents/UCD1+/20241218/"
-                >v1.6 of the UCD1+ list of terms</webref>.</li>
-    <li>VOTable and related output handlers can now write
-        String-array-valued columns with unknown element length
-        (previously they sometimes just refused).</li>
-    <li>Fix bug when writing long HIERARCH FITS headers
-        that could cause output failure.</li>
-    <li>Add new <code>delimiter</code> config option to
-        <ref id="inCsv">CSV input</ref> and
-        <ref id="outCsv">CSV output</ref> handlers.</li>
-    <li>Add new <code>notypes</code> config option to
-        <ref id="inCsv">CSV</ref> and <ref id="inAscii">ASCII</ref>
-        input handlers; this gives more control over datatypes
-        inferred when reading tables.</li>
-    <li>New activation action
-        <ref id="ViewUrlActivationType">View URL</ref>.</li>
-    <li>Modify the default ("Auto") <label>metadata acquisition</label>
-        policy used by the <ref id="TapTableLoadDialog">TAP window</ref>;
-        it's now more likely to use VOSI tables than TAP_SCHEMA
-        queries.
-        This may make metadata reading a bit faster,
-        and for some services picks up metadata better.</li>
-    <li>Fix some bugs in plot commands generated by the
-        <ref id="StiltsControl">STILTS Control</ref>.</li>
-    <li>Introduce <ref id="UserConstant">Global Variables</ref>
-        into the expression language, adjustable using the
-        <ref id="VariableWindow">Variables Window</ref>.</li>
-    <li>New toolbar toggle button
-        <label>Replot on Data Change</label>
-        in <ref id="StackPlotWindow">plot windows</ref>
-        to control whether global variable changes
-        instantly affect plots.
-        This button replaces the <label>Show Plot Progress</label>
-        toggle button, which can still be found
-        in the <label>Plot</label> menu.</li>
-    <li>Editing expressions for synthetic Columns and Row Subsets
-        now instantly affects any plots depending on them
-        (unless inhibited by <label>Replot on Data Change</label>
-        selection).</li>
-    </ul>
+    <dl>
+    <dt>New functionality</dt>
+    <dd><p>
+        <ul>
+        <li>Provide more <ref id="ScaleType">axis scaling options</ref>:
+            <label>asinh</label> and <label>symlog</label> as well as
+            <label>linear</label> and <label>log</label>.
+            These support axis scaling over a wide dynamic range
+            in both positive and negative directions.</li>
+        <li>Introduce <ref id="UserConstant">Global Variables</ref>
+            into the expression language, interactively adjustable using
+            the <ref id="VariableWindow">Variables Window</ref>.</li>
+        <li>New toolbar toggle button
+            <label>Replot on Data Change</label>
+            in <ref id="StackPlotWindow">plot windows</ref>
+            to control whether global variable and subset/column changes
+            instantly affect plots.
+            This button replaces the <label>Show Plot Progress</label>
+            toggle button, which can still be found
+            in the <label>Plot</label> menu.</li>
+        <li>New option Asinh for <ref id="ShaderControl">Aux Axis</ref>
+            <label>Scaling</label> function.</li>
+        <li>New activation action
+            <ref id="ViewUrlActivationType">View URL</ref>.</li>
+        <li>You can now copy/paste text from cells
+            in the <ref id="StatsWindow">Statistics Window</ref>.</li>
+        <li>New <code>delimiter</code> config option for
+            <ref id="inCsv">CSV input</ref> and
+            <ref id="outCsv">CSV output</ref> handlers
+            to support non-comma delimiters.</li>
+        <li>New <code>notypes</code> config option for
+            <ref id="inCsv">CSV</ref> and <ref id="inAscii">ASCII</ref>
+            input handlers; this gives more control over datatypes
+            inferred when reading tables.</li>
+        <li>New <code>kvmap</code> config option for
+            <ref id="outParquet">parquet output handler</ref>.</li>
+        </ul>
+        </p></dd>
+    <dt>Other enhancements and behaviour changes</dt>
+    <dd><p>
+        <ul>
+        <li>Modify the default ("Auto") <label>metadata acquisition</label>
+            policy used by the <ref id="TapTableLoadDialog">TAP window</ref>;
+            it's now more likely to use the VOSI <code>tables</code> endpoint
+            than <code>TAP_SCHEMA</code> queries.
+            This may make metadata reading a bit faster,
+            and for some services picks up metadata better.</li>
+        <li>Editing expressions for synthetic Columns and Row Subsets
+            now instantly affects any plots depending on them
+            (unless inhibited by <label>Replot on Data Change</label>
+            selection).</li>
+        <li><ref id="order">Row sorting</ref> is now done asynchronously
+            to improve GUI responsiveness.</li>
+        <li>Disallow overwriting of standard Row Subsets
+            (All and Activated).</li>
+        <li>The <ref id="CdsUploadMatchWindow">CDS Upload X-Match Window</ref>
+            now reports a warning on completion
+            if match block results have been truncated.</li>
+        <li>Coordinate heuristics now recognise column names
+            "<code>right_ascension</code>" and "<code>declination</code>"
+            (as seen in Euclid tables).</li>
+        <li>Improve TAP metadata table name fix guessing.</li>
+        <li>Update Ucidy library to v1.4;
+            <ref id="VO-ucdStatus">UCD validation</ref> is now done based on
+            <webref url="https://www.ivoa.net/documents/UCD1+/20241218/"
+                    >v1.6 of the UCD1+ list of terms</webref>.</li>
+        <li>VOTable and related output handlers can now write
+            String-array-valued columns with unknown element length
+            (previously they sometimes just refused).</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fix <code>ivoa_cookie</code> authentication handling
+            to work in presence of multiple cookies.</li>
+        <li>Fix <ref id="HelpWindow">Help Browser</ref> so that it
+            follows links to in-section targets.</li>
+        <li>Fix some bugs in plot commands generated by the
+            <ref id="StiltsControl">STILTS Control</ref>.</li>
+        <li>Fix <ref id="Maths-asinh"><code>asinh</code></ref> function
+            to cope with large negative numbers.</li>
+        <li>Quote column names from <code>tap_schema</code> tables
+            where necessary during <code>tap_schema</code>-based
+            TAP metadata acquisition.</li>
+        <li>Fix bug when writing long <code>HIERARCH</code> FITS headers
+            that could cause output failure.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
