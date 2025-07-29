@@ -173,7 +173,7 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
             "</p>",
             scalingKey_.getOptionsXml(),
             "<p>For all these options,",
-            "the full range of data values is used,",
+            "the full range of valid data values is used,",
             "and displayed on the colour bar",
             ( hasDataclip
               ? "if applicable"
@@ -181,6 +181,10 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
                 + " <code>" + dataclipKey_.getMeta().getShortName() + "</code>"
                 + " option)"
               : "if applicable." ),
+            "Note that logarithmic-based options",
+            "<code>" + Scaling.LOG + "</code> and",
+            "<code>" + Scaling.HISTOLOG + "</code>",
+            "will ignore non-positive values.",
             "The <code>" + Scaling.LINEAR + "</code>,",
                 "<code>" + Scaling.LOG + "</code>,",
                 "<code>" + Scaling.SQUARE + "</code> and",

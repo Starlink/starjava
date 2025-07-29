@@ -138,7 +138,9 @@ public class Scalings {
      * @return  logarithmic scaling
      */
     static Scaling.RangeScaling createLogScaling( String name ) {
-        return new ClippedScaling( name, "Logarithmic scaling", true ) {
+        return new ClippedScaling( name,
+                                   "Logarithmic scaling, positive values only",
+                                   true ) {
             final Scaling type = this;
             public Scaler createClippedScaler( double lo, double hi ) {
                 final double xlo;
@@ -221,7 +223,9 @@ public class Scalings {
      * @return  asinh scaling
      */
     static Scaling.RangeScaling createAsinhScaling( String name ) {
-        return new ClippedScaling( name, "Asinh scaling", false ) {
+        String descrip = "Asinh scaling, wide dynamic range"
+                       + " for both positive and negative values";
+        return new ClippedScaling( name, descrip, false ) {
             final Scaling type = this;
             public Scaler createClippedScaler( double lo, double hi ) {
                 double amax = Math.max( Math.abs( lo ), Math.abs( hi ) );
@@ -267,7 +271,7 @@ public class Scalings {
      * @return   arccos scaling
      */
     static Scaling.RangeScaling createAcosScaling( String name ) {
-        return new ReScaling( name, "Arccos Scaling", LINEAR,
+        return new ReScaling( name, "Inverse cosine Scaling", LINEAR,
                               new DefaultScaler( false, 0, 1, ACOS_TYPE ) {
                                   public double scaleValue( double val ) {
                                       return Math.acos( 1 - 2 * val ) / Math.PI;
@@ -283,7 +287,7 @@ public class Scalings {
      * @return   cos scaling
      */
     static Scaling.RangeScaling createCosScaling( String name ) {
-        return new ReScaling( name, "Cos Scaling", LINEAR,
+        return new ReScaling( name, "Cosine Scaling", LINEAR,
                 new DefaultScaler( false, 0, 1, COS_TYPE ) {
                     public double scaleValue( double val ) {
                         return 0.5 * ( 1 + Math.cos( ( 1 + val ) * Math.PI ) );
@@ -303,7 +307,8 @@ public class Scalings {
                                     final boolean isLogLike ) {
         final String descrip = "Scaling follows data distribution, with "
                              + ( isLogLike ? "logarithmic" : "linear" )
-                             + " axis";
+                             + " axis"
+                             + ( isLogLike ? ", positive values only" : "" );
         return new Scaling.HistogramScaling() {
             public String getName() {
                 return name;
