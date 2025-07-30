@@ -240,8 +240,8 @@ public class CardFactory {
             if ( config_.allowTrim() ) {
                 String trimmed =
                     trimLiteralString( literal, 80 - sbuf.length() );
-                logger_.warning( "Trim overlength value for " + key
-                               + " (" + literal + " -> " + trimmed + ")" );
+                logger_.info( "Trim overlength value for " + key
+                            + " (" + literal + " -> " + trimmed + ")" );
                 sbuf.append( trimmed );
             }
             else {
