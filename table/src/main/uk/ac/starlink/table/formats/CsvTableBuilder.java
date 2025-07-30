@@ -22,7 +22,7 @@ public class CsvTableBuilder extends RowEvaluatorTableBuilder {
 
     public CsvTableBuilder() {
         super( new String[] { "csv" } );
-        setDelimiter( ',' );
+        delimiter_ = ',';
     }
 
     public String getFormatName() {

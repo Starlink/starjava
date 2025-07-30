@@ -30,7 +30,7 @@ public abstract class RowEvaluatorTableBuilder extends DocumentedTableBuilder {
      */
     protected RowEvaluatorTableBuilder( String[] extensions ) {
         super( extensions );
-        setDecoders( RowEvaluator.getStandardDecoders() );
+        decoders_ = RowEvaluator.getStandardDecoders();
     }
 
     public boolean canImport( DataFlavor flavor ) {
