@@ -58,6 +58,7 @@ public class VariablePanel extends JPanel {
     /**
      * Constructor.
      */
+    @SuppressWarnings("this-escape")
     protected VariablePanel() {
         super( new BorderLayout() );
         varListModel_ = new DefaultListModel<UserConstant<?>>();

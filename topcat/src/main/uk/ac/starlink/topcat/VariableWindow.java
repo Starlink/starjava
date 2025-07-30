@@ -20,6 +20,7 @@ public class VariableWindow extends AuxWindow {
      * @param  parent  parent component
      * @param   vpanel  variable panel
      */
+    @SuppressWarnings("this-escape")
     public VariableWindow( Component parent, VariablePanel vpanel ) {
         super( "Global Variables", parent );
         JComponent mainPanel = getMainArea();
