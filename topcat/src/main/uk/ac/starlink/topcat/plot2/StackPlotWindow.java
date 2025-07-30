@@ -353,6 +353,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                    "Automatically redraw plot when global "
                                  + "variables or table columns/subsets change");
         watchVarsModel_.setSelected( true );
+        watchVarsModel_.addActionListener( evt -> {
+            if ( watchVarsModel_.isSelected() ) {
+                plotPanel_.replot();
+            }
+        } );
         watchVarsButton_ = watchVarsModel_.createToolbarButton();
         watchVarsTimer_ =
             new Timer( 250, evt -> watchVarsButton_
