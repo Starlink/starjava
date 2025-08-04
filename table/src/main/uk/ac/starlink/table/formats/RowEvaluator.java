@@ -48,17 +48,7 @@ public class RowEvaluator {
     );
 
     /** Decoder for values that are all blank. */
-    public static final Decoder<Void> BLANK_DECODER =
-            new Decoder<Void>( Void.class, "blank" ) {
-        private Pattern blankRegex_ = Pattern.compile( " *" );
-        public Void decode( String value ) {
-            return null;
-        }
-        public boolean isValid( String value ) {
-            return value == null
-                || blankRegex_.matcher( value ).matches();
-        }
-    };
+    public static final Decoder<?> BLANK_DECODER = createBlankDecoder( "blank");
 
     /** Decoder for booleans. */
     public static final Decoder<Boolean> BOOLEAN_DECODER =
@@ -465,6 +455,36 @@ public class RowEvaluator {
     public static Decoder<?>[] getStandardDecoders() {
         return DECODERS.clone();
     }
+
+    /**
+     * Creates a decoder for a column that will have all null values.
+     *
+     * <p>The result is a String-typed decoder.
+     * That's not completely satisfactory (it would be nicer if it were
+     * Void-typed), but it has to have some type for it to be turned
+     * into a column by various typed output formats.
+     * It ought really to declare its string lengths to be fixed at zero,
+     * but zero is an unexpected value for
+     * {@link uk.ac.starlink.table.ValueInfo#getElementSize}
+     * (as Void is an unexpected value for
+     * {@link uk.ac.starlink.table.ValueInfo#getContentClass})
+     * so it may not be handled well by all output handlers; don't risk it.
+     *
+     * @param  name  decoder name
+     * @return  new decoder
+     */
+    private static Decoder<String> createBlankDecoder( String name ) {
+        return new StringDecoder( name ) {
+            private Pattern blankRegex_ = Pattern.compile( " *" );
+            public String decode( String value ) {
+                return null;
+            }
+            public boolean isValid( String value ) {
+                return value == null
+                    || blankRegex_.matcher( value ).matches();
+            }
+        };
+    };
 
     /**
      * Helper class used to group quantities which describe what the

@@ -15876,6 +15876,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix regression issue (v3.5-3)
+        that caused output trouble for tables read from ASCII/CSV files
+        including completely blank columns.</li>
     </ul>
     </p></dd>
 
