@@ -54,7 +54,7 @@ public class TextTest extends TestCase {
             throws IOException {
         StarTable table =
             builder.makeStarTable( datsrc, true, StoragePolicy.PREFER_MEMORY );
-        assertEquals( 6, table.getColumnCount() );
+        assertEquals( 7, table.getColumnCount() );
         assertEquals( 5, table.getRowCount() );
         if ( ! ( builder instanceof CsvTableBuilder ) ) {
             assertTrue( ((String) table.getParameterByName( "Description" )
@@ -92,6 +92,9 @@ public class TextTest extends TestCase {
                     assertEquals( "String", name );
                     assertEquals( 6, cinfo.getElementSize() );
                     break;
+                case 6:
+                    assertEquals( "blank", name );
+                    break;
                 default:
                     fail();
             }
@@ -116,24 +119,24 @@ public class TextTest extends TestCase {
         }
         lines.add(
               isCsv
-            ? "Short,Integer,Float,Double,Boolean,String" 
-            : "# Short  Integer   Float     Double        Boolean   String"
+            ? "Short,Integer,Float,Double,Boolean,String,blank" 
+            : "# Short  Integer  Float    Double       Boolean   String blank"
         );
         if ( !isCsv ) {
             lines.add( "#" );
         }
         for ( String dataLine : new String[] {
-                "      1       12  0.1000     3.14          true      123   ",
-                "     -1      -12 -0.1000    -3.14          false     ''    ",
-                "  31000    33000  3.1415e00  3.14159265    false     3f1415 ",
-                "  31000    33000  3.1415d0   3.14159265    false     3f1415 ",
+                "      1    12  0.1000     3.14        true    123    ''",
+                "     -1   -12 -0.1000    -3.14        false   ''     ''",
+                "  31000 33000  3.1415e00  3.14159265  false   3f1415 ''",
+                "  31000 33000  3.1415d0   3.14159265  false   3f1415 ''",
               } ) {
             lines.add( isCsv ? dataLine.trim().replaceAll( " +", "," )
                              : dataLine );
         }
         lines.add( isCsv
-            ? ",,,,,"
-            : "     ''       ''  ''         ''            \"\"      ' '  "
+            ? ",,,,,,"
+            : "     ''       ''  ''         ''            \"\"      ' '  ''  "
         );
         StringBuffer sbuf = new StringBuffer();
         for ( String line : lines ) {
