@@ -371,7 +371,8 @@ public abstract class VOSerializer {
             pinfo.setNullable( Tables.isBlank( pvalue ) );
 
             /* Try to write it as a typed PARAM element. */
-            Encoder encoder = Encoder.getEncoder( pinfo, false, false );
+            Encoder encoder =
+                Encoder.getEncoder( pinfo, version_, false, false );
             if ( encoder != null ) {
                 String valtext = encoder.encodeAsText( pvalue );
                 String content = encoder.getFieldContent();
@@ -1261,20 +1262,23 @@ public abstract class VOSerializer {
      * one of the native formats (BINARY or TABLEDATA).
      *
      * @param  table  the table to characterise
+     * @param  version   version of output VOTable format
+     * @param  magicNulls   if true, encode nulls using magic values
      * @return  an array of encoders used for encoding its data
      */
     private static Encoder[] getEncoders( StarTable table,
+                                          VOTableVersion version,
                                           boolean magicNulls ) {
         int ncol = table.getColumnCount();
         Encoder[] encoders = new Encoder[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo info = table.getColumnInfo( icol );
-            boolean isUnicode =
-                "unicodeChar"
-               .equals( info.getAuxDatumValue( VOStarTable.DATATYPE_INFO,
-                                               String.class ) );
+            boolean useUnicodeChar =
+                   "unicodeChar"
+                  .equals( info.getAuxDatumValue( VOStarTable.DATATYPE_INFO,
+                                                  String.class ) );
             encoders[ icol ] =
-                Encoder.getEncoder( info, magicNulls, isUnicode );
+                Encoder.getEncoder( info, version, magicNulls, useUnicodeChar );
             if ( encoders[ icol ] == null ) {
                 logger.warning( "Can't serialize column " + info + " of type " +
                                 info.getContentClass().getName() );
@@ -1328,7 +1332,7 @@ public abstract class VOSerializer {
         TabledataVOSerializer( StarTable table, VOTableVersion version,
                                boolean magicNulls ) {
             super( table, DataFormat.TABLEDATA, version );
-            encoders = getEncoders( table, magicNulls );
+            encoders = getEncoders( table, version, magicNulls );
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
@@ -1544,7 +1548,7 @@ public abstract class VOSerializer {
         BinaryVOSerializer( StarTable table, VOTableVersion version,
                             boolean magicNulls ) {
             super( table, DataFormat.BINARY, version, "BINARY" );
-            encoders = getEncoders( table, magicNulls );
+            encoders = getEncoders( table, version, magicNulls );
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
@@ -1579,7 +1583,7 @@ public abstract class VOSerializer {
         Binary2VOSerializer( StarTable table, VOTableVersion version,
                              boolean magicNulls ) {
             super( table, DataFormat.BINARY2, version, "BINARY2" );
-            encoders = getEncoders( table, magicNulls );
+            encoders = getEncoders( table, version, magicNulls );
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
@@ -1633,12 +1637,14 @@ public abstract class VOSerializer {
     private static class FITSVOSerializer extends StreamableVOSerializer {
 
         private final FitsTableSerializer fitser;
+        private final VOTableVersion version_;
 
         FITSVOSerializer( StarTable table, VOTableVersion version,
                           FitsTableSerializer fitser )
                 throws IOException {
             super( table, DataFormat.FITS, version, "FITS" );
             this.fitser = fitser;
+            version_ = version;
         }
 
         @Override
@@ -1670,7 +1676,7 @@ public abstract class VOSerializer {
                     /* Get the basic information for this column. */
                     Encoder encoder =
                         Encoder.getEncoder( getTable().getColumnInfo( icol ),
-                                            true, false );
+                                            version_, true, false );
                     String content = encoder.getFieldContent();
                     Map<String,String> atts =
                         getFieldAttributes( encoder, getVersion(),

@@ -250,13 +250,15 @@ abstract class Encoder {
      *
      * @param   info  a description of the type of value which needs to
      *          be encoded
+     * @param   version   output VOTable version
      * @param   magicNulls  if true, the returned encoder may attempt to use
      *          a magic value to signify null values; if false, it never will
      * @param   useUnicodeChar  if true, character-type columns will be output
      *          with datatype unicodeChar, else with datatype char
      * @return  an encoder object which can do it
      */
-    public static Encoder getEncoder( ValueInfo info, boolean magicNulls,
+    public static Encoder getEncoder( ValueInfo info, VOTableVersion version,
+                                      boolean magicNulls,
                                       boolean useUnicodeChar ) {
 
         final CharWriter cwrite = useUnicodeChar ? CharWriter.UCS2
