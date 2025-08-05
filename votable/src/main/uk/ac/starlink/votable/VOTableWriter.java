@@ -594,7 +594,7 @@ public class VOTableWriter
      */
     @ConfigMethod(
         property = "version",
-        usage = "1.0|1.1|1.2|1.3|1.4|1.5",
+        usage = "1.0|1.1|1.2|1.3|1.4|1.5|1.6",
         example = "1.3",
         doc = "<p>Gives the version of the VOTable format which will be used "
             + "when writing the VOTable.\n"

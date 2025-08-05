@@ -38,6 +38,9 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
     /** VOTable 1.5. */
     public static final VOTableVersion V15;
 
+    /** VOTable 1.6. */
+    public static final VOTableVersion V16;
+
     private static final Map<String,VOTableVersion> VERSION_MAP =
         Collections.unmodifiableMap( createMap( new VOTableVersion[] {
             V10 = new VersionLike10( "1.0" ),
@@ -46,6 +49,7 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
             V13 = new VersionLike13( "1.3" ),
             V14 = new VersionLike14( "1.4" ),
             V15 = new VersionLike15( "1.5" ),
+            V16 = new VersionLike16( "1.6", "WD-VOTable-1.6-20260413" ),
         } ) );
 
     /** 
@@ -515,6 +519,31 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
         @Override
         public boolean allowCoosysRefposition() {
             return true;
+        }
+    }
+
+    /**
+     * VOTable 1.6-like version instance.
+     */
+    private static class VersionLike16 extends VersionLike15 {
+
+        private final String draftIdentifier_;
+
+        /**
+         * Constructor.
+         *
+         * @param version  version number
+         * @param draftIdentifier  non-final draft=version identifier,
+         *                         or null for REC status
+         */
+        VersionLike16( String version, String draftIdentifier ) {
+            super( version );
+            draftIdentifier_ = draftIdentifier;
+        }
+
+        @Override
+        public String getDraftIdentifier() {
+            return draftIdentifier_;
         }
     }
 }

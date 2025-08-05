@@ -22,6 +22,7 @@ public abstract class VersionDetail {
     private static final VersionDetail V13;
     private static final VersionDetail V14;
     private static final VersionDetail V15;
+    private static final VersionDetail V16;
     private static final VersionDetail DUMMY = new DummyVersionDetail();
     private static final Map<VOTableVersion,VersionDetail> VERSION_MAP =
             createMap( new VersionDetail[] {
@@ -31,6 +32,7 @@ public abstract class VersionDetail {
         V13 = new VersionDetail13( VOTableVersion.V13 ),
         V14 = new VersionDetail14( VOTableVersion.V14 ),
         V15 = new VersionDetail15( VOTableVersion.V15 ),
+        V16 = new VersionDetail16( VOTableVersion.V16 ),
     } );
 
     /**
@@ -472,6 +474,25 @@ public abstract class VersionDetail {
                          new VocabAttributeChecker( VocabChecker.REFPOSITION ));
             }
             return map;
+        }
+    }
+
+    /**
+     * VersionDetail implementation for VOTable 1.6.
+     */
+    private static class VersionDetail16 extends VersionDetail {
+
+        VersionDetail16( VOTableVersion version ) {
+            super( version );
+        }
+
+        protected ElementHandler createElementHandler( String name ) {
+            return V15.createElementHandler( name );
+        }
+
+        protected Map<String,AttributeChecker>
+                createAttributeCheckers( String name ) {
+            return V15.createAttributeCheckers( name );
         }
     }
 

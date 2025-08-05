@@ -34,6 +34,7 @@ public class VOTableVersionTest extends TestCase {
             VOTableVersion.V13,
             VOTableVersion.V14,
             VOTableVersion.V15,
+            VOTableVersion.V16,
         } ), new ArrayList<VOTableVersion>( versions ) );
         SortedSet<VOTableVersion> sortedVersions =
             new TreeSet<VOTableVersion>( versions );
