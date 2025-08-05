@@ -227,6 +227,18 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
     public abstract boolean forbidArraysize1();
 
     /**
+     * Indicates whether the char datatype contains UTF-8 bytes.
+     *
+     * <p>If true, the <code>char</code> datatype holds Unicode,
+     * encoded as UTF-8 in the BINARY/BINARY2 serializations.
+     * if false, they are 7-bit ASCII characters.
+     * If true, the unicodeChar datatype is deprecated.
+     *
+     * @return true iff the char datatype holds Unicode characters
+     */
+    public abstract boolean isCharUnicode();
+
+    /**
      * Returns a number-&gt;version map for all known versions.
      * The map keys are version number strings like "1.1".
      * The order of entries in this map is in ascending order
@@ -342,6 +354,9 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
             return false;
         }
         public boolean forbidArraysize1() {
+            return false;
+        }
+        public boolean isCharUnicode() {
             return false;
         }
         public Schema getSchema() {
@@ -544,6 +559,11 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
         @Override
         public String getDraftIdentifier() {
             return draftIdentifier_;
+        }
+
+        @Override
+        public boolean isCharUnicode() {
+            return true;
         }
     }
 }
