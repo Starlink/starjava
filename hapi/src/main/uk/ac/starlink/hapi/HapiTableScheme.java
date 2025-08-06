@@ -70,7 +70,7 @@ public class HapiTableScheme implements TableScheme, Documented {
             "<p>Generates a table by interacting with a HAPI service.",
             "HAPI, the",
             "<a href='http://hapi-server.org/'",
-            "   >Heliophysics Data Application Programmer’s Interface</a>",
+            "   >Heliophysics Data Application Programmer's Interface</a>",
             "is a protocol for serving streamed time series data.",
             "</p>",
             "<p>In most cases it is not essential to use this scheme,",

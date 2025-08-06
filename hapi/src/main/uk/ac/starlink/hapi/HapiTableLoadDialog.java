@@ -65,7 +65,7 @@ public class HapiTableLoadDialog extends AbstractTableLoadDialog {
     public HapiTableLoadDialog( Consumer<URL> docUrlHandler ) {
         super( "HAPI Query",
                "Load time series using " +
-               "Heliophysics Data Application Programmer’s Interface service" );
+               "Heliophysics Data Application Programmer's Interface service" );
         docUrlHandler_ = docUrlHandler;
         setIconUrl( HapiTableLoadDialog.class.getResource( "hapi.png" ) );
     }

@@ -57,7 +57,7 @@ public class HapiTableBuilder extends DocumentedTableBuilder {
         return String.join( "\n",
             "<p>HAPI, the",
             "<a href='http://hapi-server.org/'",
-            "   >Heliophysics Data Application Programmer’s Interface</a>",
+            "   >Heliophysics Data Application Programmer's Interface</a>",
             "is a protocol for serving streamed time series data.",
             "This reader can read HAPI CSV and binary tables",
             "if they include header information",

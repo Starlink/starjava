@@ -2,7 +2,7 @@
 /**
  * Classes for working with the HAPI
  * (<a href="http://hapi-server.org/"
- *     >Heliophysics Data Application Programmer’s Interface</a>)
+ *     >Heliophysics Data Application Programmer's Interface</a>)
  * protocol.
  * These were written with reference to the
  * <a href="https://github.com/hapi-server/data-specification/blob/master/hapi-3.1.0/HAPI-data-access-spec-3.1.0.md"
