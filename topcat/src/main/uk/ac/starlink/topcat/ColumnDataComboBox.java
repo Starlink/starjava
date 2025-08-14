@@ -4,12 +4,20 @@ import gnu.jel.CompilationException;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.ComboBoxEditor;
 import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.UIManager;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
@@ -33,6 +41,12 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
 
     private final Domain<?> domain_;
     private final DomainMapperComboBox mapperSelector_;
+    private final AutocompleteMatcher autocompleteMatcher_;
+    private ComboBoxModel<ColumnData> model_;
+
+    /** Configure autocomplete popup menu; if null, no autocomplete. */
+    private static final AutocompleteMatcher AUTOCOMPLETE_MATCHER =
+        AutocompleteMatcher.CONTAINS;
 
     /**
      * Constructs a domain-less selector.
@@ -52,6 +66,16 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
         mapperSelector_ = domain == null
                         ? null
                         : new DomainMapperComboBox( domain, this );
+        autocompleteMatcher_ = AUTOCOMPLETE_MATCHER;
+        addPopupMenuListener( new PopupMenuListener() {
+            public void popupMenuCanceled( PopupMenuEvent evt ) {
+                clearPopupFilter();
+            }
+            public void popupMenuWillBecomeVisible( PopupMenuEvent evt ) {
+            }
+            public void popupMenuWillBecomeInvisible( PopupMenuEvent evt ) {
+            }
+        } );
         setEditable( true );
     }
 
@@ -71,12 +95,67 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
 
     @Override
     public void setModel( ComboBoxModel<ColumnData> model ) {
+        model_ = model;
         if ( model instanceof ColumnDataComboBoxModel ) {
             ColumnDataComboBoxModel emodel =
                 (ColumnDataComboBoxModel) model;
-            setEditor( new ColumnDataEditor( emodel, this ) );
+            ColumnDataEditor ed = new ColumnDataEditor( emodel, this );
+            setEditor( ed );
+            ed.addActionListener( evt -> clearPopupFilter() );
+            final ColumnDataComboBox cbox = this;
+            Component edComp = ed.getEditorComponent();
+            assert edComp instanceof JTextField;
+            if ( edComp instanceof JTextField &&
+                 autocompleteMatcher_ != null ) {
+                JTextField tfield = (JTextField) edComp;
+                tfield.addKeyListener( new KeyAdapter() {
+                    String txt_;
+
+                    /* The KeyListener documentation suggests that keyTyped
+                     * would be the method to override here, but doing that
+                     * seems to generate messages about the previously
+                     * typed character.  This one seems to work OK. */
+                    @Override
+                    public void keyReleased( KeyEvent evt ) {
+                        String txt = tfield.getText();
+                        if ( evt.isActionKey() ) {
+                            if ( cbox.isPopupVisible() ) {
+                                cbox.hidePopup();
+                            }
+                            clearPopupFilter();
+                        }
+                        else if ( ! txt.equals( txt_ ) ) {
+                            txt_ = txt;
+                            setPopupFilter( txt );
+                            tfield.setText( txt );
+                            if ( cbox.isPopupVisible() ) {
+                                if ( txt == null || txt.trim().length() == 0 ) {
+                                    cbox.hidePopup();
+                                }
+                            }
+                            else {
+                                if ( getModel() != model_ ) {
+                                    cbox.showPopup();
+                                }
+                            }
+                        }
+                    }
+                } );
+            }
         }
         super.setModel( model );
+    }
+
+    @Override
+    public void setSelectedItem( Object obj ) {
+        clearPopupFilter();
+        assert getModel() == model_;
+        super.setSelectedItem( obj );
+    }
+
+    @Override
+    public Object getSelectedItem() {
+        return model_.getSelectedItem();
     }
 
     /**
@@ -142,13 +221,74 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
     }
 
     /**
+     * Configures this component so that the options displayed in the popup
+     * menu correspond to only those objects from the model that match
+     * the supplied entry string.
+     *
+     * @param   txt  string to match, may be null for no restriction
+     */
+    private void setPopupFilter( String txt ) {
+        if ( autocompleteMatcher_ != null ) {
+            List<ColumnData> filterList = new ArrayList<>();
+            if ( txt != null && txt.trim().length() > 0 ) {
+                int nel = model_.getSize();
+                for ( int i = 0; i < nel; i++ ) {
+                    ColumnData cdata = model_.getElementAt( i );
+                    if ( cdata != null &&
+                         autocompleteMatcher_.textMatchesColumn( txt, cdata ) ){
+                        filterList.add( cdata );
+                    }
+                }
+            }
+            if ( filterList.size() > 0 ) {
+
+                /* Set the publicly visible model for this JComboBox
+                 * to the one that should appear in the popup, but at the same
+                 * time keep track of the real model in this class.
+                 * The actual selection has to be managed in both models. */
+                ComboBoxModel<ColumnData> filterModel =
+                        new DefaultComboBoxModel<ColumnData>
+                                ( filterList.toArray( new ColumnData[ 0 ] ) ) {
+                    @Override
+                    public void setSelectedItem( Object item ) {
+                        model_.setSelectedItem( item );
+                        super.setSelectedItem( item );
+                    }
+                };
+                super.setModel( filterModel );
+            }
+            else {
+                clearPopupFilter();
+            }
+        }
+    }
+
+    /**
+     * Resets this component so that the options displayed in the popup menu
+     * are all of the ones in the model.
+     */
+    private void clearPopupFilter() {
+        if ( super.getModel() != model_ ) {
+            assert autocompleteMatcher_ != null;
+            Component edComp = getEditor().getEditorComponent();
+            assert edComp instanceof JTextField;
+            if ( edComp instanceof JTextField ) {
+                JTextField txtField = (JTextField) edComp;
+                String txt = txtField.getText();
+                super.setModel( model_ );
+                txtField.setText( txt );
+            }
+        }
+    }
+
+    /**
      * ComboBoxEditor implementation suitable for use with a 
      * ColumnDataComboBoxModel.
      */
     private static class ColumnDataEditor extends BasicComboBoxEditor {
 
         private final ColumnDataComboBoxModel model_;
-        private final Component parent_;
+        private final ColumnDataComboBox comboBox_;
         private final ComboBoxEditor base_;
         private final Color okColor_;
         private final Color errColor_;
@@ -159,21 +299,23 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
          * Constructor.
          *
          * @param  model   model which this editor can work with
-         * @param  parent  parent component
+         * @param  comboBox  owner combo box
          */
         public ColumnDataEditor( ColumnDataComboBoxModel model,
-                                 Component parent ) {
+                                 ColumnDataComboBox comboBox ) {
             model_ = model;
-            parent_ = parent;
+            comboBox_ = comboBox;
             base_ = new JComboBox<Object>().getEditor();
             okColor_ = UIManager.getColor( "ComboBox.foreground" );
             errColor_ = UIManager.getColor( "ComboBox.disabledForeground" );
         }
 
+        @Override
         public void setItem( Object obj ) {
             base_.setItem( toStringOrData( obj ) );
         }
 
+        @Override
         public Object getItem() {
             return toStringOrData( base_.getItem() );
         }
@@ -203,7 +345,6 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
          */
         private Object toStringOrData( Object item ) {
             if ( item instanceof ColumnData ) {
-                text_ = null;
                 data_ = (ColumnData) item;
             }
             else if ( item instanceof String ) {
@@ -223,8 +364,9 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
                     data_ = colData;
                     if ( err != null ) {
                         setOk( false );
+                        comboBox_.hidePopup();
                         JOptionPane
-                       .showMessageDialog( parent_, err.getMessage(),
+                       .showMessageDialog( comboBox_, err.getMessage(),
                                            "Evaluation Error",
                                            JOptionPane.ERROR_MESSAGE );
                     }
@@ -239,20 +381,51 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
             return data_ != null ? data_ : text_;
         }
 
+        @Override
         public Component getEditorComponent() {
             return base_.getEditorComponent();
         }
 
+        @Override
         public void selectAll() {
             base_.selectAll();
         }
 
+        @Override
         public void removeActionListener( ActionListener listener ) {
             base_.removeActionListener( listener );
         }
 
+        @Override
         public void addActionListener( ActionListener listener ) {
             base_.addActionListener( listener );
         }
+    }
+
+    /**
+     * Defines what columns appear in the autocomplete popup menu
+     * for a string partially entered by the user.
+     */
+    @FunctionalInterface
+    private static interface AutocompleteMatcher {
+
+        /** Instance that matches entry text at the start of the column name. */
+        static final AutocompleteMatcher PREFIX = (txt, cdata) ->
+            cdata.toString().toLowerCase().startsWith( txt );
+
+        /** Instance that matches entry text anywhere in the column name. */
+        static final AutocompleteMatcher CONTAINS = (txt, cdata) ->
+            cdata.toString().toLowerCase().indexOf( txt.toLowerCase() ) >= 0;
+
+        /**
+         * Returns true if the given ColumnData is considered a match
+         * for the supplied text, presumed to be a partially complete
+         * string entered by the user.
+         *
+         * @param  entryTxt  entered text
+         * @param  cdata     column data
+         * @return  true iff cdata is considered to match the supplied string
+         */
+        boolean textMatchesColumn( String entryTxt, ColumnData cdata );
     }
 }
