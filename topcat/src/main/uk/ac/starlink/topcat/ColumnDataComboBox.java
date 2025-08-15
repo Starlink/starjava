@@ -15,6 +15,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
@@ -43,6 +44,7 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
     private final DomainMapperComboBox mapperSelector_;
     private final AutocompleteMatcher autocompleteMatcher_;
     private ComboBoxModel<ColumnData> model_;
+    private boolean isSelectingIndex_;
 
     /** Configure autocomplete popup menu; if null, no autocomplete. */
     private static final AutocompleteMatcher AUTOCOMPLETE_MATCHER =
@@ -118,13 +120,10 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
                     @Override
                     public void keyReleased( KeyEvent evt ) {
                         String txt = tfield.getText();
-                        if ( evt.isActionKey() ) {
-                            if ( cbox.isPopupVisible() ) {
-                                cbox.hidePopup();
-                            }
-                            clearPopupFilter();
-                        }
-                        else if ( ! txt.equals( txt_ ) ) {
+                        int code = evt.getKeyCode();
+                        boolean isEditKey = ! ( evt.isActionKey() ||
+                                                code == KeyEvent.VK_ENTER );
+                        if ( isEditKey && ! txt.equals( txt_ ) ) {
                             txt_ = txt;
                             setPopupFilter( txt );
                             tfield.setText( txt );
@@ -147,9 +146,32 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
     }
 
     @Override
+    public void setSelectedIndex( int ix ) {
+        assert SwingUtilities.isEventDispatchThread();
+        isSelectingIndex_ = true;
+        super.setSelectedIndex( ix );
+        isSelectingIndex_ = false;
+    }
+
+    @Override
     public void setSelectedItem( Object obj ) {
-        clearPopupFilter();
-        assert getModel() == model_;
+
+        /* This is hairy.  If a new selection is definitely set, then we want
+         * to get rid of the filter popup and accept the new value.
+         * But there is one circumstance in which this method is called when
+         * we don't want to do that, which is when the user is navigating
+         * up and down the filter model popup with the arrow keys,
+         * then we just want to reflect that movement in the text field.
+         * In that circumstance, this method gets called as a consequence
+         * of setSelectedIndex.  So we put a flag in place to check if
+         * that's the call stack, and in that case leave the popup in place.
+         * This is clearly fragile and dependent on the details of
+         * JComboBox implementation, but it works at time of writing and
+         * (after much effort) I haven't found a better way to do it. */
+        if ( getModel() == model_ || ! isSelectingIndex_ ) {
+            clearPopupFilter();
+            assert getModel() == model_;
+        }
         super.setSelectedItem( obj );
     }
 
@@ -255,6 +277,7 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
                         super.setSelectedItem( item );
                     }
                 };
+                filterModel.setSelectedItem( null );
                 super.setModel( filterModel );
             }
             else {
