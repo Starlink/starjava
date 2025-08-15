@@ -85,6 +85,7 @@
   <property name="package.name" value="uk.ac.starlink.pds4"/>
 
   <!-- Compilation options -->
+  <property name="encoding" value="ascii"/>
   <property name="debug" value="true"/>
   <property name="deprecation" value="true"/>
   <property name="optimize" value="true"/>
@@ -370,6 +371,7 @@
     <mkdir dir="${build.classes}"/>
     <javac srcdir="${java.dir}"
            destdir="${build.classes}"
+           encoding="${encoding}"
            debug="${debug}"
            deprecation="${deprecation}"
            source="${source.version}"
@@ -961,6 +963,7 @@
 
     <javac srcdir="${tests.dir}"
            destdir="${build.tests}"
+           encoding="${encoding}"
            debug="${debug}"
            source="${source.version}"
            deprecation="${deprecation}" >
