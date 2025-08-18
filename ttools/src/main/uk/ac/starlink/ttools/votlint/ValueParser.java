@@ -5,7 +5,13 @@ import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.MalformedInputException;
 import java.nio.charset.StandardCharsets;
+import java.nio.charset.UnmappableCharacterException;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.StringTokenizer;
@@ -146,6 +152,53 @@ public abstract class ValueParser {
     }
 
     /**
+     * Checks the content of a buffer supposed to contain UTF-8 bytes.
+     * An error is reported in the case of invalid content.
+     *
+     * @param  buf  buffer containing supposed UTF-8 serialization of a string
+     * @param  irow  row index at which text occurred, used for error reporting
+     */
+    void checkUtf8( byte[] buf, long irow ) {
+        checkUtf8( buf, irow, 0, buf.length );
+    }
+
+    /**
+     * Checks the content of part of a buffer supposed to contain UTF-8 bytes.
+     * An error is reported in the case of invalid content.
+     *
+     * @param  buf  byte buffer
+     * @param  irow  row index at which text occurred, used for error reporting
+     * @param  offset  byte offset into buffer at which test starts
+     * @param  leng  number of bytes to test; overrun is permitted
+     *               (if the buffer ends before leng, checking just stops)
+     */
+    void checkUtf8( byte[] buf, long irow, int offset, int leng ) {
+        CharsetDecoder decoder =
+             StandardCharsets.UTF_8
+            .newDecoder()
+            .onMalformedInput( CodingErrorAction.REPORT )
+            .onUnmappableCharacter( CodingErrorAction.REPORT );
+        try {
+            decoder.decode( ByteBuffer
+                           .wrap( buf, offset,
+                                  Math.min( leng, buf.length - offset ) ) );
+        }
+        catch ( UnmappableCharacterException e ) {
+            warning( new VotLintCode( "U8A" ),
+                     "Unmappable character in UTF-8 string", irow );
+        }
+        catch ( MalformedInputException e ) {
+            error( new VotLintCode( "U8B" ), "Malformed UTF-8 string",
+                   irow );
+        }
+        catch ( CharacterCodingException e ) {
+            error( new VotLintCode( "U8B" ), "Character encoding error",
+                   irow );
+        }
+    }
+    
+
+    /**
      * Constructs a ValueParsers for a given element.
      *
      * @param   handler  element handler
@@ -231,7 +284,25 @@ public abstract class ValueParser {
 
         /* Otherwise, return a suitable generic type-based parser. */
         else {
-            if ( "char".equals( datatype ) || 
+            if ( "char".equals( datatype ) &&
+                 handler.getContext().getVersion().isCharUnicode() ) {
+                int stringLeng = shape[ 0 ];
+                if ( nel ==  1 ) {
+                    return new SingleCharParser( el,
+                                                 FixedLengthCharType.ASCII );
+                }
+                else if ( shape.length == 1 ) {
+                    return stringLeng < 0
+                         ? new VariableUtf8Parser( el )
+                         : new FixedUtf8Parser( el, stringLeng );
+                }
+                else {
+                    return nel < 0
+                         ? new VariableUtf8ArrayParser( el, stringLeng )
+                         : new FixedUtf8ArrayParser( el, nel, stringLeng );
+                }
+            }
+            else if ( "char".equals( datatype ) || 
                       "unicodeChar".equals( datatype ) ) {
                 FixedLengthCharType ctype = "char".equals( datatype )
                                           ? FixedLengthCharType.ASCII
@@ -647,6 +718,16 @@ public abstract class ValueParser {
                 stringChecker.check( getContext(), txt, irow );
             }
         };
+    }
+
+    /**
+     * Converts a string to an array of UTF-8 bytes.
+     *
+     * @param  txt  string
+     * @return   UTF-8 serialization
+     */
+    private static byte[] toUtf8( String txt ) {
+        return txt.getBytes( StandardCharsets.UTF_8 );
     }
 
     /**
@@ -1425,6 +1506,158 @@ public abstract class ValueParser {
             }
             for ( int i = 0; i < leng; i++ ) {
                 ctype_.checkChar( this, text.charAt( i ), irow );
+            }
+        }
+    }
+
+    /**
+     * Parser for fixed-length UTF-8 arrays.
+     */
+    private static class FixedUtf8Parser extends AbstractParser {
+        private final int count_;
+
+        /**
+         * Constructor.
+         *
+         * @param  el  reporting context
+         * @param  count   length of UTF-8 arrays to be read
+         */
+        public FixedUtf8Parser( ReportElement el, int count ) {
+            super( el, String.class, count );
+            count_ = count;
+        }
+
+        public void checkString( String text, long irow ) {
+            int leng = toUtf8( text ).length;
+            if ( leng != count_ ) {
+                warning( new VotLintCode( "U8N" ),
+                         "Wrong number of UTF-8 bytes in char field ("
+                       + leng + " found, " + count_ + " expected)", irow );
+            }
+        }
+
+        public void checkStream( InputStream in, long irow )
+                throws IOException {
+            checkUtf8( readStreamBytes( in, count_ ), irow );
+        }
+    }
+
+    /**
+     * Parser for variable-length UTF-8 arrays.
+     */
+    private static class VariableUtf8Parser extends AbstractParser {
+
+        /**
+         * Constructor.
+         *
+         * @param  el  reporting context
+         */
+        public VariableUtf8Parser( ReportElement el ) {
+            super( el, String.class, 1 );
+        }
+
+        public void checkString( String text, long irow ) {
+        }
+
+        public void checkStream( InputStream in, long irow )
+                throws IOException {
+            int nutf8 = readCount( in );
+            checkUtf8( readStreamBytes( in, nutf8 ), irow );
+        }
+    }
+
+    /**
+     * Parser for fixed-size multi-dimensional UTF-8 arrays
+     * (fixed-length arrays of fixed-length strings).
+     */
+    private static class FixedUtf8ArrayParser extends AbstractParser {
+        private final int stringLeng_;
+        private final int nstr_;
+
+        /**
+         * Constructor.
+         *
+         * @param  el  reporting context
+         * @param  nel  total number of UTF-8 bytes in each cell
+         * @param  stringLeng  number of UTF-8 bytes in each string
+         */
+        public FixedUtf8ArrayParser( ReportElement el, int nel,
+                                     int stringLeng ) {
+            super( el, String[].class, nel / stringLeng );
+            stringLeng_ = stringLeng;
+            nstr_ = nel / stringLeng;
+            assert nstr_ * stringLeng == nel;
+        }
+
+        public void checkString( String text, long irow ) {
+            byte[] buf = toUtf8( text );
+            if ( buf.length == nstr_ * stringLeng_ ) {
+                for ( int is = 0; is < nstr_; is++ ) {
+                    checkUtf8( buf, irow, is * stringLeng_, stringLeng_ );
+                }
+            }
+            else {
+                warning( new VotLintCode( "C09" ),
+                         "Wrong number of UTF8 bytes in string (" +
+                         buf.length + " found, " +
+                         nstr_ * stringLeng_ + " expected)",
+                         irow );
+            }
+        }
+
+        public void checkStream( InputStream in, long irow )
+                throws IOException {
+            byte[] buf = readStreamBytes( in, nstr_ * stringLeng_ );
+            for ( int is = 0; is < nstr_; is++ ) {
+                checkUtf8( buf, irow, is * stringLeng_, stringLeng_ );
+            }
+        }
+    }
+
+    /**
+     * Parser for variable-size multi-dimensional UTF-8 arrays
+     * (variable-length arrays of fixed-length strings).
+     */
+    private static class VariableUtf8ArrayParser extends AbstractParser {
+        final int stringLeng_;
+
+        /**
+         * Constructor.
+         *
+         * @param  el  reporting context
+         * @param  stringLeng  number of UTF-8 bytes in each string
+         */
+        VariableUtf8ArrayParser( ReportElement el, int stringLeng ) {
+            super( el, String[].class, -1 );
+            stringLeng_ = stringLeng;
+        }
+
+        public void checkString( String text, long irow ) {
+            checkUtf8Buffer( toUtf8( text ), irow );
+        }
+
+        public void checkStream( InputStream in, long irow )
+                throws IOException {
+            checkUtf8Buffer( readStreamBytes( in, readCount( in ) ), irow );
+        }
+
+        /**
+         * Checks that a buffer of UTF-8 bytes is valid content for a
+         * cell of this parser.
+         *
+         * @param  buf  array of UTF-8 bytes
+         * @param  irow   row index used for reporting
+         */
+        private void checkUtf8Buffer( byte[] buf, long irow ) {
+            int nstr = buf.length / stringLeng_;
+            if ( nstr * stringLeng_ != buf.length ) {
+                warning( new VotLintCode( "U8L" ),
+                         "UTF8 array length " + buf.length
+                       + " not multiple of declared string length: "
+                       + stringLeng_, irow );
+            }
+            for ( int is = 0; is < nstr; is++ ) {
+                checkUtf8( buf, irow, is * stringLeng_, stringLeng_ );
             }
         }
     }
