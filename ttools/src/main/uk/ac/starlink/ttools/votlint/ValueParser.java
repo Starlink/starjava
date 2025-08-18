@@ -174,8 +174,9 @@ public abstract class ValueParser {
             if ( "char".equals( datatype ) ||
                  "unicodeChar".equals( datatype ) ) {
                 handler.info( new VotLintCode( "AR1" ),
-                              el.msg( "No arraysize for datatype='character'"
-                                    + "; implies single character" ) );
+                              el.msg( "No arraysize for datatype='"
+                                    + datatype + "'; "
+                                    + "implies single character" ) );
             }
         }
         else {
@@ -231,21 +232,23 @@ public abstract class ValueParser {
         /* Otherwise, return a suitable generic type-based parser. */
         else {
             if ( "char".equals( datatype ) || 
-                 "unicodeChar".equals( datatype ) ) {
-                boolean ascii = "char".equals( datatype );
+                      "unicodeChar".equals( datatype ) ) {
+                FixedLengthCharType ctype = "char".equals( datatype )
+                                          ? FixedLengthCharType.ASCII
+                                          : FixedLengthCharType.UCS2;
                 int stringLeng = shape[ 0 ];
                 if ( nel == 1 ) {
-                    return new SingleCharParser( el, ascii );
+                    return new SingleCharParser( el, ctype );
                 }
                 else if ( shape.length == 1 ) {
                     return stringLeng < 0
-                         ? new VariableCharParser( el, ascii )
-                         : new FixedCharParser( el, ascii, stringLeng );
+                         ? new VariableCharParser( el, ctype )
+                         : new FixedCharParser( el, ctype, stringLeng );
                 }
                 else {
                     return nel < 0
-                         ? new VariableCharArrayParser( el, ascii )
-                         : new FixedCharArrayParser( el, ascii, nel,
+                         ? new VariableCharArrayParser( el, ctype )
+                         : new FixedCharArrayParser( el, ctype, nel,
                                                      stringLeng );
                 }
             }
@@ -1247,19 +1250,18 @@ public abstract class ValueParser {
     /**
      * Parser for single characters.
      */
-    private static class SingleCharParser extends SlurpParser {
-        private final boolean ascii_;
+    private static class SingleCharParser extends AbstractParser {
+        private final FixedLengthCharType ctype_;
 
         /**
          * Constructor.
          *
          * @param  el  reporting context
-         * @param  ascii  true for 7-bit ASCII characters, false for 
-         *                16-bit unicode
+         * @param  ctype  fixed-length char type
          */
-        public SingleCharParser( ReportElement el, boolean ascii ) {
-            super( el, ascii ? 1 : 2, Character.class, 1 );
-            ascii_ = ascii;
+        public SingleCharParser( ReportElement el, FixedLengthCharType ctype ) {
+            super( el, Character.class, 1 );
+            ctype_ = ctype;
         }
         public void checkString( String text, long irow ) {
             int leng = text.length();
@@ -1275,30 +1277,50 @@ public abstract class ValueParser {
                              "Characters after first in char scalar ignored" +
                              " - missing arraysize?", irow );
             }
-            if ( ascii_ && leng > 0 && text.charAt( 0 ) > 0x7f ) {
-                error( new VotLintCode( "CRU" ),
-                       "Non-ascii character in 'char' data", irow );
+            if ( leng > 0 ) {
+                ctype_.checkChar( this, text.charAt( 0 ), irow );
             }
+        }
+        public void checkStream( InputStream in, long irow )
+                throws IOException {
+            byte[] buf = readStreamBytes( in, ctype_.nbyte_ );
+            ctype_.checkChar( this, ctype_.readChar( buf, 0 ), irow );
         }
     }
 
     /**
      * Parser for fixed-length character arrays.
      */
-    private static class FixedCharParser extends SlurpParser {
+    private static class FixedCharParser extends AbstractParser {
+        private final FixedLengthCharType ctype_;
+        private final int count_;
 
         /**
          * Constructor.
          *
          * @param  el  reporting context
-         * @param  ascii  true for 7-bit ASCII characters, false for 
-         *                16-bit unicode
+         * @param  ctype  fixed-length char type
          * @param  count  number of characters in string
          */
-        public FixedCharParser( ReportElement el, boolean ascii, int count ) {
-            super( el, count * ( ascii ? 1 : 2 ), String.class, 1 );
+        public FixedCharParser( ReportElement el, FixedLengthCharType ctype,
+                                int count ) {
+            super( el, String.class, count );
+            ctype_ = ctype;
+            count_ = count;
         }
         public void checkString( String text, long irow ) {
+            for ( int i = 0; i < text.length(); i++ ) {
+                ctype_.checkChar( this, text.charAt( i ), irow );
+            }
+        }
+        public void checkStream( InputStream in, long irow )
+                throws IOException {
+            byte[] buf = readStreamBytes( in, ctype_.nbyte_ * count_ );
+            for ( int i = 0; i < count_; i++ ) {
+                ctype_.checkChar( this,
+                                  ctype_.readChar( buf, i * ctype_.nbyte_ ),
+                                  irow );
+            }
         }
     }
 
@@ -1306,24 +1328,29 @@ public abstract class ValueParser {
      * Parser for variable-length character arrays.
      */
     private static class VariableCharParser extends AbstractParser {
-        final boolean ascii_;
+        final FixedLengthCharType ctype_;
 
         /**
          * Constructor.
          *
          * @param  el  reporting context
-         * @param  ascii  true for 7-bit ASCII characters, false for 
-         *                16-bit unicode
+         * @param  ctype  fixed-length char type
          */
-        VariableCharParser( ReportElement el, boolean ascii ) {
+        VariableCharParser( ReportElement el, FixedLengthCharType ctype ) {
             super( el, String.class, 1 );
-            ascii_ = ascii;
+            ctype_ = ctype;
         }
         public void checkString( String text, long irow ) {
+            for ( int i = 0; i < text.length(); i++ ) {
+                ctype_.checkChar( this, text.charAt( i ), irow );
+            }
         }
         public void checkStream( InputStream in, long irow )
                 throws IOException {
-            slurpStream( in, readCount( in ) * ( ascii_ ? 1 : 2 ) );
+            byte[] buf = readStreamBytes( in, readCount( in ) * ctype_.nbyte_ );
+            for ( int i = 0; i < buf.length; i += ctype_.nbyte_ ) {
+                ctype_.checkChar( this, ctype_.readChar( buf, i ), irow );
+            }
         }
     }
 
@@ -1331,26 +1358,31 @@ public abstract class ValueParser {
      * Parser for variable-length multi-dimensional character arrays.
      */
     private static class VariableCharArrayParser extends AbstractParser {
-        final boolean ascii_;
+        final FixedLengthCharType ctype_;
  
         /**
          * Constructor.
          *
          * @param  el  reporting context
-         * @param  ascii  true for 7-bit ASCII characters, false for 
-         *                16-bit unicode
+         * @param  ctype  fixed-length char type
          */
-        VariableCharArrayParser( ReportElement el, boolean ascii ) {
+        VariableCharArrayParser( ReportElement el, FixedLengthCharType ctype ) {
             super( el, String[].class, -1 );
-            ascii_ = ascii;
+            ctype_ = ctype;
         }
 
         public void checkStream( InputStream in, long irow )
                 throws IOException {
-            slurpStream( in, readCount( in ) * ( ascii_ ? 1 : 2 ) );
+            byte[] buf = readStreamBytes( in, readCount( in ) * ctype_.nbyte_ );
+            for ( int i = 0; i < buf.length; i += ctype_.nbyte_ ) {
+                ctype_.checkChar( this, ctype_.readChar( buf, i ), irow );
+            }
         }
 
         public void checkString( String text, long irow ) {
+            for ( int i = 0; i < text.length(); i++ ) {
+                ctype_.checkChar( this, text.charAt( i ), irow );
+            }
         }
     }
 
@@ -1358,28 +1390,30 @@ public abstract class ValueParser {
      * Parser for fixed-length multi-dimensional character arrays.
      */
     private static class FixedCharArrayParser extends AbstractParser {
-        final boolean ascii_;
+        final FixedLengthCharType ctype_;
         final int nchar_;
 
         /**
          * Constructor.
          *
          * @param  el  reporting context
-         * @param  ascii  true for 7-bit ASCII characters, false for 
-         *                16-bit unicode
+         * @param  ctype  fixed-length char type
          * @param  nchar  number of characters
          * @param  stringLeng  characters per string
          */
-        FixedCharArrayParser( ReportElement el, boolean ascii, int nchar,
-                              int stringLeng ) {
+        FixedCharArrayParser( ReportElement el, FixedLengthCharType ctype,
+                              int nchar, int stringLeng ) {
             super( el, String[].class, nchar / stringLeng );
-            ascii_ = ascii;
+            ctype_ = ctype;
             nchar_ = nchar;
         }
 
         public void checkStream( InputStream in, long irow )
                 throws IOException {
-            slurpStream( in, nchar_ * ( ascii_ ? 1 : 2 ) );
+            byte[] buf = readStreamBytes( in, nchar_ * ctype_.nbyte_ );
+            for ( int i = 0; i < buf.length; i += ctype_.nbyte_ ) {
+                ctype_.checkChar( this, ctype_.readChar( buf, i ), irow );
+            }
         }
 
         public void checkString( String text, long irow ) {
@@ -1388,6 +1422,9 @@ public abstract class ValueParser {
                 warning( new VotLintCode( "C09" ),
                          "Wrong number of characters in string (" +
                          leng + " found, " + nchar_ + " expected)", irow );
+            }
+            for ( int i = 0; i < leng; i++ ) {
+                ctype_.checkChar( this, text.charAt( i ), irow );
             }
         }
     }
@@ -1602,6 +1639,111 @@ public abstract class ValueParser {
          */
         String msg( String txt ) {
             return msg( txt, -1 );
+        }
+    }
+
+    /**
+     * Defines a character encoding with a fixed number of bytes per character.
+     * Since by definition no multi-code-unit characters are permitted
+     * for such encodings, string validity can be assessed one code unit
+     * at a time.
+     */
+    private static enum FixedLengthCharType {
+
+        /* 7-bit ASCII. */
+        ASCII( 1 ) {
+            public void checkChar( ValueParser parser, char chr, long irow ) {
+                if ( chr > 0x7f ) {
+                    charError( parser, new VotLintCode( "CRU" ), irow,
+                               "Non-ASCII character 0x"
+                             + Integer.toHexString( chr ) );
+                }
+            }
+            public char readChar( byte[] buf, int ioff ) {
+                return (char) ( buf[ ioff ] & 0x00ff );
+            }
+        },
+
+        /* UTF-16 allowing only BMP characters; equivalent to obsolete UCS-2. */
+        UCS2( 2 ) {
+            public void checkChar( ValueParser parser, char chr, long irow ) {
+
+                /* Every code unit (2-byte value) in UTF-16 is either
+                 * numerically equivalent to a BMP character code point
+                 * (U+0000 to U+D7FF and U+E000 to U+FFFF) or is a
+                 * high or low surrogate (U+D800 to U+DFFF).
+                 * So as long as each code unit is not a surrogate,
+                 * the string is valid UCS-2 (equivalently BMP UTF-16).
+                 * Reference: Wikipedia page on UTF-16. */
+                if ( Character.isSurrogate( chr ) ) {
+                    charError( parser, new VotLintCode( "CRV" ), irow,
+                               "Surrogate character 0x"
+                             + Integer.toHexString( chr )
+                             + " in 'unicodeChar' data" );
+                }
+            }
+            public char readChar( byte[] buf, int ioff ) {
+                int b1 = buf[ ioff + 0 ];
+                int b2 = buf[ ioff + 1 ];
+                return (char) ( ( b1 << 8 ) + ( b2 << 0 ) );
+            }
+        };
+
+        final int nbyte_;
+
+        /**
+         * Constructor.
+         *
+         * @param  nbyte  number of bytes per code unit
+         */
+        FixedLengthCharType( int nbyte ) {
+            nbyte_ = nbyte;
+        }
+
+        /**
+         * Checks whether a character is legal for this type.
+         * If it is not, an error is reported via the supplied parser.
+         *
+         * @param  parser  parser
+         * @param  chr   character to check
+         * @param  irow   row index at which the character is found
+         */
+        public abstract void checkChar( ValueParser parser, char chr,
+                                        long irow );
+
+        /**
+         * Reads a single code unit from a byte buffer, returning the
+         * result as a char type.
+         *
+         * @param  buf  byte array
+         * @param  ioff  byte offset of start of code unit
+         * @return   code unit read from buffer as character
+         */
+        public abstract char readChar( byte[] buf, int ioff );
+
+        /**
+         * Reports a validity violation arising from an illegal character.
+         *
+         * @param  parser  parser
+         * @param  code   error code
+         * @param  irow   row index at which the character is found
+         * @param  msg    error message
+         */
+        void charError( ValueParser parser, VotLintCode code, long irow,
+                        String msg ) {
+
+            /* Since there is no way at VOTable 1.5 to write non-BMP
+             * characters in a VOTable, and since UTF-8/UTF-16 encoding
+             * might have been doing the right thing though illegal
+             * in some software contexts, and since historically
+             * votlint has not reported on these things, for now we
+             * suppress these error messages.  Once VOTable 1.6 is
+             * available there is a correct way to encode such characters
+             * (UTF-8 in datatype="char"), so at that point we will
+             * restore this error reporting. */
+            if ( false ) {
+                parser.error( code, msg, irow );
+            }
         }
     }
 }
