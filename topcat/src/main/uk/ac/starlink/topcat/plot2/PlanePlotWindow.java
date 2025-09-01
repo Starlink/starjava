@@ -68,18 +68,21 @@ public class PlanePlotWindow
                 SimplePositionCoordPanel
                .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos,
                              XY_SPOTTERS );
+            assert panel.getCoords().length == 2 * npos;
             panel.addButtons( new Action[] {
                 new BasicAction( "X \u2194 Y", null, "Switch X and Y values" ) {
                     public void actionPerformed( ActionEvent evt ) {
-                        ColumnDataComboBoxModel xModel =
-                            panel.getColumnSelector( 0, 0 );
-                        ColumnDataComboBoxModel yModel =
-                            panel.getColumnSelector( 1, 0 );
-                        if ( xModel != null && yModel != null ) {
-                            Object xItem = xModel.getSelectedItem();
-                            Object yItem = yModel.getSelectedItem();
-                            xModel.setSelectedItem( yItem );
-                            yModel.setSelectedItem( xItem );
+                        for ( int ipos = 0; ipos < npos; ipos++ ) {
+                            ColumnDataComboBoxModel xModel =
+                                panel.getColumnSelector( 2 * ipos + 0, 0 );
+                            ColumnDataComboBoxModel yModel =
+                                panel.getColumnSelector( 2 * ipos + 1, 0 );
+                            if ( xModel != null && yModel != null ) {
+                                Object xItem = xModel.getSelectedItem();
+                                Object yItem = yModel.getSelectedItem();
+                                xModel.setSelectedItem( yItem );
+                                yModel.setSelectedItem( xItem );
+                            }
                         }
                     }
                 },

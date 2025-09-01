@@ -34851,6 +34851,11 @@ introduced since the last version:
     <li>Fix regression issue (v4.10-4)
         that caused output trouble for tables read from ASCII/CSV files
         including completely blank columns.</li>
+    <li>Fix the X&#x2194;Y button in the Plane Plot
+        <ref id="GangLayerControl_pair">Pair</ref> and
+        <ref id="GangLayerControl_quad">Quad</ref> Position controls
+        so that all X coordinates are switched with Y coordinates
+        not just the first pair.</li>
     </ul>
     </p></dd>
 
