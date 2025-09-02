@@ -108,6 +108,28 @@ public class ParquetDump {
     }
 
     /**
+     * Returns a multi-line string giving the full content of the file-level
+     * key-value metadata in the parquet footer.
+     *
+     * @return   key-value string
+     */
+    public String formatKeyValuesFull() {
+        StringBuffer sbuf = new StringBuffer();
+        String pre = "\n    ";
+        for ( Map.Entry<String,String> entry :
+              starTable_.getExtraMetadataMap().entrySet() ) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            sbuf.append( key )
+                .append( ":" )
+                .append( pre )
+                .append( value.replaceAll( "\n", pre ) )
+                .append( "\n" );
+        }
+        return sbuf.toString();
+    }
+
+    /**
      * Returns a multi-line string showing information about the data
      * blocks in the parquet file.
      *
