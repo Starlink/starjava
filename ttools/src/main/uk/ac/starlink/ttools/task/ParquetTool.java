@@ -29,6 +29,7 @@ public class ParquetTool implements Task {
     private final Parameter<?>[] params_;
 
     private static final String ALL_TOKEN = "all";
+    private static final int MAXCHAR = 75;
 
     /**
      * Constructor.
@@ -155,7 +156,7 @@ public class ParquetTool implements Task {
             new MetaItem( "keyvalue", "Key-Value Metadata",
                           "displays the parquet per-table " +
                           "key-value metadata pairs",
-                          ParquetDump::formatKeyValues );
+                          d -> d.formatKeyValuesCompact( MAXCHAR ) );
 
         /** Data blocks. */
         public static final MetaItem BLOCKS =

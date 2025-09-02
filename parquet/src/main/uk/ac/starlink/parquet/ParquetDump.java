@@ -77,12 +77,17 @@ public class ParquetDump {
     }
 
     /**
-     * Returns a multi-line string showing the content of the file-level
-     * key-value metadata in the parquet footer.
+     * Returns a multi-line string giving an abbreviated representation
+     * of the content of the file-level key-value metadata in the
+     * parquet footer.
+     * If any of the values is longer than the supplied <code>maxChar</code>
+     * threshold, or if it contains embedded newlines, it is just represented
+     * by a summary of its length.
      *
+     * @param  maxChar    maximum length of displayed value
      * @return  key-value string
      */
-    public String formatKeyValues() {
+    public String formatKeyValuesCompact( int maxChar ) {
         StringBuffer sbuf = new StringBuffer();
         for ( Map.Entry<String,String> entry :
               starTable_.getExtraMetadataMap().entrySet() ) {
@@ -90,7 +95,7 @@ public class ParquetDump {
             String value = entry.getValue();
             sbuf.append( key )
                 .append( ": " );
-            if ( value.length() + key.length() < 75 &&
+            if ( value.length() + key.length() < maxChar &&
                  value.indexOf( '\n' ) < 0 ) {
                 sbuf.append( value );
             }
@@ -280,7 +285,8 @@ public class ParquetDump {
         map.put( "schema",
                  dump -> formatLines( "Schema", dump.formatSchema() ) );
         map.put( "kv",
-                 dump -> formatLines( "Key-Values", dump.formatKeyValues() ) );
+                 dump -> formatLines( "Key-Values",
+                                      dump.formatKeyValuesCompact( 75 ) ) );
         map.put( "block",
                  dump -> formatLines( "Blocks", dump.formatBlocks() ) );
         map.put( "chunk",
