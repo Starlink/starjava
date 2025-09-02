@@ -2,8 +2,10 @@ package uk.ac.starlink.ttools.task;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import uk.ac.starlink.parquet.ParquetDump;
 import uk.ac.starlink.parquet.ParquetStarTable;
 import uk.ac.starlink.parquet.ParquetUtil;
@@ -28,7 +30,7 @@ public class ParquetTool implements Task {
     private final MultiChoiceParameter<MetaItem> itemsParam_;
     private final Parameter<?>[] params_;
 
-    private static final String ALL_TOKEN = "all";
+    private static final String DFLT_TOKEN = "default";
     private static final int MAXCHAR = 75;
 
     /**
@@ -49,20 +51,32 @@ public class ParquetTool implements Task {
 
         itemsParam_ =
             new MultiChoiceParameter<MetaItem>( "items", MetaItem.class, ',',
-                                                MetaItem.ALL_ITEMS, ALL_TOKEN );
-        itemsParam_.setStringDefault( ALL_TOKEN );
+                                                MetaItem.DFLT_ITEMS,
+                                                DFLT_TOKEN );
+        itemsParam_.setStringDefault( DFLT_TOKEN );
         itemsParam_.setNullPermitted( true );
         itemsParam_.setPrompt( "Metadata items to display" );
+        List<MetaItem> itemList =
+            new ArrayList<>( Arrays.asList( MetaItem.DFLT_ITEMS ) );
+        for ( MetaItem extraItem : MetaItem.EXTRA_ITEMS ) {
+            itemsParam_.addOption( extraItem );
+            itemList.add( extraItem );
+        }
         itemsParam_.setDescription( new String[] {
             "<p>Selects which items of metadata about the parquet file",
             "to display.  The value is a comma-separated list,",
             "containing zero or more of the following:",
-            DocUtils.describedList( MetaItem.ALL_ITEMS, m -> m.name_,
-                                    m -> m.description_, false ),
+            DocUtils.describedList( itemList.toArray( new MetaItem[ 0 ] ),
+                                    m -> m.name_, m -> m.description_, false ),
             "If the value is the special token",
-            "\"<code>" + ALL_TOKEN + "</code>\"",
-            "then all the items above will be output,",
-            "and if the value is blank then none of these will be output.",
+            "\"<code>" + DFLT_TOKEN + "</code>\"",
+            "then all the items above",
+            "except for",
+            Arrays.stream( MetaItem.EXTRA_ITEMS )
+                  .map( m -> "\"<code>" + m + "</code>\"" )
+                  .collect( Collectors.joining( ", " ) ),
+            "will be output.",
+            "If the value is blank then none of these will be output.",
             "Either way, informational reports will still be written",
             "as requested.",
             "</p>",
@@ -151,12 +165,20 @@ public class ParquetTool implements Task {
                           "displays the parquet schema",
                           ParquetDump::formatSchema );
 
-        /** Parquet key-value metadata. */
-        public static final MetaItem KV =
-            new MetaItem( "keyvalue", "Key-Value Metadata",
+        /** Parquet key-value metadata, compact format. */
+        public static final MetaItem KV_COMPACT =
+            new MetaItem( "keyvalue", "Key-Value Metadata, compact format",
                           "displays the parquet per-table " +
-                          "key-value metadata pairs",
+                          "key-value metadata pairs in a compact format; " +
+                          "long or multi-line values are summarised",
                           d -> d.formatKeyValuesCompact( MAXCHAR ) );
+
+        /** Parquet key-value metadata, full content. */
+        public static final MetaItem KV_FULL =
+            new MetaItem( "keyvaluefull", "Key-Value Metadata, full content",
+                          "displays the full content of parquet per-table " +
+                          "key-value metadata pairs",
+                          ParquetDump::formatKeyValuesFull );
 
         /** Data blocks. */
         public static final MetaItem BLOCKS =
@@ -179,9 +201,14 @@ public class ParquetTool implements Task {
                           "the VOParquet convention",
                           dump -> dump.getTable().getVOTableMetadataText() );
 
-        /** Array of all known/useful items in some reasonable order. */
-        public static final MetaItem[] ALL_ITEMS = new MetaItem[] {
-            SCHEMA, KV, BLOCKS, CHUNKS, VOTABLE,
+        /** Array of default list of items in some reasonable order. */
+        public static final MetaItem[] DFLT_ITEMS = new MetaItem[] {
+            SCHEMA, KV_COMPACT, BLOCKS, CHUNKS, VOTABLE,
+        };
+
+        /** Array of additional items in some reasonable order. */
+        public static final MetaItem[] EXTRA_ITEMS = new MetaItem[] {
+            KV_FULL,
         };
 
         /**

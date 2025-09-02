@@ -15879,6 +15879,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix regression issue (v3.5-3)
         that caused output trouble for tables read from ASCII/CSV files
         including completely blank columns.</li>
+    <li>Add <code>keyvaluefull</code> option to <code>parqlook</code>
+        <ref id="parqlook-items"><code>items</code></ref> parameter.
+        The default list is now designated
+        "<code>default</code>" not "<code>all</code>".</li>
     </ul>
     </p></dd>
 
