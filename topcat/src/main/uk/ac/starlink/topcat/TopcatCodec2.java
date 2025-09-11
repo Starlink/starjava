@@ -13,7 +13,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import org.json.JSONArray;
@@ -427,10 +426,7 @@ public class TopcatCodec2 implements TopcatCodec {
                     clazz = null;
                 }
                 if ( clazz != null ) {
-                    Class<?> clazz0 = clazz;
-                    SwingUtilities.invokeLater( () ->
-                        setGlobalVariableValue( varPanel, name, clazz0, value )
-                    );
+                    setGlobalVariableValue( varPanel, name, clazz, value );
                 }
             }
         }

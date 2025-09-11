@@ -34859,6 +34859,8 @@ introduced since the last version:
     <li>Fix serious regression bug from last release (4.10-4):
         <ref id="TimePlotWindow">Time Plot</ref> was completely broken
         (failed with NullPointerException).</li>
+    <li>Fix bug in session-restoring synthetic subsets/columns
+        based on non-default global variables.</li>
     </ul>
     </p></dd>
 
