@@ -34856,6 +34856,9 @@ introduced since the last version:
         <ref id="GangLayerControl_quad">Quad</ref> Position controls
         so that all X coordinates are switched with Y coordinates
         not just the first pair.</li>
+    <li>Fix serious regression bug from last release (4.10-4):
+        <ref id="TimePlotWindow">Time Plot</ref> was completely broken
+        (failed with NullPointerException).</li>
     </ul>
     </p></dd>
 

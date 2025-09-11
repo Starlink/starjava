@@ -158,6 +158,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private Surface[] latestSurfaces_;
     private Map<SubCloud,double[]> highlightMap_;
     private Decoration navDecoration_;
+    private boolean hasBeenVisible_;
 
     private static final boolean WITH_SCROLL = true;
     private static final HighlightIcon HIGHLIGHTER = HighlightIcon.INSTANCE;
@@ -261,11 +262,17 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     public void replot() {
 
-        /* Replot should only happen if this component is visible.
+        /* Replots should only be done as long as this component is visible.
          * If GUI actions continue to trigger replots after this window
          * has been disposed or while it's iconified, we could be wasting
-         * a lot of resource. */
-        if ( ! TopcatUtils.isComponentVisible( this ) ) {
+         * a lot of resource.  Logic is in place to ensure that such
+         * culling only takes place after a window has been made invisible,
+         * not before it first appears, since plot preparation may occur
+         * before the window is actually posted. */
+        if ( TopcatUtils.isComponentVisible( this ) ) {
+            hasBeenVisible_ = true;
+        }
+        else if ( hasBeenVisible_ ) {
             return;
         }
 
