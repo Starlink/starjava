@@ -15899,6 +15899,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix taplint ObsCore <code>bib_reference</code> UCD check;
+        at ObsCore 1.1 (but not 1.0) it should be
+        "<code>meta.bib</code>".</li>
     </ul>
     </p></dd>
 
