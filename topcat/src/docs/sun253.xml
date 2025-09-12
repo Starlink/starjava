@@ -533,7 +533,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>30 July 2025</docdate>
+<docdate>12 September 2025</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -34845,23 +34845,28 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v4.10-5">Version 4.10-5 (12 September 2025)</dt>
 <dd><p>
-    <ul>
-    <li>Fix regression issue (v4.10-4)
-        that caused output trouble for tables read from ASCII/CSV files
-        including completely blank columns.</li>
-    <li>Fix the X&#x2194;Y button in the Plane Plot
-        <ref id="GangLayerControl_pair">Pair</ref> and
-        <ref id="GangLayerControl_quad">Quad</ref> Position controls
-        so that all X coordinates are switched with Y coordinates
-        not just the first pair.</li>
-    <li>Fix serious regression bug from last release (4.10-4):
-        <ref id="TimePlotWindow">Time Plot</ref> was completely broken
-        (failed with NullPointerException).</li>
-    <li>Fix bug in session-restoring synthetic subsets/columns
-        based on non-default global variables.</li>
-    </ul>
+    <dl>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix serious regression bug from last release (4.10-4):
+            <ref id="TimePlotWindow">Time Plot</ref> was completely broken
+            (failed with NullPointerException).</li>
+        <li>Fix regression issue (v4.10-4)
+            that caused output trouble for tables read from ASCII/CSV files
+            including completely blank columns.</li>
+        <li>Fix bug in session-restoring synthetic subsets/columns
+            based on non-default global variables.</li>
+        <li>Fix the X&#x2194;Y button in the Plane Plot
+            <ref id="GangLayerControl_pair">Pair</ref> and
+            <ref id="GangLayerControl_quad">Quad</ref> Position controls
+            so that all X coordinates are switched with Y coordinates
+            not just the first pair.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>

@@ -190,7 +190,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>30 July 2025</docdate>
+<docdate>12 September 2025</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -15873,17 +15873,27 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v3.5-4">Version 3.5-4 (12 September 2025)</dt>
 <dd><p>
-    <ul>
-    <li>Fix regression issue (v3.5-3)
-        that caused output trouble for tables read from ASCII/CSV files
-        including completely blank columns.</li>
-    <li>Add <code>keyvaluefull</code> option to <code>parqlook</code>
-        <ref id="parqlook-items"><code>items</code></ref> parameter.
-        The default list is now designated
-        "<code>default</code>" not "<code>all</code>".</li>
-    </ul>
+    <dl>
+    <dt>Bugfix:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix regression issue (v3.5-3)
+            that caused output trouble for tables read from ASCII/CSV files
+            including completely blank columns.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancement:</dt>
+    <dd><p>
+        <ul>
+        <li>Add <code>keyvaluefull</code> option to <code>parqlook</code>
+            <ref id="parqlook-items"><code>items</code></ref> parameter.
+            The default list is now designated
+            "<code>default</code>" not "<code>all</code>".</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
