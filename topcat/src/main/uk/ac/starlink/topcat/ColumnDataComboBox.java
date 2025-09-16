@@ -46,29 +46,31 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
     private ComboBoxModel<ColumnData> model_;
     private boolean isSelectingIndex_;
 
-    /** Configure autocomplete popup menu; if null, no autocomplete. */
-    private static final AutocompleteMatcher AUTOCOMPLETE_MATCHER =
+    /** Default option for autocomplete popup menu. */
+    public static final AutocompleteMatcher DFLT_AUTOCOMPLETE =
         AutocompleteMatcher.CONTAINS;
 
     /**
-     * Constructs a domain-less selector.
+     * Constructs a default selector
      */
     public ColumnDataComboBox() {
-        this( null );
+        this( (Domain) null, DFLT_AUTOCOMPLETE );
     }
 
     /**
-     * Constructs a selector with a given target value domain.
+     * Constructs a selector with configuration options.
      *
      * @param  domain   required value domain
+     * @param  autocomplete  autocompletion option, null for none
      */
     @SuppressWarnings("this-escape")
-    public ColumnDataComboBox( Domain<?> domain ) {
+    public ColumnDataComboBox( Domain<?> domain,
+                               AutocompleteMatcher autocomplete ) {
         domain_ = domain;
         mapperSelector_ = domain == null
                         ? null
                         : new DomainMapperComboBox( domain, this );
-        autocompleteMatcher_ = AUTOCOMPLETE_MATCHER;
+        autocompleteMatcher_ = autocomplete;
         addPopupMenuListener( new PopupMenuListener() {
             public void popupMenuCanceled( PopupMenuEvent evt ) {
                 clearPopupFilter();
@@ -430,7 +432,7 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
      * for a string partially entered by the user.
      */
     @FunctionalInterface
-    private static interface AutocompleteMatcher {
+    public static interface AutocompleteMatcher {
 
         /** Instance that matches entry text at the start of the column name. */
         static final AutocompleteMatcher PREFIX = (txt, cdata) ->

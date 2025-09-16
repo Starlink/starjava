@@ -111,7 +111,10 @@ public class BasicCoordPanel implements CoordPanel {
             for ( int ii = 0; ii < ni; ii++ ) {
                 InputMeta meta = inputs[ ii ].getMeta();
                 Domain<?> domain = inputs[ ii ].getDomain();
-                final ColumnDataComboBox cs = new ColumnDataComboBox( domain );
+                final ColumnDataComboBox cs =
+                    new ColumnDataComboBox( domain,
+                                            ColumnDataComboBox
+                                           .DFLT_AUTOCOMPLETE );
                 colSelectors_.get( ic ).add( cs );
                 cs.addActionListener( forwarder_ );
                 JComponent line = Box.createHorizontalBox();
