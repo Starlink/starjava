@@ -135,7 +135,8 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
                                 }
                             }
                             else {
-                                if ( getModel() != model_ ) {
+                                if ( getModel() != model_ &&
+                                     TopcatUtils.isComponentVisible( cbox ) ) {
                                     cbox.showPopup();
                                 }
                             }
