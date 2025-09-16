@@ -15,6 +15,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.Domain;
 
 /**
  * Selector component for SortOrder instances.
@@ -29,8 +30,11 @@ public class SortOrderSelector extends JPanel {
     private final JButton addButton_;
     private final JButton removeButton_;
     private final PropertyChangeListener modelListener_;
-    
     private Model model_;
+
+    private static final Domain<?> DOMAIN = null;
+    private static final ColumnDataComboBox.AutocompleteMatcher AUTOCOMPLETE =
+        null;
 
     /**
      * Constructor.
@@ -140,7 +144,8 @@ public class SortOrderSelector extends JPanel {
 
             /* Add new combo boxes for each selector in the model. */
             for ( ColumnDataComboBoxModel cdataModel : model_.cdataModels_ ) {
-                ColumnDataComboBox cdataBox = new ColumnDataComboBox();
+                ColumnDataComboBox cdataBox =
+                    new ColumnDataComboBox( DOMAIN, AUTOCOMPLETE );
                 cdataBox.setModel( cdataModel );
                 cdataBox.addActionListener( forwarder_ );
                 add( cdataBox );
