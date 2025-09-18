@@ -41,6 +41,7 @@ public class SpecifierListArrayPanel {
      * @param  labelFunc  provides a generic label (applied to all keys)
      *                    for each index
      */
+    @SuppressWarnings("this-escape")
     public SpecifierListArrayPanel( ConfigKey<?>[] keys,
                                     IntFunction<String> labelFunc ) {
         specList_ = Arrays.stream( keys )

@@ -56,6 +56,7 @@ public class MultiController<C> {
      * @param  zfact     zone id factory
      * @param  configger   manages global and per-zone axis config items
      */
+    @SuppressWarnings("this-escape")
     public MultiController( ControllerFactory<C> cfact, ZoneFactory zfact,
                             MultiConfigger configger ) {
         cfact_ = cfact;

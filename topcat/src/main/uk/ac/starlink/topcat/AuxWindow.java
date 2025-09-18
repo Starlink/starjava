@@ -185,6 +185,7 @@ public class AuxWindow extends JFrame {
      * @param  viewName   name of the type of view provided by this window
      * @param  parent   parent component, may be used for window positioning
      */
+    @SuppressWarnings("this-escape")
     public AuxWindow( final TopcatModel tcModel, final String viewName,
                       Component parent ) {
         this( "TOPCAT(" + tcModel.getID() + "): " + viewName, parent );
