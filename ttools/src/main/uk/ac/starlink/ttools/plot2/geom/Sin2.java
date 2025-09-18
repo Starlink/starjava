@@ -1,10 +1,10 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
-/** This class implements the Sine (Orthographic)
- *  projection.  Note that the tangent point
- *  is assumed to be at the north pole.
- *  This class assumes preallocated arrays for
- *  maximum efficiency.
+/* This class implements the Sine (Orthographic)
+ * projection.  Note that the tangent point
+ * is assumed to be at the north pole.
+ * This class assumes preallocated arrays for
+ * maximum efficiency.
  */
 
 import skyview.geometry.Projecter;

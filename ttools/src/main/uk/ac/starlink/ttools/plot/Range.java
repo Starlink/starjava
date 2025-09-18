@@ -17,7 +17,7 @@ public class Range {
     private double loPos_ = Double.NaN;
     private double hiPos_ = Double.NaN;
 
-    /***************************** NOTE *********************************
+    /* *************************** NOTE *********************************
      * NOTE: when reading and, especially, altering this code bear in 
      * mind that any comparison expression involving a NaN evaluates false,
      * so for instance ( ! ( a < b ) ) is NOT the same as ( a >= b ) for

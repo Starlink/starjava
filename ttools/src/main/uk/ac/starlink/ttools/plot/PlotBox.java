@@ -90,8 +90,8 @@ import javax.swing.SwingUtilities;
 //   - Augment getColorByName to support a full complement of colors
 //     (get the color list from Tycho).
 
-//////////////////////////////////////////////////////////////////////////
-//// PlotBox
+// ///////////////////////////////////////////////////////////////////////
+// / PlotBox
 /**
 This class provides a labeled box within which to place a data plot.
 
@@ -280,8 +280,8 @@ it can only be viewed by a browser that supports JDK 1.2, or a plugin.
 @SuppressWarnings({"unchecked","rawtypes","dep-ann","static","deprecation",})
 class PlotBox extends JPanel implements Printable {
 
-    ///////////////////////////////////////////////////////////////////
-    ////                         constructor                       ////
+    // ////////////////////////////////////////////////////////////////
+    // /                         constructor                       ////
 
     /** Construct a plot box with a default configuration. */
     public PlotBox() {
@@ -303,8 +303,8 @@ class PlotBox extends JPanel implements Printable {
         // requestFocus();
     }
 
-    ///////////////////////////////////////////////////////////////////
-    ////                         public methods                    ////
+    // ////////////////////////////////////////////////////////////////
+    // /                         public methods                    ////
 
     /** Add a legend (displayed at the upper right) for the specified
      *  data set with the specified string.  Short strings generally
@@ -698,12 +698,12 @@ class PlotBox extends JPanel implements Printable {
         }
     }
 
-    /** Get the preferred size of this component.
-     *  This is simply the dimensions specified by setSize(),
-     *  if this has been called, or the default width and height
-     *  otherwise (500 by 300).
-     *  @return The preferred size.
-     */
+//  /** Get the preferred size of this component.
+//   *  This is simply the dimensions specified by setSize(),
+//   *  if this has been called, or the default width and height
+//   *  otherwise (500 by 300).
+//   *  @return The preferred size.
+//   */
 //  public synchronized Dimension getPreferredSize() {
 //      return new Dimension(_preferredWidth, _preferredHeight);
 //  }
@@ -1559,13 +1559,13 @@ class PlotBox extends JPanel implements Printable {
         repaint();
     }
 
-    ///////////////////////////////////////////////////////////////////
-    ////                         public variables                  ////
+    // ////////////////////////////////////////////////////////////////
+    // /                         public variables                  ////
 
     public static final String PTPLOT_RELEASE = "5.2";
 
-    ///////////////////////////////////////////////////////////////////
-    ////                         protected methods                 ////
+    // ////////////////////////////////////////////////////////////////
+    // /                         protected methods                 ////
 
     /** Draw the axes using the current range, label, and title information.
      *  If the second argument is true, clear the display before redrawing.
@@ -3350,8 +3350,8 @@ class PlotBox extends JPanel implements Printable {
         _zooming = true;
     }
 
-    ///////////////////////////////////////////////////////////////////
-    ////                         private variables                 ////
+    // ////////////////////////////////////////////////////////////////
+    // /                         private variables                 ////
 
     /** @serial Indicator of whether actions are deferred. */
     private boolean _actionsDeferred = false;
