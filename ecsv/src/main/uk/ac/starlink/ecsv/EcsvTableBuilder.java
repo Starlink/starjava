@@ -95,6 +95,12 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
         return headerLoc_;
     }
 
+    /**
+     * Sets the column checking message policy.
+     *
+     * @param  colCheck  determines action if YAML header columns don't match
+     *                   CSV header
+     */
     @ConfigMethod(
         property = "colcheck",
         doc = "<p>Determines the action taken if the columns named\n"
@@ -104,12 +110,6 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
         example = "FAIL",
         sequence = 2
     )
-    /**
-     * Sets the column checking message policy.
-     *
-     * @param  colCheck  determines action if YAML header columns don't match
-     *                   CSV header
-     */
     public void setColcheck( MessagePolicy colCheck ) {
         colCheck_ = colCheck;
     }
