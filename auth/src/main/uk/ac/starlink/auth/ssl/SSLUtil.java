@@ -710,27 +710,6 @@ public class SSLUtil
     }
 
     /**
-     * @param chain
-     * @return certificate chain and private key as a PEM encoded string
-     */
-    // THIS IS NOT WORKING. 
-    // getEncoded() in privateKey does not use the encoding expected by PEM.
-    
-/*    public static String writePEMCertificateAndKey(X509CertificateChain chain)
-    {
-        if (chain == null) 
-            return null;
-        
-        String certChainStr = chain.certificateString();
-        byte[] bytesPrivateKey = chain.getPrivateKey().getEncoded();
-        if (certChainStr == null || bytesPrivateKey == null)
-            return null;
-        String pemStr = SSLUtil.buildPEM(certChainStr, bytesPrivateKey);
-        return pemStr;
-    }*/
-    
-
-    /**
      * Checks whether the subject's certificate credentials are valid
      * at a given date. If date is missing, current time is used as 
      * reference. 
