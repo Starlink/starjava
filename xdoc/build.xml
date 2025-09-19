@@ -1030,6 +1030,7 @@
                    value="${tests-classpath.value}"/>
       <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
+      <sysproperty key="jdk.xml.enableExtensionFunctions" value="true"/>
 
       <formatter type="brief" usefile="false"/>
 
@@ -1058,6 +1059,7 @@
                    value="${tests-classpath.value}"/>
       <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
+      <sysproperty key="jdk.xml.enableExtensionFunctions" value="true"/>
       <classpath refid="tests-classpath"/>
       <jvmarg value="${junit.assertions}"/>
       <formatter type="plain" usefile="false"/>

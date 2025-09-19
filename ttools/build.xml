@@ -1428,6 +1428,10 @@
           failonerror="yes"
           fork="yes">
       <sysproperty key="java.awt.headless" value="true"/>
+      <sysproperty key="jdk.xml.totalEntitySizeLimit" value="0"/>
+      <sysproperty key="jdk.xml.maxGeneralEntitySizeLimit" value="0"/>
+      <sysproperty key="jdk.xml.entityReplacementLimit" value="0"/>
+      <sysproperty key="jdk.xml.enableExtensionFunctions" value="true"/>
       <arg value="-style"/> <arg value="${xdoc.etc}/toHTML.xslt"/>
       <arg value="-param"/> <arg value="VERSION=${version}"/>
       <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
@@ -1719,6 +1723,10 @@
                    value="${tests-classpath.value}"/>
       <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
+      <sysproperty key="jdk.xml.totalEntitySizeLimit" value="0"/>
+      <sysproperty key="jdk.xml.maxGeneralEntitySizeLimit" value="0"/>
+      <sysproperty key="jdk.xml.entityReplacementLimit" value="0"/>
+      <sysproperty key="jdk.xml.enableExtensionFunctions" value="true"/>
       <sysproperty key="tests.withnet" value="${tests.withnet}"/>
       <sysproperty key="basedir" value="${basedir}"/>
       <sysproperty key="xdoc.etc" value="${xdoc.etc}"/>
@@ -1777,6 +1785,10 @@
                    value="${tests-classpath.value}"/>
       <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
+      <sysproperty key="jdk.xml.totalEntitySizeLimit" value="0"/>
+      <sysproperty key="jdk.xml.maxGeneralEntitySizeLimit" value="0"/>
+      <sysproperty key="jdk.xml.entityReplacementLimit" value="0"/>
+      <sysproperty key="jdk.xml.enableExtensionFunctions" value="true"/>
       <sysproperty key="tests.withnet" value="${tests.withnet}"/>
       <sysproperty key="basedir" value="${basedir}"/>
       <sysproperty key="xdoc.etc" value="${xdoc.etc}"/>
