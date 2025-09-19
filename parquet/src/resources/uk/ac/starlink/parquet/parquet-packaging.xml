@@ -65,4 +65,17 @@ the possibility of failure with a <code>java.lang.UnsatisfiedLinkError</code>
 on other platforms if attempting to read/write files that use those
 compression algorithms.
 </blockquote>
+<blockquote>
+Note also that there are known problems with Parquet I/O when running
+with Java versions later than Java 21;
+you may encounter a message like
+<pre>
+   java.lang.UnsupportedOperationException: getSubject is not supported
+</pre>
+This is to do with the underlying Hadoop libraries
+(see <webref url="https://issues.apache.org/jira/browse/HADOOP-19212"
+             >this Hadoop bugtracking issue</webref>)
+and for now the only solution is to
+run using an earlier Java version like Java 8, 11, 17 or 21.
+</blockquote>
 </p>
