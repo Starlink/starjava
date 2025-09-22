@@ -4,6 +4,9 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -30,6 +33,32 @@ abstract class Encoder {
     private final String links_;
     private String nullString_;
     private String content_;
+
+    /**
+     * Determines how non-ASCII characters are written to datatype="char"
+     * columns for VOTables prior to VOTable 1.6.
+     *
+     * <p>If set false, non-ASCII characters are mapped to '?' in char
+     * columns of pre-VOTable 1.6 output, which produces legal VOTables.
+     *
+     * <p>If set true, then for pre-VOTable 1.6 tables non-ASCII character data
+     * is written mostly as UTF-8 to char columns, even though that is
+     * illegal VOTable.  This corresponds to legacy behaviour of this library
+     * when treatment of Unicode was done sloppily.  The right thing to do
+     * for non-ASCII character data in VOTable 1.6+ is straightforward:
+     * write it as UTF-8 to datatype char.  Prior to VOTable 1.6 such
+     * characters should either be mapped to some ASCII placeholder
+     * character in a char column, or arguably better but slower, some
+     * prior pass through the data should ensure that such data is
+     * written to to the unicodeChar type instead (though that still wouldn't
+     * work for non-BMP code points).  In practice, writing it illegally
+     * as UTF-8 generally produces output that's understood by VOTable readers.
+     *
+     * <p>This is currently set true for pragmatic reasons.  Once VOTable 1.6
+     * output is default, probably it should be set false for correctness
+     * since that will be mostly harmless.
+     */
+    public static final boolean PRE_V16_LEGACY_CHAR_ENCODING = true;
 
     private final static Logger logger =
         Logger.getLogger( "uk.ac.starlink.votable" );
@@ -261,8 +290,17 @@ abstract class Encoder {
                                       boolean magicNulls,
                                       boolean useUnicodeChar ) {
 
-        final CharWriter cwrite = useUnicodeChar ? CharWriter.UCS2
-                                                 : CharWriter.ASCII;
+        final CharWriter cwrite;
+        if ( useUnicodeChar ) {
+            cwrite = CharWriter.UCS2;
+        }
+        else if ( version.isCharUnicode() ) {
+            cwrite = CharWriter.UTF8;
+        }
+        else {
+            cwrite = PRE_V16_LEGACY_CHAR_ENCODING ? CharWriter.UTF8
+                                                  : CharWriter.ASCII;
+        }
         Class<?> clazz = info.getContentClass();
         int[] dims = info.getShape();
         final boolean isNullable = info.isNullable() && magicNulls;
@@ -604,33 +642,32 @@ abstract class Encoder {
         }
 
         else if ( clazz == String.class ) {
-            final int nChar = clazz == String.class ? info.getElementSize()
-                                                    : -1;
+            final int strLen = clazz == String.class ? info.getElementSize()
+                                                     : -1;
 
             /* Fixed length strings. */
-            if ( nChar > 0 ) {
+            if ( strLen > 0 ) {
+                byte[] buf = new byte[ strLen * cwrite.bytesPerElement_ ];
                 return new Encoder( info, cwrite.getDatatype() ) {
                     /*anonymousConstructor*/ {
-                        putAtt( "arraysize", Integer.toString( nChar ) );
+                        putAtt( "arraysize", Integer.toString( strLen ) );
                     }
 
                     public String encodeAsText( Object val ) {
-                        return val == null ? "" : val.toString();
+                        return val instanceof String
+                             ? cwrite.toString( (String) val )
+                             : "";
                     }
 
                     public void encodeToStream( Object val, DataOutput out )
                             throws IOException {
-                        int i = 0;
-                        if ( val != null ) {
-                            String value = val.toString();
-                            int limit = Math.min( value.length(), nChar );
-                            for ( ; i < limit; i++ ) {
-                                cwrite.writeChar( out, value.charAt( i ) );
-                            }
+                        if ( val == null ) {
+                            Arrays.fill( buf, (byte) 0 );
                         }
-                        for ( ; i < nChar; i++ ) {
-                            cwrite.writeChar( out, '\0' );
+                        else {
+                            cwrite.fillBytes( val.toString(), buf, false );
                         }
+                        out.write( buf );
                     }
                 };
             }
@@ -643,7 +680,9 @@ abstract class Encoder {
                     }
 
                     public String encodeAsText( Object val ) {
-                        return val == null ? "" : val.toString();
+                        return val instanceof String
+                             ? cwrite.toString( (String) val )
+                             : "";
                     }
 
                     public void encodeToStream( Object val, DataOutput out )
@@ -652,12 +691,9 @@ abstract class Encoder {
                             out.writeInt( 0 );
                         }
                         else {
-                            String value = val.toString();
-                            int leng = value.length();
-                            out.writeInt( leng );
-                            for ( int i = 0 ; i < leng; i++ ) {
-                                cwrite.writeChar( out, value.charAt( i ) );
-                            }
+                            byte[] buf = cwrite.toBytes( val.toString() );
+                            out.writeInt( buf.length / cwrite.bytesPerElement_);
+                            out.write( buf );
                         }
                     }
                 };
@@ -665,9 +701,9 @@ abstract class Encoder {
         }
 
         else if ( clazz == String[].class ) {
-            final int nChar = clazz == String[].class ? info.getElementSize()
-                                                      : -1;
-            if ( nChar < 0 ) {
+            final int strLen = clazz == String[].class ? info.getElementSize()
+                                                       : -1;
+            if ( strLen < 0 ) {
                 logger.warning(
                     "Oh dear - can't serialize array of variable-length " +
                     "strings to VOTable - sorry" );
@@ -677,7 +713,7 @@ abstract class Encoder {
             /* Add an extra dimension since writing treats a string as an
              * array of chars. */
             int[] charDims = new int[ dims.length + 1 ];
-            charDims[ 0 ] = nChar;
+            charDims[ 0 ] = strLen;
             System.arraycopy( dims, 0, charDims, 1, dims.length );
 
             /* Work out the arraysize attribute. */
@@ -692,7 +728,6 @@ abstract class Encoder {
             final int nString = ns;
 
             return new Encoder( info, cwrite.getDatatype() ) {
-                char[] cbuf = new char[ nChar ];
 
                 /*anonymousConstructor*/ {
                     putAtt( "arraysize", arraysize );
@@ -701,19 +736,14 @@ abstract class Encoder {
                 public String encodeAsText( Object val ) {
                     if ( val != null ) {
                         Object[] value = (Object[]) val;
+                        byte[] bbuf =
+                            new byte[ strLen * cwrite.bytesPerElement_ ];
                         StringBuffer sbuf = new StringBuffer();
                         for ( int i = 0; i < value.length; i++ ) {
                             Object el = value[ i ];
                             String str = el == null ? "" : el.toString();
-                            int j = 0;
-                            int limit = Math.min( str.length(), nChar );
-                            for ( ; j < limit; j++ ) {
-                                cbuf[ j ] = str.charAt( j );
-                            }
-                            for ( ; j < nChar; j++ ) {
-                                cbuf[ j ] = ' ';
-                            }
-                            sbuf.append( new String( cbuf ) );
+                            cwrite.fillBytes( str, bbuf, true );
+                            sbuf.append( cwrite.toString( bbuf ) );
                         }
                         return sbuf.toString();
                     }
@@ -729,28 +759,25 @@ abstract class Encoder {
                     int slimit;
                     if ( isVariable ) {
                         slimit = value.length;
-                        out.writeInt( nChar * slimit );
+                        out.writeInt( strLen * slimit );
                     }
                     else {
                         slimit = Math.min( value.length, nString );
                     }
                     int is = 0;
+                    byte[] bbuf =
+                        new byte[ strLen * cwrite.bytesPerElement_ ];
                     for ( ; is < slimit; is++ ) {
                         Object v = value[ is ];
                         String str = v == null ? "" : v.toString();
-                        int climit = Math.min( str.length(), nChar );
-                        int ic = 0;
-                        for ( ; ic < climit; ic++ ) {
-                            cwrite.writeChar( out, str.charAt( ic ) );
-                        }
-                        for ( ; ic < nChar; ic++ ) {
-                            cwrite.writeChar( out, '\0' );
-                        }
+                        cwrite.fillBytes( str, bbuf, false );
+                        out.write( bbuf );
                     }
                     if ( ! isVariable ) {
-                        int nc = ( nString - is ) * nChar;
+                        Arrays.fill( bbuf, (byte) 0 );
+                        int nc = ( nString - is );
                         for ( int ic = 0; ic < nc; ic++ ) {
-                            cwrite.writeChar( out, '\0' );
+                            out.write( bbuf );
                         }
                     }
                 }
@@ -974,36 +1001,160 @@ abstract class Encoder {
      */
     private static abstract class CharWriter {
         private final String datatype_;
+        private final int bytesPerElement_;
 
         /**
          * Implementation using 1-byte characters.
          * Only the lower 7 bits of a char are used, anything else is ignored.
+         * This maps non-ASCII characters to a placeholder character '?'.
+         * Character in this sense is a Java char which may be a surrogate,
+         * not a code point, so non-BMP code points will get mapped to '??'
+         * not '?'.  Doing it per code-point would be arguably more correct,
+         * but somewhat more complicated and slower, and in practice people
+         * are unlikely to worry about the representation of non-BMP characters
+         * in ASCII data, so just keep it simple for now.
          */
-        public static final CharWriter ASCII = new CharWriter( "char" ) {
+        public static final CharWriter ASCII = new CharWriter( "char", 1 ) {
             public void writeChar( DataOutput out, char c ) throws IOException {
-                out.write( (int) c );
+                out.write( (int) charToAsciiByte( c ) );
+            }
+            public byte[] toBytes( String txt ) {
+                int len = txt.length();
+                byte[] buf = new byte[ len ];
+                for ( int i = 0; i < len; i++ ) {
+                    buf[ i ] = charToAsciiByte( txt.charAt( i ) );
+                }
+                return buf;
+            }
+            public void fillBytes( String txt, byte[] buf,
+                                   boolean isPadSpace ) {
+                int lim = Math.min( txt.length(), buf.length );
+                for ( int i = 0; i < lim; i++ ) {
+                    buf[ i ] = charToAsciiByte( txt.charAt( i ) );
+                }
+                for ( int i = lim; i < buf.length; i++ ) {
+                    buf[ i ] = isPadSpace ? (byte) 0x20 : (byte) 0x00;
+                }
+            }
+            public String toString( byte[] buf ) {
+                return new String( buf, StandardCharsets.UTF_8 );
+            }
+            public String toString( String txt ) {
+                int len = txt.length();
+                StringBuffer sbuf = new StringBuffer( len );
+                for ( int i = 0; i < len; i++ ) {
+                    char c = txt.charAt( i );
+                    sbuf.append( (char) charToAsciiByte( c ) );
+                }
+                return sbuf.toString();
+            }
+
+            /**
+             * Maps a character to a 7-bit ASCII byte.
+             * Since the result is guaranteed to be in the range 0x00-0x7f,
+             * it is safe to cast it to any other integer or char type.
+             *
+             * @param  c   input character
+             * @return  output byte
+             */
+            private byte charToAsciiByte( char c ) {
+                return c < 0x80 ? (byte) c : (byte) '?';
+            }
+        };
+
+        /** Implementation using UTF-8 encoding. */
+        public static final CharWriter UTF8 = new CharWriter( "char", 1 ) {
+            public void writeChar( DataOutput out, char c ) throws IOException {
+                out.write( c < 0x80 ? ( c & 0x7f ) : (int) '?' );
+            }
+            public byte[] toBytes( String txt ) {
+                return txt.getBytes( StandardCharsets.UTF_8 );
+            }
+            public void fillBytes( String txt, byte[] buf,
+                                   boolean isPadSpace ) {
+                Arrays.fill( buf, isPadSpace ? (byte) 0x20 : (byte) 0x00 );
+                StandardCharsets.UTF_8.newEncoder()
+                                      .encode( CharBuffer.wrap( txt ),
+                                               ByteBuffer.wrap( buf ), true );
+            }
+            public String toString( byte[] buf ) {
+                return new String( buf, StandardCharsets.UTF_8 );
+            }
+            public String toString( String txt ) {
+                return txt;
             }
         };
 
         /**
          * Implementation using 2-byte characters.
-         * The encoding is java's character storage, which is either identical
-         * or similar (not sure which) to the deprecated Unicode UCS-2 encoding.
+         * The encoding is like java's character storage, but characters
+         * outside the BMP are represented by '?'.
          */
-        public static final CharWriter UCS2 = new CharWriter( "unicodeChar" ) {
+        public static final CharWriter UCS2 =
+                new CharWriter( "unicodeChar", 2 ) {
             public void writeChar( DataOutput out, char c ) throws IOException {
                 out.writeChar( c );
+            }
+            public byte[] toBytes( String txt ) {
+                int len = txt.length();
+                byte[] buf = new byte[ 2 * len ];
+                for ( int i = 0; i < len; i++ ) {
+                    char c = txt.charAt( i );
+                    if ( Character.isSurrogate( c ) ) {
+                        buf[ 2 * i + 0 ] = (byte) 0x00;
+                        buf[ 2 * i + 1 ] = (byte) '?';
+                    }
+                    else {
+                        buf[ 2 * i + 0 ] = (byte) ( c >>> 8 );
+                        buf[ 2 * i + 1 ] = (byte) c;
+                    }
+                }
+                return buf;
+            }
+            public void fillBytes( String txt, byte[] buf,
+                                   boolean isPadSpace ) {
+                int nc = buf.length / 2;
+                int lim = Math.min( txt.length(), nc );
+                for ( int i = 0; i < lim; i++ ) {
+                    char c = txt.charAt( i );
+                    if ( Character.isSurrogate( c ) ) {
+                        buf[ 2 * i + 0 ] = (byte) 0x00;
+                        buf[ 2 * i + 1 ] = (byte) '?';
+                    }
+                    else {
+                        buf[ 2 * i + 0 ] = (byte) ( c >>> 8 );
+                        buf[ 2 * i + 1 ] = (byte) c;
+                    }
+                }
+                for ( int i = lim; i < nc; i++ ) {
+                    buf[ 2 * i + 0 ] = 0;
+                    buf[ 2 * i + 1 ] = isPadSpace ? (byte) 0x20 : (byte) 0x00;
+                }
+            }
+            public String toString( byte[] buf ) {
+                return new String( buf, StandardCharsets.UTF_16 );
+            }
+            public String toString( String txt ) {
+                int len = txt.length();
+                StringBuffer sbuf = new StringBuffer( len );
+                for ( int i = 0; i < len; i++ ) {
+                    char c = txt.charAt( i );
+                    sbuf.append( Character.isSurrogate( c ) ? '?' : c );
+                }
+                return sbuf.toString();
             }
         };
 
         /**
          * Constructor.
          *
-         * @return   value of VOTable datatype attribute corresponding
-         *           to this writer's output
+         * @param   datatype  name of VOTable datatype
+         * @param   bytesPerElement  number of bytes per
+         *                           declared arraysize unit
          */
-        public CharWriter( String datatype ) {
+        public CharWriter( String datatype, int bytesPerElement ) {
             datatype_ = datatype;
+            bytesPerElement_ = bytesPerElement;
         }
 
         /**
@@ -1017,12 +1168,58 @@ abstract class Encoder {
         }
 
         /**
-         * Writes a character to an output stream.
+         * Writes a single character to the given stream.
+         * This is only used for writing character scalars,
+         * it is not used as part of the procedure for writing
+         * character arrays (strings).
          *
-         * @param  out  destination stream
-         * @param  c   character to output
+         * @param  out  output stream
+         * @param  chr  character scalar to write
          */
-        public abstract void writeChar( DataOutput out, char c )
+        public abstract void writeChar( DataOutput out, char chr )
                 throws IOException;
+
+        /**
+         * Serializes a string to a sequence of bytes.
+         *
+         * @param  txt  string to write
+         * @return   array containing serialized content
+         */
+        public abstract byte[] toBytes( String txt );
+
+        /**
+         * Serializes a string into a given byte buffer.
+         * The written content must be well-formed, for instance it may not
+         * truncate in the middle of a multi-byte UTF-8 character
+         * representation.
+         * Any space at the end will be padded according to the
+         * <code>isPadSpace</code> parameter.
+         *
+         * @param  txt  string to write
+         * @param  buf  destination buffer
+         * @param  isPadSpace  if true pad with spaces, if false pad with zeros
+         */
+        public abstract void fillBytes( String txt, byte[] buf,
+                                        boolean isPadSpace );
+
+        /**
+         * Decodes a byte representation for this CharWriter into a string.
+         * The supplied buffer is guaranteed to contain legal content
+         * for this writer.
+         *
+         * @param  buf  byte buffer
+         * @return   string equivalent
+         */
+        public abstract String toString( byte[] buf );
+
+        /**
+         * Serializes a scalar string cell value into a String object
+         * that can be written into legal TABLEDATA content
+         * for this character type.
+         *
+         * @param  txt  non-null string
+         * @return   string for output to TABLEDATA
+         */
+        public abstract String toString( String txt );
     }
 }
