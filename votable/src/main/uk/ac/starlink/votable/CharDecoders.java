@@ -2,6 +2,7 @@ package uk.ac.starlink.votable;
 
 import java.io.DataInput;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import uk.ac.starlink.table.Tables;
 
 /**
@@ -17,22 +18,18 @@ abstract class CharDecoders {
      * datatype attribute of 'char' and declared arraysize attribute
      * as per a given dimensions array.
      *
-     * @param  arrraysize  array representing value dimensions - last element
+     * <p>This currently reads on the assumption of UTF-8 encoding.
+     * At VOTable 1.5 and earlier, only 7-bit ASCII characters are permitted,
+     * but UTF-8 may be illegally present anyway, so it's probably reasonable
+     * to interpret it as such.
+     *
+     * @param  arraysize  array representing value dimensions - last element
      *         may be -1 to indicate unknown
      * @return  decoder for <code>arraysize</code>-sized array
      *          of <code>char</code>s
      */
     public static Decoder makeCharDecoder( long[] arraysize ) {
-        CharReader cread = new CharReader() {
-            public char readCharFromStream( DataInput strm )
-                    throws IOException {
-                return (char) ( strm.readByte() & 0x00ff );
-            }
-            public int getCharSize() {
-                return 1;
-            }
-        };
-        return makeDecoder( arraysize, cread );
+        return makeDecoder( arraysize, CharReader.UTF8 );
     }
 
     /**
@@ -40,44 +37,93 @@ abstract class CharDecoders {
      * datatype attribute of 'unicodeChar' and declared arraysize attribute
      * as per a given dimensions array.
      *
+     * <p>This type is effectively UTF-16 with a restriction to BMP-only
+     * characters.  If non-BMP characters are present, we cope with them
+     * anyway.
+     *
      * @param  arrraysize  array representing value dimensions - last element
      *         may be -1 to indicate unknown
      * @return  decoder for <code>arraysize</code>-sized array of 
      *          <code>unicodeChar</code>s
      */
     public static Decoder makeUnicodeCharDecoder( long[] arraysize ) {
-        CharReader cread = new CharReader() {
-            public char readCharFromStream( DataInput strm )
-                    throws IOException {
-                return strm.readChar();
-            }
-            public int getCharSize() {
-                return 2;
-            }
-        };
-        return makeDecoder( arraysize, cread );
+        return makeDecoder( arraysize, CharReader.UTF16 );
     }
 
     /**
      * Helper interface defining how to get a <code>char</code> from a stream.
      */
-    private static interface CharReader {
+    private static abstract class CharReader {
+
+        public final int elSize_;
+
+        /** Reader implementation for UTF-8 input. */
+        public static final CharReader UTF8 = new CharReader( 1 ) {
+            public char readSingleCharFromStream( DataInput in )
+                    throws IOException {
+                byte b = in.readByte();
+                return b >= 0 ? (char) b : '?';
+            }
+            public String decodeString( byte[] buf, int offset, int leng ) {
+                return new String( buf, offset, leng, StandardCharsets.UTF_8 );
+            }
+            public byte[] toBytes( String txt ) {
+                return txt.getBytes( StandardCharsets.UTF_8 );
+            }
+        };
+
+        /** Reader implementation for UTF-16 input. */
+        public static final CharReader UTF16 = new CharReader( 2 ) {
+            public char readSingleCharFromStream( DataInput in )
+                    throws IOException {
+                return in.readChar();
+            }
+            public String decodeString( byte[] buf, int offset, int leng ) {
+                return new String( buf, offset, leng,
+                                   StandardCharsets.UTF_16BE );
+            }
+            public byte[] toBytes( String txt ) {
+                return txt.getBytes( StandardCharsets.UTF_16BE );
+            }
+        };
 
         /**
-         * Reads a character from a stream.
+         * Constructor.
          *
-         * @param   strm   input stream
-         * @return   single character read from <code>strm</code>
+         * @param  elSize  number of bytes per input element
          */
-        char readCharFromStream( DataInput strm ) throws IOException;
+        CharReader( int elSize ) {
+            elSize_ = elSize;
+        }
 
         /**
-         * Returns the number of bytes read for a single character
-         * (a single call of {@link #readCharFromStream}).
+         * Reads a single character from a stream.
+         * This is not used as part of a sequence of reads to build
+         * up a string.
          *
-         * @return  byte count per character
+         * @param   in   input stream
+         * @return   single character
          */
-        int getCharSize();
+        abstract char readSingleCharFromStream( DataInput in )
+                throws IOException;
+
+        /**
+         * Decodes a byte sequence into a string.
+         *
+         * @param  buf  byte buffer
+         * @param  offset   start of byte sequence in buffer
+         * @param  leng   length of byte sequence in buffer
+         * @return  output string
+         */
+        abstract String decodeString( byte[] buf, int offset, int leng );
+
+        /**
+         * Unpacks a string read from VOTable XML into a byte buffer.
+         *
+         * @param  txt  text
+         * @return  byte buffer with text encoding
+         */
+        abstract byte[] toBytes( String txt );
     }
 
 
@@ -106,7 +152,7 @@ abstract class CharDecoders {
         else if ( ndim == 1 && 
                   arraysize[ 0 ] == FieldElement.ASSUMED_ARRAYSIZE ) {
             return new ScalarStringDecoder( arraysize, cread ) {
-                public Object decodeStream( DataInput strm )
+                public String decodeStream( DataInput strm )
                         throws IOException {
                     throw new RuntimeException( 
                         "Refuse to decode assumed char arraysize - try -D" +
@@ -130,29 +176,54 @@ abstract class CharDecoders {
     }
 
     /**
+     * Takes a string value and trims it by truncating it at the first NUL,
+     * then stripping any trailing spaces.
+     *
+     * @param  txt  input string
+     * @return   packed string
+     */
+    private static String packString( CharSequence txt ) {
+        int leng = 0;
+        int sleng = txt.length();
+        char[] buf = new char[ sleng ];
+        for ( int i = 0; i < sleng; i++ ) {
+            char c = txt.charAt( i );
+            if ( c == '\0' ) {
+                break;
+            }
+            buf[ leng++ ] = c;
+        }
+        while ( leng > 0 && buf[ leng - 1 ] == ' ' ) {
+            leng--;
+        }
+        return ( leng > 0 ) ? new String( buf, 0, leng )
+                            : "";
+    }
+
+    /**
      * Decoder subclass for reading single character values.
      */
     private static class ScalarCharDecoder extends Decoder {
-        final CharReader cread;
+        final CharReader cread_;
 
         ScalarCharDecoder( CharReader cread ) {
             super( Character.class, SCALAR_SIZE );
-            this.cread = cread;
+            cread_ = cread;
         }
 
-        public Object decodeString( String txt ) {
+        public Character decodeString( String txt ) {
             return Character.valueOf( txt.length() > 0 ? txt.charAt( 0 )
                                                        : '\0' );
         }
 
-        public Object decodeStream( DataInput strm ) throws IOException {
+        public Character decodeStream( DataInput strm ) throws IOException {
             assert getNumItems( strm ) == 1;
-            return Character.valueOf( cread.readCharFromStream( strm ) );
+            return Character.valueOf( cread_.readSingleCharFromStream( strm ) );
         }
 
         public void skipStream( DataInput strm ) throws IOException {
             assert getNumItems( strm ) == 1;
-            skipBytes( strm, cread.getCharSize() );
+            skipBytes( strm, cread_.elSize_ );
         }
 
         public boolean isNull( Object array, int index ) {
@@ -168,11 +239,11 @@ abstract class CharDecoders {
      * values.
      */
     private static class ScalarStringDecoder extends Decoder {
-        final CharReader cread; 
+        final CharReader cread_;
 
         ScalarStringDecoder( long[] arraysize, CharReader cread ) {
             super( String.class, arraysize );
-            this.cread = cread;
+            cread_ = cread;
         }
 
         public long[] getDecodedShape() {
@@ -183,49 +254,20 @@ abstract class CharDecoders {
             return (int) arraysize[ 0 ];
         }
 
-        public Object decodeString( String txt ) {
+        public String decodeString( String txt ) {
             return txt;
         }
 
-        public Object decodeStream( DataInput strm ) throws IOException {
+        public String decodeStream( DataInput strm ) throws IOException {
             int num = getNumItems( strm );
-            StringBuffer data = new StringBuffer( num );
-            int i = 0;
-            while ( i < num ) {
-                char c = cread.readCharFromStream( strm );
-                i++;
-                if ( c == '\0' ) {
-                    break;
-                }
-                data.append( c );
-            }
-            for ( ; i < num; i++ ) {
-                cread.readCharFromStream( strm );
-            }
-            return new String( data );
+            byte[] buf = new byte[ num * cread_.elSize_ ];
+            strm.readFully( buf );
+            return packString( cread_.decodeString( buf, 0, buf.length ) );
         }
 
         public void skipStream( DataInput strm ) throws IOException {
             int num = getNumItems( strm );
-            skipBytes( strm, num * cread.getCharSize() );
-        }
-
-        String makeString( CharSequence txt ) {
-            int leng = 0;
-            int sleng = txt.length();
-            char[] buf = new char[ sleng ];
-            for ( int i = 0; i < sleng; i++ ) {
-                char c = txt.charAt( i );
-                if ( c == '\0' ) {
-                    break;
-                }
-                buf[ leng++ ] = c;
-            }
-            while ( leng > 0 && buf[ leng - 1 ] == ' ' ) {
-                leng--;
-            }
-            return ( leng > 0 ) ? new String( buf, 0, leng )
-                                : null;
+            skipBytes( strm, num * cread_.elSize_ );
         }
 
         public boolean isNull( Object array, int index ) {
@@ -240,32 +282,32 @@ abstract class CharDecoders {
      * character array)l
      */
     private static class StringDecoder extends Decoder {
-        final CharReader cread;
-        final long[] decodedShape;
-        final boolean isVariable;
-        final int fixedSize;
+        final CharReader cread_;
+        final long[] decodedShape_;
+        final boolean isVariable_;
+        final int fixedSize_;
 
         StringDecoder( long[] arraysize, CharReader cread ) {
             super( String[].class, arraysize );
-            this.cread = cread;
+            cread_ = cread;
             int ndim = arraysize.length;
-            decodedShape = new long[ ndim - 1 ];
-            System.arraycopy( arraysize, 1, decodedShape, 0, ndim - 1 );
-            isVariable = arraysize[ ndim - 1 ] < 0;
-            if ( ! isVariable ) {
+            decodedShape_ = new long[ ndim - 1 ];
+            System.arraycopy( arraysize, 1, decodedShape_, 0, ndim - 1 );
+            isVariable_ = arraysize[ ndim - 1 ] < 0;
+            if ( ! isVariable_ ) {
                 long size = 1;
                 for ( long dim : arraysize ) {
                     size *= dim;
                 }
-                fixedSize = Tables.checkedLongToInt( size );
+                fixedSize_ = Tables.checkedLongToInt( size );
             }
             else {
-                fixedSize = -1;
+                fixedSize_ = -1;
             }
         }
 
         public long[] getDecodedShape() {
-            return decodedShape;
+            return decodedShape_;
         }
 
         public int getElementSize() {
@@ -273,51 +315,47 @@ abstract class CharDecoders {
         }
 
         public int getNumItems( DataInput strm ) throws IOException {
-            return isVariable ? super.getNumItems( strm ) : fixedSize;
+            return isVariable_ ? super.getNumItems( strm ) : fixedSize_;
         }
 
         public Object decodeString( String txt ) {
-            return makeStrings( txt );
+            return extractStrings( cread_.toBytes( txt ) );
         }
 
         public Object decodeStream( DataInput strm ) throws IOException {
             int num = getNumItems( strm );
-            StringBuffer sbuf = new StringBuffer( num );
-            for ( int i = 0; i < num; i++ ) {
-                sbuf.append( cread.readCharFromStream( strm ) );
-            }
-            return makeStrings( sbuf );
+            byte[] buf = new byte[ num * cread_.elSize_ ];
+            strm.readFully( buf );
+            return extractStrings( buf );
         }
 
         public void skipStream( DataInput strm ) throws IOException {
             int num = getNumItems( strm );
-            skipBytes( strm, cread.getCharSize() * num );
+            skipBytes( strm, cread_.elSize_ * num );
         }
         
-        public String[] makeStrings( CharSequence txt ) {
-            int ntok = txt.length();
+        /**
+         * Unpacks a byte buffer containing characters for the string array
+         * into a 1-d array with an element for each string scalar.
+         *
+         * @param  buf  buffer containing byte content for string array
+         */
+        private String[] extractStrings( byte[] buf ) {
+            int ntok = buf.length / cread_.elSize_;
             int ncell = numCells( ntok );
             int sleng = (int) arraysize[ 0 ];
             int nstr = ncell / sleng;
             String[] result = new String[ nstr ];
-            int k = 0;
-            char[] buf = new char[ sleng ];
-            for ( int i = 0; i < nstr && k < ntok; i++ ) {
-                int leng = 0;
-                while ( leng < sleng && k < ntok ) {
-                    char c = txt.charAt( k++ );
-                    if ( c == '\0' ) {
-                        break;
-                    }
-                    buf[ leng++ ] = c;
+            for ( int istr = 0; istr < nstr; istr++ ) {
+                int leng = sleng * cread_.elSize_;
+                int ioff = istr * leng;
+                if ( ioff < buf.length ) {
+                    String txt =
+                        cread_.decodeString( buf, ioff,
+                                             Math.min( leng,
+                                                       buf.length - ioff ) );
+                    result[ istr ] = packString( txt );
                 }
-                while ( leng > 0 && buf[ leng - 1 ] == ' ' ) {
-                    leng--;
-                }
-                if ( leng > 0 ) {
-                    result[ i ] = new String( buf, 0, leng );
-                }
-                k = ( i + 1 ) * sleng;
             }
             return result;
         }
