@@ -34901,6 +34901,7 @@ introduced since the last version:
         eliminating duplicate metadata queries.</li>
     <li>New <ref id="scheme-test"><code>test</code> scheme</ref> option
         "<code>u</code>" for diverse Unicode strings.</li>
+    <li>Fix some miscellaneous issues to do with Unicode I/O.</li>
     </ul>
     </p>
     </dd>

@@ -113,9 +113,11 @@ public class IpacTableWriter extends AbstractTextTableWriter {
             out.write( sepChar );
             out.write( ' ' );
             String datum = ( data[ ic ] == null ) ? "" : data[ ic ];
+            if ( datum.length() > colwidths[ ic ] ) {
+                datum = datum.substring( 0, colwidths[ ic ] );
+            }
             int padding = colwidths[ ic ] - datum.length();
-            out.write( getBytes( datum ), 0,
-                       Math.min( colwidths[ ic ], datum.length() ) );
+            out.write( getBytes( datum ) );
             if ( padding > 0 ) {
                 for ( int j = 0; j < padding; j++ ) {
                     out.write( ' ' );

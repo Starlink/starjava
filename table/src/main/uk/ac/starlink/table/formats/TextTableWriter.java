@@ -123,9 +123,11 @@ public class TextTableWriter extends AbstractTextTableWriter
             strm.write( '|' );
             strm.write( ' ' );
             String datum = ( data[ i ] == null ) ? "" : data[ i ];
+            if ( datum.length() > colwidths[ i ] ) {
+                datum = datum.substring( 0, colwidths[ i ] );
+            }
             int padding = colwidths[ i ] - datum.length();
-            strm.write( getBytes( datum ), 0,
-                        Math.min( colwidths[ i ], datum.length() ) );
+            strm.write( getBytes( datum ) );
             if ( padding > 0 ) {
                 for ( int j = 0; j < padding; j++ ) {
                     strm.write( ' ' );
