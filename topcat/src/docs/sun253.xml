@@ -34906,6 +34906,13 @@ introduced since the last version:
         can now write non-ASCII Unicode characters;
         encoding is UTF-8 by default, but can be configured
         with the new <code>encoding</code> option.</li>
+    <li>The <ref id="outAscii">ASCII</ref>,
+            <ref id="outText">Text</ref> and 
+            <ref id="outIpac">IPAC</ref> output handlers
+        can now write non-ASCII characters as UTF-8.
+        The <code>Text</code> handler does this by default,
+        the others have a new <code>encoding</code> option
+        that can be set.</li>
     </ul>
     </p>
     </dd>

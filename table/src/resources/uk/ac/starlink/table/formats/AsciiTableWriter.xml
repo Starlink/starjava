@@ -1,5 +1,7 @@
 <p>Writes to a simple plain-text format intended to be comprehensible
 by humans or machines.
+Despite the name, it can be configured to write non-ASCII Unicode
+characters by setting the <code>encoding</code> option.
 </p>
 
 <p>The first line is a comment, starting with a "<code>#</code>" character,

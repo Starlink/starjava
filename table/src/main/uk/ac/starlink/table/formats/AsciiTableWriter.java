@@ -2,6 +2,7 @@ package uk.ac.starlink.table.formats;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -20,6 +21,7 @@ public class AsciiTableWriter extends AbstractTextTableWriter {
     public AsciiTableWriter() {
         super( new String[] { "txt" }, false );
         setMaxWidth( 158 );
+        setEncoding( StandardCharsets.US_ASCII );
     }
 
     protected String formatValue( Object val, ValueInfo vinfo, int width ) {

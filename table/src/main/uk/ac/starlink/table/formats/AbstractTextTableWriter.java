@@ -2,6 +2,8 @@ package uk.ac.starlink.table.formats;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -25,6 +27,7 @@ public abstract class AbstractTextTableWriter
     private int maxWidth_;
     private int maxParamLength_;
     private int sampledRows_;
+    private Charset encoding_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.formats" );
@@ -43,6 +46,7 @@ public abstract class AbstractTextTableWriter
         setWriteParameters( writeParams );
         setMaxWidth( 160 );
         setMaximumParameterLength( 160 );
+        setEncoding( StandardCharsets.UTF_8 );
     }
 
     /**
@@ -294,6 +298,44 @@ public abstract class AbstractTextTableWriter
     }
 
     /**
+     * Sets the character encoding for output text.
+     *
+     * <p>This is currently restricted to ASCII-alike encodings
+     * since some of the subclasses write some of their output
+     * (such as column separators) directly to the OutputStream
+     * without going through the encoding.  If that gets tidied up
+     * then this restriction could be lifted.
+     *
+     * @param  encoding  character encoding
+     */
+    @ConfigMethod( 
+        property = "encoding",
+        usage = "UTF-8|ASCII", 
+        example = "ASCII",
+        doc = "<p>Specifies the character encoding used in "
+            + "the output file.\n"
+            + "</p>"
+    )   
+    public void setEncoding( Charset encoding ) {
+        byte[] buf = "A".getBytes( encoding );
+        if ( buf.length != 1 || buf[ 0 ] != (byte) 'A' ) {
+            String msg = "Unsupported encoding " + encoding
+                       + " - currently only UTF-8 and ASCII supported";
+            throw new IllegalArgumentException( msg );
+        }
+        encoding_ = encoding;
+    }
+
+    /**
+     * Returns the character encoding used for output.
+     *
+     * @return  character encoding
+     */
+    public Charset getEncoding() {
+        return encoding_;
+    }
+
+    /**
      * Formats a data value for output.
      *
      * @param  val  the value
@@ -352,24 +394,12 @@ public abstract class AbstractTextTableWriter
             throws IOException;
 
     /**
-     * Returns a byte array corresponding to a given string.
+     * Returns a byte array for output corresponding to a given string.
      *
      * @param  str  string to decode
      */
     protected byte[] getBytes( String str ) {
-
-        /* The decoding here is not that respectable (doesn't properly
-         * handle Unicode), but it makes a big performance difference,
-         * e.g. when writing out a table. 
-         * Leave it unless we find ourselves using much in the way of
-         * unicode characters.
-         * The correct way would be do use str.decode(). */
-        int leng = str.length();
-        byte[] buf = new byte[ leng ];
-        for ( int i = 0; i < leng; i++ ) {
-            buf[ i ] = (byte) str.charAt( i );
-        }
-        return buf;
+        return str.getBytes( encoding_ );
     }
 
     int getMaxDataWidth( Class<?> clazz ) {

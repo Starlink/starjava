@@ -2,6 +2,7 @@ package uk.ac.starlink.table.formats;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.ColumnInfo;
@@ -31,6 +32,7 @@ public class IpacTableWriter extends AbstractTextTableWriter {
         setMaxWidth( 1000 );
         // The comments parameter may be many lines long
         setMaximumParameterLength( 100_000 );
+        setEncoding( StandardCharsets.US_ASCII );
     }
 
     /**
