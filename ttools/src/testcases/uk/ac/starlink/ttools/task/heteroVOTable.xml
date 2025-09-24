@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE VOTABLE SYSTEM "http://us-vo.org/xml/VOTable.dtd">
-<VOTABLE version="1.0">
+<VOTABLE version="1.3">
 <DESCRIPTION>Sample VOTable that tries to exercize the options</DESCRIPTION>
 <RESOURCE>
 <TABLE>

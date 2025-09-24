@@ -142,9 +142,6 @@ public class VotCopyTest extends TableTestCase {
             env.setValue( "out", tmpfile.toString() );
             env.setValue( "format", datfmt );
             env.setValue( "href", Boolean.FALSE );
-            if ( DataFormat.BINARY2.equals( datfmt ) ) {
-                env.setValue( "version", "1.3" );
-            }
             new VotCopy().createExecutable( env ).execute();
             StarTable t1 =
                 builder.makeStarTable( new FileDataSource( tmpfile ),
