@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -461,6 +462,16 @@ public class BeanConfig {
                           .replaceAll( "\\\\", "\\" );
         }
         else if ( clazz.equals( Charset.class ) ) {
+            if ( "UTF8".equals( txt.replaceAll( "[_-]", "" ).toUpperCase() ) ) {
+                return (T) StandardCharsets.UTF_8;
+            }
+            else if ( "UTF16".equals( txt.replaceAll( "[_-]", "" )
+                                         .toUpperCase() ) ) {
+                return (T) StandardCharsets.UTF_16;
+            }
+            else if ( "ASCII".equalsIgnoreCase( txt ) ) {
+                return (T) StandardCharsets.US_ASCII;
+            }
             return (T) Charset.forName( txt );
         }
         else if ( Enum.class.isAssignableFrom( clazz ) ) {
