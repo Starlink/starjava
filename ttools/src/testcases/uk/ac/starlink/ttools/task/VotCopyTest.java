@@ -35,6 +35,7 @@ public class VotCopyTest extends TableTestCase {
     final URL multiLoc_ = getClass().getResource( "multi.vot" );
     final URL fitsLoc_ = getClass().getResource( "fitsin.vot" );
     final URL heteroLoc_ = getClass().getResource( "heteroVOTable.xml" );
+    final URL unicodeLoc_ = getClass().getResource( "unicode.vot" );
 
     public VotCopyTest( String name ) throws Exception {
         super( name );
@@ -126,19 +127,30 @@ public class VotCopyTest extends TableTestCase {
     }
 
     public void testHetero() throws Exception {
+        testFormats( heteroLoc_,
+                     new DataFormat[] { DataFormat.TABLEDATA,
+                                        DataFormat.BINARY,
+                                        DataFormat.BINARY2,
+                                        DataFormat.FITS } );
+    }
+
+    public void testUnicode() throws Exception {
+        testFormats( unicodeLoc_,
+                     new DataFormat[] { DataFormat.TABLEDATA,
+                                        DataFormat.BINARY2,
+                                        DataFormat.FITS } );
+    }
+
+    private void testFormats( URL loc, DataFormat[] formats ) throws Exception {
         VOTableBuilder builder = new VOTableBuilder();
         StarTable t0 =
-            builder.makeStarTable( new URLDataSource( heteroLoc_ ),
+            builder.makeStarTable( new URLDataSource( loc ),
                                    true, StoragePolicy.PREFER_MEMORY );
-        for ( DataFormat datfmt :
-              new DataFormat[] { DataFormat.TABLEDATA,
-                                 DataFormat.BINARY,
-                                 DataFormat.BINARY2,
-                                 DataFormat.FITS } ) {
+        for ( DataFormat datfmt : formats ) {
             File tmpfile = File.createTempFile( "votcopy", ".vot" );
             tmpfile.deleteOnExit();
             MapEnvironment env = new MapEnvironment();
-            env.setValue( "in", heteroLoc_.toString() );
+            env.setValue( "in", loc.toString() );
             env.setValue( "out", tmpfile.toString() );
             env.setValue( "format", datfmt );
             env.setValue( "href", Boolean.FALSE );
