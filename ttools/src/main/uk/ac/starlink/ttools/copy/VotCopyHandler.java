@@ -50,7 +50,7 @@ public class VotCopyHandler
         implements ContentHandler, LexicalHandler, TableHandler {
 
     private final DataFormat format_;
-    private final VOTableVersion version_;
+    private final VOTableVersion forceVersion_;
     private final boolean inline_;
     private final boolean squashMagic_;
     private final String baseLoc_;
@@ -64,6 +64,7 @@ public class VotCopyHandler
     private BufferedWriter out_;
     private Locator locator_;
     private int iTable_;
+    private VOTableVersion version_;
 
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.copy" );
@@ -108,7 +109,7 @@ public class VotCopyHandler
                                                 "for out-of-line tables" );
         }
         format_ = format;
-        version_ = version;
+        forceVersion_ = version;
         inline_ = inline;
         squashMagic_ = squashMagic;
         baseLoc_ = base;
@@ -181,18 +182,26 @@ public class VotCopyHandler
                               String qName, Attributes atts )
             throws SAXException {
         votParser_.startElement( namespaceURI, localName, qName, atts );
-        if ( "VOTABLE".equals( localName ) && version_ != null ) {
-            AttributesImpl newAtts = new AttributesImpl( atts );
-            fixAttribute( newAtts, "version", version_.getVersionNumber() );
-            fixAttribute( newAtts, "xmlns", version_.getXmlNamespace() );
-            int ixsl = newAtts
-                      .getIndex( "http://www.w3.org/2001/XMLSchema-instance",
-                                 "schemaLocation" );
-            if ( ixsl >= 0 ) {
-                newAtts.setValue( ixsl, version_.getXmlNamespace() + " "
-                                      + version_.getSchemaLocation() );
+        if ( "VOTABLE".equals( localName ) ) {
+            if ( forceVersion_ != null ) {
+                AttributesImpl newAtts = new AttributesImpl( atts );
+                fixAttribute( newAtts, "version",
+                              forceVersion_.getVersionNumber() );
+                fixAttribute( newAtts, "xmlns",
+                              forceVersion_.getXmlNamespace() );
+                int ixsl =
+                    newAtts
+                   .getIndex( "http://www.w3.org/2001/XMLSchema-instance",
+                              "schemaLocation" );
+                if ( ixsl >= 0 ) {
+                    newAtts.setValue( ixsl,
+                                      forceVersion_.getXmlNamespace() + " "
+                                    + forceVersion_.getSchemaLocation() );
+                }
+                atts = newAtts;
             }
-            atts = newAtts;
+            version_ = VOTableVersion.getKnownVersions()
+                      .get( atts.getValue( "version" ) );
         }
         else if ( "DATA".equals( localName ) ) {
             handlerStack_.push( handler_ );
@@ -350,7 +359,7 @@ public class VotCopyHandler
         /* Construct a serializer which can write the table data. */
         VOTableVersion serVers = version_ != null
                                ? version_
-                               : VOTableVersion.V13;
+                               : VOTableVersion.getDefaultVersion();
         VOSerializerConfig config =
             new VOSerializerConfig( format_, serVers,
                                     StringElementSizer.NOCALC );
