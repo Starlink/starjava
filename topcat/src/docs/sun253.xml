@@ -34902,6 +34902,10 @@ introduced since the last version:
     <li>New <ref id="scheme-test"><code>test</code> scheme</ref> option
         "<code>u</code>" for diverse Unicode strings.</li>
     <li>Fix some miscellaneous issues to do with Unicode I/O.</li>
+    <li>The <ref id="outCsv">CSV</ref> output handler
+        can now write non-ASCII Unicode characters;
+        encoding is UTF-8 by default, but can be configured
+        with the new <code>encoding</code> option.</li>
     </ul>
     </p>
     </dd>

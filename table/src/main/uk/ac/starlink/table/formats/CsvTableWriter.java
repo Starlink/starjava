@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -22,6 +24,7 @@ public class CsvTableWriter extends DocumentedStreamStarTableWriter {
     private boolean writeHeader_ = true;
     private char delimiter_;
     private int maxFieldChars_ = Integer.MAX_VALUE;
+    private Charset encoding_ = StandardCharsets.UTF_8;
 
     static final String SET_DELIMITER_DOC =
           "<p>Field delimiter character, by default a comma. "
@@ -136,6 +139,33 @@ public class CsvTableWriter extends DocumentedStreamStarTableWriter {
     }
 
     /**
+     * Sets the character encoding used for the output CSV content.
+     * The default value is UTF-8.
+     *
+     * @param   encoding   character encoding
+     */
+    @ConfigMethod( 
+        property = "encoding",
+        usage = "ASCII|UTF-8|UTF-16|...", 
+        example = "UTF-16",
+        doc = "<p>Specifies the character encoding used in "
+            + "the output CSV file.\n"
+            + "</p>"
+    )   
+    public void setEncoding( Charset encoding ) {
+        encoding_ = encoding;
+    }
+
+    /**
+     * Returns the encoding used for CSV output.
+     *
+     * @return character encoding
+     */
+    public Charset getEncoding() {
+        return encoding_;
+    }
+
+    /**
      * Returns "CSV" or "CSV-noheader".
      */
     public String getFormatName() {
@@ -158,7 +188,7 @@ public class CsvTableWriter extends DocumentedStreamStarTableWriter {
 
     public void writeStarTable( StarTable table, OutputStream ostrm )
             throws IOException {
-        Writer out = new OutputStreamWriter( ostrm );
+        Writer out = new OutputStreamWriter( ostrm, getEncoding() );
         int ncol = table.getColumnCount();
         ColumnInfo[] cinfos = Tables.getColumnInfos( table );
         RowSequence rseq = table.getRowSequence();
