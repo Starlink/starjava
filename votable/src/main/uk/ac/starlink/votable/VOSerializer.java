@@ -69,9 +69,6 @@ public abstract class VOSerializer {
     private static final AtomicLong idSeq_ = new AtomicLong();
     private static final String NL_STRING = getNewline();
     private static final byte[] NL_BYTES = toAsciiBytes( NL_STRING );
-    private static final byte[] LT_BYTES = toAsciiBytes( "&lt;" );
-    private static final byte[] GT_BYTES = toAsciiBytes( "&gt;" );
-    private static final byte[] AMP_BYTES = toAsciiBytes( "&amp;" );
 
     /**
      * Constructs a new serializer which can write a given StarTable.
@@ -861,7 +858,20 @@ public abstract class VOSerializer {
      */
     public static String formatText( String text ) {
         int leng = text.length();
-        StringBuffer sbuf = new StringBuffer( leng );
+        StringBuilder sbuf = new StringBuilder( leng );
+        appendFormattedText( text, sbuf );
+        return sbuf.toString();
+    }
+
+    /**
+     * Performs necessary special character escaping for text which
+     * will be written as XML CDATA and appends it to a supplied StringBuilder.
+     *
+     * @param   text  the input text
+     * @param   sbuf  buffer to which escaped text will be appended
+     */
+    private static void appendFormattedText( String text, StringBuilder sbuf ) {
+        int leng = text.length();
         for ( int i = 0; i < leng; i++ ) {
             char c = text.charAt( i );
             switch ( c ) {
@@ -878,45 +888,12 @@ public abstract class VOSerializer {
                     sbuf.append( ensureLegalXml( c ) );
             }
         }
-        return sbuf.toString();
-    }
-
-    /**
-     * Writes the content of an arbitrary string as XML content to a
-     * given output stream in UTF8 representation.
-     * Unsafe characters '&lt;', '&gt;' and '&amp;'
-     * will be escaped appropriately,
-     * and characters that are not legal XML will be substituted.
-     *
-     * @param  txt  text
-     * @param  out  destination stream
-     */
-    private static void writeEscapedTextUTF8( String txt,
-                                              DataBufferedOutputStream out )
-            throws IOException {
-        int leng = txt.length();
-        for ( int i = 0; i < leng; i++ ) {
-            char c = txt.charAt( i );
-            switch ( c ) {
-                case '<':
-                    out.write( LT_BYTES );
-                    break;
-                case '>':
-                    out.write( GT_BYTES );
-                    break;
-                case '&':
-                    out.write( AMP_BYTES );
-                    break;
-                default:
-                    out.writeCharUTF8( ensureLegalXml( c ) );
-            }
-        }
     }
 
     /**
      * Returns the content of a string as an array of ASCII bytes.
      * The upper 8 bits are ignored.
-     * Should not be called on text that may contain strange characters.
+     * Must only be called on text known to consist of 7-bit ASCII characters.
      *
      * @param   txt  text
      * @return   byte array
@@ -925,7 +902,9 @@ public abstract class VOSerializer {
         int leng = txt.length();
         byte[] buf = new byte[ leng ];
         for ( int i = 0; i < leng; i++ ) {
-            buf[ i ] = (byte) txt.charAt( i );
+            char c = txt.charAt( i );
+            assert c >= 0 && c < 0x80;
+            buf[ i ] = (byte) c;
         }
         return buf;
     }
@@ -1362,26 +1341,25 @@ public abstract class VOSerializer {
             writer.newLine();
             TdTags tdTags = new TdTags( isCompact() );
             int ncol = encoders.length;
-            RowSequence rseq = getRowSequence();
-            try {
+            try ( RowSequence rseq = getRowSequence() ) {
+                StringBuilder sbuf = new StringBuilder();
                 while ( rseq.next() ) {
-                    writer.write( tdTags.preTr_ );
+                    sbuf.setLength( 0 );
+                    sbuf.append( tdTags.preTr_ );
                     Object[] rowdata = rseq.getRow();
                     for ( int icol = 0; icol < ncol; icol++ ) {
                         Encoder encoder = encoders[ icol ];
                         if ( encoder != null ) {
                             String text =
                                 encoder.encodeAsText( rowdata[ icol ] );
-                            writer.write( tdTags.preTd_ );
-                            writer.write( formatText( text ) );
-                            writer.write( tdTags.postTd_ );
+                            sbuf.append( tdTags.preTd_ );
+                            appendFormattedText( text, sbuf );
+                            sbuf.append( tdTags.postTd_ );
                         }
                     }
-                    writer.write( tdTags.postTr_ );
+                    sbuf.append( tdTags.postTr_ );
+                    writer.append( sbuf );
                 }
-            }
-            finally {
-                rseq.close();
             }
             writer.write( "</TABLEDATA>" );
             writer.newLine();
@@ -1392,41 +1370,17 @@ public abstract class VOSerializer {
 
         public void writeInlineDataElementUTF8( OutputStream out )
                 throws IOException {
-            DataBufferedOutputStream dout = new DataBufferedOutputStream( out );
-            TdTags tdTags = new TdTags( isCompact() );
-            byte[] preTr = toAsciiBytes( tdTags.preTr_ );
-            byte[] preTd = toAsciiBytes( tdTags.preTd_ );
-            byte[] postTd = toAsciiBytes( tdTags.postTd_ );
-            byte[] postTr = toAsciiBytes( tdTags.postTr_ );
-            dout.writeBytes( "<DATA>" );
-            dout.write( NL_BYTES );
-            dout.writeBytes( "<TABLEDATA>" );
-            dout.write( NL_BYTES );
-            int ncol = encoders.length;
-            try ( RowSequence rseq = getRowSequence() ) {
-                while ( rseq.next() ) {
-                    dout.write( preTr );
-                    Object[] rowdata = rseq.getRow();
-                    for ( int icol = 0; icol < ncol; icol++ ) {
-                        Encoder encoder = encoders[ icol ];
-                        if ( encoder != null ) {
-                            String text =
-                                encoder.encodeAsText( rowdata[ icol ] );
-                            dout.write( preTd );
-                            writeEscapedTextUTF8( text, dout );
-                            dout.write( postTd );
-                        }
-                    }
-                    dout.write( postTr );
-                }
+            BufferedWriter writer =
+                new BufferedWriter(
+                    new OutputStreamWriter( out, StandardCharsets.UTF_8 ) );
+            try {
+                writeInlineDataElement( writer );
             }
-            dout.writeBytes( "</TABLEDATA>" );
-            dout.write( NL_BYTES );
-            dout.writeBytes( "</DATA>" );
-            dout.write( NL_BYTES );
-            dout.flush();
+            finally {
+                writer.flush();
+            }
         }
-
+            
         public void writeHrefDataElement( BufferedWriter writer, String href,
                                           OutputStream streamout ) {
             throw new UnsupportedOperationException( 
