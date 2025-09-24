@@ -934,11 +934,10 @@ public abstract class VOSerializer {
      * @return  legal XML character, <code>c</code> if possible
      */
     public static char ensureLegalXml( char c ) {
-        return ( ( c >= '\u0020' && c <= '\uD7FF' ) ||
-                 ( c >= '\uE000' && c <= '\uFFFD' ) ||
-                 ( ((int) c) == 0x09 ||
-                   ((int) c) == 0x0A ||
-                   ((int) c) == 0x0D ) )
+        return ( c >= '\u0020' ||
+                 ((int) c) == 0x09 ||
+                 ((int) c) == 0x0A ||
+                 ((int) c) == 0x0D ) 
              ? c
              : '\u00BF';
     }
