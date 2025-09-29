@@ -15902,6 +15902,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix taplint ObsCore <code>bib_reference</code> UCD check;
         at ObsCore 1.1 (but not 1.0) it should be
         "<code>meta.bib</code>".</li>
+    <li>Taplint upload stage now accepts reordered rows for
+        table round-trip query, avoiding <code>E-UPL-TMCD</code>
+        errors in case of reordering.</li>
     </ul>
     </p></dd>
 

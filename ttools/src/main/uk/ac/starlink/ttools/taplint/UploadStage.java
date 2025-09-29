@@ -44,6 +44,7 @@ public class UploadStage implements Stage {
     private static final Pattern DALI_ISO_REGEX =
         Pattern.compile( "[0-9]{4}-[01][0-9]-[0-3][0-9]"
                        + "(T[0-2][0-9]:[0-5][0-9]:[0-6][0-9](\\.[0-9]+)?)?" );
+    private static final String SORT_COL = "d_int";
 
     /**
      * Constructor.
@@ -122,7 +123,8 @@ public class UploadStage implements Stage {
         private void runUploadQuery( StarTable upTable,
                                      VOTableWriter vowriter ) {
             String upName = "t1";
-            String adql = "SELECT * FROM TAP_UPLOAD." + upName;
+            String adql = "SELECT * FROM TAP_UPLOAD." + upName
+                        + " ORDER BY " + SORT_COL + " ASC";
             Map<String,StarTable> upMap = new LinkedHashMap<String,StarTable>();
             upMap.put( upName, upTable );
             TapQuery tq;
@@ -430,12 +432,15 @@ public class UploadStage implements Stage {
         ctable.addColumn( makeColumn( "d_char", charData, null ) );
         ctable.addColumn( makeColumn( "d_string", stringData, null ) );
         ctable.addColumn( makeColumn( "d_time", timeData, "timestamp" ) );
+        assert SORT_COL.equals( ctable.getColumnInfo( 1 ).getName() );
 
         /* Populate the final row with blank values, where appropriate. */
         int irBlank = nrow - 1;
         for ( int ic = 0; ic < ctable.getColumnCount(); ic++ ) {
             ColumnData dcol = ctable.getColumnData( ic );
-            if ( dcol.getColumnInfo().isNullable() ) {
+            ColumnInfo info = dcol.getColumnInfo();
+            if ( info.isNullable() &&
+                 ! SORT_COL.equals( info.getName() ) ) {
                 ((ArrayColumn) dcol).storeValue( irBlank, null );
             }
         }
