@@ -324,6 +324,10 @@ public abstract class VOSerializer {
      * @param   writer  destination stream
      */
     public void writeParams( BufferedWriter writer ) throws IOException {
+        StringBuffer paramBuf = new StringBuffer();
+        StringBuffer infoBuf = new StringBuffer();
+        StringBuffer linkBuf = new StringBuffer();
+
         for  ( DescribedValue param : paramList_ ) {
             ValueInfo pinfo0 = param.getInfo();
             DefaultValueInfo pinfo = new DefaultValueInfo( pinfo0 );
@@ -377,41 +381,60 @@ public abstract class VOSerializer {
                 attMap.putAll( getFieldAttributes( encoder, version_,
                                                    coosysMap_, timesysMap_ ) );
                 attMap.put( "value", valtext );
-                writer.write( "<PARAM" );
-                writer.write( formatAttributes( attMap ) );
+                paramBuf.append( "<PARAM" )
+                        .append( formatAttributes( attMap ) );
                 if ( content.length() > 0 ) {
-                    writer.write( ">" );
-                    writer.write( content );
-                    writer.newLine();
-                    writer.write( "</PARAM>" );
+                    paramBuf.append( ">" )
+                            .append( content )
+                            .append( "\n" )
+                            .append( "</PARAM>" );
                 }
                 else {
-                    writer.write( "/>" );
+                    paramBuf.append( "/>" );
                 }
-                writer.newLine();
+                paramBuf.append( "\n" );
             }
 
             /* If it's a URL write it as a LINK. */
             else if ( pvalue instanceof URL ) {
-                writer.write( "<LINK"
-                    + formatAttribute( "title", pinfo.getName() )
-                    + formatAttribute( "href", pvalue.toString() )
-                    + "/>" );
-                writer.newLine();
+                linkBuf.append( "<LINK" )
+                       .append( formatAttribute( "title", pinfo.getName() ) )
+                       .append( formatAttribute( "href", pvalue.toString() ) )
+                       .append( "/>" )
+                       .append( "\n" );
             }
 
             /* If it's of a funny type, just try to write it as an INFO. */
             else {
-                writer.write( "<INFO" );
-                writer.write( formatAttribute( "name", pinfo.getName() ) );
-                if ( pvalue != null ) {
-                    writer.write( formatAttribute( "value", 
-                                                   pvalue.toString() ) );
+                if ( version_.allowInfo() ) {
+                    infoBuf.append( "<INFO" )
+                           .append( formatAttribute( "name",
+                                                     pinfo.getName() ) );
+                    if ( pvalue != null ) {
+                        infoBuf.append( formatAttribute( "value",
+                                                         pvalue.toString() ) );
+                    }
+                    infoBuf.append( "/>" )
+                           .append( "\n" );
                 }
-                writer.write( "/>" );
-                writer.newLine();
+                else {
+                    paramBuf.append( "<PARAM" )
+                            .append( formatAttribute( "name",
+                                                      pinfo.getName() ) )
+                            .append( formatAttribute( "datatype", "char" ) )
+                            .append( formatAttribute( "arraysize", "*" ) );
+                    if ( pvalue != null ) {
+                        paramBuf.append( formatAttribute( "value",
+                                                          pvalue.toString() ) );
+                    }
+                    paramBuf.append( "/>" )
+                            .append( "\n" );
+                }
             }
         }
+        writer.append( infoBuf );
+        writer.append( paramBuf );
+        writer.append( linkBuf );
     }
 
     /**

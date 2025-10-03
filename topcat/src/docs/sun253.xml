@@ -34919,6 +34919,9 @@ introduced since the last version:
         with the new <code>encoding</code> option.</li>
     <li>Substantial performance improvements (typically &gt;2x)
         when reading text-like input files (ASCII, CSV etc).</li>
+    <li>Fix VOTable output bug that sometimes wrote
+        <code>INFO</code> and <code>PARAM</code> elements 
+        in an illegal order.</li>
     </ul>
     </p>
     </dd>
