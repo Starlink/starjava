@@ -159,6 +159,13 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
     }
 
     /**
+     * Indicates whether this version supports the INFO element.
+     *
+     * @return  true iff the INFO element exists
+     */
+    public abstract boolean allowInfo();
+
+    /**
      * Indicates whether this version permits an empty TD element to represent
      * a null value for <em>all</em> data types.
      *
@@ -298,6 +305,9 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
             return VOTableVersion.class
                   .getResource( "/uk/ac/starlink/util/text/VOTable.dtd" );
         }
+        public boolean allowInfo() {
+            return false;
+        }
         public boolean allowXtype() {
             return false;
         }
@@ -395,6 +405,11 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
          */
         VersionLike12( String version ) {
             super( version );
+        }
+
+        @Override
+        public boolean allowInfo() {
+            return true;
         }
 
         @Override 
