@@ -307,7 +307,7 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
          * variable, since that's handled by the parquet not VOTable output. */
         VOSerializerConfig config =
             new VOSerializerConfig( DataFormat.TABLEDATA, version,
-                                    StringElementSizer.FIXED2 );
+                                    StringElementSizer.FIXED2, false );
         try {
             VOSerializer voser = VOSerializer.makeSerializer( config, table );
             votWriter.writePreTableXML( writer );

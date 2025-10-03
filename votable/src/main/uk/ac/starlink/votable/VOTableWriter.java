@@ -62,6 +62,7 @@ public class VOTableWriter
     private boolean inline_;
     private VOTableVersion version_;
     private StringElementSizer stringSizer_;
+    private boolean preserveDatatypes_;
     private Boolean compact_;
     private Charset encoding_;
     private boolean writeSchemaLocation_;
@@ -111,6 +112,7 @@ public class VOTableWriter
         inline_ = inline;
         version_ = version;
         stringSizer_ = StringElementSizer.READ;
+        preserveDatatypes_ = false;
         encoding_ = StandardCharsets.UTF_8;
         writeDate_ = true;
     }
@@ -213,7 +215,8 @@ public class VOTableWriter
                                  File file )
             throws IOException {
         VOSerializerConfig config =
-            new VOSerializerConfig( dataFormat_, version_, stringSizer_ );
+            new VOSerializerConfig( dataFormat_, version_, stringSizer_,
+                                    preserveDatatypes_ );
 
         /* Set up the XML output. */
         Charset encoding = encoding_;
@@ -318,7 +321,8 @@ public class VOTableWriter
                                        BufferedWriter writer )
             throws IOException {
         VOSerializerConfig config =
-            new VOSerializerConfig( dataFormat_, version_, stringSizer_ );
+            new VOSerializerConfig( dataFormat_, version_, stringSizer_,
+                                    preserveDatatypes_ );
         writePreTableXML( writer );
         for ( int i = 0; i < startabs.length; i++ ) {
             if ( i > 0 ) {

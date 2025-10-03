@@ -364,7 +364,6 @@ public abstract class VOSerializer {
              * VOTable version.  Non-BMP characters are not permitted in
              * unicodeChar type. */
             boolean magicNulls = false;
-            boolean useUnicodeChar = false;
             final Encoder encoder;
             if ( String.class.equals( pinfo.getContentClass() ) ) {
                 String ptxt = pvalue instanceof String ? (String) pvalue : "";
@@ -1154,7 +1153,7 @@ public abstract class VOSerializer {
         VOSerializerConfig config =
             new VOSerializerConfig( dataFormat,
                                     VOTableVersion.getDefaultVersion(),
-                                    StringElementSizer.NOCALC );
+                                    StringElementSizer.NOCALC, false );
         return makeSerializer( config, table );
     }
 
@@ -1179,7 +1178,7 @@ public abstract class VOSerializer {
             throws IOException {
         VOSerializerConfig config =
             new VOSerializerConfig( dataFormat, version,
-                                    StringElementSizer.NOCALC );
+                                    StringElementSizer.NOCALC, false );
         return makeSerializer( config, table );
     }
 
@@ -1197,6 +1196,7 @@ public abstract class VOSerializer {
         DataFormat dataFormat = config.getDataFormat();
         VOTableVersion version = config.getVersion();
         StringElementSizer stringSizer = config.getStringSizer();
+        boolean preserveDatatypes = config.isPreserveDatatypes();
 
         /* Prepare. */
         boolean magicNulls =
@@ -1209,7 +1209,8 @@ public abstract class VOSerializer {
         /* Return a serializer. */
         if ( dataFormat == DataFormat.TABLEDATA ) {
             TabledataVOSerializer tdser =
-                new TabledataVOSerializer( table, version, magicNulls );
+                new TabledataVOSerializer( table, version, magicNulls,
+                                           preserveDatatypes );
             tdser.setCompact( table.getColumnCount() <= 4 );
             return tdser;
         }
@@ -1241,11 +1242,13 @@ public abstract class VOSerializer {
                 new StandardFitsTableSerializer( fitsConfig, table ) );
         }
         else if ( dataFormat == DataFormat.BINARY ) {
-            return new BinaryVOSerializer( table, version, magicNulls );
+            return new BinaryVOSerializer( table, version, magicNulls,
+                                           preserveDatatypes );
         }
         else if ( dataFormat == DataFormat.BINARY2 ) {
             if ( version.allowBinary2() ) {
-                return new Binary2VOSerializer( table, version, magicNulls );
+                return new Binary2VOSerializer( table, version, magicNulls,
+                                                preserveDatatypes );
             }
             else {
                 throw new IllegalArgumentException( "BINARY2 format not legal "
@@ -1309,19 +1312,36 @@ public abstract class VOSerializer {
      * @param  table  the table to characterise
      * @param  version   version of output VOTable format
      * @param  magicNulls   if true, encode nulls using magic values
+     * @param  preserveDatatypes   do not attempt to improve things
+     *                             by changing one type for another
      * @return  an array of encoders used for encoding its data
      */
     private static Encoder[] getEncoders( StarTable table,
                                           VOTableVersion version,
-                                          boolean magicNulls ) {
+                                          boolean magicNulls,
+                                          boolean preserveDatatypes ) {
         int ncol = table.getColumnCount();
         Encoder[] encoders = new Encoder[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo info = table.getColumnInfo( icol );
+
+            /* Work out whether character columns should use the char or
+             * unicodeChar datatype.  As a default use char, unless the
+             * input column came from a unicodeChar VOTable input column.
+             * But if output is to VOTable 1.6 or later (which can accommodate
+             * UTF-8 in char data) transform even those to char, unless
+             * we have been explicitly instructed not to. */
             boolean useUnicodeChar =
                    "unicodeChar"
                   .equals( info.getAuxDatumValue( VOStarTable.DATATYPE_INFO,
                                                   String.class ) );
+            if ( useUnicodeChar &&
+                 ! preserveDatatypes &&
+                 version.isCharUnicode() &&
+                 info.getContentClass() == String.class &&
+                 info.getElementSize() < 0 ) {
+                useUnicodeChar = false;
+            }
             encoders[ icol ] =
                 Encoder.getEncoder( info, version, magicNulls, useUnicodeChar );
             if ( encoders[ icol ] == null ) {
@@ -1411,9 +1431,10 @@ public abstract class VOSerializer {
         private final Encoder[] encoders;
 
         TabledataVOSerializer( StarTable table, VOTableVersion version,
-                               boolean magicNulls ) {
+                               boolean magicNulls, boolean preserveDatatypes ) {
             super( table, DataFormat.TABLEDATA, version );
-            encoders = getEncoders( table, version, magicNulls );
+            encoders = getEncoders( table, version, magicNulls,
+                                    preserveDatatypes );
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
@@ -1627,9 +1648,10 @@ public abstract class VOSerializer {
         private final Encoder[] encoders;
 
         BinaryVOSerializer( StarTable table, VOTableVersion version,
-                            boolean magicNulls ) {
+                            boolean magicNulls, boolean preserveDatatypes ) {
             super( table, DataFormat.BINARY, version, "BINARY" );
-            encoders = getEncoders( table, version, magicNulls );
+            encoders = getEncoders( table, version, magicNulls,
+                                    preserveDatatypes );
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
@@ -1662,9 +1684,10 @@ public abstract class VOSerializer {
         private final Encoder[] encoders;
 
         Binary2VOSerializer( StarTable table, VOTableVersion version,
-                             boolean magicNulls ) {
+                             boolean magicNulls, boolean preserveDatatypes ) {
             super( table, DataFormat.BINARY2, version, "BINARY2" );
-            encoders = getEncoders( table, version, magicNulls );
+            encoders = getEncoders( table, version, magicNulls,
+                                    preserveDatatypes );
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {

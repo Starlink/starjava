@@ -360,9 +360,10 @@ public class VotCopyHandler
         VOTableVersion serVers = version_ != null
                                ? version_
                                : VOTableVersion.getDefaultVersion();
+        boolean preserveDatatypes = true;
         VOSerializerConfig config =
-            new VOSerializerConfig( format_, serVers,
-                                    StringElementSizer.NOCALC );
+            new VOSerializerConfig( format_, serVers, StringElementSizer.NOCALC,
+                                    preserveDatatypes );
         VOSerializer voser = VOSerializer.makeSerializer( config, table );
 
         /* If it's out-of-line, open a new file for output and write data

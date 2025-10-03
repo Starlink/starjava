@@ -12,6 +12,7 @@ public class VOSerializerConfig {
     private final DataFormat dataFormat_;
     private final VOTableVersion version_;
     private final StringElementSizer stringSizer_;
+    private final boolean preserveDatatypes_;
 
     /**
      * Constructor.
@@ -20,12 +21,16 @@ public class VOSerializerConfig {
      * @param  version  VOTable output version
      * @param  stringSizer  object that can determine lengths of string array
      *                      elements
+     * @param  preserveDatatypes  if true, do not attempt to improve matters
+     *                            by choosing more appropriate datatypes
      */
     public VOSerializerConfig( DataFormat dataFormat, VOTableVersion version,
-                               StringElementSizer stringSizer ) {
+                               StringElementSizer stringSizer,
+                               boolean preserveDatatypes ) {
         dataFormat_ = dataFormat;
         version_ = version;
         stringSizer_ = stringSizer;
+        preserveDatatypes_ = preserveDatatypes;
     }
 
     /**
@@ -54,5 +59,15 @@ public class VOSerializerConfig {
      */
     public StringElementSizer getStringSizer() {
         return stringSizer_;
+    }
+
+    /**
+     * Indicates whether the serializer should try to keep datatypes as
+     * per input data, or whether it may adjust them to produce cleaner output.
+     *
+     * @return   true if serialization should avoid changing datatypes
+     */
+    public boolean isPreserveDatatypes() {
+        return preserveDatatypes_;
     }
 }

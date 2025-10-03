@@ -36,6 +36,7 @@ public class TapWriter {
     private final DataFormat dfmt_;
     private final VOTableVersion version_;
     private final long maxrec_;
+    private final boolean preserveDatatypes_;
     private final StringElementSizer stringSizer_;
 
     /**
@@ -51,6 +52,7 @@ public class TapWriter {
         dfmt_ = dfmt;
         version_ = version;
         maxrec_ = maxrec;
+        preserveDatatypes_ = false;
 
         // When writing VOTable columns containing arrays of strings,
         // the length of each string has to be known up front.
@@ -84,7 +86,8 @@ public class TapWriter {
 
         /* Prepares the object that will do the serialization work. */
         VOSerializerConfig config =
-            new VOSerializerConfig( dfmt_, version_, stringSizer_ );
+            new VOSerializerConfig( dfmt_, version_, stringSizer_,
+                                    preserveDatatypes_ );
         VOSerializer voser = VOSerializer.makeSerializer( config, table );
         BufferedWriter out =
             new BufferedWriter( new OutputStreamWriter( ostrm ) );
