@@ -9,6 +9,7 @@ import java.lang.reflect.Array;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -351,28 +352,69 @@ public abstract class VOSerializer {
                     }
                 }
             }
-            if ( String.class.equals( pinfo.getContentClass() ) &&
-                 pinfo.getElementSize() < 0 && pvalue instanceof String ) {
-                pinfo.setElementSize( ((String) pvalue).length() );
-            }
-            if ( String[].class.equals( pinfo.getContentClass() ) &&
-                 pinfo.getElementSize() < 0 && pvalue instanceof String[] ) {
-                int leng = 0;
-                String[] strs = (String[]) pvalue;
-                for ( int is = 0; is < strs.length; is++ ) {
-                    if ( strs[ is ] != null ) {
-                        leng = Math.max( leng, strs[ is ].length() );
-                    }
-                }
-                pinfo.setElementSize( leng );
-            }
 
             /* Adjust the info so that its nullability is set from the data. */
             pinfo.setNullable( Tables.isBlank( pvalue ) );
 
-            /* Try to write it as a typed PARAM element. */
-            Encoder encoder =
-                Encoder.getEncoder( pinfo, version_, false, false );
+            /* Try to write it as a typed PARAM element.
+             * Strings are tricksy; the ValueInfo.getElementSize is interpreted
+             * as number of UTF-8 bytes for unicode-compliant char type,
+             * and number of UCS-2 characters for unicodeChar type.
+             * char type may or may not be unicode-compliant, depending on
+             * VOTable version.  Non-BMP characters are not permitted in
+             * unicodeChar type. */
+            boolean magicNulls = false;
+            boolean useUnicodeChar = false;
+            final Encoder encoder;
+            if ( String.class.equals( pinfo.getContentClass() ) ) {
+                String ptxt = pvalue instanceof String ? (String) pvalue : "";
+                if ( isAscii( ptxt ) || version_.isCharUnicode() ) {
+                    pinfo.setElementSize( ptxt
+                                         .getBytes( StandardCharsets.UTF_8 )
+                                         .length );
+                    encoder = Encoder
+                             .getEncoder( pinfo, version_, magicNulls, false );
+                }
+                else if ( isBmp( ptxt ) ) {
+                    pinfo.setElementSize( ptxt.length() );
+                    encoder = Encoder
+                             .getEncoder( pinfo, version_, magicNulls, true );
+                }
+                else {
+                    encoder = null;
+                }
+            }
+            else if ( String[].class.equals( pinfo.getContentClass() ) ) {
+                String[] ptxts = pvalue instanceof String[] ? (String[]) pvalue
+                                                            : new String[ 0 ];
+                if ( isAscii( ptxts ) || version_.isCharUnicode() ) {
+                    pinfo.setElementSize(
+                        Arrays.stream( ptxts )
+                       .filter( t -> t != null )
+                       .mapToInt( t -> t.getBytes( StandardCharsets.UTF_8 )
+                                        .length )
+                       .max().orElse( 1 ) );
+                    encoder = Encoder
+                             .getEncoder( pinfo, version_, magicNulls, false );
+                }
+
+                /* Even if these characters are not in the BMP,
+                 * output them using unicodeChar.  Some characters will get
+                 * mangled, but the alternative is writing them as an INFO,
+                 * which will make them look like a scalar not an array. */
+                else {
+                    pinfo.setElementSize( Arrays.stream( ptxts )
+                                         .filter( t -> t != null )
+                                         .mapToInt( t -> t.length() )
+                                         .max().orElse( 1 ) );
+                    encoder = Encoder
+                             .getEncoder( pinfo, version_, magicNulls, true );
+                }
+            }
+            else {
+                encoder = Encoder
+                         .getEncoder( pinfo, version_, magicNulls, false );
+            }
             if ( encoder != null ) {
                 String valtext = encoder.encodeAsText( pvalue );
                 String content = encoder.getFieldContent();
@@ -556,10 +598,13 @@ public abstract class VOSerializer {
                                    String description )
             throws IOException {
         if ( pvalue != null && pvalue.length() > 0 ) {
+            String type = isAscii( pvalue ) || version_.isCharUnicode()
+                        ? "char"
+                        : "unicodeChar";
             StringBuffer sbuf = new StringBuffer()
                 .append( "  <PARAM" )
                 .append( formatAttribute( "name", pname ) )
-                .append( formatAttribute( "datatype", "char" ) )
+                .append( formatAttribute( "datatype", type ) )
                 .append( formatAttribute( "arraysize", "*" ) )
                 .append( formatAttribute( "value", pvalue ) );
             if ( description != null && description.trim().length() > 0 ) {
@@ -1321,6 +1366,42 @@ public abstract class VOSerializer {
                 writer.newLine();
             }
         }
+    }
+
+    /**
+     * Determines whether a text value is composed of only 7-bit ASCII
+     * characters.
+     *
+     * @param  txt  string
+     * @return  true iff all characters are 7-bit ASCII
+     */
+    private static boolean isAscii( String txt ) {
+        return txt == null
+            || txt.chars().allMatch( c -> c < 0x80 );
+    }
+
+    /**
+     * Determines whether a text value is composed of only Basic Multilingual
+     * Plane characters - these are UCS_2-friendly and the txt.length()
+     * matches the number of UTF-16 code units (byte pairs).
+     *
+     * @param  txt  string
+     * @return  true iff all characters are in the BMP
+     */
+    private static boolean isBmp( String txt ) {
+        return txt == null
+            || txt.chars().allMatch( c -> ! Character.isSurrogate( (char) c ) );
+    }
+
+    /**
+     * Determines whether all the elements of a string array are
+     * composed of only 7-bit ASCII characters.
+     *
+     * @param  txts  string array
+     * @return  true iff all characters are 7-bit ASCII
+     */
+    private static boolean isAscii( String[] txts ) {
+        return Arrays.stream( txts ).allMatch( t -> isAscii( t ) );
     }
 
     /**
