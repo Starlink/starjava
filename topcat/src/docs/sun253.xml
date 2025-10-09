@@ -34875,6 +34875,8 @@ introduced since the last version:
     <li>Column/expression entry boxes now pop up a list of autocomplete
         column names when you type into them.
         This makes it easier to choose from a long list of columns.</li>
+    <li>Trust VOTable data not metadata for row count in case of
+        discrepancy (e.g. FITS-plus data/metadata mismatch).</li>
     </ul>
     </p>
     </dd>

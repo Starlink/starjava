@@ -174,7 +174,14 @@ public class VOStarTable extends AbstractStarTable {
     }
 
     public long getRowCount() {
-        return tableEl_.getNrows();
+        long dataNrow = tdata_.getRowCount();
+        long metaNrow = tableEl_.getNrows();
+        if ( dataNrow >= 0 && metaNrow >= 0 && dataNrow != metaNrow ) {
+            logger_.warning( "Metadata/data row count mismatch "
+                           + metaNrow + "!=" + dataNrow
+                           + "; using count from data" );
+        }
+        return dataNrow >= 0 ? dataNrow : metaNrow;
     }
 
     public boolean isRandom() {

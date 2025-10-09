@@ -15905,6 +15905,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Taplint upload stage now accepts reordered rows for
         table round-trip query, avoiding <code>E-UPL-TMCD</code>
         errors in case of reordering.</li>
+    <li>Trust VOTable data not metadata for row count in case of
+        discrepancy (e.g. FITS-plus data/metadata mismatch).</li>
     </ul>
     </p></dd>
 
