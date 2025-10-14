@@ -925,6 +925,106 @@ public class Arrays {
     }
 
     /**
+     * Returns a sorted version of a given array.
+     *
+     * <p><strong>Note:</strong>
+     * This documents the double-precision version of the routine.
+     * Corresponding routines exist for other data types
+     * (<code>float</code>, <code>long</code>, <code>int</code>,
+     * <code>short</code>, <code>byte</code>, <code>String</code>).
+     *
+     * @example  <code>sort(array(1.5, 0, 1)) = [0.0, 1.0, 1.5]</code>
+     * @example  <code>sort(intArray(18,1,3,8,5,12)) = [1,3,5,8,12,18]</code>
+     * @example  <code>sort(stringArray("dog", "cat", "gnu", "")) =
+     *                 ["", "cat", "dog", "gnu"]</code>
+     *
+     * @param  array  input array
+     * @return   sorted array
+     */
+    public static double[] sort( double[] array ) {
+        if ( array != null ) { 
+            double[] a = array.clone();
+            java.util.Arrays.sort( a );
+            return a;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @HideDoc
+    public static float[] sort( float[] array ) {
+        if ( array != null ) {
+            float[] a = array.clone();
+            java.util.Arrays.sort( a );
+            return a;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @HideDoc
+    public static long[] sort( long[] array ) {
+        if ( array != null ) {
+            long[] a = array.clone();
+            java.util.Arrays.sort( a );
+            return a;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @HideDoc
+    public static int[] sort( int[] array ) {
+        if ( array != null ) {
+            int[] a = array.clone();
+            java.util.Arrays.sort( a );
+            return a;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @HideDoc
+    public static short[] sort( short[] array ) {
+        if ( array != null ) {
+            short[] a = array.clone();
+            java.util.Arrays.sort( a );
+            return a;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @HideDoc
+    public static byte[] sort( byte[] array ) {
+        if ( array != null ) {
+            byte[] a = array.clone();
+            java.util.Arrays.sort( a );
+            return a;
+        }
+        else {
+            return null;
+        }
+    }
+
+    @HideDoc
+    public static String[] sort( String[] array ) {
+        if ( array != null ) {
+            String[] a = array.clone();
+            java.util.Arrays.sort( a );
+            return a;
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
      * Returns a floating-point array resulting from applying a given
      * function expression element-by-element to an input array.
      * The output array is the same length as the input array.

@@ -34880,6 +34880,8 @@ introduced since the last version:
     <li>Fix bug in <ref id="StiltsDialog">STILTS window</ref>
         that prevented output for Match window and possibly others
         (regression bug since 4.10-4).</li>
+    <li>New array function
+        <ref id="Arrays-sort"><code>sort</code></ref>.</li>
     </ul>
     </p>
     </dd>

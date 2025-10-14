@@ -15909,6 +15909,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         discrepancy (e.g. FITS-plus data/metadata mismatch).</li>
     <li>Improve inherited VOTable version handling in
         <ref id="votcopy"><code>votcopy</code></ref>.</li>
+    <li>New array function
+        <ref id="Arrays-sort"><code>sort</code></ref>.</li>
     </ul>
     </p></dd>
 

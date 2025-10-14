@@ -358,6 +358,13 @@ public class FuncTest extends TestCase {
         assertArrayEquals( new String[] { "Armadillo", "Scout", },
                            Arrays.pick( sa, 1, -1 ) );
 
+        assertArrayEquals( new double[] { 0, 1, 1.5 },
+                           Arrays.sort( new double[] { 1.5, 0, 1 } ) );
+        assertArrayEquals( new int[] { 1, 3, 5, 8, 12, 18 },
+                           Arrays.sort( new int[] { 18, 1, 3, 8, 5, 12 } ) );
+        assertArrayEquals( new String[] { "", "cat", "dog", "gnu" },
+                           Arrays.sort( new String[] {"dog","cat","gnu","" } ));
+
         assertEquals( 1, Arrays.indexOf( sa, "Armadillo" ) );
         assertEquals( -1, Arrays.indexOf( sa, "Housepop" ) );
         assertEquals( 5, Arrays.indexOf( da, 15 ) );
