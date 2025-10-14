@@ -129,6 +129,8 @@ public class StiltsCommand {
      * @param   table    table associated with this parameter
      * @param   selection  row selection expression, or null
      * @param   namer    table namer capable of naming the supplied table
+     * @param   filterParam   parameter for row selection
+     * @param   selection  row selection specification
      * @return   list of settings associated with table input
      */
     public static List<Setting>
@@ -168,19 +170,22 @@ public class StiltsCommand {
             }
 
             /* Row selection. */
-            final Setting selectSetting;
-            if ( selection != null ) {
-                String filterCmd = new SelectFilter().getName()
-                                 + " "
-                                 + argQuote( selection.getValue() );
-                selectSetting =
-                    new Setting( filterParam.getName(), filterCmd, null );
-                selectSetting.setCredibility( selection.getCredibility() );
+            if ( filterParam != null ) {
+                final Setting selectSetting;
+                if ( selection != null ) {
+                    String filterCmd = new SelectFilter().getName()
+                                     + " "
+                                     + argQuote( selection.getValue() );
+                    selectSetting =
+                        new Setting( filterParam.getName(), filterCmd, null );
+                    selectSetting.setCredibility( selection.getCredibility() );
+                }
+                else {
+                    selectSetting =
+                        new Setting( filterParam.getName(), null, null);
+                }
+                settings.add( selectSetting );
             }
-            else {
-                selectSetting = new Setting( filterParam.getName(), null, null);
-            }
-            settings.add( selectSetting );
         }
         return settings;
     }

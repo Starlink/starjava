@@ -34877,6 +34877,9 @@ introduced since the last version:
         This makes it easier to choose from a long list of columns.</li>
     <li>Trust VOTable data not metadata for row count in case of
         discrepancy (e.g. FITS-plus data/metadata mismatch).</li>
+    <li>Fix bug in <ref id="StiltsDialog">STILTS window</ref>
+        that prevented output for Match window and possibly others
+        (regression bug since 4.10-4).</li>
     </ul>
     </p>
     </dd>
