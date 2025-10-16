@@ -808,7 +808,7 @@ public class CapabilityStage implements Stage {
                            .append( " (" )
                            .append( "\"" + vosiUrl + "\"" )
                            .append( " != " )
-                           .append( "\"" + tapUrl + subpath )
+                           .append( "\"" + tapUrl + subpath + "\"" )
                            .toString();
                         reporter_.report( FixedCode.W_CPUL, msg );
                     }
