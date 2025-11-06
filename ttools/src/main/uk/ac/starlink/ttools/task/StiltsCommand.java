@@ -127,7 +127,6 @@ public class StiltsCommand {
      *
      * @param   inParam  input table parameter
      * @param   table    table associated with this parameter
-     * @param   selection  row selection expression, or null
      * @param   namer    table namer capable of naming the supplied table
      * @param   filterParam   parameter for row selection
      * @param   selection  row selection specification
