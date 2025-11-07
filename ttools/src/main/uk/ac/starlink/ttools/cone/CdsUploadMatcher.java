@@ -49,7 +49,7 @@ public class CdsUploadMatcher implements UploadMatcher {
 
     /** URL for the CDS Xmatch service. */
     public static final String XMATCH_URL =
-        "http://cdsxmatch.u-strasbg.fr/xmatch/api/v1/sync";
+        "http://cdsxmatch.cds.unistra.fr/xmatch/api/v1/sync";
 
     /** Alias for Simbad flat view table. */
     public static final String SIMBAD_NAME = "simbad";

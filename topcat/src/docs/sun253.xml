@@ -3309,8 +3309,7 @@ Examples of the kind of tool which TOPCAT can interoperate with in this
 way are 
 image analysis tools
 (<webref url="http://ds9.si.edu/">SAOImage DS9</webref>,
- <webref url="http://star-www.dur.ac.uk/~pdraper/gaia/gaia.html">GAIA</webref>,
- <webref url="http://aladin.u-strasbg.fr/">Aladin</webref>),
+ <webref url="http://star-www.dur.ac.uk/~pdraper/gaia/gaia.html">GAIA</webref>),
 table analysis tools
 (<webref url="http://visivo.cineca.it/">VisIVO</webref>,
  <webref url="http://www.starlink.ac.uk/stilts/">STILTS</webref>,
@@ -3319,7 +3318,8 @@ spectrum analysis tools
 (<webref url="http://www.starlink.ac.uk/splat/">SPLAT</webref>,
  <webref url="https://www.cosmos.esa.int/web/esdc/vospec/">VOSpec</webref>),
 sky visualisation tools
-(<webref url="http://aladin.u-strasbg.fr/">Aladin</webref>,
+(<webref url="https://aladin.cds.unistra.fr/">Aladin</webref>) and
+ <webref url="https://github.com/cds-astro/aladin-lite/">Aladin Lite</webref>),
  <webref url="http://www.worldwidetelescope.org/">World Wide Telescope</webref>,
  <webref url="http://archive.eso.org/cms/virgo/">VirGO</webref>),
 scripting languages
@@ -6531,7 +6531,7 @@ The metadata items are as follows:
 
 <dt>UCD</dt>
 <dd><p>The UCD associated with this column, if one is specified.
-    UCDs are <webref url="http://vizier.u-strasbg.fr/doc/UCD.htx">Uniform
+    UCDs are <webref url="https://www.ivoa.net/documents/UCD1+/">Uniform
     Content Descriptors</webref>, and indicate the semantics
     of the values in this column.
     </p></dd>
@@ -20839,9 +20839,9 @@ please contact the author or the mailing list.
 in the <ref id="LoadWindow">Load Window</ref>'s toolbar 
 or the <ref id="ControlWindow">Control Window</ref>'s <label>VO</label> menu.
 It allows you to make queries directly to the 
-<webref url="http://vizier.u-strasbg.fr/">VizieR</webref> 
+<webref url="https://vizier.cds.unistra.fr/">VizieR</webref> 
 service operated by 
-<webref url="http://cdsweb.u-strasbg.fr/">CDS</webref>.
+<webref url="https://cds.unistra.fr/">CDS</webref>.
 VizieR is a comprehensive library of very many published astronomical 
 catalogues.
 These items can equally be accessed from the web or other interfaces,
@@ -20934,7 +20934,7 @@ into the selector box rather than choosing one of the
 predefined options, for instance
 <code>-out.add=_GLON,_GLAT</code> would add galactic coordinates to the
 standard set; see 
-<webref url="http://vizier.u-strasbg.fr/doc/asu-summary.htx"/>
+<webref url="https://vizier.cds.unistra.fr/doc/asu-summary.htx"/>
 for more details on VizieR hacking.
 (In fact, this trick can be used to add VizieR parameters unrelated to
 column selection as well).
@@ -25069,7 +25069,7 @@ must be registered.
 
 <p>One way to use this action is to configure it to transmit to
 a viewer of all-sky imagery such as
-<webref url="http://aladin.u-strasbg.fr/">Aladin</webref>.
+<webref url="https://aladin.cds.unistra.fr/">Aladin</webref>.
 Then whenever a row is activated, Aladin will change its view
 to show imagery at the sky coordinates corresponding to that row.
 </p>
@@ -25103,7 +25103,7 @@ to show imagery at the sky coordinates corresponding to that row.
 </figure>
 
 <p>The <label>Display HiPS Cutout</label> action uses the
-<webref url="http://alasky.u-strasbg.fr/hips-image-services/hips2fits"
+<webref url="https://alasky.cds.unistra.fr/hips-image-services/hips2fits"
         >hips2fits</webref>
 service at CDS to acquire a resampled image at the activated row's
 sky (or planetary) position and displays it in a no-frills image
@@ -25164,7 +25164,7 @@ You can also use the
 if you want to view the image in an external viewer such as Aladin or ds9.
 If you want to be able to zoom around the HiPS image however,
 the best thing might be to open the HiPS in
-<webref url="http://aladin.u-strasbg.fr/">Aladin</webref> and use the
+<webref url="https://aladin.cds.unistra.fr/">Aladin</webref> and use the
 <ref id="SendSkyPosActivationType">Send Sky Coordinates</ref> action
 to communicate with it.
 </p>
@@ -25181,7 +25181,7 @@ to communicate with it.
 </figure>
 
 <p>The <label>Send HiPS Cutout</label> action uses the
-<webref url="http://alasky.u-strasbg.fr/hips-image-services/hips2fits"
+<webref url="https://alasky.cds.unistra.fr/hips-image-services/hips2fits"
         >hips2fits</webref>
 service at CDS to get the URL of a resampled image at the activated row's
 sky position and asks an external image viewer application to load it
@@ -25190,7 +25190,7 @@ The data is taken from a Hierarchical Progressive Survey (HiPS),
 an all-sky image data set.
 </p>
 
-<p>Since the <webref url="http://aladin.u-strasbg.fr/">Aladin</webref>
+<p>Since the <webref url="https://aladin.cds.unistra.fr/">Aladin</webref>
 viewer already has all-sky viewing of HiPS datasets built in,
 you may find it better to load the HiPS directly into Aladin and use the
 <ref id="SendSkyPosActivationType">Send Sky Coordinates</ref> action
@@ -25389,7 +25389,7 @@ must be registered.
 </p>
 
 <p>Suitable image viewers for use with this action include
-<webref url="http://aladin.u-strasbg.fr/">Aladin</webref>,
+<webref url="https://aladin.cds.unistra.fr/">Aladin</webref>,
 <webref url="http://star-www.dur.ac.uk/~pdraper/gaia/gaia.html">GAIA</webref>
 and
 <webref url="http://ds9.si.edu/">SAOImage DS9</webref>.
@@ -25480,9 +25480,9 @@ must be registered.
 
 <p>This action can be used to send tables to other running instances
 of TOPCAT, or to different applications such as
-<webref url="http://star-www.dur.ac.uk/~pdraper/gaia/gaia.html">GAIA</webref>,
-<webref url="http://aladin.u-strasbg.fr/">Aladin</webref> or
-SAMP-enabled Python scripts.
+<webref url="https://aladin.cds.unistra.fr/">Aladin</webref>,
+<webref url="http://star-www.dur.ac.uk/~pdraper/gaia/gaia.html">GAIA</webref>
+or SAMP-enabled Python scripts.
 </p>
 
 <p>Configuration:
@@ -25531,7 +25531,7 @@ must be registered.
 
 <p>Suitable clients for use with this action include image viewers
 such as 
-<webref url="http://aladin.u-strasbg.fr/">Aladin</webref>,
+<webref url="https://aladin.cds.unistra.fr/">Aladin</webref>,
 <webref url="http://star-www.dur.ac.uk/~pdraper/gaia/gaia.html">GAIA</webref>
 and
 <webref url="http://ds9.si.edu/">SAOImage DS9</webref>.
@@ -25840,12 +25840,12 @@ using the expression language.
     <dt>SIMBAD:</dt>
     <dd><p>The string is assumed to be a source identfier,
         and the corresponding
-        <webref url="http://simbad.u-strasbg.fr/simbad/">SIMBAD</webref>
+        <webref url="https://simbad.cds.unistra.fr/simbad/">SIMBAD</webref>
         URL is used,
         e.g. "<code>Beta Pictoris</code>" turns into
         <webref
-           url="http://simbad.u-strasbg.fr/simbad/sim-id?Ident=Beta%20Pictoris"
-       >http://simbad.u-strasbg.fr/simbad/sim-id?Ident=Beta%20Pictoris</webref>.
+url="https://simbad.cds.unistra.fr/simbad/sim-id?Ident=Beta%20Pictoris"
+    >https://simbad.cds.unistra.fr/simbad/sim-id?Ident=Beta%20Pictoris</webref>.
         See the <ref id="URLs-simbadUrl"><code>simbadUrl</code></ref> function.
         </p></dd>
     <dt>NED:</dt>
@@ -26705,17 +26705,17 @@ by somebody else, TOPCAT will warn you in case anything malicious
 
 <p>The CDS Upload X-Match Window allows you to join a local table
 with any table provided by the 
-<webref url="http://vizier.u-strasbg.fr/">VizieR</webref>
+<webref url="https://vizier.cds.unistra.fr/">VizieR</webref>
 database of astronomical tables or with
-<webref url="http://simbad.u-strasbg.fr/">SIMBAD</webref>.
+<webref url="https://simbad.cds.unistra.fr/">SIMBAD</webref>.
 You can access the window from the main
 <ref id="ControlWindow">Control Window</ref> using the
 <label>CDS Upload Match</label> button (&IMG.CDSXMATCH;)
 in the toolbar, or the <label>Joins</label> or <label>VO</label> menus.
 This window is an interface to the excellent
-<webref url="http://cdsxmatch.u-strasbg.fr/">CDS X-Match service</webref>
+<webref url="https://cdsxmatch.cds.unistra.fr/">CDS X-Match service</webref>
 provided by the Centre de Donn&#x00e9;es astronomiques de Strasbourg
-(<webref url="http://cds.u-strasbg.fr">CDS</webref>).
+(<webref url="https://cds.unistra.fr">CDS</webref>).
 The service is very fast, and in most cases it is the best way to
 match a local table against a large external table hosted by a service.
 In particular, it is almost certainly much better than using
@@ -26739,7 +26739,7 @@ including exactly what coordinates are matched against the uploaded positions
 and what columns are included in the output
 (roughly: a subset of the most commonly used columns), 
 please consult the
-<webref url="http://cdsxmatch.u-strasbg.fr/xmatch/doc/"
+<webref url="https://cdsxmatch.cds.unistra.fr/xmatch/doc/"
         >service documentation</webref>.
 Note that because of the way the service is implemented
 not all the columns from the VizieR table may be present in the result;
@@ -26756,7 +26756,7 @@ The table must be entered by name in the <label>VizieR Table ID/Alias</label>
 field, and may be in one of the following forms:
 <ul>
 <li>"simbad", to indicate the 
-    <webref url="http://simbad.u-strasbg.fr/simbad/">SIMBAD database</webref>
+    <webref url="https://simbad.cds.unistra.fr/simbad/">SIMBAD database</webref>
     of known astronomical objects.
     </li>
 <li>A VizieR table identifier, for instance "II/246/out".
@@ -26766,7 +26766,7 @@ field, and may be in one of the following forms:
     you have to use one of the services or web pages provide by CDS to
     locate them.
     A good tip is the table searching facility at the TAPVizieR service,
-    <webref url="http://tapvizier.u-strasbg.fr/adql/"/>.
+    <webref url="https://tapvizier.cds.unistra.fr/adql/"/>.
     </li>
 <li>A VizieR table alias, for instance "2mass".
     A few tens of these are defined for the largest
@@ -27350,12 +27350,10 @@ define the new column:
     </p></dd>
 
 <dt>UCD</dt>
-<dd><p>A <webref url="http://vizier.u-strasbg.fr/doc/UCD.htx"
+<dd><p>A <webref url="https://www.ivoa.net/documents/UCD1+/"
                  >Unified Content Descriptor</webref>
     for the column; a UCD is a semantic label
-    attached to the column indicating what kind of quantity it contains
-    by picking one option from a list defined by the
-    <webref url="http://cdsweb.u-strasbg.fr/">CDS</webref>.
+    attached to the column indicating what kind of quantity it contains.
     The list of known UCDs is available via a selection box, or you
     can type a UCD in by hand.  You may leave this blank if the you do not
     wish to assign a UCD to the column.
@@ -28174,8 +28172,7 @@ Specifically:
     </li>
 <li>VOTech, an EU FP6 virtual observatory project
     </li>
-<li><webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
-            >AIDA</webref>,
+<li><webref url="https://cordis.europa.eu/project/id/212104">AIDA</webref>,
     an EU FP7 virtual observatory project
     </li>
 <li>GENIUS,
@@ -28224,10 +28221,10 @@ functionality:
     for SVG output</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
     (Jibble) for encapsulated postscript output</li>
-<li><webref url="http://cdsportal.u-strasbg.fr/adqltuto/"
+<li><webref url="https://cdsportal.cds.unistra.fr/adqltuto/"
             >VOLLT ADQL Library</webref> (Gr&#x00e9;gory Mantelet, CDS)
             for ADQL parsing</li>
-<li><webref url="http://cds.u-strasbg.fr/resources/doku.php?id=moc"
+<li><webref url="https://github.com/cds-astro/cds.moc/"
             >MOC</webref> (CDS)
             Multi-Order Coverage HEALPix maps for footprint manipulation</li>
 <li><webref url="https://bitbucket.org/snakeyaml/snakeyaml"
@@ -30503,7 +30500,7 @@ introduced since the last version:
         <li>ADQL parsing and syntax highligting has been added to the 
             TAP load dialogue,
             thanks to Gr&#x00e9;gory Mantelet's
-            <webref url="http://cdsportal.u-strasbg.fr/adqltuto/"
+            <webref url="https://cdsportal.cds.unistra.fr/adqltuto/"
                     >ADQL library</webref>.</li>
         <li>TAP queries are now synchronous by default
             (the <label>Synchronous</label> checkbox is now checked
@@ -32941,7 +32938,7 @@ introduced since the last version:
             these make it easy to access imagery for many surveys
             using the excellent
             <webref
-             url="http://alasky.u-strasbg.fr/hips-image-services/hips2fits"
+             url="https://alasky.cds.unistra.fr/hips-image-services/hips2fits"
              >hips2fits</webref> service from CDS.</li>
         <li>New class <ref id="URLs">URLs</ref>
             contains expression language utility functions
@@ -34882,6 +34879,8 @@ introduced since the last version:
         (regression bug since 4.10-4).</li>
     <li>New array function
         <ref id="Arrays-sort"><code>sort</code></ref>.</li>
+    <li>Update CDS service and documentation URLs from 
+        <code>u-strasbg.fr</code> to <code>cds.unistra.fr</code>.</li>
     </ul>
     </p>
     </dd>

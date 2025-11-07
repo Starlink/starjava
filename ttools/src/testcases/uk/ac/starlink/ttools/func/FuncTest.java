@@ -827,8 +827,9 @@ public class FuncTest extends TestCase {
         assertEquals( "RR Lyr", URLs.urlDecode( "RR%20Lyr" ) );
 
         // These examples from sec 3.5.1 of IAU-endorsed document
-        // "Specifications concerning designations" at
-        // http://cds.u-strasbg.fr/vizier/Dic/iau-spec.htx
+        // "Specifications concerning designations";
+        // a version of this document can be found at
+        // https://cds.unistra.fr/Dic/iau-spec.html.
         checkDesig( "14:26:48", "+69:50:00", "RX J1426.8+6950" );
         checkDesig( "13:02:00", "-63:50:00", "PSR J1302-6350" );
         checkDesig( "17:49:37", "-28:03:52", "PN G001.2-00.3" );
@@ -862,7 +863,7 @@ public class FuncTest extends TestCase {
         assertNull( URLs.arxivUrl( null ) );
         assertNull( URLs.arxivUrl( "Fredor" ) );
 
-        assertEquals( "http://simbad.u-strasbg.fr/simbad/sim-id?Ident="
+        assertEquals( "https://simbad.cds.unistra.fr/simbad/sim-id?Ident="
                     + "Beta%20Pictoris",
                       URLs.simbadUrl( "Beta Pictoris" ) );
         assertNull( URLs.simbadUrl( null ) );
@@ -872,7 +873,8 @@ public class FuncTest extends TestCase {
         assertNull( URLs.nedUrl( null ) );
         assertNull( URLs.nedUrl( "    " ) );
 
-        assertEquals( "http://alasky.u-strasbg.fr/hips-image-services/hips2fits"
+        assertEquals( "https://alasky.cds.unistra.fr/"
+                    + "hips-image-services/hips2fits"
                     + "?hips=CDS/P/DSS2/color&format=png"
                     + "&ra=56.75&dec=24.1125"
                     + "&fov=1.50&width=300&height=300&projection=SIN",

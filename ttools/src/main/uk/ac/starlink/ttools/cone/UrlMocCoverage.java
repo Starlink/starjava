@@ -31,7 +31,7 @@ public class UrlMocCoverage extends MocCoverage {
 
     /** Footprint service base URL provided by CDS. */
     public static final String FOOT_SERVICE_URL =
-        "http://alasky.u-strasbg.fr/footprints";
+        "http://alasky.cds.unistra.fr/footprints";
 
     private static final Map<String,SMoc> mocMap_ = new HashMap<>();
     private static final Logger logger_ =

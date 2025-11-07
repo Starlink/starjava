@@ -240,8 +240,8 @@ public class MultiConeTest extends TableTestCase {
         MapEnvironment env = new MapEnvironment()
             .setResourceBase( MultiConeTest.class )
             .setValue( "serviceurl",
-                       "http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source="
-                     + "VIII/58&" )
+                       "https://vizier.cds.unistra.fr/viz-bin/votable/"
+                     + "-A?-source=VIII/58&" )
             .setValue( "in", "messier.xml" )
             .setValue( "ra", "RA" )
             .setValue( "dec", "Dec" )

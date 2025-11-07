@@ -1033,7 +1033,7 @@ public class Plot2Example {
 
         /**
          * VizieR table J/MNRAS/440/1571, from
-         * http://vizier.u-strasbg.fr/viz-bin/votable?-source=J/MNRAS/440/1571
+         * http://vizier.cds.unistra.fr/viz-bin/votable?-source=J/MNRAS/440/1571
          */
         public static final String FORNAX;
 
@@ -1095,7 +1095,7 @@ public class Plot2Example {
 
         /**
          * Vizier table J/ApJS/166/549/table2
-         * http://vizier.u-strasbg.fr/viz-bin/asu-binfits?
+         * https://vizier.cds.unistra.fr/viz-bin/asu-binfits?
          *    -source=J/ApJS/166/549/table2&-out.add=_RAJ,_DEJ&-out.max=100000
          */
         public static final String NGC346;

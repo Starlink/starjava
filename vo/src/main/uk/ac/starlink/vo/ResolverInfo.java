@@ -21,7 +21,7 @@ import uk.ac.starlink.util.URLUtils;
  * 
  * @author  Mark Taylor (Starlink)
  * @since   4 Feb 2005
- * @see  <a href="http://cdsweb.u-strasbg.fr/doc/sesame.htx"
+ * @see  <a href="https://vizier.cds.unistra.fr/doc/sesame.htx"
  *          >Sesame Documentation</a>
  */
 public class ResolverInfo {
@@ -31,7 +31,7 @@ public class ResolverInfo {
 
     /** Base URL for HTTP-GET-based Sesame service. */
     public static final String SESAME_URL =
-        "http://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/-ox2?";
+        "https://cds.unistra.fr/cgi-bin/nph-sesame/-ox2?";
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 

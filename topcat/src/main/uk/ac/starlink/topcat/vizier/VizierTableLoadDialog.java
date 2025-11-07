@@ -94,12 +94,12 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
      * URLs known to host a standard VizieR service.
      * This list is subject to change, but not very often.
      * The definitive list is available from
-     * <a href="http://vizier.u-strasbg.fr/vizier/mirrors.gml"
-     *         >http://vizier.u-strasbg.fr/vizier/mirrors.gml</a>.
+     * <a href="https://vizier.cds.unistra.fr/vizier/mirrors.gml"
+     *         >https://vizier.cds.unistra.fr/vizier/mirrors.gml</a>.
      */
     public static final String[] SERVER_URLS = new String[] {
         // Default site.
-        "https://vizier.u-strasbg.fr/",
+        "https://vizier.cds.unistra.fr/",
 
         // Mirrors.
         "http://vizier.nao.ac.jp/",
@@ -113,8 +113,8 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
         // "https://vizier.inasan.ru/vizier/",
 
         // Experimental/beta services (no guarantees).
-        "http://viz-beta.u-strasbg.fr/",
-        "http://cdsarc.u-strasbg.fr/",
+        "https://viz-beta.cds.unistra.fr/",
+        "https://cdsarc.cds.unistra..fr/",
     };
 
     /**

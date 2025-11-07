@@ -58,7 +58,8 @@ public abstract class WebMapper {
     /** Maps a source identifier to its Simbad web page. */
     public static final WebMapper SIMBAD =
         createPrefixMapper( "SIMBAD",
-                            "http://simbad.u-strasbg.fr/simbad/sim-id?Ident=" );
+                            "https://simbad.cds.unistra.fr/simbad/"
+                          + "sim-id?Ident=" );
 
     /** Maps a source identifier to its NED web page. */
     public static final WebMapper NED =

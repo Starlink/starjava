@@ -39,12 +39,12 @@ import uk.ac.starlink.util.URLUtils;
  *
  * <p>A list of all the MOCs available from VizieR can
  * currently be found at
- * <a href="http://alasky.u-strasbg.fr/footprints/tables/vizier/"
- *         >http://alasky.u-strasbg.fr/footprints/tables/vizier/</a>.
+ * <a href="https://alasky.cds.unistra.fr/footprints/tables/vizier/"
+ *         >https://alasky.cds.unistra.fr/footprints/tables/vizier/</a>.
  * You can search for VizieR table identifiers from the
  * VizieR web page
- * (<a href="http://vizier.u-strasbg.fr/"
- *          >http://vizier.u-strasbg.fr/</a>);
+ * (<a href="https://vizier.cds.unistra.fr/"
+ *          >https://vizier.cds.unistra.fr/</a>);
  * note you must use
  * the <em>table</em> identifier (like "<code>V/139/sdss9</code>")
  * and not the <em>catalogue</em> identifier (like "<code>V/139</code>").

@@ -32,11 +32,11 @@ public class URLs {
 
     /** Base URL for CDS hips2fits service. */
     private static final String HIPS2FITS_BASE =
-        "http://alasky.u-strasbg.fr/hips-image-services/hips2fits";
+        "https://alasky.cds.unistra.fr/hips-image-services/hips2fits";
 
     /** Alternative base URL for CDS hips2fits service. */
     private static final String HIPS2FITS_BASE2 =
-        "http://alaskybis.u-strasbg.fr/hips-image-services/hips2fits";
+        "https://alaskybis.cds.unistra.fr/hips-image-services/hips2fits";
 
     /**
      * Private constructor prevents instantiation.
@@ -257,12 +257,12 @@ public class URLs {
 
     /**
      * Maps a source identifier to the URL of its
-     * <a href="http://simbad.u-strasbg.fr/simbad/">SIMBAD</a> web page.
+     * <a href="https://simbad.cds.unistra.fr/simbad/">SIMBAD</a> web page.
      * SIMBAD is the astronomical source information service run by
      * the Centre de Donn&#x00e9;es astronomiques de Strasbourg.
      *
      * <p>The string
-     * "<code>http://simbad.u-strasbg.fr/simbad/sim-id?Ident=</code>"
+     * "<code>https://simbad.cds.unistra.fr/simbad/sim-id?Ident=</code>"
      * is prepended to the given id string, and any necessary character
      * escaping is applied.
      * No attempt is made to validate whether the supplied string is
@@ -270,7 +270,7 @@ public class URLs {
      * returned URL will contain actual results.
      * 
      * @example  <code>simbadUrl("Beta Pictoris") =
-     *   "http://simbad.u-strasbg.fr/simbad/sim-id?Ident=Beta%20Pictoris"</code>
+     *   "https://simbad.cds.unistra.fr/simbad/sim-id?Ident=Beta%20Pictoris"</code>
      * 
      * @param  sourceId   free text assumed to represent a source identifier
      *                    known by SIMBAD
@@ -314,8 +314,9 @@ public class URLs {
      * If the details of this function don't suit your purposes,
      * you can construct the URL yourself.
      *
-     * @see <a href="http://alasky.u-strasbg.fr/hips-image-services/hips2fits"
-     *            >http://alasky.u-strasbg.fr/hips-image-services/hips2fits</a>
+     * @see
+     *  <a href="https://alasky.cds.unistra.fr/hips-image-services/hips2fits"
+     *          >https://alasky.cds.unistra.fr/hips-image-services/hips2fits</a>
      * @param  hipsId  identifier or partial identifier for the HiPS survey
      * @param  fmt    required output format, for instance
      *                "<code>fits</code>", "<code>png</code>",

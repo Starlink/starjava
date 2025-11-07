@@ -22,7 +22,7 @@ public class ResolverNetTest extends TestCase {
                 String msg = e.getCause().getMessage();
                 if ( msg.indexOf( "timed out" ) > 0 ) {
                     System.err.println( "Connection to SIMBAD timed out" );
-                    System.err.println( "cdsws.u-strasbg.fr down?" );
+                    System.err.println( "SIMBAD service down?" );
                     return;
                 }
             }                

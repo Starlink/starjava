@@ -429,8 +429,8 @@ public class Strings {
      * Attempts to determine the ICRS Right Ascension from
      * an IAU-style designation such as "<code>2MASS J04355524+1630331</code>"
      * following the specifications in the document
-     * <a href="https://cdsweb.u-strasbg.fr/Dic/iau-spec.html"
-     *         >https://cdsweb.u-strasbg.fr/Dic/iau-spec.html</a>.
+     * <a href="https://cds.unistra.fr/Dic/iau-spec.html"
+     *         >https://cds.unistra.fr/Dic/iau-spec.html</a>.
      *
      * <p><strong>Note:</strong>
      * this function should be used with considerable care.
@@ -466,8 +466,8 @@ public class Strings {
      * Attempts to determine the ICRS Declination from
      * an IAU-style designation such as "<code>2MASS J04355524+1630331</code>"
      * following the specifications in the document
-     * <a href="https://cdsweb.u-strasbg.fr/Dic/iau-spec.html"
-     *         >https://cdsweb.u-strasbg.fr/Dic/iau-spec.html</a>.
+     * <a href="https://cds.unistra.fr/Dic/iau-spec.html"
+     *         >https://cds.unistra.fr/Dic/iau-spec.html</a>.
      *
      * <p><strong>Note:</strong>
      * this function should be used with considerable care.
@@ -504,8 +504,8 @@ public class Strings {
      * an IAU-style designation such as "<code>2MASS J04355524+1630331</code>"
      * to determine its sky position,
      * following the specifications in the document
-     * <a href="https://cdsweb.u-strasbg.fr/Dic/iau-spec.html"
-     *         >https://cdsweb.u-strasbg.fr/Dic/iau-spec.html</a>.
+     * <a href="https://cds.unistra.fr/Dic/iau-spec.html"
+     *         >https://cds.unistra.fr/Dic/iau-spec.html</a>.
      *
      * <p>Obviously, this only works where the <em>sequence</em> part
      * of the designation takes one of the family of coordinate-based forms.
@@ -607,7 +607,7 @@ public class Strings {
      * @param  txtInt   integer part of sexagesimal representation
      * @param  txtFrac  fractional part of sexagesimal representation
      * @return   angle value in degrees
-     * @see    <a href="https://cdsweb.u-strasbg.fr/Dic/iau-spec.html"
+     * @see    <a href="https://cds.unistra.fr/Dic/iau-spec.html"
      *            >Specifications concerning designations (IAU)</a>
      */
     private static double desigTxtToDegrees( String txtSign, String txtInt,

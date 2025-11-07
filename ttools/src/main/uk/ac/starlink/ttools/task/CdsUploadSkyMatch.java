@@ -103,7 +103,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             "or \"<code>simbad</code>\" to indicate SIMBAD data.",
             "</p>",
             "<p>See for instance the TAPVizieR table searching facility at" ,
-            "<code>http://tapvizier.u-strasbg.fr/adql/</code>",
+            "<code>https://tapvizier.cds.unistra.fr/adql/</code>",
             "to find VizieR catalogue identifiers.",
             "</p>",
         } );

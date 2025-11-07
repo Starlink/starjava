@@ -55,7 +55,7 @@ public class ResolverFilter extends BasicFilter {
             "</p>",
             "<p>This is currently implemented using the Simbad service",
             "operated by",
-            "<webref url='http://cdsweb.u-strasbg.fr/'>CDS</webref>.",
+            "<webref url='https://cds.unistra.fr/'>CDS</webref>.",
             "</p>",
         };
     }

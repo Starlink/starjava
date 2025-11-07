@@ -28,23 +28,20 @@ public interface ValueInfo {
     /**
      * Returns a string representing the units of the values described by
      * this object.
-     * The syntax and conventions should ideally match those adopted
-     * by VOTable, as defined by CDS.
+     * The syntax and conventions should ideally correspond to the
+     * <a ref="https://www.ivoa.net/docments/VOUnit/">VOUnit</a> standard.
      *
      * @return  a string giving the units, or <code>null</code> if units are
      *          unknown
-     * @see  <a href="http://vizier.u-strasbg.fr/doc/catstd-3.2.htx">Standards
-     *       for Astronomical Catalogues: Units, CDS Strasbourg</a>
      */
     String getUnitString();
 
     /**
-     * Returns the Unified Column Descriptor string applying to the 
+     * Returns the Unified Content Descriptor string applying to the 
      * values described by this object.
      *
      * @return  the UCD, or <code>null</code> if none is known
-     * @see  <a href="http://vizier.u-strasbg.fr/doc/UCD.htx">Unified 
-     *       Column Descriptor scheme</a>
+     * @see  <a href="https://www.ivoa.net/documents/UCD">UCD</a>
      * @see  UCD
      */
     String getUCD();

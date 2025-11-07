@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 /**
  * Describes Uniform Column Descriptors.
  * This class knows about all currently defined UCDs, the 
- * <a href="http://vizier.u-strasbg.fr/doc/UCD.htx">Unified Column
+ * <a href="https://vizier.cds.unistra.fr/doc/UCD.htx">Unified Column
  * Descriptors</a> defined by the CDS.
  * Each UCD has a unique ID by which it is known, and a description 
  * giving a brief explanation of what it means. 
@@ -30,11 +30,11 @@ import java.util.regex.Pattern;
  * {@link #UCD_DEFINITIONS_LOC}.  If this resource is unavailable at
  * runtime, a warning will be written to the logging system.
  * The original source of this text file was
- * the CDS <a href="http://vizier.u-strasbg.fr/viz-bin/UCDs">List of 
+ * the CDS <a href="https://vizier.cds.unistra.fr/viz-bin/UCDs">List of 
  * all UCDs</a>.
  *
  * @author   Mark Taylor (Starlink)
- * @see   <a href="http://vizier.u-strasbg.fr/doc/UCD.htx">Unified 
+ * @see   <a href="https://vizier.cds.unistra.fr/doc/UCD.htx">Unified 
  *        Content Descriptors</a>
  */
 public class UCD implements Comparable<UCD> {

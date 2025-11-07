@@ -176,8 +176,8 @@ public class UnitUcdStage implements Stage {
                  * (TAP_SCHEMA) nor VODataService (/tables endpoint) mandates
                  * use of VOUnits for column unit metadata.
                  * VOTable 1.4 notes VOUnits as "recommended"
-                 * (VOTable 1.3 still points to
-                 * http://cdsarc.u-strasbg.fr/doc/catstd-3.2.htx).
+                 * (VOTable 1.3 still points to catstd which can be found at
+                 * https://vizier.cds.unistra.fr/vizier/doc/catstd.htx).
                  * So the worst report level we will flag here is Warning. */
                 final ReportCode rcode;
                 final String descrip;

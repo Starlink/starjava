@@ -5,8 +5,8 @@ There is some documentation at
 <a href="https://journals.aas.org/mrt-standards/"
         >https://journals.aas.org/mrt-standards/</a>,
 which mostly builds on documentation at
-<a href="http://vizier.u-strasbg.fr/doc/catstd.htx"
-        >http://vizier.u-strasbg.fr/doc/catstd.htx</a>,
+<a href="https://vizier.cds.unistra.fr/doc/catstd.htx"
+        >https://vizier.cds.unistra.fr/doc/catstd.htx</a>,
 but the format is in fact quite poorly specified,
 so this input handler was largely developed on a best-efforts basis
 by looking at MRT tables actually in use by AAS,
@@ -17,7 +17,7 @@ out there, but it will try its best.
 
 <p>It only attempts to read MRT files themselves, there is currently
 no capability to read 
-<a href="https://vizier.u-strasbg.fr/viz-bin/VizieR">VizieR</a>
+<a href="https://vizier.cds.unistra.fr/viz-bin/VizieR">VizieR</a>
 data tables which provide the header and formatted data in separate files;
 however, if a table is present in VizieR, there will be options
 to download it in more widely used formats that can be used instead.

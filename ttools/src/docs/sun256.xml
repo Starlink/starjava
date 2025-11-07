@@ -6250,7 +6250,7 @@ stilts calc '&param.prefix;author' table=catalogue.xml
                 &cdsskymatch-purpose;</title></subhead>
 
 <p><code>cdsskymatch</code> uses the
-<webref url="http://cdsxmatch.u-strasbg.fr/">CDS X-Match service</webref>
+<webref url="https://cdsxmatch.cds.unistra.fr/">CDS X-Match service</webref>
 to join a local table to one of the tables hosted by the
 Centre de Donn&#x00e9;es astronomiques de Strasbourg.
 This includes all of the VizieR tables and the SIMBAD database.
@@ -6279,7 +6279,7 @@ including exactly what coordinates are matched against the uploaded positions
 and what columns are included in the output
 (roughly: a subset of the most commonly used columns),
 please consult the
-<webref url="http://cdsxmatch.u-strasbg.fr/xmatch/doc/"
+<webref url="https://cdsxmatch.cds.unistra.fr/xmatch/doc/"
         >service documentation</webref>.
 </p>
 
@@ -8758,7 +8758,7 @@ stilts tapskymatch tapurl=http://dc.g-vo.org/tap
     those rows that fall within the actual footprint of the RAVE survey,
     by filtering with a MOC giving RAVE coverage
     (the RAVE dr3 MOC is also available at
-    <webref url="http://alasky.u-strasbg.fr/footprints/tables/vizier/III_265_ravedr3/MOC"
+    <webref url="https://alasky.cds.unistra.fr/footprints/tables/vizier/III_265_ravedr3/MOC"
             >this URL</webref>).
     This step reduces the amount of data that needs to be uploaded,
     since only those rows in the given coverage region stand a chance of
@@ -11110,7 +11110,7 @@ the <webref url="http://www.eurovotc.org/">VOTech</webref>
 project (from EU FP6),
 the <webref url="http://www.astrogrid.org/">AstroGrid</webref> project
     (from PPARC/STFC),
-the <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
+the <webref url="https://cordis.europa.eu/project/id/212104"
             >AIDA</webref> project (from EU FP7),
 grants ST/H008470/1, ST/I00176X/1, ST/J001414/1, ST/L002388/1,
 ST/M000907/1, ST/R000700/1 and ST/S001980/1
@@ -11137,9 +11137,10 @@ functionality:
     for SVG output</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
     (Jibble) for encapsulated postscript output</li>
-<li><webref url="http://cds.u-strasbg.fr/resources/doku.php?id=moc">MOC</webref>
+<li><webref url="https://github.com/cds-astro/cds.moc/">MOC</webref>
     (CDS) for Multi-Order Coverage map manipulation</li>
-<li><webref url="http://cdsportal.u-strasbg.fr/adqltuto/">ADQL</webref>
+<li><webref url="https://cdsportal.cds.unistra.fr/adqltuto/"
+            >VOLLT ADQL Library</webref>
     (CDS) for ADQL parsing in TAP query preparation</li>
 <li><webref url="https://skyview.gsfc.nasa.gov/jar/jar.html"
             >Skyview in a Jar</webref> (NASA) for sky axis drawing</li>
@@ -15911,6 +15912,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="votcopy"><code>votcopy</code></ref>.</li>
     <li>New array function
         <ref id="Arrays-sort"><code>sort</code></ref>.</li>
+    <li>Update CDS service and documentation URLs from
+        <code>u-strasbg.fr</code> to <code>cds.unistra.fr</code>.</li>
     </ul>
     </p></dd>
 
