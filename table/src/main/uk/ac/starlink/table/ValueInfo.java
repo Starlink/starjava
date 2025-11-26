@@ -29,7 +29,7 @@ public interface ValueInfo {
      * Returns a string representing the units of the values described by
      * this object.
      * The syntax and conventions should ideally correspond to the
-     * <a ref="https://www.ivoa.net/docments/VOUnit/">VOUnit</a> standard.
+     * <a href="https://www.ivoa.net/docments/VOUnit/">VOUnit</a> standard.
      *
      * @return  a string giving the units, or <code>null</code> if units are
      *          unknown
