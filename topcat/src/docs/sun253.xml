@@ -34881,6 +34881,8 @@ introduced since the last version:
         <ref id="Arrays-sort"><code>sort</code></ref>.</li>
     <li>Update CDS service and documentation URLs from 
         <code>u-strasbg.fr</code> to <code>cds.unistra.fr</code>.</li>
+    <li>Fix threading issue when using global variables
+        in synthetic subset definitions.</li>
     </ul>
     </p>
     </dd>

@@ -931,7 +931,12 @@ public class TopcatModel {
         subsetCounts_.put( rset, lcount );
         int irset = subsets_.indexOf( rset );
         if ( irset >= 0 ) {
-            subsets_.fireContentsChanged( irset, irset );
+            SwingUtilities.invokeLater( () -> {
+                int ir = subsets_.indexOf( rset );
+                if ( ir >= 0 ) {
+                    subsets_.fireContentsChanged( ir, ir );
+                }
+            } );
         }
     }
 
