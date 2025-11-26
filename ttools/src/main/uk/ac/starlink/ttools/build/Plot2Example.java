@@ -647,7 +647,10 @@ public class Plot2Example {
                         catch ( URISyntaxException e ) {
                             throw new MalformedURLException();
                         }
-                        InputStream in = turl.openStream();
+                        InputStream in = 
+                           URLUtils
+                              .followRedirects( turl.openConnection(), null )
+                              .getInputStream();
                         OutputStream out = new FileOutputStream( f );
                         IOUtils.copy( in, out );
                         in.close();
