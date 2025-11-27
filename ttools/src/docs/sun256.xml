@@ -16258,6 +16258,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Commands will also no longer attempt to ask the user for
         credentials if there is no console (hence no way for the
         user to respond).</li>
+    <li>Downgrade Errors to Failures for
+        <ref id="taplint"><code>taplint</code></ref> tests
+        that are blocked from accessing protected tables
+        by 401 or 403 HTTP response codes.</li>
     </ul>
     </p></dd>
 

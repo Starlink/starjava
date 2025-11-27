@@ -109,7 +109,7 @@ public abstract class VotLintTapRunner extends TapRunner {
 
     @Override
     protected StarTable executeQuery( Reporter reporter, TapQuery tq )
-            throws IOException, SAXException {
+            throws IOException, SAXException, AccessException {
         InputStream in = readResultInputStream( reporter, tq );
         VODocument doc = readResultDocument( reporter, in );
         return readResultVOTable( reporter, doc );
@@ -125,7 +125,7 @@ public abstract class VotLintTapRunner extends TapRunner {
      * @return  result input stream
      */
     public InputStream readResultInputStream( Reporter reporter, TapQuery tq )
-            throws IOException, SAXException {
+            throws IOException, SAXException, AccessException {
         URLConnection conn = getResultConnection( reporter, tq );
         conn = TapQuery.followRedirects( conn );
         conn.connect();
@@ -178,7 +178,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                              "Compression with Content-Encoding " + cCoding
                            + " for " + conn.getURL() );
         }
-
+        checkConnectionAuth( conn );
         try {
             return compression.decompress( conn.getInputStream() );
         }

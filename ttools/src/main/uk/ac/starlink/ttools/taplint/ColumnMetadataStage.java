@@ -163,6 +163,11 @@ public class ColumnMetadataStage implements Stage {
             try {
                 result = tRunner_.attemptGetResultTable( reporter_, tq );
             }
+            catch ( AccessException e ) {
+                reporter_.report( FixedCode.F_QAUT,
+                                  "Access denied to protected resource", e );
+                return;
+            }
             catch ( IOException e ) {
                 reporter_.report( FixedCode.E_QERR,
                                   "Failed TAP query " + adql, e );

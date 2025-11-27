@@ -1,6 +1,8 @@
 package uk.ac.starlink.ttools.taplint;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URLConnection;
 import java.text.DecimalFormat;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.StarTable;
@@ -50,6 +52,11 @@ public abstract class TapRunner {
         try {
             return attemptGetResultTable( reporter, tq );
         }
+        catch ( AccessException e ) {
+            reporter.report( FixedCode.F_QAUT,
+                             "Access denied to protected resource", e );
+            return null;
+        }
         catch ( IOException e ) {
             reporter.report( FixedCode.E_QERR, "TAP query failed", e );
             return null;
@@ -70,7 +77,7 @@ public abstract class TapRunner {
      * @return  result table, not null
      */
     public StarTable attemptGetResultTable( Reporter reporter, TapQuery tq )
-            throws IOException, SAXException {
+            throws IOException, SAXException, AccessException {
         reporter.report( FixedCode.I_QSUB,
                          "Submitting query: "
                        + tq.getAdql().trim().replaceAll( "\\s+", " " ) );
@@ -93,7 +100,7 @@ public abstract class TapRunner {
      */
     protected abstract StarTable executeQuery( Reporter reporter,
                                                TapQuery query )
-        throws IOException, SAXException;
+        throws IOException, SAXException, AccessException;
 
     /**
      * Reports a summary of the queries executed by this object.
@@ -123,6 +130,26 @@ public abstract class TapRunner {
                 .append( "s" )
                 .toString();
             reporter.report( FixedCode.S_QTIM, tmsg );
+        }
+    }
+
+    /**
+     * Checks an open connection to see if it has authentication-related
+     * problems, and if so throws an {@link AccessException}.
+     * If it has no errors, or non-auth errors, nothing happens.
+     *
+     * @param   conn  open connection
+     * @throws  AccessException  if access is denied
+     */
+    public void checkConnectionAuth( URLConnection conn )
+            throws AccessException, IOException {
+        if ( conn instanceof HttpURLConnection ) {
+            HttpURLConnection hconn = (HttpURLConnection) conn;
+            int code = hconn.getResponseCode();
+            if ( code == 401 || code == 403 ) {
+                String msg = "" + code + " at " + conn.getURL();
+                throw new AccessException( msg );
+            }
         }
     }
 }

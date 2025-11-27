@@ -181,6 +181,11 @@ public class QueryStage implements Stage {
                            + pErrorType, e );
             return;
         }
+        catch ( AccessException e ) {
+            reporter.report( FixedCode.E_QAUT,
+                             "Access denied for error query", e );
+            return;
+        }
         catch ( UwsJob.UnexpectedResponseException e ) {
 
             /* Report as a special case a job rejected at job creation time

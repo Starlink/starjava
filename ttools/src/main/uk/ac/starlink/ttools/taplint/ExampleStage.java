@@ -1112,6 +1112,11 @@ public class ExampleStage implements Stage {
                 try {
                     table = tapRunner_.attemptGetResultTable( reporter_, tq );
                 }
+                catch ( AccessException e ) {
+                    reporter_.report( FixedCode.E_QAUT,
+                                      "Access denied for example query", e );
+                    table = null;
+                }
                 catch ( IOException e ) {
                     reporter_.report( FixedCode.W_QERR,
                                       "Example query execution failed", e );

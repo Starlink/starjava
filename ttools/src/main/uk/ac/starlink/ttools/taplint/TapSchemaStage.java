@@ -830,6 +830,11 @@ public class TapSchemaStage extends TableMetadataStage {
             try {
                 return tapRunner_.attemptGetResultTable( reporter_, tq );
             }
+            catch ( AccessException e ) {
+                throw (IOException)
+                      new IOException( "Access denied error" )
+                     .initCause( e );
+            }
             catch ( SAXException e ) {
                 throw (IOException)
                       new IOException( "Result parse error: " + e.getMessage() )
