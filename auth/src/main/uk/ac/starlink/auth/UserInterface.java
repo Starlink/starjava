@@ -1,6 +1,7 @@
 package uk.ac.starlink.auth;
 
 import java.awt.Component;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -85,6 +86,17 @@ public abstract class UserInterface {
     public abstract boolean canRetry();
 
     /**
+     * Indicates whether there is any point in trying to use this object.
+     * If this method returns false, then the methods that provide
+     * (apparent) interaction with the user
+     * ({@link #readUserPassword readUserPassword}, {@link #message message}) 
+     * will not do anything useful.
+     *
+     * @return   true iff this object can do useful work
+     */
+    public abstract boolean canInteract();
+
+    /**
      * Sets a GUI component to which this UI is subordinate.
      * For non-GUI implementations, this method is likely to have no effect,
      * but for GUI-based implementations, it can be used to manage
@@ -113,8 +125,14 @@ public abstract class UserInterface {
      * @return  GUI instance
      */
     private static UserInterface createGui() {
+        if ( GraphicsEnvironment.isHeadless() ) {
+            return createUseless( "Headless environment" );
+        }
         final String winTitle = "Authentication";
         return new UserInterface() {
+            public boolean canInteract() {
+                return true;
+            }
             public boolean canRetry() {
                 return true;
             }
@@ -170,6 +188,9 @@ public abstract class UserInterface {
      */
     public static UserInterface createFixed( final UserPass userpass ) {
         return new UserInterface() {
+            public boolean canInteract() {
+                return true;
+            }
             public boolean canRetry() {
                 return false;
             }
@@ -207,7 +228,7 @@ public abstract class UserInterface {
      * <p>This is a shortcut for
      * {@link #getPropertiesUi(java.lang.String,java.lang.String)
      *         getPropertiesUi}({@link #USERNAME_PROP},
-                                {@link #PASSWORD_PROP}).
+     *                          {@link #PASSWORD_PROP}).
      *
      * @return  new headless UserInterface instance,
      *          or null if not both properties are set
@@ -241,6 +262,30 @@ public abstract class UserInterface {
         return user != null && pass != null
              ? createFixed( user, pass )
              : null;
+    }
+
+    /**
+     * Returns a UserInterface instance that doesn't do any useful interaction.
+     *
+     * @param  excuse  user-readable reason why the instance is useless
+     * @return   new instance
+     */
+    private static UserInterface createUseless( String excuse ) {
+        return new UserInterface() {
+            public boolean canInteract() {
+                return false;
+            }
+            public boolean canRetry() {
+                return false;
+            }
+            public void message( String[] lines ) {
+                logger_.warning( excuse + ": no auth message" );
+            }
+            public UserPass readUserPassword( String[] msgLines ) {
+                logger_.warning( excuse + ": no interactive login" );
+                return null;
+            }
+        };
     }
 
     /**
@@ -299,17 +344,23 @@ public abstract class UserInterface {
      * @return  command-line instance
      */
     private static UserInterface createCli() {
+        final Console console = System.console();
+        if ( console == null ) {
+            return createUseless( "No console" );
+        }
         return new UserInterface() {
+            public boolean canInteract() {
+                return true;
+            }
             public boolean canRetry() {
                 return true;
             }
             public void message( String[] lines ) {
                 for ( String line : lines ) {
-                    System.console().writer().println( line );
+                    console.writer().println( line );
                 }
             }
             public UserPass readUserPassword( String[] msgLines ) {
-                Console console = System.console();
                 PrintWriter writer = console.writer();
                 for ( String line : msgLines ) {
                     console.writer().println( line );
@@ -331,6 +382,14 @@ public abstract class UserInterface {
      */
     private static UserInterface createNone() {
         return new UserInterface() {
+            public boolean canInteract() {
+
+                // Arguably this should be false, but invoking methods does
+                // actually log their invocation; this is mostly for debugging,
+                // so I don't want to mark it in such a way that other
+                // components will avoid trying to use it.
+                return true;
+            }
             public boolean canRetry() {
                 return false;
             }

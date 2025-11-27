@@ -34,6 +34,10 @@ import uk.ac.starlink.auth.UserPass;
  */
 public class TopcatAuthUi extends UserInterface {
 
+    public boolean canInteract() {
+        return true;
+    }
+
     public boolean canRetry() {
         return true;
     }
