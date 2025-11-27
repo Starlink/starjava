@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.logging.Level;
-import java.util.logging.Logger;
-import uk.ac.starlink.auth.AuthManager;
-import uk.ac.starlink.auth.UserInterface;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableScheme;
 import uk.ac.starlink.task.Task;
@@ -36,8 +33,6 @@ public class Stilts {
     private static ObjectFactory<TypedPlot2Task<?,?>> plot2TaskFactory_;
     private static ObjectFactory<ProcessingMode> modeFactory_;
     private static TableScheme[] stdSchemes_;
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.ttools" );
     static { init(); }
 
     public static final String VERSION_RESOURCE = "stilts.version";
@@ -55,7 +50,6 @@ public class Stilts {
         int status = invoker.invoke( args, new Runnable() {
             public void run() {
                 URLUtils.installCustomHandlers();
-                AuthManager.getInstance().setUserInterface( getAuthUi() );
             }
         } );
         if ( status != 0 ) {
@@ -159,26 +153,6 @@ public class Stilts {
     public static String getStarjavaRevision() {
         return IOUtils.getResourceContents( Stilts.class, "revision-string",
                                             Level.CONFIG );
-    }
-
-    /**
-     * Returns the UserInterface instance to be used for authentication.
-     *
-     * @return   ui implementation
-     */
-    private static UserInterface getAuthUi() {
-        UserInterface propsUi = UserInterface.getPropertiesUi();
-        if ( propsUi != null ) {
-            String user = System.getProperty( UserInterface.USERNAME_PROP );
-            if ( user != null && user.trim().length() > 0 ) {
-                logger_.warning( "Automatic system-property-based "
-                               + "authentication for user " + user );
-            }
-            return propsUi;
-        }
-        else {
-            return UserInterface.CLI;
-        }
     }
 
     /**

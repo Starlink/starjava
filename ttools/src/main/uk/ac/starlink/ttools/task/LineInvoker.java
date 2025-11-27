@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.auth.AuthManager;
+import uk.ac.starlink.auth.UserInterface;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.task.Environment;
@@ -263,6 +265,9 @@ public class LineInvoker {
         if ( loggedConfig != null ) {
             loggedConfig.run();
         }
+
+        /* Set up authentication as required. */
+        AuthManager.getInstance().setUserInterface( getAuthUi() );
 
         String taskName = argList.remove( 0 );
         if ( taskFactory_.isRegistered( taskName ) ) {
@@ -549,6 +554,26 @@ public class LineInvoker {
         else {
             env.getErrorStream().println( getStackSummary( e ) );
         }
+    }
+
+    /**
+     * Returns the UserInterface instance to be used for authentication.
+     *                          
+     * @return   ui implementation
+     */
+    private static UserInterface getAuthUi() {
+        UserInterface propsUi = UserInterface.getPropertiesUi();
+        if ( propsUi != null ) {
+            String user = System.getProperty( UserInterface.USERNAME_PROP );
+            if ( user != null && user.trim().length() > 0 ) {
+                logger_.warning( "Automatic system-property-based "
+                               + "authentication for user " + user );
+            }
+            return propsUi;
+        }   
+        else {
+            return UserInterface.CLI;
+        }   
     }
 
     /**
