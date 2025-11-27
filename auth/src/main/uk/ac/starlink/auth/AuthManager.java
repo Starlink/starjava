@@ -251,11 +251,31 @@ public class AuthManager {
                     TestedContext chContext =
                         getChallengeContext( challenges, url );
                     if ( chContext != null ) {
-                        AuthConnection aconn2 =
-                            connectWithContext( url, connector, chContext,
-                                                redirector );
-                        if ( assessAuthAttempt( chContext, aconn2 ) ) {
-                            return aconn2;
+
+                        /* If the context is believed capable of authenticating,
+                         * try reconnecting. */
+                        if ( chContext.context_.hasCredentials() ) {
+                            AuthConnection aconn2 =
+                                connectWithContext( url, connector, chContext,
+                                                    redirector );
+                            if ( assessAuthAttempt( chContext, aconn2 ) ) {
+                                return aconn2;
+                            }
+                        }
+
+                        /* Otherwise an attempt has been made in this context
+                         * before and it didn't work, so we assume it still
+                         * won't.
+                         * There will be no authentication, so stop trying.
+                         * Note this ignores a couple of possibilities:
+                         *  - Multiple authentication options are available,
+                         *    and we've tried and failed with one,
+                         *    but some others on offer might work
+                         *  - Credentials we used before and were invalid
+                         *    have since become valid
+                         * Is that a problem? */
+                        else {
+                            return aconn;
                         }
                     }
 
@@ -564,9 +584,9 @@ public class AuthManager {
             return contexts_
                   .stream()
                   .filter( tcontext ->
-                       Arrays.stream( challenges )
-                      .anyMatch( ch -> tcontext.context_
-                                               .isChallengeDomain( ch, url ) ) )
+                      Arrays.stream( challenges )
+                     .anyMatch( ch -> tcontext.context_
+                                              .isChallengeDomain( ch, url ) ) )
                   .findFirst()
                   .orElse( null );
         }
