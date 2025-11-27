@@ -521,6 +521,14 @@ follows:
     May be useful for profiling or understanding resource constraints.
     </p></dd>
 
+<dt><code>-noauth</code></dt>
+<dd><p>Avoids any attempt to authenticate with external services.
+    Under normal circumstances, attempting to access an
+    external service over HTTP which is protected by authentication
+    may result in some attempt to ask the user for credentials;
+    setting this flag prevents that from happening.
+    </p></dd>
+
 <dt><code>-checkversion &lt;vers&gt;</code></dt>
 <dd><p>Requires that the version is exactly as given by the string
     <code>&lt;vers&gt;</code>.  If it is not, STILTS will exit with
@@ -16244,6 +16252,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next Version</dt>
 <dd><p>
     <ul>
+    <li>Add a <code>-noauth</code> option to the
+        <ref id="stilts-flags">flags</ref> which prevents attempts
+        to authenticate with services.
+        Commands will also no longer attempt to ask the user for
+        credentials if there is no console (hence no way for the
+        user to respond).</li>
     </ul>
     </p></dd>
 

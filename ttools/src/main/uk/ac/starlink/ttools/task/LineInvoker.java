@@ -77,6 +77,7 @@ public class LineInvoker {
         boolean bench = false;
         boolean memgui = false;
         boolean allowunused = false;
+        boolean hasauth = true;
         PrintStream out = System.out;
         PrintStream err = System.err;
 
@@ -131,6 +132,10 @@ public class LineInvoker {
                                                    .PREFER_MEMORY );
                     env.getTableFactory()
                        .setStoragePolicy( StoragePolicy.PREFER_MEMORY );
+                }
+                else if ( arg.equals( "-noauth" ) ) {
+                    it.remove();
+                    hasauth = false;
                 }
                 else if ( arg.equals( "-disk" ) ) {
                     it.remove();
@@ -267,7 +272,7 @@ public class LineInvoker {
         }
 
         /* Set up authentication as required. */
-        AuthManager.getInstance().setUserInterface( getAuthUi() );
+        AuthManager.getInstance().setUserInterface( getAuthUi( hasauth ) );
 
         String taskName = argList.remove( 0 );
         if ( taskFactory_.isRegistered( taskName ) ) {
@@ -559,29 +564,37 @@ public class LineInvoker {
     /**
      * Returns the UserInterface instance to be used for authentication.
      *                          
+     * @param   hasAuth  true to allow authentication,
+     *                   false to avoid any attempt at it
      * @return   ui implementation
      */
-    private static UserInterface getAuthUi() {
-        UserInterface propsUi = UserInterface.getPropertiesUi();
-        if ( propsUi != null ) {
-            String user = System.getProperty( UserInterface.USERNAME_PROP );
-            if ( user != null && user.trim().length() > 0 ) {
-                logger_.warning( "Automatic system-property-based "
-                               + "authentication for user " + user );
-            }
-            return propsUi;
-        }   
-        else {
-            UserInterface cli = UserInterface.CLI;
-            if ( cli.canInteract() ) {
-                logger_.config( "Authentication: CLI-based" );
-                return cli;
-            }
+    private static UserInterface getAuthUi( boolean hasAuth ) {
+        if ( hasAuth ) {
+            UserInterface propsUi = UserInterface.getPropertiesUi();
+            if ( propsUi != null ) {
+                String user = System.getProperty( UserInterface.USERNAME_PROP );
+                if ( user != null && user.trim().length() > 0 ) {
+                    logger_.warning( "Automatic system-property-based "
+                                   + "authentication for user " + user );
+                }
+                return propsUi;
+            }   
             else {
-                logger_.config( "Authentication: none (no console)" );
-                return null;
-            }
-        }   
+                UserInterface cli = UserInterface.CLI;
+                if ( cli.canInteract() ) {
+                    logger_.config( "Authentication: CLI-based" );
+                    return cli;
+                }
+                else {
+                    logger_.config( "Authentication: none (no console)" );
+                    return null;
+                }
+            }   
+        }
+        else {
+            logger_.config( "Authentication: none" );
+            return null;
+        }
     }
 
     /**
@@ -650,6 +663,7 @@ public class LineInvoker {
             .append( " [-memory]" )
             .append( " [-disk]" )
             .append( " [-memgui]" )
+            .append( " [-noauth]" )
             .append( '\n' )
             .append( pad )
             .append( " [-checkversion <vers>]" )
