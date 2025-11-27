@@ -52,6 +52,12 @@ public class ColumnMetadataFilter extends BasicFilter {
             "of fixed length strings; use with non-string columns",
             "is not recommended.",
             "</p>",
+            "<p>Note if you want to change the data type of a column",
+            "you should use instead the",
+            "<ref id='replacecol'><code>replacecol</code></ref> filter",
+            "with one of the <ref id='Conversions'>Conversions</ref>",
+            "functions.",
+            "</p>",
             explainSyntax( new String[] { "colid-list", } ),
         };
     }
