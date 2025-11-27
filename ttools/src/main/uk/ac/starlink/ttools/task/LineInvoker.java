@@ -572,7 +572,15 @@ public class LineInvoker {
             return propsUi;
         }   
         else {
-            return UserInterface.CLI;
+            UserInterface cli = UserInterface.CLI;
+            if ( cli.canInteract() ) {
+                logger_.config( "Authentication: CLI-based" );
+                return cli;
+            }
+            else {
+                logger_.config( "Authentication: none (no console)" );
+                return null;
+            }
         }   
     }
 
