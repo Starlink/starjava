@@ -23785,6 +23785,9 @@ just select <label>Use Service</label> or
 by clicking on the appropriate tab at the top.
 </p>
 
+<subdiv id="TapTableLoadDialog_menus">
+<subhead><title>TAP Menus</title></subhead>
+
 <p>This window offers some menus additional to the standard
 <ref id="RegistryPanel">VO window</ref> menus:
 <dl>
@@ -23970,6 +23973,8 @@ by clicking on the appropriate tab at the top.
 
 </dl>
 </p>
+
+</subdiv>
 
 <p><strong>Note:</strong> TAP is a complex protocol, and at time of
 writing, many TAP services still do not provide full and error-free
@@ -34887,6 +34892,11 @@ introduced since the last version:
     <li>No longer pass "<code>out.meta=l</code>" flag from
         <ref id="VizierTableLoadDialog">VizieR load window</ref>;
         this avoids masking data columns with URLs in some cases.</li>
+    <li>Fix per-table VOSI TAP metadata queries to work with
+        delimited identifiers; this means TOPCAT can retrieve
+        TAP column metadata for tables from TAPVizieR in its default
+        <ref id="TapTableLoadDialog_menus">metadata acquisition mode</ref>
+        (VOSI1.1-2step), which had been broken for a while.</li>
     </ul>
     </p>
     </dd>

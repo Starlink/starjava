@@ -202,8 +202,16 @@ public class Vosi11TapMetaReader implements TapMetaReader {
                                                 DetailMode detailMode )
             throws IOException {
         String surl = url_.toString();
+
+        /* The table name may need some doctoring.  In particular,
+         * it must not contain any characters which are illegal in a URI,
+         * for instance double quote (") which is ubiquitous in TAPVizieR
+         * table names.  Characters which RFC3986 marks as "reserved"
+         * are a moot point; VOSI is not written carefully enough to
+         * make clear whether these should be encoded or literal,
+         * for now keep them literal. */
         if ( subPath != null && subPath.length() > 0 ) {
-            surl += subPath;
+            surl += URLUtils.percentEncodeIllegalCharacters( subPath );
         }
         String query = detailMode == null ? null : detailMode.query_;
         if ( query != null ) {
