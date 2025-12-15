@@ -371,6 +371,9 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
 
     public TableLoader createTableLoader() {
 
+        /* Documentation for this web service can be found at
+         * https://cdsarc.cds.unistra.fr/vizier/doc/vizquery.htx. */
+
         /* Identify the catalogue to query. */
         JTable catTable = getCurrentMode().getQueryableTable();
         int irow = catTable.getSelectedRow();
@@ -386,8 +389,7 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
         ubuf.append( new CgiQuery( vizinfo_.getBaseUrl().toString() )
                     .addArgument( "-source", queryable.getQuerySource() )
                     .toString() );
-        ubuf.append( encodeArg( "-oc.form", "dec" ) );
-        ubuf.append( encodeArg( "-out.meta", "Dhul" ) );
+        ubuf.append( encodeArg( "-oc.form", "dec" ) );  // decimal positions
         boolean allRows = isAllRows();
         if ( ! allRows ) {
             ubuf.append( encodeArg( "-c", getTarget() ) );
