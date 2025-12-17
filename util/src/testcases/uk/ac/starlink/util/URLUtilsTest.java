@@ -178,5 +178,14 @@ public class URLUtilsTest extends junit.framework.TestCase {
         assertEquals( pre, URLUtils.urlDecode( post ) );
         assertEquals( "abc", URLUtils.urlEncode( "abc" ) );
         assertEquals( "def", URLUtils.urlDecode( "def" ) );
+
+        assertEquals( "1%20+%201%20=%202",
+                      URLUtils.percentEncodeIllegalCharacters( pre ) );
+        assertEquals( "%22II/246/out%22",
+                      URLUtils
+                     .percentEncodeIllegalCharacters( "\"II/246/out\"" ) );
+        assertEquals( "-*-%0A-%EA%99%AE-",
+                      URLUtils
+                     .percentEncodeIllegalCharacters( "-*-\n-\ua66e-" ) );
     }
 }

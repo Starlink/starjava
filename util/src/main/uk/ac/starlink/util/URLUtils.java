@@ -14,6 +14,7 @@ import java.net.URLEncoder;
 import java.net.URLStreamHandlerFactory;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -60,6 +61,13 @@ public class URLUtils {
 
     private static final Pattern FILE_URL_REGEX =
         Pattern.compile( "(file:)(/*)(.*)" );
+
+    // See RFC3986 sections 2.2 and 2.3.
+    private static final String UNRESERVED_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                                 + "abcdefghijklmnopqrstuvwxyz"
+                                                 + "0123456789" + "-._~";
+    private static final String RESERVED_CHARS = ":/?#[]@!$&'()*+,;=";
+    private static final String LEGAL_CHARS = UNRESERVED_CHARS + RESERVED_CHARS;
 
     /**
      * Private constructor prevents instantiation.
@@ -463,6 +471,52 @@ public class URLUtils {
                 assert false;
                 return txt;
             }
+        }
+    }
+
+    /**
+     * Percent-encodes those characters in a given string that are
+     * illegal anywhere in a URI.
+     * Character coding is UTF-8.
+     *
+     * @param  txt  raw string
+     * @return   string with illegal characters percent-encoded
+     * @see  <a href="https://datatracker.ietf.org/doc/html/rfc3986"
+     *          >RFC 3986, section 2</a>
+     */
+    public static String percentEncodeIllegalCharacters( String txt ) {
+        return percentEncodeExcept( LEGAL_CHARS, txt );
+    }
+
+    /**
+     * Percent-encodes characters in a given string that are not present
+     * in a given set of permitted characters.
+     * Character coding is UTF-8.
+     *
+     * @param  permittedChars  any character in this string is passed through
+     *                         unchanged
+     * @param  txt   raw input string
+     * @return   string with non-permitted characters percent encoded
+     * @see  <a href="https://datatracker.ietf.org/doc/html/rfc3986"
+     *          >RFC 3986, section 2</a>
+     */
+    private static String percentEncodeExcept( String permittedChars,
+                                               String txt ) {
+        if ( txt == null ) {
+            return null;
+        }
+        else {
+            StringBuffer sbuf = new StringBuffer( txt.length() );
+            for ( byte utf8b : txt.getBytes( StandardCharsets.UTF_8 ) ) {
+                char c = (char) ( utf8b & 0xff );
+                if ( permittedChars.indexOf( c ) >= 0 ) {
+                    sbuf.append( c );
+                }
+                else {
+                    sbuf.append( new Formatter().format( "%%%02X", (int) c ) );
+                }
+            }
+            return sbuf.toString();
         }
     }
 
