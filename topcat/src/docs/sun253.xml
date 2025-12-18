@@ -34897,6 +34897,8 @@ introduced since the last version:
         TAP column metadata for tables from TAPVizieR in its default
         <ref id="TapTableLoadDialog_menus">metadata acquisition mode</ref>
         (VOSI1.1-2step), which had been broken for a while.</li>
+    <li>Improve TAP window performance in some circumstances by
+        eliminating duplicate metadata queries.</li>
     </ul>
     </p>
     </dd>

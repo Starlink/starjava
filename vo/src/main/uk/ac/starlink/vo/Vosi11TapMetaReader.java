@@ -149,11 +149,37 @@ public class Vosi11TapMetaReader implements TapMetaReader {
     }
 
     public ColumnMeta[] readColumns( TableMeta table ) throws IOException {
-        return readSingleTable( table ).getColumns();
+        TableMeta readTable = readSingleTable( table );
+
+        /* Update the foreign keys of the input object as a side-effect
+         * of reading the columns, since the query returns that
+         * information as well.  This is a little bit questionable,
+         * since the caller will not get notified that the FK metadata
+         * has been updated (the intention is that the result of this method
+         * is only in the output), but I think it works OK in practice. */
+        ForeignMeta[] fmetas = readTable.getForeignKeys();
+        if ( table.getForeignKeys() == null && fmetas != null ) {
+            table.setForeignKeys( fmetas );
+        }
+
+        /* Return the column metadata as requested. */
+        ColumnMeta[] cmetas = readTable.getColumns();
+        return cmetas;
     }
 
     public ForeignMeta[] readForeignKeys( TableMeta table ) throws IOException {
-        return readSingleTable( table ).getForeignKeys();
+        TableMeta readTable = readSingleTable( table );
+
+        /* Update the columns of the input object as a side-effect
+         * of reading the foreign keys; see readColumns above. */
+        ColumnMeta[] cmetas = readTable.getColumns();
+        if ( table.getColumns() == null && cmetas != null ) {
+            table.setColumns( cmetas );
+        }
+
+        /* Return the foreign key metadata as requested. */
+        ForeignMeta[] fmetas = readTable.getForeignKeys();
+        return fmetas;
     }
 
     /**
