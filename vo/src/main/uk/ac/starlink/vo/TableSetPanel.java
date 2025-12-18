@@ -881,29 +881,39 @@ public class TableSetPanel extends JPanel {
         TreePath path = selectionModel_.getSelectionPath();
         final TableMeta table = TapMetaTreeModel.getTable( path );
         SchemaMeta schema = TapMetaTreeModel.getSchema( path );
-        if ( table == null ||
-             ! serviceKit_.onColumns( table, new Runnable() {
-            public void run() {
+        if ( table == null ) {
+            displayColumns( table, new ColumnMeta[ 0 ] );
+            displayForeignKeys( table, new ForeignMeta[ 0 ] );
+        }
+        else if ( ! serviceKit_.onColumns( table, () -> {
                 if ( table == getSelectedTable() ) {
                     ColumnMeta[] cols = table.getColumns();
                     displayColumns( table, cols );
                     tablePanel_.setColumns( cols );
+
+                    /* Update the foreign keys once we have the columns.
+                     * The FK query could be done concurrently with the column
+                     * query, but in some cases (VOSI1.1 per-table metadata
+                     * queries, which is the default mode at time of writing)
+                     * the FKs may be acquired as a side-effect of the column
+                     * query so doing them both concurrently usually has
+                     * the effect of making two identical service calls.
+                     * Foreign keys are not that useful anyway,
+                     * so if they arrive a bit later (as they will for
+                     * e.g. TAP_SCHEMA-based per-table queries) it's not
+                     * a major problem. */
+                    if ( ! serviceKit_.onForeignKeys( table, () -> {
+                            if ( table == getSelectedTable() ) {
+                                ForeignMeta[] fkeys = table.getForeignKeys();
+                                displayForeignKeys( table, fkeys );
+                                tablePanel_.setForeignKeys( fkeys );
+                            }
+                        } ) ) {
+                        displayForeignKeys( table, new ForeignMeta[ 0 ] );
+                    }
                 }
-            }
-        } ) ) {
+            } ) ) {
             displayColumns( table, new ColumnMeta[ 0 ] );
-        }
-        if ( table == null ||
-             ! serviceKit_.onForeignKeys( table, new Runnable() {
-            public void run() {
-                if ( table == getSelectedTable() ) {
-                    ForeignMeta[] fkeys = table.getForeignKeys();
-                    displayForeignKeys( table, fkeys );
-                    tablePanel_.setForeignKeys( fkeys );
-                }
-            }
-        } ) ) {
-            displayForeignKeys( table, new ForeignMeta[ 0 ] );
         }
         schemaPanel_.setSchema( schema );
         detailTabber_.setIconAt( itabSchema_, activeIcon( schema != null ) );
