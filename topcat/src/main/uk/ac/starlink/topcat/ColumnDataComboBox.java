@@ -211,7 +211,7 @@ public class ColumnDataComboBox extends FixedJComboBox<ColumnData> {
         Object item = getSelectedItem();
         if ( item instanceof ColumnData ) {
             ColumnData cdata = (ColumnData) item;
-            ComboBoxModel<ColumnData> model = getModel();
+            ComboBoxModel<ColumnData> model = model_;
             if ( model instanceof ColumnDataComboBoxModel ) {
                 TopcatModel tcModel =
                     ((ColumnDataComboBoxModel) model).getTopcatModel();
