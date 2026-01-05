@@ -39,6 +39,12 @@ public class Loader {
     public static final String PROPERTIES_FILE = ".starjava.properties";
 
     /**
+     * Private sole constructor prevents instantiation.
+     */
+    private Loader() {
+    }
+
+    /**
      * Returns the location of the main Starlink java directory which 
      * contains the lib, bin, etc, source directories and others.
      * It gets this by working out what jar file this class
