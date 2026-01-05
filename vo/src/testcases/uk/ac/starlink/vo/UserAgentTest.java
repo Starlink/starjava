@@ -11,24 +11,16 @@ public class UserAgentTest extends TestCase {
     }
 
     public static void testTokens() {
-        assertEquals( "(IVOA-test)", UserAgentUtil.COMMENT_TEST );
-        assertEquals( "(IVOA-copy)", UserAgentUtil.COMMENT_COPY );
-
+        assertEquals( "(IVOA-test)",
+                      UserAgentUtil
+                     .createOpPurposeComment( UserAgentUtil.PURPOSE_TEST,
+                                              null ) );
+        assertEquals( "(IVOA-copy)",
+                      UserAgentUtil
+                     .createOpPurposeComment( UserAgentUtil.PURPOSE_COPY,
+                                              null ) );
         assertEquals( "(IVOA-tat xxx)",
                       UserAgentUtil.createOpPurposeComment( "tat", "xxx" ) );
-    }
-
-    public void testSysprop() {
-        String agent0 = System.getProperty( "http.agent" );
-        checkSysprop();
-        System.setProperty( "http.agent", "(Dummy)" );
-        checkSysprop();
-        if ( agent0 == null ) {
-            System.clearProperty( "http.agent" );
-        }
-        else {
-            System.setProperty( "http.agent", agent0 );
-        }
     }
 
     public void testParse() {
@@ -53,19 +45,5 @@ public class UserAgentTest extends TestCase {
         }
         catch ( RuntimeException e ) {
         }
-    }
-
-    private void checkSysprop() {
-        String agent0 = System.getProperty( "http.agent" );
-        UserAgentUtil.pushUserAgentToken( "(zzz)" );
-        String agent1 = System.getProperty( "http.agent" );
-        if ( agent0 == null || agent0.trim().length() == 0 ) {
-            assertEquals( "(zzz)", agent1 );
-        }
-        else {
-            assertEquals( agent0 + " (zzz)", agent1 );
-        }
-        UserAgentUtil.popUserAgentToken( "(zzz)" );
-        assertEquals( agent0, System.getProperty( "http.agent" ) );
     }
 }

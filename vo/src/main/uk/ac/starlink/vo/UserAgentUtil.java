@@ -4,22 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.logging.Logger;
 
 /**
  * Utilities for manipulating the HTTP <code>User-Agent</code>
  * header from the JVM, following IVOA usage conventions.
  * These conventions are codified in the
- * <a href="https://datatracker.ietf.org/doc/html/rfc7231#section-5.5.3"
- *    >SoftID IVOA Note</a>.
- *
- * <p>Typical usage for a validator client would be:
- * <pre>
- *   String uaComment = UserAgentUtil.COMMENT_TEST;   // "(IVOA-test)"
- *   UserAgentUtil.pushUserAgentToken( uaComment );
- *   ... do validation ...
- *   UserAgentUtil.popUserAgentToken( uaComment );
- * </pre>
+ * <a href="https://www.ivoa.net/documents/Notes/softid/">SoftID IVOA Note</a>.
  *
  * @author   Mark Taylor
  * @since    12 Apr 2019
@@ -39,79 +29,13 @@ public class UserAgentUtil {
     /** String prefixed to purpose verb to introduce IVOA operation comment. */
     public static final String IVOA_PREFIX = "IVOA-";
 
-    /** Comment token indicating client performs VO test/monitor/validate. */
-    public static final String COMMENT_TEST =
-        createOpPurposeComment( PURPOSE_TEST, null );
-
-    /** Comment token indicating client performs VO copy/mirror/harvest. */
-    public static final String COMMENT_COPY =
-        createOpPurposeComment( PURPOSE_COPY, null );
-
     /** System property that can be used to manipulate the UserAgent header. */
     public static final String AGENT_PROPNAME = "http.agent";
-
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
      * Private constructor prevents instantiation.
      */
     private UserAgentUtil() {
-    }
-
-    /**
-     * Appends a token/comment to the currently used User-Agent string.
-     * This does not overwrite existing text, which is in general useful.
-     *
-     * @param  token  string to add
-     */
-    public static void pushUserAgentToken( String token ) {
-        if ( token != null && token.trim().length() > 0 ) {
-            String agent0 = System.getProperty( AGENT_PROPNAME );
-            String agent1 = agent0 == null || agent0.trim().length() == 0
-                 ? token
-                 : agent0.trim() + " " + token;
-            System.setProperty( AGENT_PROPNAME, agent1 );
-            logger_.info( "Appended User-Agent token: "
-                        + AGENT_PROPNAME + " is now \"" + agent1 + "\"" );
-        }
-    }
-
-    /**
-     * Removes a token/comment from the currently-used User-Agent string.
-     * This only has effect if the given token is at the end of the
-     * current list, that is if it has just been added.
-     * If it's not present or not at the end, a warning is logged and
-     * there is no other effect.
-     *
-     * @param  token  previously added string to remove
-     */
-    public static void popUserAgentToken( String token ) {
-        if ( token != null && token.trim().length() > 0 ) {
-            String agent0 = System.getProperty( AGENT_PROPNAME );
-            int index = agent0 == null
-                      ? -1
-                      : agent0.indexOf( token );
-            if ( index >= 0 ) {
-                String agent1 = agent0.substring( 0, index ).trim();
-                if ( agent1.length() == 0 ) {
-                    System.clearProperty( AGENT_PROPNAME );
-                    logger_.info( "Removed User-Agent token: "
-                                + AGENT_PROPNAME + " is now empty" );
-                }
-                else {
-                    System.setProperty( AGENT_PROPNAME, agent1 );
-                    logger_.info( "Removed User-Agent token: "
-                                + AGENT_PROPNAME
-                                + " is now \"" + agent1 + "\"" );
-                }
-            }
-            else {
-                logger_.warning( "Failed to remove User-Agent token \""
-                               + token + "\" - " + AGENT_PROPNAME
-                               + " is still \"" + agent0 + "\"" );
-            }
-        }
     }
 
     /**
