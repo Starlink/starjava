@@ -15,7 +15,6 @@ import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
-import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.taplint.DatalinkValidator;
@@ -30,7 +29,7 @@ import uk.ac.starlink.vo.UserAgentUtil;
  * @author   Mark Taylor
  * @since    28 Nov 2017
  */
-public class DatalinkLint implements Task {
+public class DatalinkLint implements OperationalTask {
 
     private final Parameter<String> locParam_;
     private final ChoiceParameter<DatalinkVersion> versionParam_;
@@ -108,6 +107,10 @@ public class DatalinkLint implements Task {
         return params_;
     }
 
+    public String getOperationalPurpose() {
+        return UserAgentUtil.PURPOSE_TEST;
+    }
+
     public Executable createExecutable( Environment env ) throws TaskException {
         String loc = locParam_.stringValue( env );
         final OutputReporter reporter = reporterParam_.objectValue( env );
@@ -145,14 +148,7 @@ public class DatalinkLint implements Task {
         return new Executable() {
             public void execute() {
                 reporter.start( announcements );
-                String uaToken = UserAgentUtil.COMMENT_TEST;
-                UserAgentUtil.pushUserAgentToken( uaToken );
-                try {
-                    runner.run();
-                }
-                finally {
-                    UserAgentUtil.popUserAgentToken( uaToken );
-                }
+                runner.run();
                 reporter.summariseUnreportedMessages( null );
                 reporter.end();
             }

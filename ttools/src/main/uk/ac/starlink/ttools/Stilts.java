@@ -15,11 +15,13 @@ import uk.ac.starlink.ttools.plot2.task.TypedPlot2Task;
 import uk.ac.starlink.ttools.scheme.AttractorScheme;
 import uk.ac.starlink.ttools.scheme.SkySimScheme;
 import uk.ac.starlink.ttools.task.LineInvoker;
+import uk.ac.starlink.ttools.task.OperationalTask;
 import uk.ac.starlink.util.IOUtils;
 import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.ObjectFactory;
 import uk.ac.starlink.util.Pair;
 import uk.ac.starlink.util.URLUtils;
+import uk.ac.starlink.vo.UserAgentUtil;
 
 /**
  * Top-level class for invoking tasks in the STILTS package.
@@ -47,7 +49,6 @@ public class Stilts {
      */
     public static void main( String[] args ) {
         Loader.loadProperties();
-        Loader.setHttpAgent( "STILTS" + "/" + getVersion() ); 
         Loader.setDefaultProperty( "java.awt.Window.locationByPlatform",
                                    "true" );
         LineInvoker invoker = new LineInvoker( "stilts", taskFactory_ );
@@ -121,6 +122,33 @@ public class Stilts {
     public static String getVersion() {
         return IOUtils.getResourceContents( Stilts.class, VERSION_RESOURCE,
                                             null );
+    }
+
+    /**
+     * Prepares the java HTTP client for making HTTP requests,
+     * by configuring the User-Agent header appropriately for
+     * a given STILTS task.
+     *
+     * <p>Note this only has any effect if done early enough (before any HTTP
+     * connections have been established?).  Later invocations will have
+     * no effect on the value of the User-Agent header presented during
+     * HTTP requests.  It is also only effective the first time it is called.
+     *
+     * @param  task  stilts task, may be null
+     */
+    public static void configureUserAgent( Task task ) {
+        String purpose = task instanceof OperationalTask
+                       ? ((OperationalTask) task).getOperationalPurpose()
+                       : null;
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( "STILTS" )
+            .append( "/" )
+            .append( getVersion() );
+        if ( purpose != null && purpose.trim().length() > 0 ) {
+            sbuf.append( " " )
+                .append( UserAgentUtil.createOpPurposeComment( purpose, null ));
+        }
+        Loader.setHttpAgent( sbuf.toString() );
     }
 
     /**

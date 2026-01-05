@@ -281,6 +281,7 @@ public class LineInvoker {
                     return 0;
                 }
                 else {
+                    Stilts.configureUserAgent( task );
                     long start = System.currentTimeMillis();
                     Executable exec = task.createExecutable( env );
                     String[] unused = env.getUnused();

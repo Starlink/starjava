@@ -33,7 +33,6 @@ import uk.ac.starlink.vo.TapCapabilitiesDoc;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapService;
 import uk.ac.starlink.vo.SchemaMeta;
-import uk.ac.starlink.vo.UserAgentUtil;
 
 /**
  * Organises validation stages for TAP validator.
@@ -242,7 +241,6 @@ public class TapLinter {
         final String[] announcements = getAnnouncements( true );
         return new Executable() {
             public void execute() {
-                String uaToken = UserAgentUtil.COMMENT_TEST;
                 TapService tapService;
                 try {
                     tapService = tapServiceSupplier.get();
@@ -257,28 +255,22 @@ public class TapLinter {
                     return;
                 }
                 capabilitiesReader_.init( reporter, tapService );
-                UserAgentUtil.pushUserAgentToken( uaToken );
-                try {
-                    reporter.start( announcements );
-                    for ( int ic = 0; ic < codes.length; ic++ ) {
-                        String code = codes[ ic ];
-                        Stage stage = stageSet_.getStage( code );
-                        assert stage != null;
-                        if ( stage instanceof TableMetadataStage &&
-                             tableFilter != null ) {
-                            ((TableMetadataStage) stage)
-                                                 .setTableFilter( tableFilter );
-                        }
-                        reporter.startSection( code, stage.getDescription() );
-                        stage.run( reporter, tapService );
-                        reporter.summariseUnreportedMessages( code );
-                        reporter.endSection();
+                reporter.start( announcements );
+                for ( int ic = 0; ic < codes.length; ic++ ) {
+                    String code = codes[ ic ];
+                    Stage stage = stageSet_.getStage( code );
+                    assert stage != null;
+                    if ( stage instanceof TableMetadataStage &&
+                         tableFilter != null ) {
+                        ((TableMetadataStage) stage)
+                                             .setTableFilter( tableFilter );
                     }
-                    reporter.end();
+                    reporter.startSection( code, stage.getDescription() );
+                    stage.run( reporter, tapService );
+                    reporter.summariseUnreportedMessages( code );
+                    reporter.endSection();
                 }
-                finally {
-                    UserAgentUtil.popUserAgentToken( uaToken );
-                }
+                reporter.end();
             }
         };
     }

@@ -15914,6 +15914,15 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="Arrays-sort"><code>sort</code></ref>.</li>
     <li>Update CDS service and documentation URLs from
         <code>u-strasbg.fr</code> to <code>cds.unistra.fr</code>.</li>
+    <li>Validation tools
+        <ref id="taplint"><code>taplint</code></ref> and
+        <ref id="datalinklint"><code>datalinklint</code></ref>
+        now report "<code>(IVOA-test)</code>"
+        in User-Agent HTTP headers as per IVOA Note
+        <webref url="https://www.ivoa.net/documents/Notes/softid/"
+                >SoftID</webref>,
+        which they claimed to have been doing since 2021
+        but till now never have.</li>
     </ul>
     </p></dd>
 

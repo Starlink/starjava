@@ -18,7 +18,6 @@ import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
-import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.taplint.FixedCode;
 import uk.ac.starlink.ttools.taplint.OutputReporter;
@@ -28,6 +27,7 @@ import uk.ac.starlink.ttools.taplint.TapLinter;
 import uk.ac.starlink.util.IOSupplier;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapService;
+import uk.ac.starlink.vo.UserAgentUtil;
 
 /**
  * TAP Validator task.
@@ -35,7 +35,7 @@ import uk.ac.starlink.vo.TapService;
  * @author   Mark Taylor
  * @since    6 Jun 2011
  */
-public class TapLint implements Task {
+public class TapLint implements OperationalTask {
 
     private final TapLinter tapLinter_;
     private final OutputReporterParameter reporterParam_;
@@ -168,6 +168,10 @@ public class TapLint implements Task {
 
     public Parameter<?>[] getParameters() {
         return params_;
+    }
+
+    public String getOperationalPurpose() {
+        return UserAgentUtil.PURPOSE_TEST;
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {
