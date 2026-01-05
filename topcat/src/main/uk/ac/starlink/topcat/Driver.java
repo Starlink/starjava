@@ -127,8 +127,7 @@ public class Driver {
             cmdname = null;
         }
         Loader.tweakGuiForMac();
-        Loader.setHttpAgent( TopcatUtils.getApplicationName() + "/"
-                           + TopcatUtils.getVersion() );
+        Loader.setHttpAgent( TopcatUtils.getHttpUserAgent() );
         Loader.setDefaultProperty( "java.awt.Window.locationByPlatform",
                                    "true" );
 

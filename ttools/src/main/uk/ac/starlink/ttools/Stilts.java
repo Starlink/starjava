@@ -139,7 +139,7 @@ public class Stilts {
     public static void configureUserAgent( Task task ) {
         String purpose = task instanceof OperationalTask
                        ? ((OperationalTask) task).getOperationalPurpose()
-                       : null;
+                       : UserAgentUtil.PURPOSE_DFLT;
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( "STILTS" )
             .append( "/" )

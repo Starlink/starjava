@@ -20,13 +20,16 @@ import java.util.regex.Pattern;
  */
 public class UserAgentUtil {
 
-    /** Purpose verb indicating testing/monitoring/validation: {@value}. */
+    /** Purpose term indicating default science operations: currently null. */
+    public static final String PURPOSE_DFLT = null;
+
+    /** Purpose term indicating testing/monitoring/validation: {@value}. */
     public static final String PURPOSE_TEST = "test";
 
-    /** Purpose verb indicating copying/mirroring/harvesting: {@value}. */
+    /** Purpose term indicating copying/mirroring/harvesting: {@value}. */
     public static final String PURPOSE_COPY = "copy";
 
-    /** String prefixed to purpose verb to introduce IVOA operation comment. */
+    /** String prefixed to purpose term to introduce IVOA operation comment. */
     public static final String IVOA_PREFIX = "IVOA-";
 
     /** System property that can be used to manipulate the UserAgent header. */

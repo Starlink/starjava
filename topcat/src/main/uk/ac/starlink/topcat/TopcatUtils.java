@@ -53,6 +53,7 @@ import uk.ac.starlink.task.InvokeUtils;
 import uk.ac.starlink.ttools.convert.ValueConverter;
 import uk.ac.starlink.util.IOUtils;
 import uk.ac.starlink.util.URLUtils;
+import uk.ac.starlink.vo.UserAgentUtil;
 
 /**
  * Class containing miscellaneous static methods and constants 
@@ -534,6 +535,25 @@ public class TopcatUtils {
     public static String getSTILVersion() {
         return IOUtils.getResourceContents( StarTable.class, "stil.version",
                                             null );
+    }
+
+    /**
+     * Returns the text of application-specific tokens for the
+     * User-Agent header of HTTP requests coming from the application.
+     *
+     * @return   user-agent string
+     */
+    public static String getHttpUserAgent() {
+        StringBuffer sbuf = new StringBuffer()
+            .append( getApplicationName() )
+            .append( "/" )
+            .append( getVersion() );
+        String purpose = UserAgentUtil.PURPOSE_DFLT;
+        if ( purpose != null && purpose.trim().length() > 0 ) {
+            sbuf.append( " " )
+                .append( UserAgentUtil.createOpPurposeComment( purpose, null ));
+        }
+        return sbuf.toString();
     }
 
     /**
