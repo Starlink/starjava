@@ -423,12 +423,17 @@ public class Loader {
     public static void setDefaultProperty( String key, String value ) {
         String existingVal = System.getProperty( key );
         if ( existingVal == null || existingVal.trim().length() == 0 ) {
+            logger.config( "Set system property " + key + ": " + value );
             try {
                 System.setProperty( key, value );
             }
             catch ( SecurityException e ) {
                 warn( "Security manager prevents setting of " + key );
             }
+        }
+        else {
+            logger.warning( "Refusing to overwrite existing value for "
+                          + "system property " + key + ": " + existingVal );
         }
     }
 
