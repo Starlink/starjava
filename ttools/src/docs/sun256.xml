@@ -11166,8 +11166,8 @@ A list of some of them can be found in the TOPCAT user document, SUN/253.
 <p>If you use this software in published work, the following citation
 would be appreciated:
 <blockquote>
-<webref url="http://adsabs.harvard.edu/abs/2006ASPC..351..666T"
-                                          >2006ASPC..351..666T</webref>:
+<webref url="https://ui.adsabs.harvard.edu/abs/2006ASPC..351..666T"
+                                              >2006ASPC..351..666T</webref>:
 M. B. Taylor, "STILTS - A Package for Command-Line Processing of Tabular Data",
 in Astronomical Data Analysis Software and Systems XV,
 eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)

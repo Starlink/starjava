@@ -34,8 +34,8 @@ import uk.ac.starlink.util.URLUtils;
  *
  * @see <a href="http://irsa.ipac.caltech.edu/applications/DUST/"
  *         >IPAC Galactic Dust Reddening and Extinction Service</a>
- * @see <a href="http://adsabs.harvard.edu/cgi-bin/basic_connect?qsearch=1998ApJ...500..525S"
-           >1998ApJ...500..525S</a>
+ * @see <a href="https://ui.adsabs.harvard.edu/abs/1998ApJ...500..525S"
+ *                                                >1998ApJ...500..525S</a>
  */
 public class SchlegelCalculator
         extends MultiServiceColumnCalculator<SchlegelCalculator.Spec> {

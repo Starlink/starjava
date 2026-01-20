@@ -203,8 +203,8 @@ public class URLs {
      * @param  bibcode  ADS-style bibcode string
      * @return  display URL pointing at bibcode record,
      *          or null if it doesn't look like a bibcode
-     * @see  <a href="http://adsabs.harvard.edu/abs_doc/help_pages/data.html"
-     *               >http://adsabs.harvard.edu/abs_doc/help_pages/data.html</a>
+     * @see <a href="https://ui.adsabs.harvard.edu/abs_doc/help_pages/data.html"
+     *           >https://ui.adsabs.harvard.edu/abs_doc/help_pages/data.html</a>
      */
     public static String bibcodeUrl( String bibcode ) {
         return webMap( WebMapper.BIBCODE, bibcode );

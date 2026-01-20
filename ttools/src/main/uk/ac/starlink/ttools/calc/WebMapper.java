@@ -165,8 +165,8 @@ public abstract class WebMapper {
      * @param  isClassic  false for current ADS,
      *                    true for classic (deprecated) ADS
      * @return  new mapper
-     * @see  <a href="http://adsabs.harvard.edu/abs_doc/help_pages/data.html"
-     *               >http://adsabs.harvard.edu/abs_doc/help_pages/data.html</a>
+     * @see <a href="https://ui.adsabs.harvard.edu/abs_doc/help_pages/data.html"
+     *          >https://ui.adsabs.harvard.edu/abs_doc/help_pages/data.html</a>
      */
     private static WebMapper createBibcodeMapper( String name,
                                                   boolean isClassic ) {

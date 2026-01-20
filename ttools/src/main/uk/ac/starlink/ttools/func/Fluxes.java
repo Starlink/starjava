@@ -16,15 +16,15 @@ package uk.ac.starlink.ttools.func;
  *     conversions, from
  *     Frei and Gunn, Astronomical Journal <em>108</em>, 1476 (1994),
  *     Table 2
- *     (<a href="http://adsabs.harvard.edu/abs/1994AJ....108.1476F"
- *                                            >1994AJ....108.1476F</a>).
+ *     (<a href="https://ui.adsabs.harvard.edu/abs/1994AJ....108.1476F"
+ *                                                >1994AJ....108.1476F</a>).
  *     </li>
  * <li>Constants <code>VEGA_AB_*</code>, for Vega &lt;-&gt; AB magnitude
  *     conversions, from
  *     Blanton et al., Astronomical Journal <em>129</em>, 2562 (2005),
  *     Eqs. (5)
- *     (<a href="http://adsabs.harvard.edu/abs/2005AJ....129.2562B"
- *                                            >2005AJ....129.2562B</a>).
+ *     (<a href="https://ui.adsabs.harvard.edu/abs/2005AJ....129.2562B"
+ *                                                >2005AJ....129.2562B</a>).
  *     </li>
  * </ul>
  *

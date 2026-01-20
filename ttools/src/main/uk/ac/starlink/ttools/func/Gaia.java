@@ -78,15 +78,15 @@ import uk.ac.starlink.ttools.plot.Matrices;
  * <li>C.A.L.Bailer-Jones,
  *     "<em>Estimating distances from parallaxes</em>",
  *     PASP <em>127</em>, p994 (2015)
- *     <a href="http://adsabs.harvard.edu/abs/2015PASP..127..994B"
- *                                           >2015PASP..127..994B</a></li>
+ *     <a href="https://ui.adsabs.harvard.edu/abs/2015PASP..127..994B"
+ *                                               >2015PASP..127..994B</a></li>
  * <li>T.L.Astraatmadja and C.A.L.Bailer-Jones,
  *     "<em>Estimating Distances from Parallaxes.
  *          II. Performance of Bayesian Distance Estimators
  *          on a Gaia-like Catalogue</em>",
  *     ApJ <em>832</em>, a137 (2016)
- *     <a href="http://adsabs.harvard.edu/abs/2016ApJ...832..137A"
- *                                           >2016ApJ...832..137A</a></li>
+ *     <a href="https://ui.adsabs.harvard.edu/abs/2016ApJ...832..137A"
+ *                                               >2016ApJ...832..137A</a></li>
  * <li>X.Luri et al., "<em>Gaia Data Release 2: Using Gaia Parallaxes</em>",
  *     A&amp;A <em>in press</em> (2018)
  *     <a href="https://arxiv.org/abs/1804.09376"
@@ -98,8 +98,8 @@ import uk.ac.starlink.ttools.plot.Matrices;
  * "<em>Estimating Distances from Parallaxes.
  *      III. Distances of Two Million Stars in the Gaia DR1 Catalogue</em>",
  * ApJ <em>833</em>, a119 (2016)
- * <a href="http://adsabs.harvard.edu/abs/2016ApJ...833..119A"
- *                                       >2016ApJ...833..119A</a>
+ * <a href="https://ui.adsabs.harvard.edu/abs/2016ApJ...833..119A"
+ *                                           >2016ApJ...833..119A</a>
  * based on the
  * <strong>Exponentially Decreasing Space Density</strong> prior
  * defined therein.
