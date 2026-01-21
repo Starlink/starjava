@@ -16,13 +16,32 @@ public class ParamHandler extends ElementHandler {
     public void setAttributes( Map<String,String> atts ) {
         super.setAttributes( atts );
 
-        /* Construct and store a parser which known how to check values
+        /* Extract the width attribute as a number; this is constrained
+         * to be a positive integer by the schema. */
+        String widthTxt = getAttribute( "width" );
+        final Integer width;
+        if ( widthTxt != null && widthTxt.trim().length() > 0 ) {
+            int iwidth;
+            try {
+                iwidth = Integer.parseUnsignedInt( widthTxt );
+            }
+            catch ( NumberFormatException e ) {
+                iwidth = -1;
+            }
+            width = iwidth > 0 ? Integer.valueOf( iwidth ) : null;
+        }
+        else {
+            width = null;
+        }
+
+        /* Construct and store a parser which knows how to check values
          * associated with this element. */
         parser_ = ValueParser.makeParser( this,
                                           getAttribute( "name" ),
                                           getAttribute( "datatype" ),
                                           getAttribute( "arraysize" ),
-                                          getAttribute( "xtype" ) );
+                                          getAttribute( "xtype" ),
+                                          width );
         if ( parser_ != null ) {
             parser_.setContext( getContext() );
         }

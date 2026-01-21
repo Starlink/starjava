@@ -6,6 +6,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
@@ -14,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnmappableCharacterException;
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.PrimitiveIterator;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -157,9 +159,11 @@ public abstract class ValueParser {
      *
      * @param  buf  buffer containing supposed UTF-8 serialization of a string
      * @param  irow  row index at which text occurred, used for error reporting
+     * @return  the content of the string if checking was successful,
+     *          or null if there was an error
      */
-    void checkUtf8( byte[] buf, long irow ) {
-        checkUtf8( buf, irow, 0, buf.length );
+    String checkUtf8( byte[] buf, long irow ) {
+        return checkUtf8( buf, irow, 0, buf.length );
     }
 
     /**
@@ -171,47 +175,91 @@ public abstract class ValueParser {
      * @param  offset  byte offset into buffer at which test starts
      * @param  leng  number of bytes to test; overrun is permitted
      *               (if the buffer ends before leng, checking just stops)
+     * @return  the content of the string if checking was successful,
+     *          or null if there was an error
      */
-    void checkUtf8( byte[] buf, long irow, int offset, int leng ) {
+    String checkUtf8( byte[] buf, long irow, int offset, int leng ) {
         CharsetDecoder decoder =
              StandardCharsets.UTF_8
             .newDecoder()
             .onMalformedInput( CodingErrorAction.REPORT )
             .onUnmappableCharacter( CodingErrorAction.REPORT );
+        CharBuffer cbuf;
         try {
-            decoder.decode( ByteBuffer
+            cbuf = decoder
+                  .decode( ByteBuffer
                            .wrap( buf, offset,
                                   Math.min( leng, buf.length - offset ) ) );
         }
         catch ( UnmappableCharacterException e ) {
             warning( new VotLintCode( "U8A" ),
                      "Unmappable character in UTF-8 string", irow );
+            cbuf = null;
         }
         catch ( MalformedInputException e ) {
             error( new VotLintCode( "U8B" ), "Malformed UTF-8 string",
                    irow );
+            cbuf = null;
         }
         catch ( CharacterCodingException e ) {
             error( new VotLintCode( "U8B" ), "Character encoding error",
                    irow );
+            cbuf = null;
         }
+        return cbuf == null ? null : cbuf.toString();
     }
-    
 
     /**
-     * Constructs a ValueParsers for a given element.
+     * Checks that the length of a string in code points is consistent
+     * with the value of the associated width attribute.
+     * In case of inconsistency, a warning is emitted.
+     *
+     * @param  txt  string to check
+     * @param  irow  row index at which text occurred, used for error reporting
+     * @param  width  positive value of width attribute,
+     *                or null if no width attribute was specified
+     */
+    void checkUnicodeWidth( String txt, long irow, Integer width ) {
+        if ( width != null && txt != null ) {
+            int leng = txt.length();
+            int w = width.intValue();
+            if ( leng > w ) {
+                int nCodePoint = 0;
+                for ( PrimitiveIterator.OfInt cpit =
+                          txt.codePoints().iterator();
+                      cpit.hasNext(); nCodePoint++ ) {
+                    if ( cpit.nextInt() == 0 ) {
+                        break;
+                    }
+                }
+                if ( nCodePoint > w ) {
+                    String msg = new StringBuffer()
+                       .append( "Unicode text code point count " )
+                       .append( nCodePoint )
+                       .append( " exceeds declared width attribute " )
+                       .append( w )
+                       .toString();
+                    warning( new VotLintCode( "UNW" ), msg, irow );
+                }
+            }
+        }
+    }
+
+    /**
+     * Constructs a ValueParser for a given element.
      *
      * @param   handler  element handler
      * @param   name    name attribute value
      * @param   datatype  datatype attribute value
      * @param   arraysize  arraysize attribute value
      * @param   xtype   xtype (extended type) attribute value
+     * @param   width   width positive attribute value, or null
      * @return   a suitable ValueParser, or <code>null</code> if one can't
      *           be constructed
      */
     public static ValueParser makeParser( ElementHandler handler, String name,
                                           String datatype, String arraysize,
-                                          String xtype ) {
+                                          String xtype, Integer width ) {
         ReportElement el = new ReportElement( handler, name );
 
         /* If no datatype has been specified, we can't do much.
@@ -293,17 +341,29 @@ public abstract class ValueParser {
                 }
                 else if ( shape.length == 1 ) {
                     return stringLeng < 0
-                         ? new VariableUtf8Parser( el )
-                         : new FixedUtf8Parser( el, stringLeng );
+                         ? new VariableUtf8Parser( el, width )
+                         : new FixedUtf8Parser( el, stringLeng, width );
                 }
                 else {
                     return nel < 0
-                         ? new VariableUtf8ArrayParser( el, stringLeng )
-                         : new FixedUtf8ArrayParser( el, nel, stringLeng );
+                         ? new VariableUtf8ArrayParser( el, stringLeng, width )
+                         : new FixedUtf8ArrayParser( el, nel, stringLeng,
+                                                     width );
                 }
             }
             else if ( "char".equals( datatype ) || 
                       "unicodeChar".equals( datatype ) ) {
+                if ( width != null ) {
+                    String msg = new StringBuffer()
+                       .append( "Width attribute " )
+                       .append( width )
+                       .append( "unicodeChar".equals( datatype )
+                              ? " not recommended for datatype "
+                              : " not meaningful for pre-VOTable 1.6 datatype ")
+                       .append( datatype )
+                       .toString();
+                    handler.warning( new VotLintCode( "WAS" ), msg );
+                }
                 FixedLengthCharType ctype = "char".equals( datatype )
                                           ? FixedLengthCharType.ASCII
                                           : FixedLengthCharType.UCS2;
@@ -1515,16 +1575,19 @@ public abstract class ValueParser {
      */
     private static class FixedUtf8Parser extends AbstractParser {
         private final int count_;
+        private final Integer width_;
 
         /**
          * Constructor.
          *
          * @param  el  reporting context
          * @param  count   length of UTF-8 arrays to be read
+         * @param  width   width attribute value, or null
          */
-        public FixedUtf8Parser( ReportElement el, int count ) {
+        public FixedUtf8Parser( ReportElement el, int count, Integer width ) {
             super( el, String.class, count );
             count_ = count;
+            width_ = width;
         }
 
         public void checkString( String text, long irow ) {
@@ -1534,11 +1597,15 @@ public abstract class ValueParser {
                          "Wrong number of UTF-8 bytes in char field ("
                        + leng + " found, " + count_ + " expected)", irow );
             }
+            checkUnicodeWidth( text, irow, width_ );
         }
 
         public void checkStream( InputStream in, long irow )
                 throws IOException {
-            checkUtf8( readStreamBytes( in, count_ ), irow );
+            String txt = checkUtf8( readStreamBytes( in, count_ ), irow );
+            if ( txt != null ) {
+                checkUnicodeWidth( txt, irow, width_ );
+            }
         }
     }
 
@@ -1546,23 +1613,30 @@ public abstract class ValueParser {
      * Parser for variable-length UTF-8 arrays.
      */
     private static class VariableUtf8Parser extends AbstractParser {
+        private final Integer width_;
 
         /**
          * Constructor.
          *
          * @param  el  reporting context
+         * @param  width   width attribute value, or null
          */
-        public VariableUtf8Parser( ReportElement el ) {
+        public VariableUtf8Parser( ReportElement el, Integer width ) {
             super( el, String.class, 1 );
+            width_ = width;
         }
 
         public void checkString( String text, long irow ) {
+            checkUnicodeWidth( text, irow, width_ );
         }
 
         public void checkStream( InputStream in, long irow )
                 throws IOException {
             int nutf8 = readCount( in );
-            checkUtf8( readStreamBytes( in, nutf8 ), irow );
+            String txt = checkUtf8( readStreamBytes( in, nutf8 ), irow );
+            if ( txt != null ) {
+                checkUnicodeWidth( txt, irow, width_ );
+            }
         }
     }
 
@@ -1573,6 +1647,7 @@ public abstract class ValueParser {
     private static class FixedUtf8ArrayParser extends AbstractParser {
         private final int stringLeng_;
         private final int nstr_;
+        private final Integer width_;
 
         /**
          * Constructor.
@@ -1580,11 +1655,13 @@ public abstract class ValueParser {
          * @param  el  reporting context
          * @param  nel  total number of UTF-8 bytes in each cell
          * @param  stringLeng  number of UTF-8 bytes in each string
+         * @param  width   width attribute value, or null
          */
-        public FixedUtf8ArrayParser( ReportElement el, int nel,
-                                     int stringLeng ) {
+        public FixedUtf8ArrayParser( ReportElement el, int nel, int stringLeng,
+                                     Integer width ) {
             super( el, String[].class, nel / stringLeng );
             stringLeng_ = stringLeng;
+            width_ = width;
             nstr_ = nel / stringLeng;
             assert nstr_ * stringLeng == nel;
         }
@@ -1593,7 +1670,9 @@ public abstract class ValueParser {
             byte[] buf = toUtf8( text );
             if ( buf.length == nstr_ * stringLeng_ ) {
                 for ( int is = 0; is < nstr_; is++ ) {
-                    checkUtf8( buf, irow, is * stringLeng_, stringLeng_ );
+                    String txt =
+                        checkUtf8( buf, irow, is * stringLeng_, stringLeng_ );
+                    checkUnicodeWidth( txt, irow, width_ );
                 }
             }
             else {
@@ -1609,7 +1688,9 @@ public abstract class ValueParser {
                 throws IOException {
             byte[] buf = readStreamBytes( in, nstr_ * stringLeng_ );
             for ( int is = 0; is < nstr_; is++ ) {
-                checkUtf8( buf, irow, is * stringLeng_, stringLeng_ );
+                String txt =
+                    checkUtf8( buf, irow, is * stringLeng_, stringLeng_ );
+                checkUnicodeWidth( txt, irow, width_ );
             }
         }
     }
@@ -1620,16 +1701,20 @@ public abstract class ValueParser {
      */
     private static class VariableUtf8ArrayParser extends AbstractParser {
         final int stringLeng_;
+        final Integer width_;
 
         /**
          * Constructor.
          *
          * @param  el  reporting context
          * @param  stringLeng  number of UTF-8 bytes in each string
+         * @param  width   width attribute value, or null
          */
-        VariableUtf8ArrayParser( ReportElement el, int stringLeng ) {
+        VariableUtf8ArrayParser( ReportElement el, int stringLeng,
+                                 Integer width ) {
             super( el, String[].class, -1 );
             stringLeng_ = stringLeng;
+            width_ = width;
         }
 
         public void checkString( String text, long irow ) {
@@ -1657,7 +1742,11 @@ public abstract class ValueParser {
                        + stringLeng_, irow );
             }
             for ( int is = 0; is < nstr; is++ ) {
-                checkUtf8( buf, irow, is * stringLeng_, stringLeng_ );
+                String txt =
+                    checkUtf8( buf, irow, is * stringLeng_, stringLeng_ );
+                if ( txt != null ) {
+                    checkUnicodeWidth( txt, irow, width_ );
+                }
             }
         }
     }
