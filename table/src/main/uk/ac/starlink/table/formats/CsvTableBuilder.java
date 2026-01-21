@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.formats;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableFormatException;
@@ -21,7 +22,7 @@ public class CsvTableBuilder extends RowEvaluatorTableBuilder {
     private char delimiter_;
 
     public CsvTableBuilder() {
-        super( new String[] { "csv" } );
+        super( new String[] { "csv" }, StandardCharsets.UTF_8 );
         delimiter_ = ',';
     }
 
@@ -32,8 +33,9 @@ public class CsvTableBuilder extends RowEvaluatorTableBuilder {
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy policy )
             throws TableFormatException, IOException {
-        return new CsvStarTable( datsrc, hasHeader_, getMaxSample(),
-                                 getDelimiter(), getDecoders() );
+        return new CsvStarTable( datsrc, getEncoding(), hasHeader_,
+                                 getMaxSample(), getDelimiter(),
+                                 getDecoders() );
     }
 
     public boolean docIncludesExample() {

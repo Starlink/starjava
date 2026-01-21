@@ -2,6 +2,7 @@ package uk.ac.starlink.table.formats;
 
 import java.awt.datatransfer.DataFlavor;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,6 +21,7 @@ import uk.ac.starlink.util.ConfigMethod;
 public abstract class RowEvaluatorTableBuilder extends DocumentedTableBuilder {
 
     private int maxSample_;
+    private Charset encoding_;
     private RowEvaluator.Decoder<?>[] decoders_;
 
     /**
@@ -27,9 +29,12 @@ public abstract class RowEvaluatorTableBuilder extends DocumentedTableBuilder {
      *
      * @param  extensions  list of lower-cased filename extensions,
      *                     excluding the '.' character
+     * @param  dfltEncoding  default character encoding for this format
      */
-    protected RowEvaluatorTableBuilder( String[] extensions ) {
+    protected RowEvaluatorTableBuilder( String[] extensions,
+                                        Charset dfltEncoding ) {
         super( extensions );
+        encoding_ = dfltEncoding;
         decoders_ = RowEvaluator.getStandardDecoders();
     }
 
@@ -91,6 +96,32 @@ public abstract class RowEvaluatorTableBuilder extends DocumentedTableBuilder {
     }
 
     /**
+     * Sets the character encoding for the input stream.
+     *
+     * @param  encoding  character encoding
+     */
+    @ConfigMethod(
+        property = "encoding",
+        usage = "ASCII|UTF-8|UTF-16|...",
+        example = "ASCII",
+        doc = "<p>Specifies the character encoding used to interpret "
+            + "the input file.\n"
+            + "</p>"
+    )
+    public void setEncoding( Charset encoding ) {
+        encoding_ = encoding;
+    }
+
+    /**
+     * Returns the character encoding for the input stream.
+     *
+     * @return  character encoding
+     */
+    public Charset getEncoding() {
+        return encoding_;
+    }
+
+    /**
      * Sets the list of permitted decoders.
      *
      * <p>Note the order of the supplied decoder list is significant;
@@ -109,7 +140,7 @@ public abstract class RowEvaluatorTableBuilder extends DocumentedTableBuilder {
     /**
      * Returns the list of permitted decoders.
      *
-     * @return   decoders that may be used to interpret CSV columns
+     * @return   decoders that may be used to interpret text columns
      */
     public RowEvaluator.Decoder<?>[] getDecoders() {
         return decoders_;

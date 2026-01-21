@@ -4,8 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PushbackInputStream;
+import java.io.PushbackReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -175,13 +176,13 @@ public class PostgresAsciiStarTable extends StreamStarTable {
     @SuppressWarnings("this-escape")
     public PostgresAsciiStarTable( DataSource datsrc, URL schemaUrl )
             throws IOException {
-        super();
+        super( StandardCharsets.UTF_8 );
         schemaUrl_ = schemaUrl;
         init( datsrc );
         ncol_ = getColumnCount();
     }
 
-    protected List<String> readRow( PushbackInputStream in )
+    protected List<String> readRow( PushbackReader in )
             throws TableFormatException, IOException {
         int icol = 0;
         cellBuf_.setLength( 0 );
@@ -234,10 +235,10 @@ public class PostgresAsciiStarTable extends StreamStarTable {
         Pattern regex =
             Pattern.compile( "^ +([a-z_]+) ([a-z ]+)(\\(([0-9]+)\\))?,? *$" );
         BufferedReader rdr =
-            new BufferedReader( new InputStreamReader( in ) );
+            new BufferedReader( new InputStreamReader( in, StandardCharsets
+                                                          .UTF_8 ) );
         List<RowEvaluator.Decoder<?>> decoderList = new ArrayList<>();
-        List<ColumnInfo> infoList =
-            new ArrayList<ColumnInfo>();
+        List<ColumnInfo> infoList = new ArrayList<>();
         for ( String line; ( line = rdr.readLine() ) != null; ) {
             Matcher matcher = regex.matcher( line );
             if ( matcher.matches() ) {

@@ -9,6 +9,11 @@ have columns of numbers separated by something that looks like spaces,
 you should be just fine.
 </p>
 
+<p>Despite the name, by default it reads Unicode characters in the UTF-8
+encoding.  It can if necessary be restricted to ASCII characters only
+by setting the <code>encoding</code> option.
+</p>
+
 <p>Here are the detailed rules for how the ASCII-format tables are
 interpreted:
 <ul>

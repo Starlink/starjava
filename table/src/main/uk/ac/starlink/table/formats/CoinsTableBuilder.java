@@ -3,7 +3,8 @@ package uk.ac.starlink.table.formats;
 import java.awt.datatransfer.DataFlavor;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PushbackInputStream;
+import java.io.PushbackReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import uk.ac.starlink.table.ColumnInfo;
@@ -65,12 +66,13 @@ public class CoinsTableBuilder implements TableBuilder {
     
         public CoinsStarTable( DataSource datsrc )
                throws TableFormatException, IOException {
-            super();
+            super( StandardCharsets.UTF_8 );
             init( datsrc );
         }
     
-        protected PushbackInputStream getInputStream() throws IOException {
-            PushbackInputStream in = super.getInputStream();
+        @Override
+        protected PushbackReader getReader() throws IOException {
+            PushbackReader in = super.getReader();
     
             /* The first row is known to be a non-data row. */
             readRow( in );
@@ -79,7 +81,7 @@ public class CoinsTableBuilder implements TableBuilder {
     
         protected RowEvaluator.Metadata obtainMetadata()
                 throws TableFormatException, IOException {
-            PushbackInputStream in = super.getInputStream();
+            PushbackReader in = super.getReader();
             if ( in.read() != 0xff || in.read() != 0xfe ) {
                 throw new TableFormatException( "Unexpected/bad BOM" );
             }
@@ -105,9 +107,9 @@ public class CoinsTableBuilder implements TableBuilder {
         }
     
         @SuppressWarnings("fallthrough")
-        protected List<String> readRow( PushbackInputStream in )
+        protected List<String> readRow( PushbackReader in )
                 throws IOException {
-            List<String> cellList = new ArrayList<String>();
+            List<String> cellList = new ArrayList<>();
             StringBuffer buffer = new StringBuffer();
             for ( boolean endLine = false; ! endLine; ) {
                 int c1 = in.read();

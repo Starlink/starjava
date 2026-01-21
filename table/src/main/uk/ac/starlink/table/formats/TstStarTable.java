@@ -1,8 +1,9 @@
 package uk.ac.starlink.table.formats;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.PushbackInputStream;
+import java.io.PushbackReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -23,7 +24,8 @@ import uk.ac.starlink.util.DataSource;
  * StarTable implementation which reads tables in Tab-Separated Table format.
  * This is used by GAIA/SkyCat amongst other software.
  * Documentationof the format can be found in Starlink System Note 75
- * (<a href="http://www.starlink.rl.ac.uk/star/docs/ssn75.htx">SSN/75</a>).
+ * (<a href="http://www.starlink.ac.uk/star/docs/ssn75.htx/ssn75.html"
+ *     >SSN/75</a>).
  *
  * @author   Mark Taylor
  * @since    1 Aug 2006
@@ -58,7 +60,7 @@ class TstStarTable extends StreamStarTable {
      */
     public TstStarTable( DataSource datsrc )
             throws IOException, TableFormatException {
-        super();
+        super( StandardCharsets.US_ASCII );
         init( datsrc );
     }
 
@@ -66,7 +68,7 @@ class TstStarTable extends StreamStarTable {
             throws TableFormatException, IOException {
 
         /* Get an input stream. */
-        PushbackInputStream in = super.getInputStream();
+        PushbackReader in = super.getReader();
 
         /* Read all the text before the data itself. */
         List<String> lineList = readHeaderLines( in );
@@ -203,17 +205,18 @@ class TstStarTable extends StreamStarTable {
         return metadata;
     }
 
-    protected PushbackInputStream getInputStream() throws IOException {
+    @Override
+    protected PushbackReader getReader() throws IOException {
 
         /* Skip the header lines before returning the superclass implementation
          * stream. */
-        PushbackInputStream in = super.getInputStream();
+        PushbackReader in = super.getReader();
         readHeaderLines( in );
         return in;
     }
 
     @SuppressWarnings("fallthrough")
-    protected List<String> readRow( PushbackInputStream in )
+    protected List<String> readRow( PushbackReader in )
             throws TableFormatException, IOException {
         StringBuffer sbuf = new StringBuffer();
         String line = null;
@@ -266,9 +269,9 @@ class TstStarTable extends StreamStarTable {
      * @param   in  input stream
      * @return  list of strings containing header lines
      */
-    private static List<String> readHeaderLines( InputStream in ) 
+    private static List<String> readHeaderLines( Reader in ) 
             throws TableFormatException, IOException {
-        List<String> lineList = new ArrayList<String>();
+        List<String> lineList = new ArrayList<>();
         while ( lineList.size() < 10000 ) {
             String line = readHeaderLine( in );
             lineList.add( line );
@@ -286,7 +289,7 @@ class TstStarTable extends StreamStarTable {
      * @return  line (excluding terminators)
      */
     @SuppressWarnings("fallthrough")
-    private static String readHeaderLine( InputStream in )
+    private static String readHeaderLine( Reader in )
             throws TableFormatException, IOException {
         StringBuffer sbuf = new StringBuffer();
         while ( sbuf.length() < 1024 * 1024 ) {
@@ -314,7 +317,7 @@ class TstStarTable extends StreamStarTable {
      * @return  list of strings constituting the tab-separated tokens
      */
     private static List<String> tabSplit( String line ) {
-        List<String> fields = new ArrayList<String>();
+        List<String> fields = new ArrayList<>();
         for ( int start = 0; start >= 0; ) {
             int end = line.indexOf( '\t', start );
             if ( end >= 0 ) {

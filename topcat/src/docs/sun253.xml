@@ -34913,6 +34913,10 @@ introduced since the last version:
         The <code>Text</code> handler does this by default,
         the others have a new <code>encoding</code> option
         that can be set.</li>
+    <li>The <ref id="inCsv">CSV</ref> and <ref id="inAscii">ASCII</ref> 
+        input handlers now cope with Unicode input.
+        Text encoding is UTF-8 by default, but can be configured
+        with the new <code>encoding</code> option.</li>
     </ul>
     </p>
     </dd>

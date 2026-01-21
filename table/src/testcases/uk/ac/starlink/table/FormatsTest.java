@@ -19,6 +19,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import junit.framework.AssertionFailedError;
+import junit.framework.ComparisonFailure;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.ecsv.EcsvTableBuilder;
@@ -51,6 +52,7 @@ import uk.ac.starlink.table.formats.IpacTableWriter;
 import uk.ac.starlink.table.formats.TstTableBuilder;
 import uk.ac.starlink.table.formats.TstTableWriter;
 import uk.ac.starlink.table.gui.TableSaveChooser;
+import uk.ac.starlink.util.ByteArrayDataSource;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.IntList;
@@ -740,6 +742,37 @@ public class FormatsTest extends TableCase {
                       t2.getClass().getName() );
         checkStarTable( t2 );
         assertFitsTableEquals( t1, t2, false, false );
+    }
+
+    public void testUnicode() throws IOException {
+        StarTable utable = new TestTableScheme().createTable( "100,bsu" );
+        exerciseUnicode( utable, "csv(encoding=utf-8)",
+                                 "csv(encoding=utf-8)" );
+        exerciseUnicode( utable, "csv(encoding=utf-16)",
+                                 "csv(encoding=utf-16)" );
+
+        exerciseUnicode( utable, "ascii(encoding=utf-8)",
+                                 "ascii(encoding=utf-8)" );
+        try {
+            exerciseUnicode( utable, "ascii(encoding=ascii)",
+                                     "ascii(encoding=ascii)");
+            fail();
+        }
+        catch ( ComparisonFailure e ) {
+            assertTrue( e.getMessage().indexOf( "???" ) >= 0 );
+        }
+    }
+
+    private void exerciseUnicode( StarTable t1, String outFmt, String inFmt )
+            throws IOException {
+        StarTableWriter writer = tout_.getHandler( outFmt );
+        TableBuilder reader = tfact_.getTableBuilder( inFmt );
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        writer.writeStarTable( t1, bout );
+        DataSource datsrc = new ByteArrayDataSource( "t", bout.toByteArray() );
+        StarTable t2 =
+            reader.makeStarTable( datsrc, true, StoragePolicy.PREFER_MEMORY );
+        assertTextTableEquals( t1, t2 );
     }
 
     private void assertTextTableEquals( StarTable t1, StarTable t2 )

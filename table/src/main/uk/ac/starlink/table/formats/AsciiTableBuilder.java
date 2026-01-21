@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.formats;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableFormatException;
@@ -16,7 +17,7 @@ import uk.ac.starlink.util.DataSource;
 public class AsciiTableBuilder extends RowEvaluatorTableBuilder {
 
     public AsciiTableBuilder() {
-        super( new String[] { "txt" } );
+        super( new String[] { "txt" }, StandardCharsets.UTF_8 );
     }
 
     public String getFormatName() {
@@ -26,7 +27,8 @@ public class AsciiTableBuilder extends RowEvaluatorTableBuilder {
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy policy )
             throws TableFormatException, IOException {
-        return new AsciiStarTable( datsrc, getMaxSample(), getDecoders() );
+        return new AsciiStarTable( datsrc, getEncoding(), getMaxSample(),
+                                   getDecoders() );
     }
 
     public boolean docIncludesExample() {

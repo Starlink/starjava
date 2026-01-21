@@ -1,8 +1,9 @@
 package uk.ac.starlink.table.formats;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.PushbackInputStream;
+import java.io.PushbackReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,13 +53,15 @@ public class CsvStarTable extends StreamStarTable {
      */
     public CsvStarTable( DataSource datsrc )
             throws TableFormatException, IOException {
-        this( datsrc, null, 0, ',', RowEvaluator.getStandardDecoders() );
+        this( datsrc, StandardCharsets.UTF_8, null, 0, ',',
+              RowEvaluator.getStandardDecoders() );
     }
 
     /**
      * Constructor with configuration option.
      *
      * @param  datsrc   data source
+     * @param  encoding  character encoding
      * @param  fixHasHeaderLine  indicates whether initial line is known
      *                           to be column names: yes, no or auto-determine
      * @param  maxSample  maximum number of rows sampled to determine
@@ -67,11 +70,12 @@ public class CsvStarTable extends StreamStarTable {
      * @param  delimiter  field delimiter character
      */
     @SuppressWarnings("this-escape")
-    public CsvStarTable( DataSource datsrc, Boolean fixHasHeaderLine,
+    public CsvStarTable( DataSource datsrc, Charset encoding,
+                         Boolean fixHasHeaderLine,
                          int maxSample, char delimiter,
                          RowEvaluator.Decoder<?>[] decoders )
             throws TableFormatException, IOException {
-        super();
+        super( encoding );
         fixHasHeaderLine_ = fixHasHeaderLine;
         maxSample_ = maxSample;
         delimiter_ = delimiter;
@@ -79,8 +83,9 @@ public class CsvStarTable extends StreamStarTable {
         init( datsrc );
     }
 
-    protected PushbackInputStream getInputStream() throws IOException {
-        PushbackInputStream in = super.getInputStream();
+    @Override
+    protected PushbackReader getReader() throws IOException {
+        PushbackReader in = super.getReader();
 
         /* If the first row is known to be a non-data row, skip it. */
         if ( hasHeading_ ) {
@@ -93,7 +98,7 @@ public class CsvStarTable extends StreamStarTable {
             throws TableFormatException, IOException {
 
         /* Get an input stream. */
-        PushbackInputStream in = super.getInputStream();
+        PushbackReader in = super.getReader();
 
         /* Read and store the first column.  It could be a special header
          * row, or it could be just data. */
@@ -194,9 +199,9 @@ public class CsvStarTable extends StreamStarTable {
      *          <code>null</code> for end of stream
      */
     @SuppressWarnings("fallthrough")
-    protected List<String> readRow( PushbackInputStream in )
+    protected List<String> readRow( PushbackReader in )
             throws IOException {
-        List<String> cellList = new ArrayList<String>();
+        List<String> cellList = new ArrayList<>();
         StringBuffer buffer = new StringBuffer();
         boolean discard = false;
         boolean endFile = false;
@@ -275,7 +280,7 @@ public class CsvStarTable extends StreamStarTable {
      * @throws  TableFormatException  if stream finishes inside the string
      * @throws  IOException  if some I/O error occurs
      */
-    private String readString( PushbackInputStream in ) throws IOException {
+    private String readString( PushbackReader in ) throws IOException {
         StringBuffer buffer = new StringBuffer();
         while ( true ) {
             char c = (char) in.read();

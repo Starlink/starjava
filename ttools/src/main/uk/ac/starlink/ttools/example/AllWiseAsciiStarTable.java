@@ -1,11 +1,9 @@
 package uk.ac.starlink.ttools.example;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PushbackInputStream;
+import java.io.PushbackReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -112,7 +110,7 @@ public class AllWiseAsciiStarTable extends StreamStarTable {
     public AllWiseAsciiStarTable( DataSource datsrc, URL schemaUrl,
                                   long nrow )
             throws IOException {
-        super();
+        super( StandardCharsets.US_ASCII );
         datsrc_ = datsrc;
         schemaUrl_ = schemaUrl;
         nrow_ = nrow;
@@ -120,7 +118,7 @@ public class AllWiseAsciiStarTable extends StreamStarTable {
         ncol_ = getColumnCount();
     }
 
-    protected List<String> readRow( PushbackInputStream in )
+    protected List<String> readRow( PushbackReader in )
             throws TableFormatException, IOException {
         int icol = 0;
         cellBuf_.setLength( 0 );

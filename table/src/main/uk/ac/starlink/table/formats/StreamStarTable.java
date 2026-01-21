@@ -2,7 +2,9 @@ package uk.ac.starlink.table.formats;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.PushbackInputStream;
+import java.io.InputStreamReader;
+import java.io.PushbackReader;
+import java.nio.charset.Charset;
 import java.util.List;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
@@ -26,6 +28,7 @@ import uk.ac.starlink.util.DataSource;
  */
 public abstract class StreamStarTable extends AbstractStarTable {
 
+    private final Charset encoding_;
     private DataSource datsrc_;
     private int ncol_;
     private long nrow_;
@@ -41,8 +44,11 @@ public abstract class StreamStarTable extends AbstractStarTable {
      * It is arranged this way so that the initialisation is able to
      * call overridden methods in subclasses, which is a Bad thing to
      * do from a constructor.
+     *
+     * @param  encoding  character encoding for reading the input stream
      */
-    protected StreamStarTable() {
+    protected StreamStarTable( Charset encoding ) {
+        encoding_ = encoding;
     }
 
     /**
@@ -85,7 +91,7 @@ public abstract class StreamStarTable extends AbstractStarTable {
     }
 
     public RowSequence getRowSequence() throws IOException {
-        final PushbackInputStream in = getInputStream();
+        final PushbackReader in = getReader();
         final int ncol = getColumnCount();
         return new ReaderRowSequence() {
             protected Object[] readRow() throws IOException {
@@ -112,14 +118,16 @@ public abstract class StreamStarTable extends AbstractStarTable {
     }
 
     /**
-     * Convenience method which returns a buffered pushback stream based
+     * Convenience method which returns a buffered pushback reader based
      * on this table's data source.
      *
      * @return  input stream containing source data
      */
-    protected PushbackInputStream getInputStream() throws IOException {
-        return new PushbackInputStream( 
-                   new BufferedInputStream( datsrc_.getInputStream() ) );
+    protected PushbackReader getReader() throws IOException {
+        return new PushbackReader(
+                   new InputStreamReader(
+                       new BufferedInputStream( datsrc_.getInputStream() ),
+                       encoding_ ) );
     }
 
     /**
@@ -146,6 +154,6 @@ public abstract class StreamStarTable extends AbstractStarTable {
      *           kind of table
      * @throws   IOException   if I/O error is encountered
      */
-    protected abstract List<String> readRow( PushbackInputStream in )
+    protected abstract List<String> readRow( PushbackReader in )
             throws TableFormatException, IOException;
 }

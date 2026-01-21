@@ -1,9 +1,11 @@
 package uk.ac.starlink.table.formats;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.PushbackInputStream;
+import java.io.PushbackReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -93,13 +95,15 @@ public class AsciiStarTable extends StreamStarTable {
      */
     public AsciiStarTable( DataSource datsrc )
             throws TableFormatException, IOException {
-        this( datsrc, 0, RowEvaluator.getStandardDecoders() );
+        this( datsrc, StandardCharsets.UTF_8, 0,
+              RowEvaluator.getStandardDecoders() );
     }
 
     /**
      * Constructor with configuration option.
      *
      * @param  datsrc  the data source containing the table text
+     * @param  encoding   character encoding
      * @param  maxSample  maximum number of rows sampled to determine
      *                    column data types; if &lt;=0, all rows are sampled
      * @param  decoders   permitted data type decoders
@@ -108,10 +112,10 @@ public class AsciiStarTable extends StreamStarTable {
      * @throws IOException if some I/O error occurs
      */
     @SuppressWarnings("this-escape")
-    public AsciiStarTable( DataSource datsrc, int maxSample,
+    public AsciiStarTable( DataSource datsrc, Charset encoding, int maxSample,
                            RowEvaluator.Decoder<?>[] decoders )
             throws TableFormatException, IOException {
-        super();
+        super( encoding );
         maxSample_ = maxSample;
         decoders_ = decoders;
         init( datsrc );
@@ -121,7 +125,7 @@ public class AsciiStarTable extends StreamStarTable {
             throws TableFormatException, IOException {
 
         /* Get an input stream. */
-        PushbackInputStream in = getInputStream();
+        PushbackReader in = getReader();
 
         /* Look at each row in it counting cells and assessing what sort of
          * data they look like. */
@@ -177,8 +181,7 @@ public class AsciiStarTable extends StreamStarTable {
         if ( comments_.size() > 0 ) {
             String hline = comments_.get( comments_.size() - 1 );
             List<String> headings =
-                readHeadings( new PushbackInputStream(
-                              new ByteArrayInputStream( hline.getBytes() ) ) );
+                readHeadings( new PushbackReader( new StringReader( hline ) ) );
 
             /* If this line looks like a set of headings (there are the
              * right number of fields) modify the colinfos accordingly and
@@ -219,9 +222,8 @@ public class AsciiStarTable extends StreamStarTable {
      *          <code>null</code> for end of stream
      */
     @SuppressWarnings("fallthrough")
-    protected List<String> readRow( PushbackInputStream in )
-            throws IOException {
-        List<String> cellList = new ArrayList<String>();
+    protected List<String> readRow( PushbackReader in ) throws IOException {
+        List<String> cellList = new ArrayList<>();
         while ( cellList.size() == 0 ) {
             boolean startLine = true;
             for ( boolean endLine = false; ! endLine; ) {
@@ -285,7 +287,7 @@ public class AsciiStarTable extends StreamStarTable {
      *
      * @param   stream  the stream to read
      */
-    private String eatLine( InputStream stream ) throws IOException {
+    private String eatLine( Reader stream ) throws IOException {
         StringBuffer buffer = new StringBuffer();
         for ( boolean done = false; ! done; ) {
             int c = stream.read();
@@ -314,7 +316,7 @@ public class AsciiStarTable extends StreamStarTable {
      *          inside the string
      * @throws  IOException  if some I/O error occurs
      */
-    private String readString( InputStream stream ) throws IOException {
+    private String readString( Reader stream ) throws IOException {
         char delimiter = (char) stream.read();
         StringBuffer buffer = new StringBuffer();
         while ( true ) {
@@ -351,7 +353,7 @@ public class AsciiStarTable extends StreamStarTable {
      * @return  the token that was read
      * @throws  IOException  if an I/O error occurs
      */
-    private String readToken( PushbackInputStream stream ) throws IOException {
+    private String readToken( PushbackReader stream ) throws IOException {
         StringBuffer buffer = new StringBuffer();
         for ( boolean done = false; ! done; ) {
             int c = stream.read();
@@ -383,9 +385,9 @@ public class AsciiStarTable extends StreamStarTable {
      *
      * @param  stream  the input stream
      */
-    private List<String> readHeadings( PushbackInputStream stream )
+    private List<String> readHeadings( PushbackReader stream )
             throws IOException {
-        List<String> headings = new ArrayList<String>();
+        List<String> headings = new ArrayList<>();
         for ( boolean done = false; ! done; ) {
             int c = stream.read();
             switch ( (char) c ) {

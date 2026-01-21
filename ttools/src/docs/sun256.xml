@@ -15937,6 +15937,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         The <code>text</code> handler does this by default,
         the others have a new <code>encoding</code> option
         that can be set.</li>
+    <li>The <ref id="inCsv">csv</ref> and <ref id="inAscii">ascii</ref>        
+        input handlers now cope with Unicode input.
+        Text encoding is UTF-8 by default, but can be configured
+        with the new <code>encoding</code> option.</li>
     </ul>
     </p></dd>
 
