@@ -1,6 +1,7 @@
 package uk.ac.starlink.table;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -82,6 +83,22 @@ public class SchemeTest extends TestCase {
                       .getColumnInfo( 0 )
                       .getContentClass()
                       .getComponentType() );
+        String unicode = createTable( tfact, ":test:10,u" )
+                        .getCell( 0, 0 ).toString();
+        assertTrue( unicode.chars()
+                   .anyMatch( c -> Character.isLowSurrogate( (char) c ) ) );
+        assertTrue( unicode.chars()
+                   .anyMatch( c -> Character.isHighSurrogate( (char) c ) ) );
+        int[] nutf8 = new int[ 5 ];
+        int[] codepoints = unicode.codePoints().toArray();
+        for ( int i = 0; i < codepoints.length; i++ ) {
+            byte[] utf8 = new String( codepoints, i, 1 )
+                         .getBytes( StandardCharsets.UTF_8 );
+            nutf8[ utf8.length ]++;
+        }
+        for ( int i = 1; i < 5; i++ ) {
+            assertTrue( nutf8[ i ] > 0 );
+        }
 
         StarTable t1k = createTable( tfact, ":test:1e3,*" );
         assertEquals( 1000, t1k.getRowCount() );

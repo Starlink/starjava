@@ -34899,6 +34899,8 @@ introduced since the last version:
         (VOSI1.1-2step), which had been broken for a while.</li>
     <li>Improve TAP window performance in some circumstances by
         eliminating duplicate metadata queries.</li>
+    <li>New <ref id="scheme-test"><code>test</code> scheme</ref> option
+        "<code>u</code>" for diverse Unicode strings.</li>
     </ul>
     </p>
     </dd>

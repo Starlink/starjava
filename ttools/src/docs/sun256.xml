@@ -15923,6 +15923,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
                 >SoftID</webref>,
         which they claimed to have been doing since 2021
         but till now never have.</li>
+    <li>New <ref id="scheme-test"><code>test</code> scheme</ref> option
+        "<code>u</code>" for diverse Unicode strings.</li>
     </ul>
     </p></dd>
 

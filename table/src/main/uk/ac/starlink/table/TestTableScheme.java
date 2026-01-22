@@ -171,6 +171,12 @@ public class TestTableScheme implements TableScheme, Documented {
                 addColumn( t, "s_boolean", Boolean.class, nPhase++,
                            i -> Boolean.valueOf( i % 2 == 1 ) );
             } ),
+            new ContentOpt( 'u', "unicode",
+                            "a string column containing " +
+                            "some non-ASCII characters",
+                            t -> {
+                addColumn( t, "u_txt", String.class, 10, i -> valUnicode( i ) );
+            } ),
             new ContentOpt( 'f', "fixed-vectors",
                             "a selection of fixed-length 1-d array columns",
                             t -> {
@@ -375,6 +381,39 @@ public class TestTableScheme implements TableScheme, Documented {
                 .append( postQuote );
         }
         return sbuf.toString();
+    }
+
+    /**
+     * Gives a string value including characters from obscure corners of the
+     * Unicode map.
+     *
+     * @param  ix  row index
+     * @return   string value
+     */
+    private static String valUnicode( int ix ) {
+        if ( isBlank( ix ) ) {
+            return null;
+        }
+        return new StringBuffer()
+
+            // ASCII, 1-byte UTF-8 encodings
+            .append( (char) ( '0' + ( ix % 10 ) ) )
+            .append( (char) ( 'A' + ( ix % 26 ) ) )
+            .append( (char) ( 'a' + ( ix % 26 ) ) )
+
+            // Greek and cyrillic, 2-byte UTF-8 encodings
+            .append( (char) ( '\u03b1' + ( ix % 25 ) ) )
+            .append( (char) ( '\u0410' + ( ix % 32 ) ) )
+
+            // Crazy cyrillic o variants, 3-byte UTF-8 encodings
+            .append( "\ua669\ua66b\ua699\ua69b\u047b\ua66e".charAt( ix % 6 ) )
+
+            // BMP CJK characters, 3-byte UTF-8 encodings
+            .append( new String( Character.toChars( 0x4e00 + ( ix % 512 ) ) ) )
+
+            // Non-BMP emoji, 4-byte UTF-8 encodings
+            .append( new String( Character.toChars( 0x1f600 + ( ix % 32 ) ) ) )
+            .toString();
     }
 
     /**
