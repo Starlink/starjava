@@ -761,6 +761,15 @@ public class FormatsTest extends TableCase {
         catch ( ComparisonFailure e ) {
             assertTrue( e.getMessage().indexOf( "???" ) >= 0 );
         }
+
+        for ( String fmt : new String[] { "TABLEDATA", "BINARY", "BINARY2" } ) {
+            for ( String enc : new String[] { "UTF-8", "UTF-16" } ) {
+                String ohandler = "votable(version=V16,"
+                                +         "format=" + fmt + ","
+                                +         "encoding=" + enc + ")";
+                exerciseUnicode( utable, ohandler, "votable" );
+            }
+        }
     }
 
     private void exerciseUnicode( StarTable t1, String outFmt, String inFmt )
