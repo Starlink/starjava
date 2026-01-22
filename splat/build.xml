@@ -707,10 +707,18 @@
       <arg line="${mk.action}"/>
     </exec>
 
+    <!-- Mac on ARM or Intel. -->
+    <property name="star.java.system.mac" value="${os.arch}"/>
+    <condition property="star.java.system.mac" value="arm64">
+      <and>
+        <os name="Mac OS X"/>
+        <equals arg1="${os.arch}" arg2="aarch64"/>
+      </and>
+    </condition>
     <exec dir="${build.jni}" executable="${build.jni}/mk" os="Mac OS X">
       <env key="SYSTEM" value="MacOSX"/>
       <env key="STARLINK" value="${stardev}"/>
-      <env key="JAVA_SYSTEM" value="${os.arch}"/>
+      <env key="JAVA_SYSTEM" value="${star.java.system.mac}"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables.osx}"/>
       <env key="TARGET_LIB" value="${build.lib.arch}"/>
