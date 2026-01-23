@@ -40,12 +40,6 @@ public class RowEvaluator {
     private static final Pattern DMS_REGEX = Pattern.compile(
         "[-+][ 0-9]?[0-9][:d ][ 0-6][0-9][:m ][0-6][0-9](\\.[0-9]*)?"
     );
-    private static final Pattern NAN_REGEX = Pattern.compile(
-        "NaN", Pattern.CASE_INSENSITIVE
-    );
-    private static final Pattern INFINITY_REGEX = Pattern.compile(
-        "([+-]?)(Infinity|inf)", Pattern.CASE_INSENSITIVE
-    );
 
     /** Decoder for values that are all blank. */
     public static final Decoder<?> BLANK_DECODER = createBlankDecoder( "blank");
@@ -387,15 +381,9 @@ public class RowEvaluator {
         /* Check for special values.  Although parseDouble picks up 
          * some of these, it only works with java-friendly forms like
          * "NaN" and not (e.g.) python-friendly ones like "nan". */
-        if ( NAN_REGEX.matcher( item ).matches() ) {
-            return ParsedFloat.NaN;
-        }
-        Matcher infMatcher = INFINITY_REGEX.matcher( item );
-        if ( infMatcher.matches() ) {
-            String sign = infMatcher.group( 1 );
-            return sign.length() > 0 && sign.charAt( 0 ) == '-'
-                 ? ParsedFloat.NEGATIVE_INFINITY
-                 : ParsedFloat.POSITIVE_INFINITY;
+        ParsedFloat special = parseSpecialFloat( item );
+        if ( special != null ) {
+            return special;
         }
 
         /* Do a couple of jobs by looking at the string directly:
@@ -485,6 +473,94 @@ public class RowEvaluator {
             }
         };
     };
+
+    /**
+     * Tries to parse a string as a meaningful floating point value that
+     * Double.parseDouble might not pick up.
+     * If it does it returns a corresponding ParsedFloat object,
+     * otherwise it returns null.
+     *
+     * <p>We're basically looking for variants on NaN and +/-Infinity,
+     * in particular Python-friendly forms (nan, +/-inf) that would otherwise
+     * not get picked up.
+     *
+     * <p>This operation used to get done using some regular expression
+     * matching, but that turned out to be slowing down parsing significantly,
+     * so it's now coded more efficiently.
+     *
+     * @param   txt  string which may represent a special floating point value
+     * @return  ParsedFloat.POSITIVE_INFINITY, ParsedFloat.NEGATIVE_INFINITY,
+     *          ParsedFloat.NaN, or null
+     */
+    private static ParsedFloat parseSpecialFloat( String txt ) {
+
+        /* None of the strings we're interested in are shorter than 3 chars. */
+        if ( txt.length() < 3 ) {
+            return null;
+        }
+
+        /* Check for NaN, case insensitively to accommodate both Java-
+         * and Python-friendly forms. */
+        if ( "NaN".equalsIgnoreCase( txt ) ) {
+            return ParsedFloat.NaN;
+        }
+
+        /* Now we're just looking for infinite values.
+         * We're basically looking for "inf" (Python) or "Infinity" (Java),
+         * with or without a sign. */
+        final boolean isPos;
+        final boolean hasSign;
+        switch ( txt.charAt( 0 ) ) {
+            case '+':
+                hasSign = true;
+                isPos = true;
+                break;
+            case '-':
+                hasSign = true;
+                isPos = false;
+                break;
+            case 'i':
+            case 'I':
+                hasSign = false;
+                isPos = true;
+                break;
+            default:
+                return null;
+        }
+        int ioff = hasSign ? 1 : 0;
+        switch ( txt.charAt( ioff + 0 ) ) {
+            case 'i':
+            case 'I':
+                break;
+            default:
+                return null;
+        }
+        switch ( txt.charAt( ioff + 1 ) ) {
+            case 'n':
+            case 'N':
+                break;
+            default:
+                return null;
+        }
+        switch ( txt.charAt( ioff + 2 ) ) {
+            case 'f':
+            case 'F':
+                break;
+            default:
+                return null;
+        }
+
+        /* Probably it is infinity, final checks and return result. */
+        String infTxt = hasSign ? txt.substring( 1 ) : txt;
+        if ( "inf".equalsIgnoreCase( infTxt ) ||
+             "infinity".equalsIgnoreCase( infTxt ) ) {
+            return isPos ? ParsedFloat.POSITIVE_INFINITY
+                         : ParsedFloat.NEGATIVE_INFINITY;
+        }
+        else {
+            return null;
+        }
+    }
 
     /**
      * Helper class used to group quantities which describe what the

@@ -15941,6 +15941,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         input handlers now cope with Unicode input.
         Text encoding is UTF-8 by default, but can be configured
         with the new <code>encoding</code> option.</li>
+    <li>Substantial performance improvements (typically &gt;2x)
+        when reading text-like input files (ASCII, CSV etc).</li>
     </ul>
     </p></dd>
 
