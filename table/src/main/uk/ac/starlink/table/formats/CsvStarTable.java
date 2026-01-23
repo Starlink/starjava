@@ -1,7 +1,7 @@
 package uk.ac.starlink.table.formats;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PushbackReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -84,8 +84,8 @@ public class CsvStarTable extends StreamStarTable {
     }
 
     @Override
-    protected PushbackReader getReader() throws IOException {
-        PushbackReader in = super.getReader();
+    protected BufferedReader getReader() throws IOException {
+        BufferedReader in = super.getReader();
 
         /* If the first row is known to be a non-data row, skip it. */
         if ( hasHeading_ ) {
@@ -98,7 +98,7 @@ public class CsvStarTable extends StreamStarTable {
             throws TableFormatException, IOException {
 
         /* Get an input stream. */
-        PushbackReader in = super.getReader();
+        BufferedReader in = super.getReader();
 
         /* Read and store the first column.  It could be a special header
          * row, or it could be just data. */
@@ -198,111 +198,84 @@ public class CsvStarTable extends StreamStarTable {
      * @return  list of Strings one for each cell in the row, or
      *          <code>null</code> for end of stream
      */
-    @SuppressWarnings("fallthrough")
-    protected List<String> readRow( PushbackReader in )
-            throws IOException {
+    protected List<String> readRow( BufferedReader in ) throws IOException {
         List<String> cellList = new ArrayList<>();
-        StringBuffer buffer = new StringBuffer();
-        boolean discard = false;
-        boolean endFile = false;
-        while ( cellList.size() == 0 && ! endFile ) {
-            for ( boolean endLine = false; ! endLine; ) {
-                char c = (char) in.read();
-                if ( c == delimiter_ ) {
-                    if ( discard ) {
-                        discard = false;
+        int icField = 0;
+        boolean afterQuote = false;
+        while ( cellList.size() == 0 ) {
+            String line = in.readLine();
+            if ( line == null ) {
+                return null;
+            }
+            else if ( line.length() == 0 ) {
+                // empty lines ignored; I don't know if this is a good idea,
+                // but it's long been documented behaviour
+            }
+            else {
+                for ( int ic = 0; ic < line.length(); ic++ ) {
+                    char c = line.charAt( ic );
+                    if ( c == delimiter_ ) {
+                        if ( afterQuote ) {
+                            afterQuote = false;
+                        }
+                        else {
+                            cellList.add( line.substring( icField, ic ) );
+                        }
+                        icField = ic + 1;
                     }
-                    else {
-                        cellList.add( buffer.toString().trim() );
-                    }
-                    buffer.setLength( 0 );
-                }
-                else {
-                    switch ( c ) {
-                        case END:
-                            endFile = true;
-                        case '\r':
-                        case '\n':
-                            for ( boolean endLineChar = true; endLineChar; ) {
-                                int b = in.read();
-                                endLineChar = b == '\r' || b == '\n';
-                                if ( ! endLineChar ) {
-                                    in.unread( b );
+                    else if ( c == '"' ) {
+                        if ( ic > icField &&
+                             line.substring( icField, ic )
+                                 .trim().length() > 0 ) {
+                            String msg = "Mixed quoted/unquoted cell: "
+                                       + line.substring( icField, ic + 1 );
+                            throw new TableFormatException( msg );
+                        }
+                        ic++;
+                        for ( StringBuffer qword = new StringBuffer();
+                              qword != null; ) {
+                            if ( ic < line.length() ) {
+                                if ( line.charAt( ic ) == '"' ) {
+                                    if ( ic + 1 < line.length() &&
+                                         line.charAt( ic + 1 ) == '"' ) {
+                                        qword.append( '"' );
+                                        ic += 2;
+                                    }
+                                    else {
+                                        cellList.add( qword.toString() );
+                                        afterQuote = true;
+                                        qword = null;
+                                    }
+                                }
+                                else {
+                                    qword.append( line.charAt( ic ) );
+                                    ic++;
                                 }
                             }
-                            if ( discard ) {
-                                discard = false;
-                            }
-                            else if ( cellList.size() > 0 || ! endFile ) {
-                                cellList.add( buffer.toString().trim() );
-                            }
-                            buffer.setLength( 0 );
-                            endLine = true;
-                            break;
-                        case '"':
-                            if ( buffer.toString().trim().length() > 0 ) {
-                                String msg = "Mixed quoted/unquoted cell"
-                                           + " '" + buffer + "'";
-                                throw new TableFormatException( msg );
-                            }
-                            cellList.add( readString( in ) );
-                            discard = true;
-                            break;
-                        case ' ':
-                        case '\t':
-                            if ( ! discard ) {
-                                buffer.append( c );
-                            }
-                            break;
-                        default:
-                            if ( discard ) {
-                                throw new TableFormatException(
-                                    "Mixed quoted/unquoted cell '" + c + "'" );
-                            }
                             else {
-                                buffer.append( c );
+                                qword.append( '\n' );
+                                line = in.readLine();
+                                if ( line == null ) {
+                                    String msg = "EOF in quoted string";
+                                    throw new TableFormatException( msg );
+                                }
+                                ic = 0;
                             }
+                        }
                     }
+                    else {
+                        if ( afterQuote && c != ' ' && c != '\t' ) {
+                            String msg = "Mixed quoted/unquoted cell: "
+                                       + line.substring( icField, ic + 1 );
+                            throw new TableFormatException( msg );
+                        }
+                    }
+                }
+                if ( ! afterQuote ) {
+                    cellList.add( line.substring( icField, line.length() ) );
                 }
             }
         }
         return cellList.size() == 0 ? null : cellList;
-    }
-
-    /**
-     * Reads a double-quoted string from a stream.  The string may contain
-     * line breaks (or any other character) but it is an error for the 
-     * stream to finish within it.  A double quote may be represented by
-     * an adjacent pair of double quotes.
-     * 
-     * @param   stream  the stream to read from
-     * @return  the (undelimited) string
-     * @throws  TableFormatException  if stream finishes inside the string
-     * @throws  IOException  if some I/O error occurs
-     */
-    private String readString( PushbackReader in ) throws IOException {
-        StringBuffer buffer = new StringBuffer();
-        while ( true ) {
-            char c = (char) in.read();
-            switch ( c ) {
-                case '"':
-                    char c2 = (char) in.read();
-                    if ( c2 == '"' ) {
-                        buffer.append( '"' );
-                    }
-                    else {
-                        if ( c2 != END ) {
-                            in.unread( c2 );
-                        }
-                        return buffer.toString();
-                    }
-                    break;
-                case END:
-                    throw new TableFormatException(
-                        "End of file within a string literal" );
-                default:
-                    buffer.append( c );
-            }
-        }
     }
 }

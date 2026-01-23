@@ -1,9 +1,7 @@
 package uk.ac.starlink.table.formats;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PushbackReader;
-import java.io.Reader;
-import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -125,7 +123,7 @@ public class AsciiStarTable extends StreamStarTable {
             throws TableFormatException, IOException {
 
         /* Get an input stream. */
-        PushbackReader in = getReader();
+        BufferedReader in = getReader();
 
         /* Look at each row in it counting cells and assessing what sort of
          * data they look like. */
@@ -180,8 +178,7 @@ public class AsciiStarTable extends StreamStarTable {
          * column headings. */
         if ( comments_.size() > 0 ) {
             String hline = comments_.get( comments_.size() - 1 );
-            List<String> headings =
-                readHeadings( new PushbackReader( new StringReader( hline ) ) );
+            List<String> headings = readHeadings( hline );
 
             /* If this line looks like a set of headings (there are the
              * right number of fields) modify the colinfos accordingly and
@@ -222,157 +219,111 @@ public class AsciiStarTable extends StreamStarTable {
      *          <code>null</code> for end of stream
      */
     @SuppressWarnings("fallthrough")
-    protected List<String> readRow( PushbackReader in ) throws IOException {
+    protected List<String> readRow( BufferedReader in ) throws IOException {
         List<String> cellList = new ArrayList<>();
         while ( cellList.size() == 0 ) {
-            boolean startLine = true;
-            for ( boolean endLine = false; ! endLine; ) {
-                int c = in.read();
-                switch ( (char) c ) {
-                    case END:
-                        if ( cellList.size() == 0 ) {
-                            return null;
-                        }
-                        endLine = true;
-                        break;
-                    case '\r':
-                    case '\n':
-                        if ( cellList.size() != 0 ) {
-                            endLine = true;
-                        }
-                        break;
+            String line = in.readLine();
+            if ( line == null ) {
+                return null;
+            }
+            int leng = line.length();
+            for ( int ic = 0; ic < leng; ic++ ) {
+                char c = line.charAt( ic );
+                switch ( c ) {
                     case '#':
                         if ( ! dataStarted_ ) {
-                            comments_.add( eatLine( in ) );
+                            comments_.add( line.substring( ic + 1 ).trim() );
                         }
-                        else {
-                            eatLine( in );
-                        }
-                        endLine = true;
+                        ic = leng - 1;
                         break;
                     case ' ':
                     case '\t':
                         break;
                     case '"':
                     case '\'':
-                        in.unread( c );
-                        cellList.add( readString( in ) );
+                        Field qfield = readString( line, ic );
+                        cellList.add( qfield.txt_ );
+                        ic += qfield.nchar_;
                         break;
                     case '!':
-                        if ( startLine ) {
+                        if ( ic == 0 ) {
                             if ( ! dataStarted_ ) {
-                                comments_.add( eatLine( in ) );
+                                comments_.add( line.substring( ic + 1 )
+                                                   .trim() );
                             }
-                            else {
-                                eatLine( in );
-                            }
-                            endLine = true;
+                            ic = leng - 1;
                             break;
                         }
-                        // if not at start of line fall through to...
+                        // if not at start of line fall through to ...
                     default:
-                        in.unread( c );
-                        String tok = readToken( in );
+                        Field tfield = readToken( line, ic );
+                        String tok = tfield.txt_;
                         cellList.add( "null".equals( tok ) ? "" : tok );
+                        ic += tfield.nchar_;
                 }
-                startLine = false;
             }
         }
+        assert cellList.size() > 0;
         dataStarted_ = true;
         return cellList;
     }
 
     /**
-     * Reads and discards any characters up to the end of the line.
+     * Reads a quoted string from a given position in a given line.
+     * The string may be delimited by single or double quotes.
+     * Any character following a backslash will be included literally.
+     * It is an error for the line or stream to end inside the string.
      *
-     * @param   stream  the stream to read
-     */
-    private String eatLine( Reader stream ) throws IOException {
-        StringBuffer buffer = new StringBuffer();
-        for ( boolean done = false; ! done; ) {
-            int c = stream.read();
-            switch ( (char) c ) {
-                case '\n':
-                case '\r':
-                case END:
-                    done = true;
-                    break;
-                default:
-                    buffer.append( (char) c );
-            }
-        }
-        return buffer.toString();
-    }
-
-    /**
-     * Reads a quoted string from a given stream.  The string may be
-     * delimited by single or double quotes.  Any character following a
-     * backslash will be included literally.  It is an error for the
-     * line or stream to end inside the string.
-     *
-     * @param   stream  the stream to read from
+     * @param   line  the line to read from
+     * @param   ioff  character at which to start reading
      * @return  the (undelimited) string
-     * @throws  TableFormatException  if the line or stream finishes
-     *          inside the string
+     * @throws  TableFormatException  if the line finishes inside the string
      * @throws  IOException  if some I/O error occurs
      */
-    private String readString( Reader stream ) throws IOException {
-        char delimiter = (char) stream.read();
+    private Field readString( String line, int ioff )
+            throws TableFormatException {
         StringBuffer buffer = new StringBuffer();
-        while ( true ) {
-            int c = stream.read();
+        char delimiter = line.charAt( ioff );
+        int leng = line.length();
+        for ( int ic = ioff + 1; ic < leng; ic++ ) {
+            char c = line.charAt( ic );
             if ( c == delimiter ) {
-                break;
+                return new Field( buffer.toString(), ic + 1 - ioff );
+            }
+            else if ( c == '\\' && ic < leng - 1 ) {
+                ic++;
+                buffer.append( line.charAt( ic ) );
             }
             else {
-                switch ( (char) c ) {
-                    case '\r':
-                    case '\n':
-                        throw new TableFormatException(
-                            "End of line within a string literal" );
-                    case '\\':
-                        buffer.append( (char) stream.read() );
-                        break;
-                    case END:
-                        throw new TableFormatException(
-                            "End of file within a string literal" );
-                    default:
-                        buffer.append( (char) c );
-                }
+                buffer.append( line.charAt( ic ) );
             }
         }
-        return buffer.toString();
+        throw new TableFormatException( "End of line within a string literal" );
     }
 
     /**
-     * Reads a token from the given stream.
+     * Reads a token from a given position in a given line.
      * All consecutive non-whitespace characters from the given point are
      * read and returned as a single string.
      *
-     * @param  stream  the stream to read from
+     * @param   line  the line to read from
+     * @param   ioff  character at which to begin reading
      * @return  the token that was read
      * @throws  IOException  if an I/O error occurs
      */
-    private String readToken( PushbackReader stream ) throws IOException {
-        StringBuffer buffer = new StringBuffer();
-        for ( boolean done = false; ! done; ) {
-            int c = stream.read();
-            switch ( (char) c ) {
-                case '\n':
-                case '\r':
-                    stream.unread( c );
-                    done = true;
-                    break;
+    private Field readToken( String line, int ioff ) {
+        int leng = line.length();
+        for ( int ic = ioff; ic < leng; ic++ ) {
+            switch ( line.charAt( ic ) ) {
                 case ' ':
                 case '\t':
-                case END:
-                    done = true;
-                    break;
+                case '\r':
+                case '\n':
+                    return new Field( line.substring( ioff, ic ), ic - ioff );
                 default:
-                    buffer.append( (char) c );
             }
         }
-        return buffer.toString();
+        return new Field( line.substring( ioff, leng ), leng - ioff );
     }
 
     /**
@@ -385,30 +336,26 @@ public class AsciiStarTable extends StreamStarTable {
      *
      * @param  stream  the input stream
      */
-    private List<String> readHeadings( PushbackReader stream )
-            throws IOException {
+    private List<String> readHeadings( String line )
+            throws TableFormatException {
         List<String> headings = new ArrayList<>();
-        for ( boolean done = false; ! done; ) {
-            int c = stream.read();
-            switch ( (char) c ) {
-                case '\r':
-                case '\n':
-                    done = true;
-                    break;
+        int leng = line.length();
+        for ( int ic = 0; ic < leng; ic++ ) {
+            char c = line.charAt( ic );
+            switch ( c ) {
                 case ' ':
                 case '\t':
                     break;
                 case '"':
                 case '\'':
-                    stream.unread( c );
-                    headings.add( readString( stream ) );
-                    break;
-                case END:
-                    done = true;
+                    Field qfield = readString( line, ic );
+                    headings.add( qfield.txt_ );
+                    ic += qfield.nchar_;
                     break;
                 default:
-                    stream.unread( c );
-                    headings.add( readToken( stream ) );
+                    Field tfield = readToken( line, ic );
+                    headings.add( tfield.txt_ );
+                    ic += tfield.nchar_;
             }
         }
         return headings;
@@ -443,6 +390,25 @@ public class AsciiStarTable extends StreamStarTable {
             else {
                 break;
             }
+        }
+    }
+
+    /**
+     * Characterises a single item read from a row.
+     */
+    private static class Field {
+        final String txt_;
+        final int nchar_;
+
+        /**
+         * Constructor.
+         *
+         * @param   txt  field content
+         * @param   nchar  number of characters read to acquire content
+         */
+        Field( String txt, int nchar ) {
+            txt_ = txt;
+            nchar_ = nchar;
         }
     }
 }

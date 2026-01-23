@@ -1,9 +1,9 @@
 package uk.ac.starlink.table.formats;
 
 import java.awt.datatransfer.DataFlavor;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PushbackReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,8 +71,8 @@ public class CoinsTableBuilder implements TableBuilder {
         }
     
         @Override
-        protected PushbackReader getReader() throws IOException {
-            PushbackReader in = super.getReader();
+        protected BufferedReader getReader() throws IOException {
+            BufferedReader in = super.getReader();
     
             /* The first row is known to be a non-data row. */
             readRow( in );
@@ -81,7 +81,7 @@ public class CoinsTableBuilder implements TableBuilder {
     
         protected RowEvaluator.Metadata obtainMetadata()
                 throws TableFormatException, IOException {
-            PushbackReader in = super.getReader();
+            BufferedReader in = super.getReader();
             if ( in.read() != 0xff || in.read() != 0xfe ) {
                 throw new TableFormatException( "Unexpected/bad BOM" );
             }
@@ -107,7 +107,7 @@ public class CoinsTableBuilder implements TableBuilder {
         }
     
         @SuppressWarnings("fallthrough")
-        protected List<String> readRow( PushbackReader in )
+        protected List<String> readRow( BufferedReader in )
                 throws IOException {
             List<String> cellList = new ArrayList<>();
             StringBuffer buffer = new StringBuffer();

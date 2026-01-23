@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PushbackReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -182,29 +181,19 @@ public class PostgresAsciiStarTable extends StreamStarTable {
         ncol_ = getColumnCount();
     }
 
-    protected List<String> readRow( PushbackReader in )
+    protected List<String> readRow( BufferedReader in )
             throws TableFormatException, IOException {
-        int icol = 0;
-        cellBuf_.setLength( 0 );
-        String[] row = new String[ ncol_ ];
-        while ( true ) {
-            char c = (char) in.read();
-            switch ( c ) {
-                case END:
-                    return null;
-                case '\n':
-                    row[ icol++ ] = cellBuf_.toString();
-                    cellBuf_.setLength( 0 );
-                    if ( icol != ncol_ ) {
-                        throw new TableFormatException( "Wrong num of cols" );
-                    }
-                    return Arrays.asList( row );
-                case '|':
-                    row[ icol++ ] = cellBuf_.toString();
-                    cellBuf_.setLength( 0 );
-                    break;
-                default:
-                    cellBuf_.append( c );
+        String line = in.readLine();
+        if ( line == null ) {
+            return null;
+        }
+        else {
+            String[] fields = line.split( "\\|", -1 );
+            if ( fields.length == ncol_ ) {
+                return Arrays.asList( fields );
+            }
+            else {
+                throw new TableFormatException( "Wrong num of cols" );
             }
         }
     }

@@ -1,9 +1,8 @@
 package uk.ac.starlink.table.formats;
 
-import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PushbackReader;
 import java.nio.charset.Charset;
 import java.util.List;
 import uk.ac.starlink.table.AbstractStarTable;
@@ -91,7 +90,7 @@ public abstract class StreamStarTable extends AbstractStarTable {
     }
 
     public RowSequence getRowSequence() throws IOException {
-        final PushbackReader in = getReader();
+        final BufferedReader in = getReader();
         final int ncol = getColumnCount();
         return new ReaderRowSequence() {
             protected Object[] readRow() throws IOException {
@@ -118,16 +117,15 @@ public abstract class StreamStarTable extends AbstractStarTable {
     }
 
     /**
-     * Convenience method which returns a buffered pushback reader based
+     * Convenience method which returns a buffered reader based
      * on this table's data source.
      *
      * @return  input stream containing source data
      */
-    protected PushbackReader getReader() throws IOException {
-        return new PushbackReader(
-                   new InputStreamReader(
-                       new BufferedInputStream( datsrc_.getInputStream() ),
-                       encoding_ ) );
+    protected BufferedReader getReader() throws IOException {
+        return new BufferedReader(
+                   new InputStreamReader( datsrc_.getInputStream(),
+                                          encoding_ ) );
     }
 
     /**
@@ -154,6 +152,6 @@ public abstract class StreamStarTable extends AbstractStarTable {
      *           kind of table
      * @throws   IOException   if I/O error is encountered
      */
-    protected abstract List<String> readRow( PushbackReader in )
+    protected abstract List<String> readRow( BufferedReader in )
             throws TableFormatException, IOException;
 }

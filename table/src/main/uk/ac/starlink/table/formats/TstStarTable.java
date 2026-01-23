@@ -1,8 +1,7 @@
 package uk.ac.starlink.table.formats;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PushbackReader;
-import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,7 +67,7 @@ class TstStarTable extends StreamStarTable {
             throws TableFormatException, IOException {
 
         /* Get an input stream. */
-        PushbackReader in = super.getReader();
+        BufferedReader in = super.getReader();
 
         /* Read all the text before the data itself. */
         List<String> lineList = readHeaderLines( in );
@@ -206,36 +205,22 @@ class TstStarTable extends StreamStarTable {
     }
 
     @Override
-    protected PushbackReader getReader() throws IOException {
+    protected BufferedReader getReader() throws IOException {
 
         /* Skip the header lines before returning the superclass implementation
          * stream. */
-        PushbackReader in = super.getReader();
+        BufferedReader in = super.getReader();
         readHeaderLines( in );
         return in;
     }
 
-    @SuppressWarnings("fallthrough")
-    protected List<String> readRow( PushbackReader in )
+    protected List<String> readRow( BufferedReader in )
             throws TableFormatException, IOException {
-        StringBuffer sbuf = new StringBuffer();
-        String line = null;
-        while( line == null ) {
-            char c = (char) in.read();
-            switch ( c ) {
-                case END:
-                    if ( sbuf.length() == 0 ) {
-                        return null;
-                    }
-                    // fall through
-                case '\r':
-                case '\n':
-                    if ( sbuf.length() > 0 ) {
-                        line = sbuf.toString();
-                    }
-                    break;
-                default:
-                    sbuf.append( c );
+        String line = "";
+        while ( line.length() == 0 ) {
+            line = in.readLine();
+            if ( line == null ) {
+                return null;
             }
         }
 
@@ -269,45 +254,20 @@ class TstStarTable extends StreamStarTable {
      * @param   in  input stream
      * @return  list of strings containing header lines
      */
-    private static List<String> readHeaderLines( Reader in ) 
+    private static List<String> readHeaderLines( BufferedReader in ) 
             throws TableFormatException, IOException {
         List<String> lineList = new ArrayList<>();
         while ( lineList.size() < 10000 ) {
-            String line = readHeaderLine( in );
+            String line = in.readLine();
+            if ( line == null ) {
+                throw new TableFormatException( "No TST rows" );
+            }
             lineList.add( line );
             if ( RULER_REGEX.matcher( line ).matches() ) {
                 return lineList;
             }
         }
         throw new TableFormatException( "Header looks too long for TST" );
-    }
-
-    /**
-     * Reads a line of text from an input stream.
-     *
-     * @param  in  input stream
-     * @return  line (excluding terminators)
-     */
-    @SuppressWarnings("fallthrough")
-    private static String readHeaderLine( Reader in )
-            throws TableFormatException, IOException {
-        StringBuffer sbuf = new StringBuffer();
-        while ( sbuf.length() < 1024 * 1024 ) {
-            char c = (char) in.read();
-            switch ( c ) {
-                case END:
-                    if ( sbuf.length() == 0 ) {
-                        throw new TableFormatException( "No TST rows" );
-                    }
-                    // fall through
-                case '\r':
-                case '\n':
-                    return sbuf.toString();
-                default:
-                    sbuf.append( c );
-            }
-        }
-        throw new TableFormatException( "Too long for a line in a TST table" );
     }
 
     /**
