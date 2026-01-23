@@ -182,6 +182,8 @@ public abstract class AbstractTextTableWriter
      */
     @ConfigMethod(
         property = "maxParam",
+        sequence = 30,
+        example = "320",
         doc = "<p>Maximum width in characters of an output table parameter. "
             + "Parameters with values longer than this will be truncated.</p>"
     )
@@ -209,6 +211,7 @@ public abstract class AbstractTextTableWriter
      */
     @ConfigMethod(
         property = "params",
+        sequence = 10,
         doc = "<p>Whether to output table parameters as well as row data.</p>"
     )
     public void setWriteParameters( boolean writeParams ) {
@@ -233,6 +236,8 @@ public abstract class AbstractTextTableWriter
      */
     @ConfigMethod(
         property = "maxCell",
+        sequence = 20,
+        example = "320",
         doc = "<p>Maximum width in characters of an output table cell. "
             + "Cells longer than this will be truncated.</p>"
     )
@@ -271,6 +276,8 @@ public abstract class AbstractTextTableWriter
      */
     @ConfigMethod(
         property = "sampledRows",
+        example = "10000",
+        sequence = 15,
         doc = "<p>The number of rows examined on a first pass "
             + "of the table to determine the width of each column. "
             + "Only a representative number of rows needs to be examined, "
@@ -310,6 +317,7 @@ public abstract class AbstractTextTableWriter
      */
     @ConfigMethod( 
         property = "encoding",
+        sequence = 100,
         usage = "UTF-8|ASCII", 
         example = "ASCII",
         doc = "<p>Specifies the character encoding used in "
