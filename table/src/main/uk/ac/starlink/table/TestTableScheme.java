@@ -385,12 +385,37 @@ public class TestTableScheme implements TableScheme, Documented {
 
     /**
      * Gives a string value including characters from obscure corners of the
-     * Unicode map.
+     * Unicode map including BMP and non-BMP code points, and characters
+     * with 1, 2, 3 and 4-byte UTF-8 representations.
+     *
+     * <p><strong>Unicode crib sheet</strong>:
+     * Most code points apart from emoji are in the Basic Multilingual Plane
+     * (BMP).  Here is what you need to know.
+     * <dl>
+     * <dt>BMP code points:</dt>
+     * <dd><ul>
+     *     <li>have values in the range U+0000..U+FFFF
+     *     <li>cover almost all modern languages including
+     *         common CJK (Chinese, Japanese and Korean) characters
+     *     <li>are stored in a single Java <code>char</code>
+     *     <li>have a UTF-8 representation of 1, 2 or 3 bytes
+     *     <li>have a UTF-16 representation of 1 code unit
+     *     </ul></dd>
+     * <dt>Non-BMP code points:</dt>
+     * <dd><ul>
+     *     <li>have values in the range U+10000..U+10FFFF
+     *     <li>are known as <em>supplementary characters</em>
+     *     <li>include emoji and less-common CJK characters
+     *     <li>are stored in a pair of Java <code>char</code>s
+     *     <li>have a UTF-8 representation of 4 bytes
+     *     <li>have a UTF-16 representation of 2 code units
+     *     </ul></dd>
+     * </dl>
      *
      * @param  ix  row index
      * @return   string value
      */
-    private static String valUnicode( int ix ) {
+    public static String valUnicode( int ix ) {
         if ( isBlank( ix ) ) {
             return null;
         }
@@ -401,18 +426,22 @@ public class TestTableScheme implements TableScheme, Documented {
             .append( (char) ( 'A' + ( ix % 26 ) ) )
             .append( (char) ( 'a' + ( ix % 26 ) ) )
 
-            // Greek and cyrillic, 2-byte UTF-8 encodings
+            // Greek and cyrillic, 2-byte UTF-8 encodings (BMP)
             .append( (char) ( '\u03b1' + ( ix % 25 ) ) )
             .append( (char) ( '\u0410' + ( ix % 32 ) ) )
 
-            // Crazy cyrillic o variants, 3-byte UTF-8 encodings
+            // Crazy cyrillic o variants, 3-byte UTF-8 encodings (BMP)
             .append( "\ua669\ua66b\ua699\ua69b\u047b\ua66e".charAt( ix % 6 ) )
 
             // BMP CJK characters, 3-byte UTF-8 encodings
-            .append( new String( Character.toChars( 0x4e00 + ( ix % 512 ) ) ) )
+            .append( (char) ( '\u4e00' + ( ix % 512 ) ) )
 
             // Non-BMP emoji, 4-byte UTF-8 encodings
             .append( new String( Character.toChars( 0x1f600 + ( ix % 32 ) ) ) )
+
+            // Non-BMP CJK characters, 4-byte UTF-8 encodings
+            .append( new String( Character.toChars( 0x20000 + ( ix % 512 ) ) ) )
+
             .toString();
     }
 
