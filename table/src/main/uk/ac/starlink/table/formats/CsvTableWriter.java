@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.formats;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -188,10 +189,10 @@ public class CsvTableWriter extends DocumentedStreamStarTableWriter {
 
     public void writeStarTable( StarTable table, OutputStream ostrm )
             throws IOException {
-        Writer out = new OutputStreamWriter( ostrm, getEncoding() );
         int ncol = table.getColumnCount();
         ColumnInfo[] cinfos = Tables.getColumnInfos( table );
-        RowSequence rseq = table.getRowSequence();
+        Writer out =
+            new BufferedWriter( new OutputStreamWriter( ostrm, getEncoding() ));
         try {
 
             /* Write the headings if required. */
@@ -200,50 +201,59 @@ public class CsvTableWriter extends DocumentedStreamStarTableWriter {
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     headRow[ icol ] = cinfos[ icol ].getName();
                 }
-                writeRow( out, headRow );
+                StringBuilder sbuf = new StringBuilder();
+                appendRow( sbuf, headRow );
+                out.write( sbuf.toString() );
             }
 
             /* Write the data. */
-            String[] dataRow = new String[ ncol ];
-            while ( rseq.next() ) {
-                Object[] row = rseq.getRow();
-                for ( int icol = 0; icol < ncol; icol++ ) {
-                    dataRow[ icol ] = cinfos[ icol ]
-                                     .formatValue( row[ icol ],
-                                                   maxFieldChars_ );
+            try ( RowSequence rseq = table.getRowSequence() ) {
+                String[] dataRow = new String[ ncol ];
+                StringBuilder sbuf = new StringBuilder();
+                while ( rseq.next() ) {
+                    sbuf.setLength( 0 );
+                    Object[] row = rseq.getRow();
+                    for ( int icol = 0; icol < ncol; icol++ ) {
+                        dataRow[ icol ] = cinfos[ icol ]
+                                         .formatValue( row[ icol ],
+                                                       maxFieldChars_ );
+                    }
+                    appendRow( sbuf, dataRow );
+                    out.write( sbuf.toString() );
                 }
-                writeRow( out, dataRow );
             }
         }
         finally {
             out.flush();
-            rseq.close();
         }
     }
 
     /**
-     * Writes an array of strings as one row of CSV output.
+     * Formats an array of strings as one row of CSV output,
+     * including a line end, and appends it to a supplied StringBuilder.
      *
-     * @param  out  output stream
+     * @param  sbuf  buffer
      * @param  row  array of strings, one for each cell in the row
      */
-    private void writeRow( Writer out, String[] row ) throws IOException {
+    private void appendRow( StringBuilder sbuf, String[] row ) {
         int ncol = row.length;
         for ( int icol = 0; icol < ncol; icol++ ) {
-            writeField( out, row[ icol ] );
-            out.write( icol < ncol - 1 ? delimiter_ : '\n' );
+            appendField( sbuf, row[ icol ] );
+            sbuf.append( icol < ncol - 1 ? delimiter_ : '\n' );
         }
     }
 
     /**
-     * Writes a single field of CSV output.  Any special characters in 
-     * the <code>value</code> are escaped as necessary.
+     * Formats a single field of CSV output and appends it to a supplied
+     * StringBuilder.
+     * Any special characters in the <code>value</code>
+     * are escaped as necessary.
      *
-     * @param  out  output stream
-     * @param  value  field to write
+     * @param  sbuf  buffer
+     * @param  value  field to append
      */
     @SuppressWarnings("fallthrough")
-    private void writeField( Writer out, String value ) throws IOException {
+    private void appendField( StringBuilder sbuf, String value ) {
 
         /* Empty or null string, no output required. */
         if ( value == null || value.length() == 0 ) {
@@ -273,22 +283,22 @@ public class CsvTableWriter extends DocumentedStreamStarTableWriter {
 
             /* If unquoted, it's very easy. */
             if ( ! quoted ) {
-                out.write( value );
+                sbuf.append( value );
             }
 
             /* Otherwise we need to make a bit of effort. */
             else {
-                out.write( '"' );
+                sbuf.append( '"' );
                 for ( int i = 0; i < nchar; i++ ) {
                     char c = value.charAt( i );
                     switch ( c ) {
                         case '"':
-                            out.write( '"' );
+                            sbuf.append( '"' );
                         default:
-                            out.write( c );
+                            sbuf.append( c );
                     }
                 }
-                out.write( '"' );
+                sbuf.append( '"' );
             }
         }
     }
