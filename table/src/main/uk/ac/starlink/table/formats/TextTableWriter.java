@@ -3,6 +3,7 @@ package uk.ac.starlink.table.formats;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.MultiStarTableWriter;
 import uk.ac.starlink.table.StarTable;
@@ -90,62 +91,60 @@ public class TextTableWriter extends AbstractTextTableWriter
         return vinfo.formatValue( val, width );
     }
 
-    protected void printSeparator( OutputStream strm, int[] colwidths )
-            throws IOException {
+    protected String formatSeparator( int[] colwidths ) {
+        StringBuffer sbuf = new StringBuffer();
         for ( int i = 0; i < colwidths.length; i++ ) {
-            strm.write( '+' );
-            strm.write( '-' );
+            sbuf.append( '+' );
+            sbuf.append( '-' );
             for ( int j = 0; j < colwidths[ i ]; j++ ) {
-                strm.write( '-' );
+                sbuf.append( '-' );
             }
-            strm.write( '-' );
+            sbuf.append( '-' );
         }
-        strm.write( '+' );
-        strm.write( '\n' );
+        sbuf.append( '+' );
+        sbuf.append( '\n' );
+        return sbuf.toString();
     }
 
-    protected void printColumnHeads( OutputStream strm, int[] colwidths,
-                                     ColumnInfo[] cinfos ) throws IOException {
-        int ncol = cinfos.length;
-        String[] heads = new String[ ncol ];
-        for ( int i = 0; i < ncol; i++ ) {
-            heads[ i ] = cinfos[ i ].getName();
-        }
-        printSeparator( strm, colwidths );
-        printLine( strm, colwidths, heads );
-        printSeparator( strm, colwidths );
+    protected String formatColumnHeads( int[] colwidths, ColumnInfo[] cinfos ) {
+        String[] heads =
+            Arrays.stream( cinfos ).map( c -> c.getName() )
+                  .toArray( n -> new String[ n ] );
+        return new StringBuffer()
+           .append( formatSeparator( colwidths ) )
+           .append( formatLine( colwidths, heads ) )
+           .append( formatSeparator( colwidths ) )
+           .toString();
     }
 
-    protected void printLine( OutputStream strm, int[] colwidths,
-                              String[] data ) 
-            throws IOException {
+    protected String formatLine( int[] colwidths, String[] data ) {
+        StringBuilder sbuf = new StringBuilder();
         for ( int i = 0; i < colwidths.length; i++ ) {
-            strm.write( '|' );
-            strm.write( ' ' );
+            sbuf.append( "| " );
             String datum = ( data[ i ] == null ) ? "" : data[ i ];
             if ( datum.length() > colwidths[ i ] ) {
                 datum = datum.substring( 0, colwidths[ i ] );
             }
             int padding = colwidths[ i ] - datum.length();
-            strm.write( getBytes( datum ) );
+            sbuf.append( datum );
             if ( padding > 0 ) {
                 for ( int j = 0; j < padding; j++ ) {
-                    strm.write( ' ' );
+                    sbuf.append( ' ' );
                 }
             }
-            strm.write( ' ' );
+            sbuf.append( ' ' );
         }
-        strm.write( '|' );
-        strm.write( '\n' );
+        sbuf.append( '|' );
+        sbuf.append( '\n' );
+        return sbuf.toString();
     }
 
-    protected void printParam( OutputStream strm, String name, String value,
-                               Class<?> clazz )
-            throws IOException {
-        strm.write( getBytes( name ) );
-        strm.write( ':' );
-        strm.write( ' ' );
-        strm.write( getBytes( value ) );
-        strm.write( '\n' );
+    protected String formatParam( String name, String value, Class<?> clazz ) {
+        return new StringBuffer()
+           .append( name )
+           .append( ": " )
+           .append( value )
+           .append( '\n' )
+           .toString();
     }
 }

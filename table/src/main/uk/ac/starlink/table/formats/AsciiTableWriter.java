@@ -1,8 +1,7 @@
 package uk.ac.starlink.table.formats;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -123,77 +122,63 @@ public class AsciiTableWriter extends AbstractTextTableWriter {
         return readText( "AsciiTableWriter.xml" );
     }
 
-    protected void printSeparator( OutputStream strm, int[] colwidths ) {
-        // no action.
+    protected String formatSeparator( int[] colwidths ) {
+        return "";
     }
 
-    protected void printLine( OutputStream strm, int[] colwidths,
-                              String[] data ) throws IOException {
-        strm.write( ' ' );
-        printItems( strm, colwidths, data );
+    protected String formatLine( int[] colwidths, String[] data ) {
+        StringBuilder sbuf = new StringBuilder();
+        sbuf.append( ' ' );
+        appendItems( sbuf, colwidths, data );
+        return sbuf.toString();
     }
 
-    private void printItems( OutputStream strm, int[] colwidths,
-                             String[] data ) throws IOException {
+    /**
+     * Appends a row of formatted values to a supplied buffer.
+     *
+     * @param   sbuf  buffer to append to
+     * @param  colwidths  column widths in characters
+     * @param  array of data values
+     */
+    private void appendItems( StringBuilder sbuf, int[] colwidths,
+                              String[] data ) {
         for ( int i = 0; i < colwidths.length; i++ ) {
-            strm.write( ' ' );
+            sbuf.append( ' ' );
             String datum = data[ i ];
             if ( datum == null || datum.length() == 0 ) {
                 datum = "\"\"";
             }
-            strm.write( getBytes( datum ) );
+            sbuf.append( datum );
             int padding = colwidths[ i ] - datum.length();
             if ( padding > 0 ) {
                 for ( int j = 0; j < padding; j++ ) {
-                    strm.write( ' ' );
+                    sbuf.append( ' ' );
                 }
             }
         }
-        strm.write( '\n' );
+        sbuf.append( '\n' );
     }
 
-    protected void printColumnHeads( OutputStream strm, int[] colwidths,
-                                     ColumnInfo[] cinfos ) throws IOException {
-        int ncol = cinfos.length;
-        String[] heads = new String[ ncol ];
-        for ( int i = 0; i < ncol; i++ ) {
-            byte[] nameBuf = getBytes( cinfos[ i ].getName() );
-            for ( int j = 0; j < nameBuf.length; j++ ) {
-                switch ( (char) nameBuf[ j ] ) {
-                    case ' ':
-                    case '\'':
-                    case '"':
-                    case '#':
-                    case '\t':
-                    case '\r':
-                    case '\n':
-                        nameBuf[ j ] = (byte) '_';
-                }
-            }
-            heads[ i ] = new String( nameBuf );
-        }
-        strm.write( '#' );
-        printItems( strm, colwidths, heads );
+    protected String formatColumnHeads( int[] colwidths, ColumnInfo[] cinfos ) {
+        String[] heads =
+            Arrays.stream( cinfos )
+                  .map( c -> c.getName().replaceAll( "[ '\"#\\t\\r\\n]", "_" ) )
+                  .toArray( n -> new String[ n ] );
+        StringBuilder sbuf = new StringBuilder();
+        sbuf.append( '#' );
+        appendItems( sbuf, colwidths, heads );
+        return sbuf.toString();
     }
 
-    protected void printParam( OutputStream strm, String name, String value,
-                               Class<?> clazz )
-            throws IOException {
-        strm.write( '#' );
-        strm.write( ' ' );
-        strm.write( getBytes( name ) );
-        strm.write( ':' );
-        strm.write( ' ' );
-        byte[] valbuf = getBytes( value );
-        for ( int i = 0; i < valbuf.length; i++ ) {
-            switch ( valbuf[ i ] ) {
-                case '\r':
-                case '\n':
-                    valbuf[ i ] = ' ';
-                    break;
-            }
-        }
-        strm.write( valbuf );
-        strm.write( '\n' );
+    protected String formatParam( String name, String value, Class<?> clazz ) {
+        return new StringBuilder()
+              .append( '#' )
+              .append( ' ' )
+              .append( name )
+              .append( ':' )
+              .append( ' ' )
+              .append( value.replaceAll( "[\\n\\r]", " " ) )
+              .append( '\n' )
+              .toString();
     }
 }

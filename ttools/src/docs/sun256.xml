@@ -15926,17 +15926,15 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>New <ref id="scheme-test"><code>test</code> scheme</ref> option
         "<code>u</code>" for diverse Unicode strings.</li>
     <li>Fix some miscellaneous issues to do with Unicode I/O.</li>
-    <li>The <ref id="outCsv">csv</ref> output handler
-        can now write non-ASCII Unicode characters;
-        encoding is UTF-8 by default, but can be configured
-        with the new <code>encoding</code> option.</li>
-    <li>The <ref id="outAscii">ascii</ref>,
+    <li>The <ref id="outCsv">csv</ref>,
+            <ref id="outAscii">ascii</ref>,
             <ref id="outText">text</ref> and 
             <ref id="outIpac">ipac</ref> output handlers
-        can now write non-ASCII characters as UTF-8.
-        The <code>text</code> handler does this by default,
-        the others have a new <code>encoding</code> option
-        that can be set.</li>
+        can now write non-ASCII Unicode characters.  Default encoding
+        is UTF-8 (<code>csv</code> and <code>text</code>)
+        or ASCII (<code>ascii</code> and <code>ipac</code>)
+        but can be configured
+        with the new <code>encoding</code> option.</li>
     <li>The <ref id="inCsv">csv</ref> and <ref id="inAscii">ascii</ref>        
         input handlers now cope with Unicode input.
         Text encoding is UTF-8 by default, but can be configured
@@ -15946,6 +15944,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix VOTable output bug that sometimes wrote
         <code>INFO</code> and <code>PARAM</code> elements
         in an illegal order.</li>
+    <li>Substantial performance improvements (a few tens of percent)
+        when writing ASCII and CSV files.</li>
     </ul>
     </p></dd>
 

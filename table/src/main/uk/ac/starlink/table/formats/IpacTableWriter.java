@@ -1,7 +1,5 @@
 package uk.ac.starlink.table.formats;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -70,9 +68,7 @@ public class IpacTableWriter extends AbstractTextTableWriter {
              : info.formatValue( val, width );
     }
 
-    public void printColumnHeads( OutputStream out, int[] colwidths,
-                                  ColumnInfo[] cinfos )
-            throws IOException {
+    public String formatColumnHeads( int[] colwidths, ColumnInfo[] cinfos ) {
         int ncol = cinfos.length;
         IpacHead[] heads = new IpacHead[ ncol ];
         String[] names = new String[ ncol ];
@@ -86,74 +82,77 @@ public class IpacTableWriter extends AbstractTextTableWriter {
             units[ ic ] = head.unit_;
             nulls[ ic ] = NULL;
         }
-        printIpacLine( out, colwidths, names, '|' );
-        printIpacLine( out, colwidths, types, '|' );
-        printIpacLine( out, colwidths, units, '|' );
-        printIpacLine( out, colwidths, nulls, '|' );
+        return new StringBuilder()
+              .append( formatIpacLine( colwidths, names, '|' ) )
+              .append( formatIpacLine( colwidths, types, '|' ) )
+              .append( formatIpacLine( colwidths, units, '|' ) )
+              .append( formatIpacLine( colwidths, nulls, '|' ) )
+              .toString();
     }
 
-    protected void printLine( OutputStream out, int[] colwidths,
-                              String[] data ) throws IOException {
-        printIpacLine( out, colwidths, data, ' ' );
+    protected String formatLine( int[] colwidths, String[] data ) {
+        return formatIpacLine( colwidths, data, ' ' );
     }
 
-    protected void printSeparator( OutputStream out, int[] colwidths ) {
+    protected String formatSeparator( int[] colwidths ) {
+        return "";
     }
 
     /**
-     * Prints a header or data line.
+     * Formats a header or data line.
      *
-     * @param  out  output stream
      * @param  colwidths  array of column content width values
      * @param  data   array of column values
      * @param  sepChar  character separating fields
+     * @return   row formatted for inclusion in an IPAC table,
+     *           including line-end character
      */
-    private void printIpacLine( OutputStream out, int[] colwidths,
-                                String[] data, char sepChar )
-            throws IOException {
+    private String formatIpacLine( int[] colwidths, String[] data,
+                                   char sepChar ) {
+        StringBuilder sbuf = new StringBuilder();
         for ( int ic = 0; ic < data.length; ic++ ) {
-            out.write( sepChar );
-            out.write( ' ' );
+            sbuf.append( sepChar );
+            sbuf.append( ' ' );
             String datum = ( data[ ic ] == null ) ? "" : data[ ic ];
             if ( datum.length() > colwidths[ ic ] ) {
                 datum = datum.substring( 0, colwidths[ ic ] );
             }
             int padding = colwidths[ ic ] - datum.length();
-            out.write( getBytes( datum ) );
+            sbuf.append( datum );
             if ( padding > 0 ) {
                 for ( int j = 0; j < padding; j++ ) {
-                    out.write( ' ' );
+                    sbuf.append( ' ' );
                 }
             }
-            out.write( ' ' );
+            sbuf.append( ' ' );
         }
-        out.write( sepChar );
-        out.write( '\n' );
+        sbuf.append( sepChar );
+        sbuf.append( '\n' );
+        return sbuf.toString();
     }
 
-    protected void printParam( OutputStream out, String name, String value,
-                               Class<?> clazz )
-            throws IOException {
+    protected String formatParam( String name, String value, Class<?> clazz ) {
         String[] lines = value.split( "[\\n\\r]+" );
         int maxl = 320;
         if ( IpacTableBuilder.COMMENT_INFO.getName().equals( name ) ) {
+            StringBuffer sbuf = new StringBuffer();
             for ( int il = 0; il < lines.length; il++ ) {
-                out.write( '\\' );
-                out.write( ' ' );
-                out.write( getBytes( truncateLine( lines[ il ], maxl ) ) );
-                out.write( '\n' );
+                sbuf.append( "\\ " )
+                    .append( truncateLine( lines[ il ], maxl ) )
+                    .append( '\n' );
             }
+            return sbuf.toString();
         }
         else {
-            out.write( '\\' );
-            out.write( getBytes( name.trim() ) );
-            out.write( ' ' );
-            out.write( '=' );
-            out.write( ' ' );
-            out.write( getBytes( clazz.equals( String.class )
-                               ? quoteString( truncateLine( lines[ 0 ], maxl ) )
-                               : value ) );
-            out.write( '\n' );
+            return new StringBuffer()
+               .append( '\\' )
+               .append( name.trim() )
+               .append( " = " )
+               .append( clazz.equals( String.class )
+                            ? quoteString( truncateLine( lines[ 0 ], maxl ) )
+                            : value )
+               .append( '\n' )
+               .toString();
         }
     }
 

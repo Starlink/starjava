@@ -34902,17 +34902,15 @@ introduced since the last version:
     <li>New <ref id="scheme-test"><code>test</code> scheme</ref> option
         "<code>u</code>" for diverse Unicode strings.</li>
     <li>Fix some miscellaneous issues to do with Unicode I/O.</li>
-    <li>The <ref id="outCsv">CSV</ref> output handler
-        can now write non-ASCII Unicode characters;
-        encoding is UTF-8 by default, but can be configured
-        with the new <code>encoding</code> option.</li>
-    <li>The <ref id="outAscii">ASCII</ref>,
+    <li>The <ref id="outCsv">CSV</ref>,
+            <ref id="outAscii">ASCII</ref>,
             <ref id="outText">Text</ref> and 
             <ref id="outIpac">IPAC</ref> output handlers
-        can now write non-ASCII characters as UTF-8.
-        The <code>Text</code> handler does this by default,
-        the others have a new <code>encoding</code> option
-        that can be set.</li>
+        can now write non-ASCII Unicode characters.  Default encoding
+        is UTF-8 (<code>CSV</code> and <code>Text</code>)
+        or ASCII (<code>ASCII</code> and <code>IPAC</code>) 
+        but can be configured
+        with the new <code>encoding</code> option.</li>
     <li>The <ref id="inCsv">CSV</ref> and <ref id="inAscii">ASCII</ref> 
         input handlers now cope with Unicode input.
         Text encoding is UTF-8 by default, but can be configured
@@ -34922,6 +34920,8 @@ introduced since the last version:
     <li>Fix VOTable output bug that sometimes wrote
         <code>INFO</code> and <code>PARAM</code> elements 
         in an illegal order.</li>
+    <li>Substantial performance improvements (a few tens of percent)
+        when writing ASCII and CSV files.</li>
     </ul>
     </p>
     </dd>

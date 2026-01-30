@@ -1,7 +1,10 @@
 package uk.ac.starlink.table.formats;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
@@ -141,38 +144,46 @@ public abstract class AbstractTextTableWriter
         }
 
         /* Print parameters. */
-        if ( writeParams_ ) {
-            int maxleng = getMaximumParameterLength();
-            String name = startab.getName();
-            if ( name != null && name.trim().length() > 0 ) {
-                printParam( strm, "Table name", name, String.class );
-            }
-            for ( DescribedValue param : startab.getParameters() ) {
-                ValueInfo info = param.getInfo();
-                printParam( strm, info.getName(),
-                            param.getValueAsString( maxleng ),
-                            info.getContentClass() );
-            }
-        }
-
-        /* Print headings. */
-        printColumnHeads( strm, cwidths, cinfos );
-
-        /* Print rows. */
-        try ( RowSequence rseq = startab.getRowSequence() ) {
-            while ( rseq.next() ) {
-                Object[] row = rseq.getRow();
-                String[] frow = new String[ ncol ];
-                for ( int icol = 0; icol < ncol; icol++ ) {
-                    frow[ icol ] = formatValue( row[ icol ], cinfos[ icol ],
-                                                cwidths[ icol ] );
+        Writer out =
+            new BufferedWriter( new OutputStreamWriter( strm, getEncoding() ) );
+        try {
+            if ( writeParams_ ) {
+                int maxleng = getMaximumParameterLength();
+                String name = startab.getName();
+                if ( name != null && name.trim().length() > 0 ) {
+                    out.write( formatParam( "Table name", name,
+                                            String.class ) );
                 }
-                printLine( strm, cwidths, frow );
+                for ( DescribedValue param : startab.getParameters() ) {
+                    ValueInfo info = param.getInfo();
+                    out.write( formatParam( info.getName(),
+                                            param.getValueAsString( maxleng ),
+                                            info.getContentClass() ) );
+                }
             }
-        }
 
-        /* Finish off. */
-        printSeparator( strm, cwidths );
+            /* Print headings. */
+            out.write( formatColumnHeads( cwidths, cinfos ) );
+
+            /* Print rows. */
+            try ( RowSequence rseq = startab.getRowSequence() ) {
+                while ( rseq.next() ) {
+                    Object[] row = rseq.getRow();
+                    String[] frow = new String[ ncol ];
+                    for ( int icol = 0; icol < ncol; icol++ ) {
+                        frow[ icol ] = formatValue( row[ icol ], cinfos[ icol ],
+                                                    cwidths[ icol ] );
+                    }
+                    out.write( formatLine( cwidths, frow ) );
+                }
+            }
+
+            /* Finish off. */
+            out.write( formatSeparator( cwidths ) );
+        }
+        finally {
+            out.flush();
+        }
     }
 
     /**
@@ -193,7 +204,7 @@ public abstract class AbstractTextTableWriter
 
     /**
      * Returns the maximum length for the value of a parameter as passed to
-     * {@link #printParam}.  The default implementation currently returns 160.
+     * {@link #formatParam}.  The default implementation currently returns 160.
      *
      * @return  maximum length for output string parameters
      */
@@ -258,7 +269,7 @@ public abstract class AbstractTextTableWriter
     /**
      * Returns the minimum width required to output the actual characters
      * of the name for a given column.  Padding applied subsequently
-     * by this object's {@link #printColumnHeads} method does not need
+     * by this object's {@link #formatColumnHeads} method does not need
      * to be included.
      *
      * @param  info  column metadata
@@ -307,30 +318,18 @@ public abstract class AbstractTextTableWriter
     /**
      * Sets the character encoding for output text.
      *
-     * <p>This is currently restricted to ASCII-alike encodings
-     * since some of the subclasses write some of their output
-     * (such as column separators) directly to the OutputStream
-     * without going through the encoding.  If that gets tidied up
-     * then this restriction could be lifted.
-     *
      * @param  encoding  character encoding
      */
     @ConfigMethod( 
         property = "encoding",
         sequence = 100,
-        usage = "UTF-8|ASCII", 
-        example = "ASCII",
+        usage = "ASCII|UTF-8|UTF-16|...", 
+        example = "UTF-16",
         doc = "<p>Specifies the character encoding used in "
             + "the output file.\n"
             + "</p>"
     )   
     public void setEncoding( Charset encoding ) {
-        byte[] buf = "A".getBytes( encoding );
-        if ( buf.length != 1 || buf[ 0 ] != (byte) 'A' ) {
-            String msg = "Unsupported encoding " + encoding
-                       + " - currently only UTF-8 and ASCII supported";
-            throw new IllegalArgumentException( msg );
-        }
         encoding_ = encoding;
     }
 
@@ -357,58 +356,43 @@ public abstract class AbstractTextTableWriter
                                            int width );
 
     /**
-     * Outputs a decorative separator line, of the sort you might find
+     * Returns a decorative separator line, of the sort you might find
      * between the column headings and the table data.
      *
-     * @param  strm   stream to write into
      * @param  colwidths  column widths in characters
+     * @return  separator line including any line end characters
      */
-    protected abstract void printSeparator( OutputStream strm, int[] colwidths )
-            throws IOException;
+    protected abstract String formatSeparator( int[] colwidths );
 
     /**
-     * Outputs headings for the table columns.
+     * Returns a string with headings for the table columns.
      *
-     * @param   strm  stream to write into
      * @param   colwidths   column widths in characters
      * @param   cinfos   array of column headings
+     * @return  headings line including any line end characters
      */
-    protected abstract void printColumnHeads( OutputStream strm,
-                                              int[] colwidths,
-                                              ColumnInfo[] cinfos )
-            throws IOException;
+    protected abstract String formatColumnHeads( int[] colwidths,
+                                                 ColumnInfo[] cinfos );
 
     /**
-     * Outputs a line of table data.
+     * Returns a line showing a row of table data.
      *
-     * @param  strm  stream to write into
      * @param  colwidths  column widths in characters
      * @param  data  array of strings to be output, one per column
+     * @return   data line including any line end characters
      */
-    protected abstract void printLine( OutputStream strm, int[] colwidths,
-                                       String[] data ) 
-            throws IOException;
+    protected abstract String formatLine( int[] colwidths, String[] data );
 
     /**
-     * Outputs a parameter and its value.
+     * Returns a formatted parameter-value pair.
      *
-     * @param   strm  stream to write into
      * @param   name  parameter name
      * @param   value  formatted parameter value
      * @param   clazz  type of value
+     * @return  parameter line including any line end characters
      */
-    protected abstract void printParam( OutputStream strm, String name,
-                                        String value, Class<?> clazz )
-            throws IOException;
-
-    /**
-     * Returns a byte array for output corresponding to a given string.
-     *
-     * @param  str  string to decode
-     */
-    protected byte[] getBytes( String str ) {
-        return str.getBytes( encoding_ );
-    }
+    protected abstract String formatParam( String name, String value,
+                                           Class<?> clazz );
 
     int getMaxDataWidth( Class<?> clazz ) {
 
