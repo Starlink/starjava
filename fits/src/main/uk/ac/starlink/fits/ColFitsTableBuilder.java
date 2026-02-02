@@ -68,9 +68,27 @@ public class ColFitsTableBuilder extends DocumentedTableBuilder {
         if ( ! FitsUtil.isMagic( datsrc.getIntro() ) ) {
             throw new TableFormatException( "Doesn't look like a FITS file" );
         }
+
+        /* Interpret HDU position. */
+        final int ihdu;
+        String spos = datsrc.getPosition();
+        if ( spos != null && spos.trim().length() > 0 ) {
+            if ( spos.matches( "[1-9][0-9]*" ) ) {
+                ihdu = Integer.parseInt( spos );
+            }
+            else {
+                throw new IOException( "Unrecognised position qualifier #"
+                                     + spos );
+            }
+        }
+        else {
+            ihdu = 1;
+        }
+
+        /* Read table. */
         try ( InputStream in = datsrc.getInputStream() ) {
             long pos = 0;
-            pos += FitsUtil.skipHDUs( in, 1 );
+            pos += FitsUtil.skipHDUs( in, ihdu );
             FitsHeader hdr = FitsUtil.readHeader( in );
             pos += hdr.getHeaderByteCount();
             return new ColFitsStarTable( datsrc, hdr, pos, false, wide_ );
