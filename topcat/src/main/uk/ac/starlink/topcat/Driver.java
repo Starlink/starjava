@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.JSamp;
 import org.astrogrid.samp.Response;
@@ -35,6 +36,7 @@ import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.table.jdbc.TextModelsAuthenticator;
 import uk.ac.starlink.task.InvokeUtils;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
+import uk.ac.starlink.topcat.CustomLabelUI;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.DataSource;
@@ -126,6 +128,9 @@ public class Driver {
             // never mind
             cmdname = null;
         }
+        /* Register custom LabelUI for drawing cells in JTable. This has to
+         * happen before any of the UI is initialised. */
+        UIManager.put("LabelUI", CustomLabelUI.class.getName());
         Loader.tweakGuiForMac();
         Loader.setHttpAgent( TopcatUtils.getHttpUserAgent() );
         Loader.setDefaultProperty( "java.awt.Window.locationByPlatform",
