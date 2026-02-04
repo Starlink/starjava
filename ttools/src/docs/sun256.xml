@@ -15948,6 +15948,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         when writing ASCII and CSV files.</li>
     <li>Fix fencepost error affecting cumulative
         <ref id="layer-histogram">histogram</ref> plots.</li>
+    <li>Overlong text and array fields in the
+        <ref id="mode-gui"><code>gui</code></ref> output mode table
+        window are now displayed with an ellipsis (...) in the middle
+        rather than at the end.</li>
     </ul>
     </p></dd>
 

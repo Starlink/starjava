@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat;
+package uk.ac.starlink.table.gui;
 
 import java.awt.FontMetrics;
 import java.awt.Rectangle;

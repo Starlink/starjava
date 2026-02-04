@@ -24,6 +24,12 @@ public class ValueInfoCellRenderer extends DefaultTableCellRenderer {
      */
     public ValueInfoCellRenderer( ValueInfo vinfo ) {
         this.vinfo = vinfo;
+        setUI( new CustomLabelUI() );
+
+        /* Copied from javax.swing.table.DefaultCellRenderer.updateUI().
+         * If you don't do this, the cells are the wrong colour. */
+        setForeground( null );
+        setBackground( null );
     }
 
     /**
