@@ -1,7 +1,5 @@
 package uk.ac.starlink.ttools.mode;
 
-import cds.healpix.Healpix;
-import cds.healpix.HealpixNested;
 import cds.moc.SMoc;
 import gnu.jel.CompilationException;
 import gnu.jel.CompiledExpression;
@@ -30,10 +28,12 @@ import uk.ac.starlink.ttools.func.Coverage;
 import uk.ac.starlink.ttools.jel.JELQuantity;
 import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.jel.SequentialJELRowReader;
+import uk.ac.starlink.ttools.jel.StarTableJELRowReader;
 import uk.ac.starlink.ttools.moc.MocBuilder;
 import uk.ac.starlink.ttools.moc.MocImpl;
 import uk.ac.starlink.ttools.moc.MocStreamFormat;
 import uk.ac.starlink.util.Destination;
+import uk.ac.starlink.util.IOSupplier;
 
 /**
  * Turns a table into a multi-order coverage map by interpreting a
@@ -62,6 +62,7 @@ public class MocShapeMode implements ProcessingMode {
         orderParam_ = new IntegerParameter( "order" );
         orderParam_.setPrompt( "MOC Healpix maximum order" );
         orderParam_.setUsage( "0.." + MAX_ORDER );
+        orderParam_.setMinimum( 0 );
         orderParam_.setMaximum( MAX_ORDER );
         int orderDflt = 10;
         int dfltResArcmin =
@@ -129,7 +130,6 @@ public class MocShapeMode implements ProcessingMode {
             "supplied coordinate column; if no good guess can be made,",
             "an error will result.",
             "</p>",
-
         } );
         shapeParam_.setNullPermitted( true );
 
@@ -190,58 +190,17 @@ public class MocShapeMode implements ProcessingMode {
             throws TaskException {
         int order = orderParam_.intValue( env );
         String coordsExpr = coordsParam_.stringValue( env );
-        AreaMapper shapeMapper0 = shapeParam_.objectValue( env );
+        AreaMapper shapeMapper = shapeParam_.objectValue( env );
         MocImpl mocimpl = mocimplParam_.objectValue( env );
         MocStreamFormat mocfmt = mocfmtParam_.objectValue( env );
         MocBuilder mocBuilder = mocimpl.createMocBuilder( order );
-        HealpixNested hpx = Healpix.getNested( order );
         Destination dest = outParam_.objectValue( env );
         return table -> {
             SequentialJELRowReader rdr = new SequentialJELRowReader( table );
-            JELQuantity coordQuantity;
-            try {
-                coordQuantity =
-                    JELUtils.compileQuantity( JELUtils.getLibrary( rdr ), rdr,
-                                              coordsExpr, Object.class );
-            }
-            catch ( CompilationException e ) {
-                throw new IOException( "Bad expression " + e.getMessage() );
-            }
-            CompiledExpression coordCompex =
-                coordQuantity.getCompiledExpression();
-            ValueInfo coordInfo = coordQuantity.getValueInfo();
-            final AreaMapper shapeMapper;
-            if ( shapeMapper0 != null ) {
-                shapeMapper = shapeMapper0;
-            }
-            else {
-                shapeMapper =
-                    AreaDomain.INSTANCE.getProbableMapper( coordInfo );
-            }
-            if ( shapeMapper == null ) {
-                throw new IOException( "Can't guess shape type; "
-                                     + "please supply value for "
-                                     + shapeParam_.getName() + " parameter" );
-            }
-            Class<?> coordClazz = coordInfo.getContentClass();
-            Function<Object,Area> areaFunc =
-                shapeMapper.areaFunction( coordClazz );
-            if ( areaFunc == null ) {
-                throw new IOException( "Quantity " + coordsExpr
-                                     + "(" + coordClazz.getSimpleName() + ") "
-                                     + "is not compatible with type "
-                                     + shapeMapper.getSourceName() );
-            }
+            IOSupplier<Area> areaRdr =
+                createAreaReader( rdr, coordsExpr, shapeMapper, shapeParam_ );
             while ( rdr.next() ) {
-                Object coords;
-                try {
-                    coords = rdr.evaluate( coordCompex );
-                }
-                catch ( Throwable e ) {
-                    throw new IOException( "Evaluation error for " + coordsExpr,
-                                           e );
-                }
-                Area area = areaFunc.apply( coords );
+                Area area = areaRdr.get();
                 if ( area != null ) {
                     for ( long uniq : area.toMocUniqs( order ) ) {
                         mocBuilder.addTile( Coverage.uniqToOrder( uniq ),
@@ -267,6 +226,67 @@ public class MocShapeMode implements ProcessingMode {
                 mocfmt.writeMoc( mocBuilder.createOrderedUniqIterator(),
                                  ntile, maxOrder, out );
             }
+        };
+    }
+
+    /**
+     * Returns an object that can read Area values from table rows.
+     *
+     * @param  rdr  row reader
+     * @param  coordExpr   supplied expression for shape coordinates
+     * @param  mapper0    explictly supplied mapping from coordinates to shape,
+     *                    or null to attempt a guess
+     * @param  mapperParam  parameter from which mapper0 is supplied
+     *                      (used in advisory user messages)
+     * @return   reads shape objects from current row of supplied reader
+     */
+    private static IOSupplier<Area>
+            createAreaReader( StarTableJELRowReader rdr, String coordExpr,
+                              AreaMapper mapper0,
+                              Parameter<AreaMapper> mapperParam )
+            throws IOException {
+        JELQuantity coordQuantity;
+        try {
+            coordQuantity =
+                JELUtils.compileQuantity( JELUtils.getLibrary( rdr ), rdr,
+                                          coordExpr, Object.class );
+        }
+        catch ( CompilationException e ) {
+            throw new IOException( "Bad expression: \"" + coordExpr + "\": "
+                                 + e.getMessage(), e );
+        }
+        CompiledExpression coordCompex = coordQuantity.getCompiledExpression();
+        ValueInfo coordInfo = coordQuantity.getValueInfo();
+        final AreaMapper mapper;
+        if ( mapper0 != null ) {
+            mapper = mapper0;
+        }
+        else {
+            mapper = AreaDomain.INSTANCE.getProbableMapper( coordInfo );
+        }
+        if ( mapper == null ) {
+            throw new IOException( "Can't guess shape type; "
+                                 + "please supply value for "
+                                 + mapperParam.getName() + " parameter" );
+        }
+        Class<?> coordClazz = coordInfo.getContentClass();
+        Function<Object,Area> areaFunc =
+            mapper.areaFunction( coordClazz );
+        if ( areaFunc == null ) {
+                throw new IOException( "Quantity " + coordExpr
+                                     + "(" + coordClazz.getSimpleName() + ") "
+                                     + "is not compatible with type "
+                                     + mapper.getSourceName() );
+        }
+        return () -> {
+            Object coords; 
+            try {
+                coords = rdr.evaluate( coordCompex );
+            }
+            catch ( Throwable e ) {
+                throw new IOException( "Evaluation error for " + coordExpr, e );
+            }
+            return areaFunc.apply( coords );
         };
     }
 }
