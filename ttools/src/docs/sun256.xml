@@ -15946,6 +15946,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in an illegal order.</li>
     <li>Substantial performance improvements (a few tens of percent)
         when writing ASCII and CSV files.</li>
+    <li>Fix fencepost error affecting cumulative
+        <ref id="layer-histogram">histogram</ref> plots.</li>
     </ul>
     </p></dd>
 

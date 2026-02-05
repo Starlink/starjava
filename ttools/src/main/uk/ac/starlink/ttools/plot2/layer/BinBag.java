@@ -180,8 +180,8 @@ public class BinBag {
             /* If requested, extend the range so that maximum-value bins
              * go all the way to the edge of the plot region. */
             if ( range != null ) {
-                ixlo = Math.min( ixlo, mapper_.getBinIndex( range[ 0 ] ) - 1 );
-                ixhi = Math.max( ixhi, mapper_.getBinIndex( range[ 1 ] ) + 1 );
+                ixlo = Math.min( ixlo, mapper_.getBinIndex( range[ 0 ] ) );
+                ixhi = Math.max( ixhi, mapper_.getBinIndex( range[ 1 ] ) );
             }
             final int ixMin = ixlo;
             final int ixMax = ixhi;
@@ -189,7 +189,7 @@ public class BinBag {
                 int index = ixMin;
                 int ib = index < binIndices[ 0 ] ? -1 : 0;
                 public boolean hasNext() {
-                    return index < ixMax;
+                    return index <= ixMax;
                 }
                 public Bin next() {
                     final double value;
@@ -202,12 +202,13 @@ public class BinBag {
                     else {
                         value = binValues[ ib ];
                     }
+                    Bin bin = createBin( index, value );
                     index++;
                     if ( ib == nbin - 1 ||
-                         ib < nbin -1 && index == binIndices[ ib + 1 ] ) {
+                         ib < nbin - 1 && index == binIndices[ ib + 1 ] ) {
                         ib++;
                     }
-                    return createBin( index, value );
+                    return bin;
                 }
                 public void remove() {
                     throw new UnsupportedOperationException();

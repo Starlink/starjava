@@ -34922,6 +34922,8 @@ introduced since the last version:
         in an illegal order.</li>
     <li>Substantial performance improvements (a few tens of percent)
         when writing ASCII and CSV files.</li>
+    <li>Fix fencepost error affecting cumulative
+        <ref id="form-histogram">histogram</ref> plots.</li>
     </ul>
     </p>
     </dd>
