@@ -146,6 +146,7 @@ public class MocShapeMode implements ProcessingMode {
         MocImpl[] mocImpls = {
             MocImpl.AUTO,
             MocImpl.CDS,
+            MocImpl.CDS_BATCH,
             MocImpl.BITSET,
             MocImpl.LIST,
         };

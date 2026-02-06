@@ -64,6 +64,7 @@ public class MocTest extends TestCase {
         return new MocImpl[] {
             MocImpl.BITSET,
             MocImpl.CDS,
+            MocImpl.CDS_BATCH,
             MocImpl.AUTO,
             createBagImpl( "only_bits",
                            s -> s == (int) s ? new BitSetBag( (int) s )
