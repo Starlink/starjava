@@ -101,10 +101,10 @@ public abstract class CdsMocBuilder implements MocBuilder {
                     smoc_.bufferOn( 500_000 );
                 }
                 public void addTile( int order, long ipix ) {
-                    long[] buf = bufs_[ order ];
-                    if ( buf == null ) {
-                        buf = new long[ bufsiz_ ];
+                    if ( bufs_[ order ] == null ) {
+                        bufs_[ order ] = new long[ bufsiz_ ];
                     }
+                    long[] buf = bufs_[ order ];
                     buf[ ibs_[ order ]++ ] = ipix;
                     if ( ibs_[ order ] >= bufsiz_ ) {
                         smoc_.add( order, buf, ibs_[ order ] );
@@ -118,6 +118,7 @@ public abstract class CdsMocBuilder implements MocBuilder {
                             smoc_.add( io, buf, ibs_[ io ] );
                         }
                     }
+                    smoc_.bufferOff();
                 }
             };
         }
