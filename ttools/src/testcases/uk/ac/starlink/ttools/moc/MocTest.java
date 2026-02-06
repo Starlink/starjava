@@ -53,6 +53,7 @@ public class MocTest extends TestCase {
         for ( MocImpl impl : impls ) {
             MapEnvironment env3 = new MapEnvironment( env0 );
             env3.setValue( "order", Integer.valueOf( 0 ) );
+            env3.setValue( "mocimpl", impl );
             env3.setValue( "mocfmt", MocStreamFormat.ASCII );
             new MocShape().createExecutable( env3 ).execute();
             assertEquals( "0/0-4 8-11", env3.getOutputText().trim() );
