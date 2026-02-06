@@ -23,7 +23,7 @@ public abstract class MocImpl {
             new MocImpl( "cds", "Uses CDS SMoc class" ) {
         final int batchSize = 1;
         public MocBuilder createMocBuilder( int mocOrder ) {
-            return CdsMocBuilder.createCdsMocBuilder( mocOrder, batchSize );
+            return CdsMocBuilder.createCdsSMocBuilder( mocOrder, batchSize );
         }
     };
 
@@ -32,7 +32,7 @@ public abstract class MocImpl {
             new MocImpl( "cds-batch", "Uses CDS SMoc class with batching" ) {
         final int batchSize = 100_000;
         public MocBuilder createMocBuilder( int mocOrder ) {
-            return CdsMocBuilder.createCdsMocBuilder( mocOrder, batchSize );
+            return CdsMocBuilder.createCdsSMocBuilder( mocOrder, batchSize );
         }
     };
 

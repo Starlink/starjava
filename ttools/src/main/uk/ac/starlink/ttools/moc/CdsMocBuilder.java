@@ -11,41 +11,44 @@ import java.util.PrimitiveIterator;
 import uk.ac.starlink.ttools.func.Coverage;
 
 /**
- * MocBuilder implementation based on the CDS SMoc class.
+ * MocBuilder implementation based on the CDS Moc1D class.
  *
  * @author   Mark Taylor
  * @since    28 Jan 2025
  */
 public abstract class CdsMocBuilder implements MocBuilder {
 
-    private final int maxOrder_;
-    final SMoc smoc_;
+    final Moc1D moc_;
 
     /**
      * Constructor.
      *
-     * @param   maxOrder  maximum order stored by this MOC
+     * @param   moc    CDS Moc1d instance
      */
-    protected CdsMocBuilder( int maxOrder ) {
-        maxOrder_ = maxOrder;
-        smoc_ = new SMoc( maxOrder );
+    protected CdsMocBuilder( Moc1D moc ) {
+        moc_ = moc;
     }
 
     public PrimitiveIterator.OfLong createOrderedUniqIterator() {
-        Iterator<MocCell> cellIt = smoc_.iterator();
+        Iterator<MocCell> cellIt = moc_.iterator();
+        int shiftOrder = moc_.shiftOrder();
         return new PrimitiveIterator.OfLong() {
             public boolean hasNext() {
                 return cellIt.hasNext();
             }
             public long nextLong() {
                 MocCell cell = cellIt.next();
-                return Moc.hpix2uniq( cell.order, cell.start );
+                long uniq = ( 1L << ( shiftOrder * ( cell.order + 1 ) ) )
+                          + cell.start;
+                assert uniq == Moc.hpix2uniq( cell.order, cell.start )
+                    || ! ( moc_ instanceof SMoc );
+                return uniq;
             }
         };
     }
 
     public long[] getOrderCounts() {
-        long[] counts = new long[ maxOrder_ + 1 ];
+        long[] counts = new long[ moc_.getMocOrder() + 1 ];
         int maxOrd = 0;
         for ( PrimitiveIterator.OfLong uniqIt = createOrderedUniqIterator();
               uniqIt.hasNext(); ) {
@@ -60,36 +63,50 @@ public abstract class CdsMocBuilder implements MocBuilder {
     }
 
     /**
-     * Returns an instance of this class that may or may not use
+     * Returns a Spatial MOC instance of this class that may or may not use
      * tile batching to affect performance.
      *
-     * @param  maxOrder  maximum HEALPix order of the MOC
+     * @param  maxOrder  maximum HEALPix order of the SMOC
      * @param  batchSize  if &gt;1, pixels are added in batches per order,
      *                    which may result in improved performance
      */
-    public static MocBuilder createCdsMocBuilder( int maxOrder,
+    public static MocBuilder createCdsSMocBuilder( int maxOrder,
+                                                   int batchSize ) {
+        return createCdsMocBuilder( new SMoc( maxOrder ), batchSize );
+    }
+
+    /**
+     * Returns an instance of this class that may or may not use
+     * tile batching to affect performance.
+     *
+     * @param  moc   CDS Moc1D instance
+     * @param  batchSize  if &gt;1, pixels are added in batches per order,
+     *                    which may result in improved performance
+     */
+    public static MocBuilder createCdsMocBuilder( Moc1D moc,
                                                   int batchSize ) {
+        int maxOrder = moc.getMocOrder();
         if ( batchSize == 1 ) {
-            return new CdsMocBuilder( maxOrder ) {
+            return new CdsMocBuilder( moc ) {
                 /* Constructor. */ {
                     // In (some) tests this value seems about optimal.
-                    smoc_.bufferOn( 500_000 );
+                    moc_.bufferOn( 500_000 );
                 }
                 public void addTile( int order, long ipix ) {
                     try {
-                        smoc_.add( order, ipix );
+                        moc_.add( order, ipix );
                     }
                     catch ( Exception e ) {
                         throw new RuntimeException( "CDS MOC error", e );
                     }
                 }
                 public void endTiles() {
-                    smoc_.bufferOff();
+                    moc_.bufferOff();
                 }
             };
         }
         else {
-            return new CdsMocBuilder( maxOrder ) {
+            return new CdsMocBuilder( moc ) {
                 final int bufsiz_;
                 final long[][] bufs_;
                 final int[] ibs_;
@@ -99,7 +116,7 @@ public abstract class CdsMocBuilder implements MocBuilder {
                     ibs_ = new int[ maxOrder + 1 ];
                     // I don't know if buffering helps here or not,
                     // but it's probably harmless.
-                    smoc_.bufferOn( 500_000 );
+                    moc_.bufferOn( 500_000 );
                 }
                 public void addTile( int order, long ipix ) {
                     if ( bufs_[ order ] == null ) {
@@ -108,7 +125,7 @@ public abstract class CdsMocBuilder implements MocBuilder {
                     long[] buf = bufs_[ order ];
                     buf[ ibs_[ order ]++ ] = ipix;
                     if ( ibs_[ order ] >= bufsiz_ ) {
-                        addArrayAtOrder( smoc_, order, buf, ibs_[ order ] );
+                        addArrayAtOrder( moc_, order, buf, ibs_[ order ] );
                         ibs_[ order ] = 0;
                     }
                 }
@@ -116,10 +133,10 @@ public abstract class CdsMocBuilder implements MocBuilder {
                     for ( int io = 0; io <= maxOrder; io++ ) {
                         long[] buf = bufs_[ io ];
                         if ( buf != null ) {
-                            addArrayAtOrder( smoc_, io, buf, ibs_[ io ] );
+                            addArrayAtOrder( moc_, io, buf, ibs_[ io ] );
                         }
                     }
-                    smoc_.bufferOff();
+                    moc_.bufferOff();
                 }
             };
         }
