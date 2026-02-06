@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.moc;
 
 import cds.moc.Moc;
+import cds.moc.Moc1D;
 import cds.moc.MocCell;
 import cds.moc.Range;
 import cds.moc.SMoc;
@@ -18,7 +19,7 @@ import uk.ac.starlink.ttools.func.Coverage;
 public abstract class CdsMocBuilder implements MocBuilder {
 
     private final int maxOrder_;
-    final SMoc1 smoc_;
+    final SMoc smoc_;
 
     /**
      * Constructor.
@@ -27,7 +28,7 @@ public abstract class CdsMocBuilder implements MocBuilder {
      */
     protected CdsMocBuilder( int maxOrder ) {
         maxOrder_ = maxOrder;
-        smoc_ = new SMoc1( maxOrder );
+        smoc_ = new SMoc( maxOrder );
     }
 
     public PrimitiveIterator.OfLong createOrderedUniqIterator() {
@@ -107,7 +108,7 @@ public abstract class CdsMocBuilder implements MocBuilder {
                     long[] buf = bufs_[ order ];
                     buf[ ibs_[ order ]++ ] = ipix;
                     if ( ibs_[ order ] >= bufsiz_ ) {
-                        smoc_.add( order, buf, ibs_[ order ] );
+                        addArrayAtOrder( smoc_, order, buf, ibs_[ order ] );
                         ibs_[ order ] = 0;
                     }
                 }
@@ -115,7 +116,7 @@ public abstract class CdsMocBuilder implements MocBuilder {
                     for ( int io = 0; io <= maxOrder; io++ ) {
                         long[] buf = bufs_[ io ];
                         if ( buf != null ) {
-                            smoc_.add( io, buf, ibs_[ io ] );
+                            addArrayAtOrder( smoc_, io, buf, ibs_[ io ] );
                         }
                     }
                     smoc_.bufferOff();
@@ -125,42 +126,37 @@ public abstract class CdsMocBuilder implements MocBuilder {
     }
 
     /**
-     * Extends SMoc with a fast multiple addition method
-     * supplied by Pierre by email 23 Jan 2025.
+     * Fast addition of multiple ids at a single order to a MOC.
+     *
+     * <p>This is adapted from some code supplied by Pierre Fernique
+     * that was in the form of an additional method on Moc1D,
+     * by email on 23 Jan 2025.  Written with reference to the source
+     * code of the cds.moc lib version 6.31.
+     *
+     * @param   moc   moc to modify
+     * @param   order  order of all supplied ids
+     * @param   values   array of ids to add; this may be overwritten
+     * @param   nval   number of ids present in values array
      */
-    private static class SMoc1 extends SMoc {
-
-        /**
-         * Constructor.
-         *
-         * @param  order  maximum order of MOC
-         */
-        SMoc1( int order ) {
-            super( order );
+    private static void addArrayAtOrder( Moc1D moc, int order, long[] values,
+                                         int nval ) {
+        if ( nval < values.length ) {
+            long[] values1 = new long[ nval ];
+            System.arraycopy( values, 0, values1, 0, nval );
+            values = values1;
         }
-
-        /**
-         * Fast addition of a list of singletons expressed
-         * at the specified order
-         * These singletons do not need to be sorted, nor to be unique.
-         *
-         * @param order singleton order
-         * @param singletons list of singletons
-         * @param size number of singletons
-         */
-        public void add( int order, long [] singletons, int size) {
-            Arrays.sort(singletons,0,size);
-            int shift = (maxOrder()-order) * shiftOrder();
-            Range r = new Range(size);
-            int j;
-            for( int i=0; i<size; i++ ) {
-                for( j=i; j<size-1 && (singletons[j+1]-singletons[j])<=1; j++ );
-                long start = (singletons[i]) << shift;
-                long end = (singletons[j]+1L) << shift;
-                r.append(start,end);
+        Arrays.sort( values );
+        int shift = ( moc.maxOrder() - order ) * moc.shiftOrder();
+        Range r = new Range( nval );
+        for ( int i = 0; i < nval; i++ ) {
+            int j = i;
+            while ( j < nval - 1 && values[ j + 1 ] - values[ j ] <= 1 ) {
+                j++;
             }
-            range = range.union(r);
-            resetCache();
+            long start = values[ i ] << shift;
+            long end = ( values[ j ] + 1L ) << shift;
+            r.append( start, end );
         }
+        moc.setRangeList( moc.seeRangeList().union( r ) );
     }
 }
