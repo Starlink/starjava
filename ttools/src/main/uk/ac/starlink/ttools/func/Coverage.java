@@ -257,7 +257,7 @@ public class Coverage {
      * as used in MOC encoding.
      *
      * <p>If the supplied value is not a legal UNIQ integer,
-     * behaviour is undefined.
+     * -1 is returned.
      *
      * @param  uniq  uniq-encoded value
      * @return   HEALPix order
@@ -265,7 +265,8 @@ public class Coverage {
     public static int uniqToOrder( long uniq ) {
         // Copied from function from_uniq_ivoa in src/nested/mod.rs at
         // https://github.com/cds-astro/cds-healpix-rust
-        return ( 61 - Long.numberOfLeadingZeros( uniq ) ) >> 1;
+        return uniq > 3 ? ( 61 - Long.numberOfLeadingZeros( uniq ) ) >> 1
+                        : -1;
     }
 
     /**
@@ -273,7 +274,7 @@ public class Coverage {
      * as used in MOC encoding.
      *
      * <p>If the supplied value is not a legal UNIQ integer,
-     * behaviour is undefined.
+     * -1 is returned.
      *
      * @param  uniq  uniq-encoded value
      * @return  pixel index
@@ -281,6 +282,7 @@ public class Coverage {
     public static long uniqToIndex( long uniq ) {
         // Copied from function from_uniq_ivoa in src/nested/mod.rs at
         // https://github.com/cds-astro/cds-healpix-rust
-        return uniq - ( 4L << ( uniqToOrder( uniq ) << 1 ) );
+        return uniq > 3 ? uniq - ( 4L << ( uniqToOrder( uniq ) << 1 ) )
+                        : -1;
     }
 }

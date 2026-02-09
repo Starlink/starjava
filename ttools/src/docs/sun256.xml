@@ -15952,6 +15952,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="mode-gui"><code>gui</code></ref> output mode table
         window are now displayed with an ellipsis (...) in the middle
         rather than at the end.</li>
+    <li>Functions
+        <ref id="Coverage-uniqToOrder"><code>uniqToOrder</code></ref> and
+        <ref id="Coverage-uniqToIndex"><code>uniqToIndex</code></ref>
+        are now defined to return -1 in case of invalid input.</li>
     </ul>
     </p></dd>
 

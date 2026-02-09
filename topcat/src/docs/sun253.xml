@@ -34928,6 +34928,10 @@ introduced since the last version:
         <ref id="TableViewerWindow">Data Window</ref>
         are now displayed with an ellipsis (...) in the middle
         rather than at the end.</li>
+    <li>Functions 
+        <ref id="Coverage-uniqToOrder"><code>uniqToOrder</code></ref> and
+        <ref id="Coverage-uniqToIndex"><code>uniqToIndex</code></ref>
+        are now defined to return -1 in case of invalid input.</li>
     </ul>
     </p>
     </dd>

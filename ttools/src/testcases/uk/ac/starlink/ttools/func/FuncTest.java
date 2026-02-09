@@ -562,6 +562,18 @@ public class FuncTest extends TestCase {
                 assertEquals( ix, Coverage.uniqToIndex( uniq ) );
             }
         }
+        for ( long i = -10; i < 10; i++ ) {
+            int order = Coverage.uniqToOrder( i );
+            long index = Coverage.uniqToIndex( i );
+            if ( i < 4 ) {
+                assertEquals( -1, order );
+                assertEquals( -1, index );
+            }
+            else {
+                assertTrue( order >= 0 );
+                assertTrue( index >= 0 );
+            }
+        }
 
         assertEquals( 10424, Coverage.mocTileCount( iphasUrl ) );
         assertEquals( 9, Coverage.mocTileCount( asciiMoc ) );
