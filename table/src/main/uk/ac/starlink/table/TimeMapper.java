@@ -107,6 +107,11 @@ public abstract class TimeMapper implements DomainMapper {
      */
     public abstract double toUnixSeconds( Object sourceValue );
 
+    @Override
+    public String toString() {
+        return sourceName_;
+    }
+
     /**
      * Returns a selection of time mapper instances.
      */
