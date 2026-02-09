@@ -311,9 +311,14 @@ public class AreaDomain implements Domain<AreaMapper> {
                     return obj -> {
                         if ( obj instanceof Integer || obj instanceof Long ) {
                             long uniq = ((Number) obj).longValue();
-                            double duniq = Double.longBitsToDouble( uniq );
-                            return new Area( Area.Type.MOC,
-                                             new double[] { duniq } );
+                            if ( uniq > 3 ) {
+                                double duniq = Double.longBitsToDouble( uniq );
+                                return new Area( Area.Type.MOC,
+                                                 new double[] { duniq } );
+                            }
+                            else {
+                                return null;
+                            }
                         }
                         else {
                             return null;

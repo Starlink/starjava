@@ -34932,6 +34932,9 @@ introduced since the last version:
         <ref id="Coverage-uniqToOrder"><code>uniqToOrder</code></ref> and
         <ref id="Coverage-uniqToIndex"><code>uniqToIndex</code></ref>
         are now defined to return -1 in case of invalid input.</li>
+    <li><ref id="GangLayerControl_area">Area</ref> plots with
+        shape type of UNIQ no longer fail in the presence
+        of invalid UNIQ input values.</li>
     </ul>
     </p>
     </dd>
