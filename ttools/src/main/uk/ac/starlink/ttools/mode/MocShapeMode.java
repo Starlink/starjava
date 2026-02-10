@@ -94,6 +94,16 @@ public class MocShapeMode implements ProcessingMode {
             "(the type of shape represented)",
             "are defined by the <code>" + shapeName + "</code> parameter.",
             "</p>",
+            "<p>Note the value of this parameter is a single expression",
+            "not a list of expressions, so if you need to supply an",
+            "array value from a list of scalar values you may need to use",
+            "array construction functions",
+            "from the <ref id='Arrays'>Arrays</ref> class,",
+            "e.g. write",
+            "\"<code>" + coordsParam_.getName() + "=array(ra,dec)</code>\"",
+            "and not",
+            "\"<code>" + coordsParam_.getName() + "=ra,dec</code>\".",
+            "</p>",
         } );
 
         List<AreaMapper> areaMappers =
