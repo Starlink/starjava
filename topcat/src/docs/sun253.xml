@@ -34935,6 +34935,9 @@ introduced since the last version:
     <li><ref id="GangLayerControl_area">Area</ref> plots with
         shape type of UNIQ no longer fail in the presence
         of invalid UNIQ input values.</li>
+    <li>The <ref id="Times-isoToMjd"><code>isoToMjd</code></ref> and
+        <ref id="Times-isoToUnixSec"><code>isoToUnixSec</code></ref>
+        functions now permit leading and trailing whitespace.</li>
     </ul>
     </p>
     </dd>

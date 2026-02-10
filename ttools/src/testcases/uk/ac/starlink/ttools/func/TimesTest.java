@@ -24,7 +24,7 @@ public class TimesTest extends TestCase {
         assertEquals( 53303.5, Times.isoToMjd( "2004-10-25T12:00" ) );
         assertEquals( 53303.5, Times.isoToMjd( "2004-10-25T12" ) );
         assertEquals( 53303.0, Times.isoToMjd( "2004-10-25" ) );
-        assertEquals( 53303.0, Times.isoToMjd( "2004-10-25Z" ) );
+        assertEquals( 53303.0, Times.isoToMjd( " 2004-10-25Z " ) );
 
         assertEquals( "2004-10-25T12:00:00", Times.mjdToIso( 53303.5 ) );
         assertEquals( "18:00:00", Times.mjdToTime( -0.25 ) );
@@ -128,6 +128,7 @@ public class TimesTest extends TestCase {
         assertEquals( 33281.92346, Times.besselianToMjd( 1950.0 ), 1e-5 );
 
         assertEquals( 1098727200, Times.isoToUnixSec("2004-10-25T18:00:00") );
+        assertEquals( 1098727200, Times.isoToUnixSec(" 2004-10-25T18:00:00\t"));
         assertEquals( 0, Times.isoToUnixSec( "1970-01-01" ) );
         assertEquals( 946684800, Times.decYearToUnixSec( 2000.0 ) );
         assertEquals( 0, Times.decYearToUnixSec( 1970 ) );

@@ -84,23 +84,27 @@ public class Times {
 
     /** Regular expression for parsing ISO 8601 yyyy-mm-dd dates. */
     private final static Pattern ISO_MMDD_REGEX = 
-        Pattern.compile( "([0-9]+)-([0-9]{1,2})-([0-9]{1,2})" +
+        Pattern.compile( "\\s*" +
+                         "([0-9]+)-([0-9]{1,2})-([0-9]{1,2})" +
                          "(?:[" + DATE_SEP + " ]([0-9]{1,2})" +
                             "(?::([0-9]{1,2})" +
                                "(?::([0-9]{1,2}(?:\\.[0-9]*)?))?" +
                             ")?" +
                          ")?" +
-                         "Z?" );
+                         "Z?" +
+                         "\\s*" );
 
     /** Regular expression for parsing ISO 8601 yyyy-ddd dates. */
     private final static Pattern ISO_DDD_REGEX = 
-        Pattern.compile( "([0-9]+)-([0-9]{1,3})" +
+        Pattern.compile( "\\s*" +
+                         "([0-9]+)-([0-9]{1,3})" +
                          "(?:[" + DATE_SEP + " ]([0-9]{1,2})" +
                             "(?::([0-9]{1,2})" +
                                "(?::([0-9]{1,2}(?:\\.[0-9]*)?))?" +
                             ")?" +
                          ")?" +
-                         "Z?" );
+                         "Z?" +
+                         "\\s*" );
 
     /** Date of the Unix epoch as a Modified Julian Date. */
     private final static double MJD_EPOCH = 40587.0;
