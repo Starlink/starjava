@@ -633,7 +633,7 @@
    !  placed directly in the distribution directories.
    !-->
   <target name="jars"
-          depends="build"
+          depends="build,docs"
           unless="runonly.install"
           description="-> creates the package jar file(s)">
 
@@ -1440,6 +1440,12 @@
       <arg value="${build.docs}/${user.doc}.xml"/>
       <arg value="${build.docs}/${user.doc}"/>
     </java>
+
+    <!-- Copy same into the classes directory so that it ends up in the
+     !   jar file.  -->
+    <copy todir="${build.classes}/uk/ac/starlink/ttools/${user.doc}">
+      <fileset dir="${build.docs}/${user.doc}"/>
+    </copy>
   </target>
 
   <!--
