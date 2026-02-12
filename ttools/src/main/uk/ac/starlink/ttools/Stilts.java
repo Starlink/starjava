@@ -204,6 +204,7 @@ public class Stilts {
         taskFactory_.register( "cone", taskPkg + "TableCone" );
         taskFactory_.register( "coneskymatch", taskPkg + "MultiCone" );
         taskFactory_.register( "datalinklint", taskPkg + "DatalinkLint" );
+        taskFactory_.register( "doc", taskPkg + "DocServer" );
         taskFactory_.register( "funcs", taskPkg + "ShowFunctions" );
         taskFactory_.register( "mocshape", taskPkg + "MocShape" );
         taskFactory_.register( "parqlint", taskPkg + "VOParquetLint" );

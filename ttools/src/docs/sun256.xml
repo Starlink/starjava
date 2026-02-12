@@ -83,6 +83,7 @@
   <!ENTITY cone-summary SYSTEM 'cone-summary.xml'>
   <!ENTITY coneskymatch-summary SYSTEM 'coneskymatch-summary.xml'>
   <!ENTITY datalinklint-summary SYSTEM 'datalinklint-summary.xml'>
+  <!ENTITY doc-summary SYSTEM 'doc-summary.xml'>
   <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
   <!ENTITY mocshape-summary SYSTEM 'mocshape-summary.xml'>
   <!ENTITY parqlint-summary SYSTEM 'parqlint-summary.xml'>
@@ -338,6 +339,7 @@ same ground as the STIL and TOPCAT user documents
 <dt>Miscellaneous</dt>
 <dd><p>
     <ref id="calc" plaintextref="yes"><code>calc</code></ref>,
+    <ref id="doc" plaintextref="yes"><code>doc</code></ref>,
     <ref id="funcs" plaintextref="yes"><code>funcs</code></ref>,
     <ref id="parqlint" plaintextref="yes"><code>parqlint</code></ref>,
     <ref id="parqlook" plaintextref="yes"><code>parqlook</code></ref>,
@@ -563,6 +565,7 @@ the available tasks are:
 <li><code>cone</code></li>
 <li><code>coneskymatch</code></li>
 <li><code>datalinklint</code></li>
+<li><code>doc</code></li>
 <li><code>funcs</code></li>
 <li><code>mocshape</code></li>
 <li><code>parqlint</code></li>
@@ -725,7 +728,7 @@ itself about task and its parameters, as described in the next section.
 
 </subsect>
 
-<subsect>
+<subsect id="stiltsHelp">
 <subhead><title>Getting Help</title></subhead>
 
 <p>As well as the command descriptions in this document
@@ -5986,6 +5989,9 @@ Detailed descriptions and examples for each command can be found in
     <li><ref id="calc" plaintextref="yes"><code>calc</code></ref>:
         &calc-purpose;
         </li>
+    <li><ref id="doc" plaintextref="yes"><code>doc</code></ref>:
+        &doc-purpose;
+        </li>
     <li><ref id="funcs" plaintextref="yes"><code>funcs</code></ref>:
         &funcs-purpose;
         </li>
@@ -6825,6 +6831,85 @@ Totals: Errors: 4; Warnings: 0
     ]]></verbatim>
     To output in JSON format instead, you could specify
     <code>format=json</code>.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
+<subsect id="doc" tocleaf="yes">
+<subhead><title><code>doc</code>: &doc-purpose;</title></subhead>
+
+<p><code>doc</code> displays STILTS documentation in a web browser.
+It starts a web server serving this user document
+and attempts to instruct the default web browser
+to open a page pointing at it,
+then continues running so that following internal links on the web page
+will work.
+If the <code>doc</code> command has already been run elsewhere and
+is currently serving documentation for this version of STILTS,
+the browser is pointed at that server instead and the command
+exits immediately.
+</p>
+
+<p>You can optionally supply as an argument the name of the section
+you want to look at; this may be the name of a
+<ref id="cmdUsage">command</ref>,
+<ref id="filterSteps">filter</ref>,
+<ref id="LayerType">plot layer type</ref>
+or some other things.
+</p>
+
+<p>Note that there are other options for investigating
+the STILTS documentation:
+the <ref id="stiltsHelp">command-line help system</ref>
+can report command and parameter usage at the terminal,
+and documentation for the most recent public release should
+also be available from the STILTS web page at
+<webref url="http://www.starlink.ac.uk/stilts/sun256/"/>.
+</p>
+
+&doc-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>doc</code>:
+<dl>
+
+<dt><verbatim><![CDATA[
+stilts doc
+]]></verbatim></dt>
+<dd><p>Displays the front page of the SUN/256, this user document,
+    in a browser.
+    </p></dd>
+
+<dt><verbatim><![CDATA[
+stilts doc cdsskymatch
+]]></verbatim></dt>
+<dd><p>Displays documentation for the
+    <ref id="cdsskymatch"><code>cdsskymatch</code></ref> command
+    in a browser.
+    </p></dd>
+
+<dt><verbatim><![CDATA[
+stilts doc addcol single=true
+]]></verbatim></dt>
+<dd><p>Displays the whole user document as a single page in the browser,
+    positioned at the documentation of the
+    <ref id="addcol"><code>addcol</code></ref> filter.
+    </p></dd>
+
+<dt><verbatim><![CDATA[
+stilts doc port=2112 browser=false
+]]></verbatim></dt>
+<dd><p>Attempts to start an HTTP server serving the documentation
+    on port 2112, but does not attempt to display it in a browser.
+    The server URL will be written to standard output.
+    If the chosen port is unavailable, another port will be used.
     </p></dd>
 
 </dl>
@@ -15962,6 +16047,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>The <ref id="Times-isoToMjd"><code>isoToMjd</code></ref> and
         <ref id="Times-isoToUnixSec"><code>isoToUnixSec</code></ref>
         functions now permit leading and trailing whitespace.</li>
+    <li>New command <ref id="doc"><code>doc</code></ref> for
+        local browsing of this user document.
+        The HTML version of the documentation is now bundled inside the
+        application, meaning the <code>stilts.jar</code> file
+        has grown by 3Mb or so.</li>
     </ul>
     </p></dd>
 
