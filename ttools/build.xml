@@ -1441,6 +1441,17 @@
       <arg value="${build.docs}/${user.doc}"/>
     </java>
 
+    <!-- Write a checksum into the user document directory to identify
+     !   it by contents. -->
+    <delete file="${build.docs}/${user.doc}/checksum"/>
+    <java classpathref="classpath"
+          classname="uk.ac.starlink.ttools.build.DirChecksum"
+          output="${build.docs}/${user.doc}/checksum"
+          failonerror="yes"
+          fork="no">
+      <arg value="${build.docs}"/>
+    </java>
+
     <!-- Copy same into the classes directory so that it ends up in the
      !   jar file.  -->
     <copy todir="${build.classes}/uk/ac/starlink/ttools/${user.doc}">
