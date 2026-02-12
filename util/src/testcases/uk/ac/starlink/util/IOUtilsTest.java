@@ -104,6 +104,19 @@ public class IOUtilsTest extends TestCase {
                                                    Level.CONFIG ) );
     }
 
+    public void testReadUrl() throws IOException {
+        assertEquals( "some-text",
+                      IOUtils.readUrl( getClass().getResource( "resource" )
+                                                 .toString() ) );
+        try {
+            IOUtils.readUrl( "file:///Sir-Not-appearing-in-this-test" );
+            fail();
+        }
+        catch ( IOException e ) {
+            // supposed to happen
+        }
+    }
+
     public void testCopy() throws IOException {
         assertCopyOK( "Llanstephan".getBytes( "UTF-8" ) );
 

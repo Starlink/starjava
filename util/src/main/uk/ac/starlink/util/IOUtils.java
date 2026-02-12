@@ -1,16 +1,21 @@
 package uk.ac.starlink.util;
 
+import java.io.BufferedReader;
 import java.io.DataInput;
 import java.io.EOFException;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Provides static methods which do miscellaneous input/output tasks.
@@ -165,7 +170,7 @@ public class IOUtils {
     /**
      * Reads a static resource and returns the contents as a string.
      * The resource is read using <code>clazz.getResourceAsStream(name)</code>
-     * and is assumed to have ASCII content.  The result is cached so that
+     * and is assumed to have UTF-8 content.  The result is cached so that
      * subsequent calls will return the same value.
      * If it can't be read, "?" is returned, and a message is written
      * through the logging system at the requested level.
@@ -182,37 +187,53 @@ public class IOUtils {
                                               Level level ) {
         List<Object> key = Arrays.asList( new Object[] { clazz, name } );
         if ( ! resourceMap_.containsKey( key ) ) {
-            String value = null;
-            InputStream in = null;
-            try {
-                in = clazz.getResourceAsStream( name );
+            String value;
+            try ( InputStream in = clazz.getResourceAsStream( name ) ) {
                 if ( in != null ) {
-                    StringBuffer sbuf = new StringBuffer();
-                    for ( int b; ( b = in.read() ) > 0; ) {
-                        sbuf.append( (char) b );
-                    }
-                    value = sbuf.toString().trim();
+                    BufferedReader rdr =
+                        new BufferedReader(
+                            new InputStreamReader( in,
+                                                   StandardCharsets.UTF_8 ) );
+                    value = rdr.lines().collect( Collectors.joining( "\n" ) );
+                }
+                else {
+                    value = null;
                 }
             }
             catch ( IOException e ) {
-            }
-            finally {
-                if ( in != null ) {
-                    try {
-                        in.close();
-                    }
-                    catch ( IOException e ) {
-                    }
-                }
+                value = null;
             }
             if ( value == null ) {
                 logger_.log( level == null ? Level.WARNING : level,
                              "Couldn't read requested resource " + name );
                 value = "?";
             }
-            resourceMap_.put( key, value );
+            resourceMap_.put( key, value.trim() );
         }
         return resourceMap_.get( key );   
+    }
+
+    /**
+     * Reads the contents of a URL as a string.
+     * The resource is assumed to have UTF-8 content.
+     * This is intended for short text resources.
+     *
+     * @param  url  string representation of URL
+     * @return   string content of resource
+     * @throws  IOException  in case of read failure
+     */
+    public static String readUrl( String url ) throws IOException {
+        try ( InputStream in = URLUtils.newURL( url ).openStream() ) {
+            if ( in != null ) {
+                BufferedReader rdr =
+                    new BufferedReader(
+                        new InputStreamReader( in, StandardCharsets.UTF_8 ) );
+                return rdr.lines().collect( Collectors.joining( "\n" ) );
+            }
+            else {
+                throw new FileNotFoundException();
+            }
+        }
     }
 
     /**
