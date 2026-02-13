@@ -2898,7 +2898,7 @@ packages <code>uk.ac.starlink.ttools.func</code> and
 (<code>uk.ac.starlink.topcat.func.Strings</code> etc).
 However, the public static methods are all imported into an anonymous
 namespace for bytecode compilation, so that you write
-(<code>sqrt(x)</code> and not <code>Maths.sqrt(x)</code>.
+<code>sqrt(x)</code> and not <code>Maths.sqrt(x)</code>.
 The same happens to other classes that are imported (which can be
 in any package or none) - their public
 static methods all go into the anonymous namespace.  Thus, method
