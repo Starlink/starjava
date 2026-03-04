@@ -5,16 +5,24 @@
 
 package uk.ac.starlink.ttools.func;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import uk.ac.starlink.ttools.build.HideDoc;
 import uk.ac.starlink.ttools.cone.AsciiMocCoverage;
 import uk.ac.starlink.ttools.cone.Coverage.Amount;
 import uk.ac.starlink.ttools.cone.MocCoverage;
 import uk.ac.starlink.ttools.cone.UrlMocCoverage;
+import uk.ac.starlink.ttools.moc.MocBuilder;
+import uk.ac.starlink.ttools.moc.MocImpl;
+import uk.ac.starlink.ttools.moc.MocStreamFormat;
 import uk.ac.starlink.util.URLUtils;
 
 /**
@@ -284,5 +292,72 @@ public class Coverage {
         // https://github.com/cds-astro/cds-healpix-rust
         return uniq > 3 ? uniq - ( 4L << ( uniqToOrder( uniq ) << 1 ) )
                         : -1;
+    }
+
+    /**
+     * Converts a list of HEALPix indices at the same order into a MOC,
+     * and returns its ASCII representation.
+     *
+     * <p>Note this may not be a very fast operation, so use within
+     * TOPCAT, where evaluation is lazy and happens every time the
+     * cell value is required, may lead to slow behaviour.
+     *
+     * @example <code>indicesToMocAscii(1,intArray(24,25,26,27,39,42,43)) =
+     *                "0/6 1/39 42-43"</code>
+     *
+     * @param  order  MOC order of tiles
+     * @param  indices   array of tile indices at the given order
+     * @return   ASCII representation of MOC at the given order
+     */
+    public static String indicesToMocAscii( int order, long[] indices ) {
+        return indices == null || indices.length == 0
+             ? null
+             : indicesToMocAscii( order, LongStream.of( indices ) );
+    }
+
+    /**
+     * Converts a list of integer HEALPix indices at the same order into a MOC,
+     * and returns its ASCII representation.
+     *
+     * @param  order  MOC order of tiles
+     * @param  indices   array of tile indices at the given order
+     * @return   ASCII representation of MOC at the given order
+     */
+    @HideDoc
+    public static String indicesToMocAscii( int order, int[] indices ) {
+        return indices == null || indices.length == 0
+             ? null
+             : indicesToMocAscii( order,
+                                  IntStream.of( indices ).mapToLong( i -> i ) );
+        
+    }
+
+    /**
+     * Converts a stream of HEALPix indices at the same order into a MOC,
+     * and returns its ASCII representation.
+     *
+     * @param  order  MOC order of tiles
+     * @param  indexStream   stream of indices, not null
+     * @return  ASCII representation of MOC at the given order,
+     *          or null if there's a problem
+     */
+    private static String indicesToMocAscii( int order,
+                                             LongStream indexStream ) {
+        if ( order < 0 || order > 29 ) {
+            return null;
+        }
+        MocBuilder mb = MocImpl.AUTO.createMocBuilder( order );
+        indexStream.forEach( l -> mb.addTile( order, l ) );
+        mb.endTiles();
+        long ntile = LongStream.of( mb.getOrderCounts() ).sum();
+        try ( ByteArrayOutputStream bout = new ByteArrayOutputStream() ) {
+            MocStreamFormat.ASCII.writeMoc( mb.createOrderedUniqIterator(),
+                                            ntile, order, bout );
+            return new String( bout.toByteArray(), StandardCharsets.UTF_8 )
+                  .trim();
+        }
+        catch ( IOException e ) {
+            return null;
+        }
     }
 }

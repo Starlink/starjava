@@ -16052,6 +16052,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         The HTML version of the documentation is now bundled inside the
         application, meaning the <code>stilts.jar</code> file
         has grown by 3Mb or so.</li>
+    <li>New coverage function 
+        <ref id="Coverage-indicesToMocAscii">
+                    <code>indicesToMocAscii</code></ref>
+        can create an ASCII MOC string from a set of HEALPix indices
+        at a given level.</li>
     </ul>
     </p></dd>
 

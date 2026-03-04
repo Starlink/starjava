@@ -579,6 +579,15 @@ public class FuncTest extends TestCase {
         assertEquals( 9, Coverage.mocTileCount( asciiMoc ) );
         assertEquals( 0.25, Coverage.mocSkyProportion( "0/0-2" ) );
         assertEquals( Coverage.SPHERE_SQDEG, 41253.0, 0.5 );
+
+        assertEquals(
+            "0/6 1/39 42-43",
+            Coverage
+           .indicesToMocAscii( 1, new long[] { 24,25,26,27,39,42,43L } ) );
+        assertEquals(
+            "0/6 1/39 42-43",
+            Coverage
+           .indicesToMocAscii( 1, new int[] { 42,26,43,39,25,27,24,43 } ) );
     }
 
     public void testDistances() {

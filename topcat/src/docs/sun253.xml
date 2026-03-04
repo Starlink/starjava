@@ -34938,6 +34938,11 @@ introduced since the last version:
     <li>The <ref id="Times-isoToMjd"><code>isoToMjd</code></ref> and
         <ref id="Times-isoToUnixSec"><code>isoToUnixSec</code></ref>
         functions now permit leading and trailing whitespace.</li>
+    <li>New coverage function
+        <ref id="Coverage-indicesToMocAscii"
+                   ><code>indicesToMocAscii</code></ref>
+        can create an ASCII MOC string from a set of HEALPix indices
+        at a given level.</li>
     </ul>
     </p>
     </dd>
