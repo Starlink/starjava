@@ -122,7 +122,10 @@ public class AreaDomain implements Domain<AreaMapper> {
         String ucd = info.getUCD();
         if ( clazz.equals( String.class ) ) {
             if ( "moc".equalsIgnoreCase( xtype ) ||
-                 "smoc".equalsIgnoreCase( xtype ) ) {
+                 "smoc".equalsIgnoreCase( xtype ) ||
+                 "moc".equalsIgnoreCase( name ) ||
+                 ( ucd != null &&
+                   ucd.toLowerCase().startsWith( "meta.coverage" ) ) ) {
                 return ASCIIMOC_MAPPER;
             }
             else if ( "stc-s".equalsIgnoreCase( xtype ) ||
