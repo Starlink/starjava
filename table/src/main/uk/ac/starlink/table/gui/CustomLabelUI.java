@@ -2,6 +2,7 @@ package uk.ac.starlink.table.gui;
 
 import java.awt.FontMetrics;
 import java.awt.Rectangle;
+import java.util.regex.Pattern;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -23,6 +24,8 @@ import javax.swing.plaf.basic.BasicLabelUI;
 public class CustomLabelUI extends BasicLabelUI {
     private static final String ELLIPSES = "...";
     private static final int ELLIPSES_LEN = ELLIPSES.length();
+    private static final Pattern EMBEDDED_WHITESPACE =
+        Pattern.compile( "[^\\s]\\s+[^\\s]" );
     private String displayedText_;
 
     /**
@@ -71,12 +74,12 @@ public class CustomLabelUI extends BasicLabelUI {
             return displayedText_;
         }
 
-
         /* Check if a truncation occurred, and if the text is long enough. If
          * the text is too short, there is no point in truncating differently.*/
         int displayedLength = displayedText_.length();
         if ( !displayedText_.equals( text ) &&
-             displayedLength > 2 * ELLIPSES_LEN ) {
+             displayedLength > 2 * ELLIPSES_LEN &&
+             isCentralElisionPreferred( text ) ) {
             int splitLength =
                 ( displayedLength + ELLIPSES_LEN ) / 2 - ELLIPSES_LEN;
             String beforeEllipses = displayedText_.substring( 0, splitLength );
@@ -93,5 +96,24 @@ public class CustomLabelUI extends BasicLabelUI {
         }
 
         return displayedText_;
+    }
+
+    /**
+     * Indicates whether text should be truncated by eliding text in the
+     * middle, rather than at the end.
+     *
+     * @param  txt  text to test
+     * @return   true if central elision is preferred
+     */
+    private boolean isCentralElisionPreferred( String txt ) {
+        if ( txt == null ||
+             txt.length() == 0 ||
+             txt.endsWith( ELLIPSES ) ||
+             EMBEDDED_WHITESPACE.matcher( txt ).find() ) {
+            return false;
+        }
+        else {
+            return true;
+        }
     }
 }
