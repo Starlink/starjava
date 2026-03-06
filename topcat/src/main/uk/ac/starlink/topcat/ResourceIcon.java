@@ -255,6 +255,7 @@ public class ResourceIcon implements Icon {
         FOOTPRINT = makeIcon( "footprint.png" ),
         ZOOM_IN = makeIcon( "mag-plus.png" ),
         ZOOM_OUT = makeIcon( "mag-minus.png" ),
+        MAGNIFY = makeIcon( "mag.png" ),
         SKETCH = makeIcon( "sketch1.png" ),
         PROGRESS = makeIcon( "plot_prog.png" ),
         MATCHPLOT = makeIcon( "matchplot2.png" ),

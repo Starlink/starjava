@@ -26,6 +26,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.event.ChangeEvent;
@@ -257,11 +259,14 @@ public class TableViewerWindow extends AuxWindow {
                 if ( evt.isPopupTrigger() ) {
                     Component comp = evt.getComponent();
                     int jcol = jtable_.columnAtPoint( evt.getPoint() );
+                    int jrow = evt.getSource() instanceof JTableHeader
+                             ? -1
+                             : jtable_.rowAtPoint( evt.getPoint() );
                     if ( comp == rowHeader_ ) {
                         jcol = -1;
                     }
                     if ( jcol >= -1 ) {
-                        JPopupMenu popper = columnPopup( jcol );
+                        JPopupMenu popper = columnPopup( jcol, jrow );
                         if ( popper != null ) {
                             popper.show( comp, evt.getX(), evt.getY() );
                         }
@@ -458,12 +463,14 @@ public class TableViewerWindow extends AuxWindow {
      * will be returned.
      *
      * @param  jcol the data model column to which the menu applies
+     * @param  jrow the data model row at which the menu was invoked
      */
-    private JPopupMenu columnPopup( final int jcol ) {
+    private JPopupMenu columnPopup( final int jcol, final int jrow ) {
         final StarTableColumn tcol;
         ColumnInfo colInfo;
         String colName;
         boolean rowHead = jcol < 0;
+        boolean colHead = jrow < 0;
         if ( ! rowHead ) {
             tcol = (StarTableColumn) colModel_.getColumn( jcol );
             colInfo = tcol.getColumnInfo();
@@ -477,6 +484,37 @@ public class TableViewerWindow extends AuxWindow {
 
         JPopupMenu popper = new JPopupMenu();
         final Component parent = this;
+
+        /* Action to open the cell text in a viewer. */
+        if ( ! rowHead && ! colHead ) {
+            Action viewCellAct =
+                    new BasicAction( "View Cell", ResourceIcon.MAGNIFY,
+                                     "View the cell contents in a viewer." ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    String title = "Cell View (" + tcModel_.getID() + ": "
+                                 + tcol.getColumnInfo().getName() + jrow +  ")";
+                    CellViewWindow cvWin =
+                        new CellViewWindow( tcModel_, parent );
+                    cvWin.setRowIndex( jrow );
+                    cvWin.setColumnIndex( jcol );
+                    cvWin.setVisible( true );
+
+                    /* Since the row you are clicking on affects the
+                     * viewer that you see for this action (unlike the other
+                     * column popup actions) it's more obvious what's going on
+                     * if the row gets highilighted (hence row is activated)
+                     * when this happens, so take steps to make that happen. */
+                    SwingUtilities.invokeLater( () -> 
+                        rowSelectionModel_.setSelectionInterval( jrow, jrow )
+                    );
+                }
+            };
+            popper.add( viewCellAct );
+        }
+
+        /* Separator here separates cell-related from column-related
+         * actions. */
+        popper.addSeparator();
 
         /* Action to replace current column. */
         if ( ! rowHead ) {
@@ -562,30 +600,6 @@ public class TableViewerWindow extends AuxWindow {
                 };
              popper.add( explodeAct );
         }
-
-        popper.addSeparator();
-
-        /* Get the current row that is being selected. */
-        final int jrow = rowSelectionModel_.getMinSelectionIndex();
-
-        /* Action to open the cell text in a viewer. */
-        Action viewCellAct =
-            new BasicAction( "View Cell", ResourceIcon.ZOOM_IN,
-                             "View the cell contents in a viewer." ) {
-                public void actionPerformed( ActionEvent evt ) {
-                    CellViewWindow cell_view =
-                        new CellViewWindow( "Cell Viewer", parent );
-                    TableModel tm = jtable_.getModel();
-                    String selectedCell = tm.getValueAt( jrow, jcol ).toString();
-                    cell_view.setText( selectedCell );
-                    cell_view.setVisible( true );
-                }
-            };
-
-        /* Only enable the Cell View option if something is selected. If no row
-         * column is selected, it will be displayed in deactived state. */
-        viewCellAct.setEnabled( jrow >= 0 && jcol >= 0 );
-        popper.add( viewCellAct );
 
         return popper;
     }
