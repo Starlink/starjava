@@ -87,7 +87,7 @@ public class MocTest extends TestCase {
 
     private static MocImpl createBagImpl( String name,
                                           LongFunction<IndexBag> bagFactory ) {
-        return new MocImpl( name, "test" ) {
+        return new MocImpl( name, "test", false ) {
             public MocBuilder createMocBuilder( int mocOrder ) {
                 return new BagMocBuilder( mocOrder, bagFactory );
             }
