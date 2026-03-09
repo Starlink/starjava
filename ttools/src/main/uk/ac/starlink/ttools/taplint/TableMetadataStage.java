@@ -342,14 +342,35 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
      * @param  tname    table name
      */
     private void checkTableName( Reporter reporter, String tname ) {
-        if ( ! syntax_.isAdqlTableName( tname ) ) {
+        String[] cst = syntax_.getCatalogSchemaTable( tname );
+        if ( cst == null ) {
             reporter.report( FixedCode.E_TNTN,
                              "Bad ADQL table name '" + tname + "'" );
         }
-        if ( syntax_.isReserved( tname ) ) {
-            reporter.report( FixedCode.E_TRSV,
-                             "Table name is ADQL reserved word '"
-                           + tname + "'" );
+        else {
+            int nReserved =
+                (int) Arrays
+                     .stream( cst )
+                     .filter( s -> s != null && syntax_.isReserved( s ) )
+                     .count();
+            if ( nReserved > 0 ) {
+                String msg = new StringBuffer()
+                   .append( "Component of table name '" )
+                   .append( tname )
+                   .append( "' contains " )
+                   .append( nReserved > 1 ? "reserved words"
+                                          : "a reserved word" )
+                   .append( "; should probably delimit like: '" )
+                   .append( Arrays.stream( cst )
+                                  .filter( s -> s != null )
+                                  .map( s -> syntax_.isReserved( s )
+                                           ? syntax_.quote( s )
+                                           : s )
+                                  .collect( Collectors.joining( "." ) ) )
+                   .append( "'" )
+                   .toString();
+                reporter.report( FixedCode.E_TNTN, msg );
+            }
         }
     }
 

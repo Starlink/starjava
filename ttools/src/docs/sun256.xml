@@ -16057,6 +16057,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
                     <code>indicesToMocAscii</code></ref>
         can create an ASCII MOC string from a set of HEALPix indices
         at a given level.</li>
+    <li><ref id="taplint"><code>taplint</code></ref> now complains
+        about reserved words in declared table names.</li>
     </ul>
     </p></dd>
 
