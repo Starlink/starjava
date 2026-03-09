@@ -1,17 +1,28 @@
 package uk.ac.starlink.ttools.moc;
 
+import cds.moc.Moc;
+import cds.moc.Moc1D;
+import cds.moc.MocCell;
 import cds.moc.SMoc;
+import cds.moc.TMoc;
+import cds.moc.STMoc;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.PrimitiveIterator;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.zip.Adler32;
 import java.util.zip.Checksum;
 import uk.ac.starlink.fits.CardFactory;
 import uk.ac.starlink.fits.CardImage;
 import uk.ac.starlink.fits.FitsUtil;
 import uk.ac.starlink.ttools.func.Coverage;
+import uk.ac.starlink.ttools.func.Times;
 import uk.ac.starlink.util.DataBufferedOutputStream;
 
 /**
@@ -59,8 +70,8 @@ public abstract class MocStreamFormat {
                                       smoc.writeASCII( out );
                                       out.write( (int) '\n' );
                                    } ),
-        CDS_JSON = new CdsFormat( "cds_json", SMoc::writeJSON ),
-        CDS_FITS = new CdsFormat( "cds_fits", SMoc::writeFITS ),
+        CDS_JSON = new CdsFormat( "cds_json", Moc::writeJSON ),
+        CDS_FITS = new CdsFormat( "cds_fits", Moc::writeFITS ),
     };
 
     /**
@@ -73,7 +84,8 @@ public abstract class MocStreamFormat {
     }
 
     /**
-     * Outputs a given MOC to a given stream.
+     * Outputs a MOC expressed as an iterator over UNIQ values
+     * to a given stream.
      *
      * @param  uniqIt  iterator over sorted list of uniq-encoded tile values
      * @param  count   number of tiles in iterator
@@ -82,6 +94,15 @@ public abstract class MocStreamFormat {
      */
     public abstract void writeMoc( PrimitiveIterator.OfLong uniqIt, long count,
                                    int maxOrder, OutputStream out )
+        throws IOException;
+
+    /**
+     * Outputs a CDS MOC object to a given stream.
+     *
+     * @param  moc   CDS MOC 
+     * @param  out   destination stream
+     */
+    public abstract void writeCdsMoc( Moc moc, OutputStream out )
         throws IOException;
 
     @Override
@@ -145,6 +166,13 @@ public abstract class MocStreamFormat {
             }
             writer.flush();
         }
+
+        public void writeCdsMoc( Moc moc, OutputStream out )
+                throws IOException {
+            // Could do it, but it's not really essential.
+            throw new UnsupportedOperationException( "No raw output "
+                                                   + "for CDS MOC" );
+        }
     }
 
     /**
@@ -170,7 +198,7 @@ public abstract class MocStreamFormat {
             while ( uniqIt.hasNext() ) {
                 long uniq = uniqIt.next();
                 ntile++;
-                updateChecksum( cksum, uniq );
+                updateChecksumLong( cksum, uniq );
                 int order = uniqToOrder( uniq );
                 maxOrd = Math.max( order, maxOrd );
                 cov += 1. / ( 12L << 2 * order );
@@ -191,13 +219,98 @@ public abstract class MocStreamFormat {
             pout.flush();
         }
 
+        public void writeCdsMoc( Moc moc, OutputStream out )
+                throws IOException {
+            final SMoc smoc;
+            final TMoc tmoc;
+            if ( moc instanceof SMoc ) {
+                smoc = (SMoc) moc;
+                tmoc = null;
+            }
+            else if ( moc instanceof TMoc ) {
+                tmoc = (TMoc) moc;
+                smoc = null;
+            }
+            else {
+                assert moc instanceof STMoc;
+                STMoc stmoc = (STMoc) moc;
+                try {
+                    smoc = stmoc.getSpaceMoc();
+                    tmoc = stmoc.getTimeMoc();
+                }
+                catch ( Exception e ) {
+                    throw new RuntimeException( "MOC error" );
+                }
+            }
+            Function<Map.Entry<String,?>,String> entryString =
+                e -> "   " + e.getKey() + ": " + e.getValue();
+            PrintStream pout = new PrintStream( out );
+            if ( smoc != null ) {
+                pout.println( "Space:" );
+                pout.println( summariseCdsMoc1D( smoc )
+                             .entrySet()
+                             .stream()
+                             .map( entryString )
+                             .collect( Collectors.joining( "\n" ) ) );
+            }
+            if ( tmoc != null ) {
+                pout.println( "Time:" );
+                pout.println( summariseCdsMoc1D( tmoc )
+                             .entrySet()
+                             .stream()
+                             .map( entryString )
+                             .collect( Collectors.joining( "\n" ) ) );
+            }
+            pout.flush();
+        }
+
+        /**
+         * Accumulates some summary statistics for a 1D MOC (SMOC or TMOC).
+         *
+         * @param  moc  MOC
+         * @return   map of summary items to values
+         */
+        private Map<String,Object> summariseCdsMoc1D( Moc1D moc ) {
+            Checksum cksum = new Adler32();
+            boolean isRange = false;
+            int maxOrder = 0;
+            long ncell = 0;
+            for ( Iterator<MocCell> it = moc.cellIterator( isRange );
+                  it.hasNext(); ) {
+                MocCell cell = it.next();
+                int order = cell.order;
+                long index = cell.start;
+                updateChecksumInt( cksum, order );
+                updateChecksumLong( cksum, index );
+                maxOrder = Math.max( maxOrder, order );
+                ncell += cell.end + 1 - cell.start;
+            }
+            double coverage = moc.getCoverage();
+            Map<String,Object> items = new LinkedHashMap<>();
+            items.put( "Order", Integer.valueOf( maxOrder ) );
+            items.put( "Count", Long.valueOf( ncell ) );
+            if ( moc instanceof SMoc ) {
+                items.put( "Coverage", Double.valueOf( coverage ) );
+            }
+            if ( moc instanceof TMoc ) {
+                TMoc tmoc = (TMoc) moc;
+                String tmin =
+                    Times.mjdToIso( Times.jdToMjd( tmoc.getTimeMin() ) );
+                String tmax =
+                    Times.mjdToIso( Times.jdToMjd( tmoc.getTimeMax() ) );
+                items.put( "Range", tmin + " - " + tmax );
+            }
+            items.put( "Checksum", Long.toHexString( cksum.getValue() ) );
+            return items;
+        }
+
         /**
          * Updates a supplied checksum object with a supplied long value.
          *
          * @param  cksum  checksum to update
          * @param  lvalue   long value
          */
-        private static void updateChecksum( Checksum cksum, long lvalue ) {
+        private static void updateChecksumLong( Checksum cksum, long lvalue ) {
             cksum.update( (byte) ( lvalue >>> 56 ) );
             cksum.update( (byte) ( lvalue >>> 48 ) );
             cksum.update( (byte) ( lvalue >>> 40 ) );
@@ -206,6 +319,19 @@ public abstract class MocStreamFormat {
             cksum.update( (byte) ( lvalue >>> 16 ) );
             cksum.update( (byte) ( lvalue >>>  8 ) );
             cksum.update( (byte) ( lvalue >>>  0 ) );
+        }
+
+        /**
+         * Updates a supplied checksum object with a supplied int value.
+         *
+         * @param  cksum  checksum to update
+         * @param  ivalue   long value
+         */
+        private static void updateChecksumInt( Checksum cksum, int ivalue ) {
+            cksum.update( (byte) ( ivalue >>> 24 ) );
+            cksum.update( (byte) ( ivalue >>> 16 ) );
+            cksum.update( (byte) ( ivalue >>>  8 ) );
+            cksum.update( (byte) ( ivalue >>>  0 ) );
         }
     }
 
@@ -231,6 +357,20 @@ public abstract class MocStreamFormat {
                 writer.writeUniq( uniqIt.nextLong() );
             }
             writer.flush();
+        }
+
+        public void writeCdsMoc( Moc moc, OutputStream out )
+                throws IOException {
+            try {
+                moc.writeASCII( out );
+            }
+            catch ( IOException e ) {
+                throw e;
+            }
+            catch ( Exception e ) {
+                throw new IOException( "MOC output error", e );
+            }
+            out.write( (int) '\n' );
         }
 
         /**
@@ -334,6 +474,19 @@ public abstract class MocStreamFormat {
                 writer.writeUniq( uniqIt.nextLong() );
             }
             writer.flush();
+        }
+
+        public void writeCdsMoc( Moc moc, OutputStream out )
+                throws IOException {
+            try {
+                moc.writeJSON( out );
+            }
+            catch ( IOException e ) {
+                throw e;
+            }
+            catch ( Exception e ) {
+                throw new IOException( "MOC output error", e );
+            }
         }
 
         /**
@@ -456,6 +609,19 @@ public abstract class MocStreamFormat {
                 out.write( new byte[ FitsUtil.BLOCK_LENG - extra ] );
             }
         }
+
+        public void writeCdsMoc( Moc moc, OutputStream out )
+                throws IOException {
+            try {
+                moc.writeFITS( out );
+            }
+            catch ( IOException e ) {
+                throw e;
+            }
+            catch ( Exception e ) {
+                throw new IOException( "MOC output error", e );
+            }
+        }
     }
 
     /**
@@ -464,17 +630,17 @@ public abstract class MocStreamFormat {
      */
     private static class CdsFormat extends MocStreamFormat {
 
-        private final SmocWriter smocWriter_;
+        private final MocWriter mocWriter_;
        
         /**
          * Constructor.
          *
          * @param  name  format name
-         * @param  smocWriter  serializes an SMoc
+         * @param  mocWriter  serializes a Moc
          */
-        CdsFormat( String name, SmocWriter smocWriter ) {
+        CdsFormat( String name, MocWriter mocWriter ) {
             super( name );
-            smocWriter_ = smocWriter;
+            mocWriter_ = mocWriter;
         }
 
         public void writeMoc( PrimitiveIterator.OfLong uniqIt, long count,
@@ -497,8 +663,13 @@ public abstract class MocStreamFormat {
             smoc.bufferOff();
 
             /* Serialize the SMoc. */
+            writeCdsMoc( smoc, out );
+        }
+
+        public void writeCdsMoc( Moc moc, OutputStream out )
+                throws IOException {
             try {
-                smocWriter_.writeSmoc( smoc, out );
+                mocWriter_.writeMoc( moc, out );
             }
             catch ( IOException e ) {
                 throw e;
@@ -507,21 +678,20 @@ public abstract class MocStreamFormat {
                 throw new IOException( e );
             }
         }
-
         
         /**
-         * Defines SMoc serialization.
+         * Defines Moc serialization.
          */
         @FunctionalInterface
-        static interface SmocWriter {
+        static interface MocWriter {
 
             /**
-             * Serializes an SMoc to a given output stream.
+             * Serializes a Moc to a given output stream.
              *
-             * @param  smoc  SMoc object 
+             * @param  moc  Moc object 
              * @param  out  destination stream
              */
-            void writeSmoc( SMoc smoc, OutputStream out ) throws Exception;
+            void writeMoc( Moc smoc, OutputStream out ) throws Exception;
         }
     }
 
