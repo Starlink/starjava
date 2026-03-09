@@ -19,6 +19,7 @@ import uk.ac.starlink.ttools.func.Coverage;
 public abstract class CdsMocBuilder implements MocBuilder {
 
     final Moc1D moc_;
+    public static final int CDSMOC_BUFSIZ = 500_000;
 
     /**
      * Constructor.
@@ -90,7 +91,7 @@ public abstract class CdsMocBuilder implements MocBuilder {
             return new CdsMocBuilder( moc ) {
                 /* Constructor. */ {
                     // In (some) tests this value seems about optimal.
-                    moc_.bufferOn( 500_000 );
+                    moc_.bufferOn( CDSMOC_BUFSIZ );
                 }
                 public void addTile( int order, long ipix ) {
                     try {

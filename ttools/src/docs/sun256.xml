@@ -6948,15 +6948,18 @@ There are no parameters.
 <subsect id="mocshape" tocleaf="yes">
 <subhead><title><code>mocshape</code>: &mocshape-purpose;</title></subhead>
 
-<p><code>mocshape</code> takes a list of sky positions or shapes
-from an input table and generates a Multi-Order Coverage map
+<p><code>mocshape</code> takes a list of sky region and/or time interval
+descriptions from an input table and generates a Multi-Order Coverage map
 (<webref url="http://www.ivoa.net/Documents/MOC/">MOC</webref>)
-that describes the union of their coverage on the sky.
+that describes the union of their coverage on the sky and/or in time.
+It can generate Space, Time or Space-and-Time MOCs (SMOC, TMOC or STMOC),
+as determined by the <code>moctype</code> parameter.
 </p>
 
 <p>It does a similar job to the older
 <ref id="pixfoot"><code>pixfoot</code></ref> command,
-but it can cope with input shapes that are more general than just points or
+but it can generate TMOC and STMOC as well as SMOC output,
+and it can cope with input shapes that are more general than just points or
 circles; it also understands polygons, STC-S strings and other MOC or UNIQ
 specifications.
 It is also implemented using some different and more flexible code.
@@ -6986,7 +6989,7 @@ for MOC-related functions.
 stilts mocshape in=survey.vot coords='array(alpha,delta)' shape=point
                 mocfmt=fits out=sfoot.fits
 </verbatim></dt>
-<dd><p>Generates a FITS MOC file
+<dd><p>Generates a FITS Space MOC file
     from the <code>alpha</code> and <code>delta</code> columns
     of a table interpreted as points.
     The <code>coords</code> parameter must be a 2-element array
@@ -7004,7 +7007,7 @@ stilts mocshape in=survey.vot coords='array(alpha,delta)' shape=point
 <dt><verbatim>
 stilts mocshape in=obscore.vot coords=s_region order=4 mocfmt=ascii
 </verbatim></dt>
-<dd><p>Generates an order 4 MOC describing the union of all the regions
+<dd><p>Generates an order 4 Space MOC describing the union of all the regions
     described in the <code>s_region</code> column of an ObsCore table.
     It is written to standard output in ASCII format.
     Since the <code>shape</code> parameter is not specified,
@@ -7018,6 +7021,27 @@ stilts mocshape in=obscore.vot coords=s_region order=4 mocfmt=ascii
     is held in the <code>s_region</code> column an error will result,
     and you can run it with the <code>shape</code> parameter set
     according to the actual shape type.
+    </p></dd>
+
+<dt><verbatim>
+stilts mocshape moctype=stmoc
+       in=https://aladin.cds.unistra.fr/java/stmoc/Ceres_Ephemerids.vot
+       shape=point coords='array(hmsToDegrees(RA),dmsToDegrees(DEC))' order=8
+       t0=date tshape=day-radius t1=0.25 ttype=iso8601
+       mocfmt=fits out=ceres-stmoc.fits
+</verbatim></dt>
+<dd><p>Generates a space-time MOC based on positions and observation times
+    from a given file.
+    The sky positions are given in sexagesimal, so the
+    <code>hmsToDegrees</code> and <code>dmsToDegrees</code> functions are
+    used to convert them to degrees.
+    The order of the space MOC is specified explicitly.
+    The time values are read from the <code>Date</code> column
+    in ISO-8601 format;
+    each of these epoch values is considered to represent a 0.5-day
+    interval centered on the given date.
+    Output is to an STMOC FITS file which encodes the region of space-time
+    described by the supplied ephemerides.
     </p></dd>
 
 </dl>
@@ -16059,6 +16083,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         at a given level.</li>
     <li><ref id="taplint"><code>taplint</code></ref> now complains
         about reserved words in declared table names.</li>
+    <li>The <ref id="mocshape"><code>mocshape</code></ref> command
+        can now write TMOCs and STMOCs as well as space (S)MOCs.</li>
     </ul>
     </p></dd>
 

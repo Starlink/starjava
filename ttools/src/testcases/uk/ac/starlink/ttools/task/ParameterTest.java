@@ -34,7 +34,7 @@ public class ParameterTest extends TestCase {
         "query",
         "cache", "href",
         "db", "dbtable", "dbra", "dbdec",
-        "ra1", "dec1", "ra2", "dec2", "error",
+        "ra1", "dec1", "ra2", "dec2", "error", "t0", "t1",
         "select", "assign", "sql",
         "cdstable",
         "pixdata", "lon", "lat", "radius",
