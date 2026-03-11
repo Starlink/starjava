@@ -10,6 +10,7 @@ import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.formats.DocumentedTableBuilder;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.IOUtils;
 
 /**
  * Implementation of the <code>TableBuilder</code> interface which reads
@@ -73,19 +74,34 @@ public class ColFitsTableBuilder extends DocumentedTableBuilder {
         final int ihdu;
         String spos = datsrc.getPosition();
         if ( spos != null && spos.trim().length() > 0 ) {
+
+            /* If it looks like an integer, treat it as an HDU index. */
             if ( spos.matches( "[1-9][0-9]*" ) ) {
-                ihdu = Integer.parseInt( spos );
+                try {
+                    ihdu = Integer.parseInt( spos );
+                }
+                catch ( NumberFormatException e ) {
+                    throw new TableFormatException( "Bad HDU index " + spos );
+                }
             }
+
+            /* Otherwise treat it as an extension name. */
             else {
-                throw new IOException( "Unrecognised position qualifier #"
-                                     + spos );
+                try ( InputStream in = datsrc.getInputStream() ) {
+                    return findNamedTable( in, datsrc, spos, wide_ );
+                }
+                catch ( EOFException e ) {
+                    throw new TableFormatException( "No extension found with "
+                                                  + "EXTNAME or EXTNAME-EXTVER "
+                                                  + "\"" + spos + "\"", e );
+                }
             }
         }
         else {
             ihdu = 1;
         }
 
-        /* Read table. */
+        /* Read the table at the identified HDU index. */
         try ( InputStream in = datsrc.getInputStream() ) {
             long pos = 0;
             pos += FitsUtil.skipHDUs( in, ihdu );
@@ -108,5 +124,37 @@ public class ColFitsTableBuilder extends DocumentedTableBuilder {
 
     public String getXmlDescription() {
         return readText( "ColFitsTableBuilder.xml" );
+    }
+
+    /**
+     * Looks through the HDUs in a given FITS stream and if it finds one
+     * which matches a given name, attempts to make a table out of it.
+     *
+     * @param  in  stream to read from, positioned at the start of an HDU
+     *         (before the header)
+     * @param  datsrc  a DataSource which can supply the data
+     *         in <code>strm</code>
+     * @param  name  target extension name or name-version
+     * @param   wide  convention for representing extended columns;
+     *                use null to avoid use of extended columns
+     * @return  a new table if successful
+     */
+    private static StarTable findNamedTable( InputStream in, DataSource datsrc,
+                                             String name, WideFits wide )
+            throws IOException {
+        long pos = 0;
+        while ( true ) {
+            FitsHeader hdr = FitsUtil.readHeader( in );
+            long headsize = hdr.getHeaderByteCount();
+            long datasize = hdr.getDataByteCount();
+            long datpos = pos + headsize;
+            if ( FitsUtil.matchesHeaderName( hdr, name ) ) {
+                return new ColFitsStarTable( datsrc, hdr, datpos, false, wide );
+            }
+            else {
+                IOUtils.skip( in, datasize );
+            }
+            pos += headsize + datasize;
+        }
     }
 }
