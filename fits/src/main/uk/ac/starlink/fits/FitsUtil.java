@@ -297,6 +297,30 @@ public class FitsUtil {
         }
     }
 
+    /**                                      
+     * Indicates whether the header has a given name.
+     * EXTNAME or EXTNAME-EXTVER, matched case-insensitively, count.
+     * See FITS 4.0, section 4.4.2.6.
+     *
+     * @param  hdr   header 
+     * @param  name  required name
+     * @return  true iff <code>hdr</code> appears to be named <code>name</code>
+     * @see  <a href="https://fits.gsfc.nasa.gov/fits_standard.html"
+     *          >FITS standard</a>
+     */
+    public static boolean matchesHeaderName( FitsHeader hdr, String name ) {
+        String extname = hdr.getStringValue( "EXTNAME" );
+        if ( extname == null || extname.trim().length() == 0 ) {
+            return false;                 
+        }
+        if ( extname.trim().equalsIgnoreCase( name ) ) {
+            return true;
+        }
+        Integer extver = hdr.getIntValue( "EXTVER" );
+        String extverTxt = extver == null ? "1" : extver.toString();
+        return ( extname + "-" + extverTxt ).equalsIgnoreCase( name );
+    }
+
     /**
      * Attempts to interpret a string as a formatted numeric array.
      * The string has to be of the form "(x, x, ...)", where x has the

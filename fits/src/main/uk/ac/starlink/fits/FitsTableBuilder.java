@@ -143,8 +143,7 @@ public class FitsTableBuilder extends DocumentedTableBuilder
                     }
                 }
 
-                /* Otherwise treat it as an extension name or name-version
-                 * string (EXTNAME and EXTVER headers, see FITS standard). */
+                /* Otherwise treat it as an extension name. */
                 else {
                     try {
                         table = findNamedTable( in, datsrc, spos, wide_,
@@ -321,10 +320,10 @@ public class FitsTableBuilder extends DocumentedTableBuilder
      * @param  policy  storage policy, or null for default (normally not used)
      * @return  a new table
      */
-    public static StarTable findNamedTable( InputStream in,
-                                            DataSource datsrc, String name,
-                                            WideFits wide, long[] pos,
-                                            StoragePolicy policy )
+    private static StarTable findNamedTable( InputStream in,
+                                             DataSource datsrc, String name,
+                                             WideFits wide, long[] pos,
+                                             StoragePolicy policy )
             throws IOException {
         while ( true ) {
             FitsHeader hdr = FitsUtil.readHeader( in );
@@ -332,7 +331,7 @@ public class FitsTableBuilder extends DocumentedTableBuilder
             long datasize = hdr.getDataByteCount();
             long datpos = pos[ 0 ] + headsize;
             pos[ 0 ] += headsize + datasize;
-            if ( headerName( hdr, name ) ) {
+            if ( FitsUtil.matchesHeaderName( hdr, name ) ) {
                 TableResult tres =
                     attemptReadTableData( in, datsrc, datpos, hdr, wide,
                                           policy );
@@ -461,29 +460,6 @@ public class FitsTableBuilder extends DocumentedTableBuilder
             IOUtils.skip( in, datasize );
             return new TableResult( null, afterpos );
         }
-    }
-
-    /**
-     * Indicates whether the header has a given name.
-     * EXTNAME or EXTNAME-VERSION, matched case-insensitively, count.
-     *
-     * @param  hdr   header
-     * @param  name  required name
-     * @return  true iff <code>hdr</code> appears to be named <code>name</code>
-     */
-    private static boolean headerName( FitsHeader hdr, String name ) {
-        String extname = hdr.getStringValue( "EXTNAME" );
-        if ( extname == null || extname.trim().length() == 0 ) {
-            return false;
-        }
-        if ( extname.trim().equalsIgnoreCase( name ) ) {
-            return true;
-        }
-        Integer extver = hdr.getIntValue( "EXTVER" );
-        if ( extver != null ) {
-            return (extname + "-" + extver).equalsIgnoreCase( name );
-        }
-        return false;
     }
 
     /**
