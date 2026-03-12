@@ -44,6 +44,25 @@ public class HeaderTest extends TestCase {
                           parseAs( CardFactory.CLASSIC
                                   .createStringCard( "VALUE", qval68, null ),
                                    CardType.STRING ) );
+
+        // Tricky business where truncation of single quotes at the end of
+        // a line has to be done in pairs not singly.
+        String qtxt1 =
+            "Display the 2MASS data (Cutri et al. 2003, Cat. II/246) within 10";
+        String qtxt2 =
+            "Display the 2MASS data (Cutri et al. 2003, Cat. II/246) within 1";
+        assertCardEqualsExact(
+            "TCOMM1  = '" + qtxt1 + "'''",
+            "TCOMM1", qtxt1 + "'", null,
+            parseAs( CardFactory.CLASSIC
+                    .createStringCard( "TCOMM1", qtxt1 + "''", null ),
+                     CardType.STRING ) );
+        assertCardEqualsExact(
+            "TCOMM2  = '" + qtxt2 + "'''''",
+            "TCOMM2", qtxt2 + "''", null,
+            parseAs( CardFactory.CLASSIC
+                    .createStringCard( "TCOMM2", qtxt2 + "''", null ),
+                     CardType.STRING ) );
     }
 
     public void testTxt() {
@@ -248,7 +267,6 @@ public class HeaderTest extends TestCase {
                           parseAs( cf.createPlainCard( "        " + comm ),
                                    CardType.COMMENT_BLANK )
                          .getComment() );
-
         }
 
         for ( int i = 1; i <= 80; i++ ) {

@@ -34944,6 +34944,8 @@ introduced since the last version:
                    ><code>indicesToMocAscii</code></ref>
         can create an ASCII MOC string from a set of HEALPix indices
         at a given level.</li>
+    <li>Fix FITS header string truncation corner case bug
+        relating to single quotes.</li>
     </ul>
     </p>
     </dd>

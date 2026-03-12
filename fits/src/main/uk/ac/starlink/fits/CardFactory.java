@@ -328,7 +328,7 @@ public class CardFactory {
      * Only string values can be trimmed.
      *
      * @param  literal  formatted value
-     * @param  maxleng  maximum lenght of result
+     * @param  maxleng  maximum length of result
      * @return   trimmed value
      * @throws  IllegalValueException  if trimming can't be done
      */
@@ -349,9 +349,9 @@ public class CardFactory {
         boolean useEllipsis = false;
         String content = useEllipsis ? literal.substring( 1, maxleng - 4 )
                                      : literal.substring( 1, maxleng - 1 );
-        if ( content.charAt( content.length() - 1 ) == '\'' &&
-             content.charAt( content.length() - 2 ) != '\'' ) {
+        if ( countSingleQuotesAtEnd( content ) % 2 == 1 ) {
             content = content.substring( 0, content.length() - 1 );
+            assert countSingleQuotesAtEnd( content ) % 2 == 0;
         }
         return "'" + content + ( useEllipsis ? "..." : "" ) + "'";
     }
@@ -430,6 +430,24 @@ public class CardFactory {
             }
         }
         return txt;
+    }
+
+    /**
+     * Returns a count of contiguous single quote characters right at
+     * the end of the given string.  If the string doesn't end with a "'"
+     * the return value will be zero.
+     *
+     * @param  txt  text, not null
+     * @return   count of single quotes at end
+     */
+    private static int countSingleQuotesAtEnd( String txt ) {
+        int leng = txt.length();
+        for ( int i = 0; i < leng; i++ ) {
+            if ( txt.charAt( leng - 1 - i ) != '\'' ) {
+                return i;
+            }
+        }
+        return leng;
     }
 
     /**

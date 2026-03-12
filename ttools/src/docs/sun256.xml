@@ -16085,6 +16085,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         about reserved words in declared table names.</li>
     <li>The <ref id="mocshape"><code>mocshape</code></ref> command
         can now write TMOCs and STMOCs as well as space (S)MOCs.</li>
+    <li>Fix FITS header string truncation corner case bug
+        relating to single quotes.</li>
     </ul>
     </p></dd>
 
