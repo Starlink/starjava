@@ -1701,14 +1701,8 @@ public abstract class VOSerializer {
                         }
                     }
                     else {
-                        StringBuffer arraysize = new StringBuffer();
-                        for ( int i = 0; i < dims.length; i++ ) {
-                            if ( i > 0 ) {
-                                arraysize.append( 'x' );
-                            }
-                            arraysize.append( dims[ i ] );
-                        }
-                        atts.put( "arraysize", arraysize.toString() );
+                        atts.put( "arraysize",
+                                  Encoder.dimsToArraysize( dims ) );
                     }
 
                     /* Modify the VALUES text to match what the FITS serializer
