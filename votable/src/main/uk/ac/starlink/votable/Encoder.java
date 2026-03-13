@@ -4,6 +4,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -678,18 +679,7 @@ abstract class Encoder {
             System.arraycopy( dims, 0, charDims, 1, dims.length );
 
             /* Work out the arraysize attribute. */
-            StringBuffer sbuf = new StringBuffer();
-            for ( int i = 0; i < charDims.length; i++ ) {
-                if ( i > 0 ) {
-                    sbuf.append( 'x' );
-                }
-                if ( i == charDims.length - 1 && charDims[ i ] < 0 ) {
-                    sbuf.append( '*' );
-                }
-                else {
-                    sbuf.append( charDims[ i ] );
-                }
-            }
+            final String arraysize = dimsToArraysize( charDims );
             int ns = 0;
             if ( ! isVariable ) {
                 ns = 1;
@@ -697,7 +687,6 @@ abstract class Encoder {
                     ns *= dims[ i ];
                 }
             }
-            final String arraysize = sbuf.toString();
             final int nString = ns;
 
             return new Encoder( info, cwrite.getDatatype() ) {
@@ -768,6 +757,38 @@ abstract class Encoder {
 
         /* Not a type we can do anything with. */
         return null;
+    }
+
+    /**
+     * Formats an array shape array as the content of a VOTable arraysize
+     * attribute.
+     *
+     * @param  dims  array dimensions, element only may be negative
+     *               to indicate variable
+     * @return  arraysize attribute value
+     */
+    public static String dimsToArraysize( int[] dims ) {
+        StringBuffer sbuf = new StringBuffer();
+        boolean trouble = false;
+        for ( int i = 0; i < dims.length; i++ ) {
+            if ( i > 0 ) {
+                sbuf.append( 'x' );
+            }
+            if ( dims[ i ] >= 0 ) {
+                sbuf.append( dims[ i ] );
+            }
+            else {
+                if ( i != dims.length - 1 ) {
+                    trouble = true;
+                }
+                sbuf.append( '*' );
+            }
+        }
+        if ( trouble ) {
+            logger.warning( "Bad arraysize " + Arrays.toString( dims ) + " -> "
+                                             + sbuf.toString() );
+        }
+        return sbuf.toString();
     }
 
     /**
