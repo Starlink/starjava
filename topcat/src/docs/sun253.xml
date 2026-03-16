@@ -27359,11 +27359,16 @@ define the new column:
                  >Unified Content Descriptor</webref>
     for the column; a UCD is a semantic label
     attached to the column indicating what kind of quantity it contains.
-    The list of known UCDs is available via a selection box, or you
-    can type a UCD in by hand.  You may leave this blank if the you do not
+    You may leave this blank if the you do not
     wish to assign a UCD to the column.
-    A brief description of the UCD selected is visible below
-    selection box itself.
+    When a value has been entered, for instance by hitting TAB in the field,
+    a syntax report on the UCD will appear below the selection;
+    "<label>OK</label>" if it is valid, or some other comment if it's not.
+    The selection box has a list of all known UCD words
+    (e.g. <code>pos.eq.ra</code>) which may help.
+    Note however that UCDs can be composed by assembling multiple words
+    (e.g. <code>pos.eq.ra;meta.main</code>), so the selection list is
+    not exhaustive.  You can type any text into the field.
     </p></dd>
 
 <dt>Index</dt>
@@ -34946,6 +34951,11 @@ introduced since the last version:
         at a given level.</li>
     <li>Fix FITS header string truncation corner case bug
         relating to single quotes.</li>
+    <li>The UCD selector in the
+        <ref id="SyntheticColumnQueryWindow"
+             >Synthetic Column Window</ref>
+        has finally been updated for compatibility with UCD1+,
+        rather than the long-obsolete UCD1 syntax.</li>
     </ul>
     </p>
     </dd>

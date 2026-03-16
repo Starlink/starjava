@@ -15,7 +15,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.table.gui.StarTableColumn;
-import uk.ac.starlink.table.gui.UCDSelector;
+import uk.ac.starlink.vo.UcdSelector;
 
 /**
  * A dialogue window which queries the user for the characteristics of a
@@ -30,7 +30,7 @@ public abstract class SyntheticColumnQueryWindow extends QueryWindow {
     private JTextField descriptionField_;
     private JTextField expressionField_;
     private JComboBox<Class<?>> typeField_;
-    private UCDSelector ucdField_;
+    private JComboBox<String> ucdField_;
     private ColumnIndexSpinner indexSpinner_;
 
     /**
@@ -84,8 +84,10 @@ public abstract class SyntheticColumnQueryWindow extends QueryWindow {
         // stack.addLine( "Numeric Type", typeField_ );
 
         /* UCD field. */
-        ucdField_ = new UCDSelector();
-        stack.addLine( "UCD", ucdField_ );
+        UcdSelector ucdSelector = new UcdSelector();
+        ucdField_ = ucdSelector.getComboBox();
+        stack.addLine( "UCD", null, ucdField_, true );
+        stack.addLine( null, null, ucdSelector.getMessageLabel(), true );
 
         /* Index field. */
         indexSpinner_ = new ColumnIndexSpinner( columnModel_, isAdd );
@@ -178,7 +180,8 @@ public abstract class SyntheticColumnQueryWindow extends QueryWindow {
      * @return  UCD identifier
      */
     public String getUCD() {
-        return ucdField_.getID();
+        Object ucd = ucdField_.getSelectedItem();
+        return ucd instanceof String ? (String) ucd : null;
     }
 
     /**
@@ -187,7 +190,7 @@ public abstract class SyntheticColumnQueryWindow extends QueryWindow {
      * @param  ucd  UCD string
      */
     public void setUCD( String ucd ) {
-        ucdField_.setID( ucd );
+        ucdField_.setSelectedItem( ucd );
     }
 
     /**
