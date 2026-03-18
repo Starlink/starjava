@@ -764,17 +764,15 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             };
         }
         else {
-            boolean allowSignedByte = config_.allowSignedByte();
-            byte padChar = config_.getPadCharacter();
             ColumnWriter cw = ScalarColumnWriter
-                             .createColumnWriter( cinfo, nullableInt,
-                                                  allowSignedByte, padChar );
+                             .createColumnWriter( cinfo, nullableInt, config_ );
             if ( cw != null ) {
                 return cw;
             }
             else {
                 ArrayWriter aw =
-                    ArrayWriter.createArrayWriter( cinfo, allowSignedByte );
+                    ArrayWriter.createArrayWriter( cinfo,
+                                                   config_.allowSignedByte() );
                 if ( aw != null ) {
                     return new FixedArrayColumnWriter( aw, shape );
                 }

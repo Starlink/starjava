@@ -73,15 +73,12 @@ abstract class ScalarColumnWriter implements ColumnWriter {
      * @param  cinfo   column metadata for column to be written
      * @param  nullableInt  true if the column contains integer values which
      *                      may be null
-     * @param   allowSignedByte  if true, bytes written as FITS signed bytes
-     *          (TZERO=-128), if false bytes written as signed shorts
-     * @param   padChar   padding character for undersized character arrays
+     * @param  config  fits writer configuration
      * @return  new column writer, or null if we don't know how to do it
      */
     public static ScalarColumnWriter
                   createColumnWriter( ColumnInfo cinfo, boolean nullableInt,
-                                      boolean allowSignedByte,
-                                      final byte padChar ) {
+                                      FitsTableSerializerConfig config ) {
         Class<?> clazz = cinfo.getContentClass();
         Number blankNum = null;
         if ( nullableInt ) {
@@ -158,7 +155,7 @@ abstract class ScalarColumnWriter implements ColumnWriter {
 
             /* Byte is a bit tricky since a FITS byte is unsigned, while
              * a byte in a StarTable (a java byte) is signed. */
-            if ( allowSignedByte ) {
+            if ( config.allowSignedByte() ) {
                 final byte[] buf = new byte[ 1 ];
                 final byte badVal = blankNum == null ? (byte) 0
                                                      : blankNum.byteValue();
@@ -265,12 +262,13 @@ abstract class ScalarColumnWriter implements ColumnWriter {
             };
         }
         else if ( clazz == Character.class ) {
+            byte padChar = config.getPadCharacter();
             return new ScalarColumnWriter( 'A', 1, null ) {
                 public void writeValue( DataOutput stream, Object value )
                         throws IOException {
-                    char cval = ( value != null )
-                              ? ((Character) value).charValue()
-                              : (char) padChar;
+                    int cval = ( value != null )
+                             ? ((Character) value).charValue()
+                             : (char) padChar;
                     stream.writeByte( cval );
                 }
             };
