@@ -485,7 +485,7 @@ public class CardFactory {
          * or a RuntimeException may be thrown.
          *
          * <p>Example implementations are provided in
-         * {@link #sanitiseByReplacement sanitiseAsReplacement} and
+         * {@link #sanitiseByReplacement sanitiseByReplacement} and
          * {@link #sanitiseAsError sanitiseAsError}.
          *
          * @param  txt  non-null free text string
