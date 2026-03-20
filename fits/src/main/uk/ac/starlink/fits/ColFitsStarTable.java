@@ -39,7 +39,7 @@ public class ColFitsStarTable extends AbstractStarTable {
     private final ValueReader[] valReaders_;
     private final InputFactory[] inputFacts_;
     private final boolean isRandom_;
-    private final ColumnReader[] randomColReaders_;
+    private final ColReader[] randomColReaders_;
     private final Closeable closer_;
 
     private final static Logger logger_ =
@@ -276,12 +276,12 @@ public class ColFitsStarTable extends AbstractStarTable {
 
         /* Prepare readers for random access. */
         if ( isRandom_ ) {
-            randomColReaders_ = new ColumnReader[ ncol_ ];
+            randomColReaders_ = new ColReader[ ncol_ ];
             for ( int icol = 0; icol < ncol_; icol++ ) {
                 final BasicInputThreadLocal bitl =
                     new BasicInputThreadLocal( inputFacts_[ icol ], false );
                 randomColReaders_[ icol ] =
-                       new ColumnReader( valReaders_[ icol ] ) {
+                       new ColReader( valReaders_[ icol ] ) {
                     protected BasicInput getInput() {
                         return bitl.get();
                     }
@@ -798,7 +798,7 @@ public class ColFitsStarTable extends AbstractStarTable {
      * RowSequence implementation for this table.
      */
     private class ColFitsRowSequence implements RowSequence {
-        private final ColumnReader[] seqColReaders_;
+        private final ColReader[] seqColReaders_;
         private final long[] cursors_;
         private final Object[] lastValues_;
         private long irow_;
@@ -807,12 +807,11 @@ public class ColFitsStarTable extends AbstractStarTable {
          * Constructor.
          */
         ColFitsRowSequence() throws IOException {
-            seqColReaders_ = new ColumnReader[ ncol_ ];
+            seqColReaders_ = new ColReader[ ncol_ ];
             cursors_ = new long[ ncol_ ];
             for ( int icol = 0; icol < ncol_; icol++ ) {
                 final InputFactory inputFact = inputFacts_[ icol ];
-                seqColReaders_[ icol ] =
-                        new ColumnReader( valReaders_[ icol ] ) {
+                seqColReaders_[ icol ] = new ColReader( valReaders_[ icol ] ) {
                     BasicInput input_;
                     protected BasicInput getInput() throws IOException {
                         if ( input_ == null ) {
@@ -837,7 +836,7 @@ public class ColFitsStarTable extends AbstractStarTable {
         }
 
         public Object getCell( int icol ) throws IOException {
-            ColumnReader colReader = seqColReaders_[ icol ];
+            ColReader colReader = seqColReaders_[ icol ];
             long nskip = irow_ - cursors_[ icol ];
             if ( nskip > 0 ) {
                 if ( nskip > 1 ) {
@@ -861,7 +860,7 @@ public class ColFitsStarTable extends AbstractStarTable {
         }
 
         public void close() throws IOException {
-            for ( ColumnReader colReader : seqColReaders_ ) {
+            for ( ColReader colReader : seqColReaders_ ) {
                 colReader.close();
             }
         }
@@ -871,15 +870,15 @@ public class ColFitsStarTable extends AbstractStarTable {
      * RowAccess implementation for this table.
      */
     private class ColFitsRowAccess implements RowAccess {
-        private final ColumnReader[] colReaders_;
+        private final ColReader[] colReaders_;
         private final Object[] row_;
         private long irow_;
 
         ColFitsRowAccess() throws IOException {
-            colReaders_ = new ColumnReader[ ncol_ ];
+            colReaders_ = new ColReader[ ncol_ ];
             for ( int icol = 0; icol < ncol_; icol++ ) {
                 final InputFactory inFact = inputFacts_[ icol ];
-                colReaders_[ icol ] = new ColumnReader( valReaders_[ icol ] ) {
+                colReaders_[ icol ] = new ColReader( valReaders_[ icol ] ) {
                     BasicInput input_;
                     protected BasicInput getInput() throws IOException {
                         if ( input_ == null ) {
@@ -913,7 +912,7 @@ public class ColFitsStarTable extends AbstractStarTable {
         }
 
         public void close() throws IOException {
-            for ( ColumnReader colReader : colReaders_ ) {
+            for ( ColReader colReader : colReaders_ ) {
                 colReader.close();
             }
         }
@@ -976,7 +975,7 @@ public class ColFitsStarTable extends AbstractStarTable {
      * Aggregates a ValueReader and a BasicInput to read cell values for
      * a given column.
      */
-    private static abstract class ColumnReader implements Closeable {
+    private static abstract class ColReader implements Closeable {
         private final ValueReader valReader_;
         private final long itemBytes_;
 
@@ -985,7 +984,7 @@ public class ColFitsStarTable extends AbstractStarTable {
          *
          * @param  valueReader  understands data format
          */
-        ColumnReader( ValueReader valReader ) {
+        ColReader( ValueReader valReader ) {
             valReader_ = valReader;
             itemBytes_ = valReader.getItemBytes();
         }
