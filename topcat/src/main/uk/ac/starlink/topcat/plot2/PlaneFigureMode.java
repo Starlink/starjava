@@ -824,6 +824,7 @@ public abstract class PlaneFigureMode implements FigureMode {
                .append( ", 2)" )
                .append( " + " )
                .append( "POWER(" )
+               .append( yvar )
                .append( addFormattedValue( -cy_, eps_ ) )
                .append( ", 2)" )
                .append( ")" )
