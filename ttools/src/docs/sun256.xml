@@ -16087,6 +16087,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         can now write TMOCs and STMOCs as well as space (S)MOCs.</li>
     <li>Fix FITS header string truncation corner case bug
         relating to single quotes.</li>
+    <li>Fix FITS output handler to write legal FITS character content
+        even for non-ASCII input; non-ASCII code points are now
+        mapped to the '<code>?</code>' character.</li>
     </ul>
     </p></dd>
 

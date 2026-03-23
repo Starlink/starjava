@@ -59,6 +59,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
     private boolean allowZeroLengthString_;
     private WideFits wide_;
     private byte padChar_;
+    private StringEncoder unicodeHandler_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
 
@@ -74,6 +75,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
         allowZeroLengthString_ = true;
         wide_ = WideFits.DEFAULT;
         padChar_ = (byte) '\0';
+        unicodeHandler_ = StringEncoder.SQUASH_TO_ASCII;
         writeDate_ = true;
     }
 
@@ -192,6 +194,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
         final boolean allowZeroLengthString = getAllowZeroLengthString();
         final WideFits wide = getWide();
         final byte padChar = getPadCharacter();
+        final StringEncoder unicodeHandler = getUnicodeHandler();
         return new FitsTableSerializerConfig() {
             public boolean allowSignedByte() {
                 return allowSignedByte;
@@ -204,6 +207,9 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
             }
             public byte getPadCharacter() {
                 return padChar;
+            }
+            public StringEncoder getUnicodeHandler() {
+                return unicodeHandler;
             }
         };
     }
@@ -359,6 +365,28 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
      */
     public byte getPadCharacter() {
         return padChar_;
+    }
+
+    /**
+     * Sets policy for how to write character columns that contain
+     * characters outside of the restricted set of ASCII-text characters
+     * permitted in FITS character data (0x20-0x7E), as defined in
+     * Appendix D of the FITS 4.0 standard.
+     *
+     * @param  unicodeHandler  policy for writing non-ASCII character data
+     */
+    public void setUnicodeHandler( StringEncoder unicodeHandler ) {
+        unicodeHandler_ = unicodeHandler;
+    }
+
+    /**
+     * Returns policy for how to write character data containing non-ASCII
+     * content.
+     *
+     * @return  policy for writing non-ASCII character data
+     */
+    public StringEncoder getUnicodeHandler() {
+        return unicodeHandler_;
     }
 
     /**

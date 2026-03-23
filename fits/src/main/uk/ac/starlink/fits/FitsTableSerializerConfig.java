@@ -44,4 +44,12 @@ public interface FitsTableSerializerConfig {
      * @return  padding value for character array data
      */
     byte getPadCharacter();
+
+    /**
+     * Returns an object which will be used to map arbitrary String values
+     * to FITS-friendly ASCII characters for table data.
+     *
+     * @return  string encoder
+     */
+    StringEncoder getUnicodeHandler();
 }

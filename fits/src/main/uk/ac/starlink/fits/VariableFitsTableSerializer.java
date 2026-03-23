@@ -162,9 +162,11 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
         else {
             assert clazz.isArray();
             boolean allowSignedByte = getConfig().allowSignedByte();
+            StringEncoder stringEncoder = getConfig().getUnicodeHandler();
             ArrayWriter aw =
                 ArrayWriter.createArrayWriter( cinfo, allowSignedByte );
-            return new VariableArrayColumnWriter( aw, maxEls, totalEls );
+            return new VariableArrayColumnWriter( aw, maxEls, totalEls,
+                                                  stringEncoder );
         }
     }
 
@@ -203,6 +205,7 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
         private final ArrayWriter arrayWriter_;
         private final int maxElements_;
         private final long totalElements_;
+        private final StringEncoder stringEncoder_;
         private final int elSize_;
         private PQMode pqMode_;
         private DataOutput dataOut_;
@@ -214,10 +217,12 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
          * @param  arrayWriter   array writer for a specific data type
          */
         VariableArrayColumnWriter( ArrayWriter arrayWriter, int maxElements,
-                                   long totalElements ) {
+                                   long totalElements,
+                                   StringEncoder stringEncoder ) {
             arrayWriter_ = arrayWriter;
             maxElements_ = maxElements;
             totalElements_ = totalElements;
+            stringEncoder_ = stringEncoder;
             elSize_ = arrayWriter.getByteCount();
         }
 
@@ -290,6 +295,10 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
 
         public Number getBadNumber() {
             return null;
+        }
+
+        public StringEncoder getStringEncoder() {
+            return stringEncoder_;
         }
     }
 

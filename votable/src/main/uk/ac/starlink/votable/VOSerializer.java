@@ -20,6 +20,7 @@ import uk.ac.starlink.fits.FitsUtil;
 import uk.ac.starlink.fits.FitsTableSerializer;
 import uk.ac.starlink.fits.FitsTableSerializerConfig;
 import uk.ac.starlink.fits.StandardFitsTableSerializer;
+import uk.ac.starlink.fits.StringEncoder;
 import uk.ac.starlink.fits.WideFits;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.CountCheckRowSequence;
@@ -1185,6 +1186,9 @@ public abstract class VOSerializer {
                 }
                 public byte getPadCharacter() {
                     return (byte) '\0';
+                }
+                public StringEncoder getUnicodeHandler() {
+                    return StringEncoder.SQUASH_TO_ASCII;
                 }
             };
             return new FITSVOSerializer( table, version,

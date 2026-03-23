@@ -263,13 +263,27 @@ abstract class ScalarColumnWriter implements ColumnWriter {
         }
         else if ( clazz == Character.class ) {
             byte padChar = config.getPadCharacter();
+            byte replacementChar = '?';
             return new ScalarColumnWriter( 'A', 1, null ) {
                 public void writeValue( DataOutput stream, Object value )
                         throws IOException {
-                    int cval = ( value != null )
-                             ? ((Character) value).charValue()
-                             : (char) padChar;
-                    stream.writeByte( cval );
+                    final int outChar;
+                    if ( value instanceof Character ) {
+                        int cval = ((Character) value).charValue();
+                        if ( cval == 0 ) {
+                            outChar = padChar;
+                        }
+                        else if ( FitsUtil.isFitsCharacter( cval ) ) {
+                            outChar = cval;
+                        }
+                        else {
+                            outChar = replacementChar;
+                        }
+                    }
+                    else {
+                        outChar = padChar;
+                    }
+                    stream.write( outChar );
                 }
             };
         }

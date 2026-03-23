@@ -363,6 +363,9 @@ public class ColumnReaderTest extends TestCase {
             public byte getPadCharacter() {
                 return (byte) '\0';
             }
+            public StringEncoder getUnicodeHandler() {
+                return StringEncoder.SQUASH_TO_ASCII;
+            }
         };
         FitsTableSerializer ser =
             new StandardFitsTableSerializer( config, table );

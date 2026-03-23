@@ -389,17 +389,21 @@ abstract class FileColumnStore implements ColumnStore {
         }
 
         else if ( clazz == String.class ) {
+            StringEncoder stringEncoder = config.getUnicodeHandler();
             return new FileColumnStore( info, 'A', 1 ) {
                 int maxleng_ = config.allowZeroLengthString() ? 0 : 1;
                 byte[] copyBuffer_;
                 protected void storeValue( Object value, DataOutput out )
                         throws IOException {
-                    String sval = (String) value;
-                    int leng = sval == null ? 0 : sval.length();
-                    maxleng_ = Math.max( maxleng_, leng );
-                    out.writeInt( leng );
-                    for ( int i = 0; i < leng; i++ ) {
-                        out.writeByte( (byte) sval.charAt( i ) );
+                    String sval = value instanceof String ? (String) value
+                                                          : null;
+                    byte[] bbuf = sval != null ? stringEncoder.toBytes( sval )
+                                               : null;
+                    int nbyte = bbuf == null ? 0 : bbuf.length;
+                    out.writeInt( nbyte );
+                    if ( nbyte > 0 ) {
+                        maxleng_ = Math.max( maxleng_, nbyte );
+                        out.write( bbuf );
                     }
                 }
                 public void endStores() throws IOException {
@@ -483,8 +487,9 @@ abstract class FileColumnStore implements ColumnStore {
         }
 
         else if ( clazz == String[].class ) {
+            StringEncoder stringEncoder = config.getUnicodeHandler();
             return new FileColumnStore( info, 'A', 1 ) {
-                int maxChars_ = 1;
+                int maxLeng_ = 1;
                 int maxStrings_;
                 byte[] blankString_; 
 
@@ -497,11 +502,14 @@ abstract class FileColumnStore implements ColumnStore {
                         maxStrings_ = Math.max( maxStrings_, nstring );
                         for ( int is = 0; is < nstring; is++ ) {
                             String sval = strings[ is ];
-                            int nchar = sval == null ? 0 : sval.length();
-                            out.writeInt( nchar );
-                            maxChars_ = Math.max( maxChars_, nchar );
-                            for ( int ic = 0; ic < nchar; ic++ ) {
-                                out.writeByte( (byte) sval.charAt( ic ) );
+                            byte[] bbuf = sval == null
+                                        ? null
+                                        : stringEncoder.toBytes( sval );
+                            int nbyte = bbuf == null ? 0 : bbuf.length;
+                            out.writeInt( nbyte );
+                            if ( nbyte > 0 ) {
+                                maxLeng_ = Math.max( maxLeng_, nbyte );
+                                out.write( bbuf );
                             }
                         }
                     }
@@ -509,8 +517,8 @@ abstract class FileColumnStore implements ColumnStore {
 
                 public void endStores() throws IOException {
                     super.endStores();
-                    setItemShape( new int[] { maxChars_, maxStrings_ } );
-                    blankString_ = new byte[ maxChars_ ];
+                    setItemShape( new int[] { maxLeng_, maxStrings_ } );
+                    blankString_ = new byte[ maxLeng_ ];
                     Arrays.fill( blankString_, padByte );
                 }
 
@@ -523,14 +531,14 @@ abstract class FileColumnStore implements ColumnStore {
                     }
                     for ( int is = 0; is < nstring; is++ ) {
                         int nchar = in.readInt();
-                        if ( nchar < 0 || nchar > maxChars_ ) {
+                        if ( nchar < 0 || nchar > maxLeng_ ) {
                             throw new IOException( "Corrupted temp file for " +
                                                    getValueInfo() );
                         }
                         for ( int ic = 0; ic < nchar; ic++ ) {
                             out.writeByte( in.readByte() );
                         }
-                        for ( int ic = nchar; ic < maxChars_; ic++ ) {
+                        for ( int ic = nchar; ic < maxLeng_; ic++ ) {
                             out.writeByte( padByte );
                         }
                     }

@@ -34956,6 +34956,9 @@ introduced since the last version:
              >Synthetic Column Window</ref>
         has finally been updated for compatibility with UCD1+,
         rather than the long-obsolete UCD1 syntax.</li>
+    <li>Fix FITS output handler to write legal FITS character content
+        even for non-ASCII input; non-ASCII code points are now
+        mapped to the '<code>?</code>' character.</li>
     </ul>
     </p>
     </dd>

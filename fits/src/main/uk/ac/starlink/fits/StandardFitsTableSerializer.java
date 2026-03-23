@@ -662,6 +662,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             final byte[] buf = new byte[ maxChars ];
             final byte[] blankBuf = new byte[ maxChars ];
             final byte padByte = config_.getPadCharacter();
+            final StringEncoder stringEncoder = config_.getUnicodeHandler();
             Arrays.fill( blankBuf, padByte );
             return new ColumnWriter() {
                 public void writeValue( DataOutput out, Object value )
@@ -671,15 +672,10 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                         bytes = blankBuf;
                     }
                     else {
+                        int nb =
+                            stringEncoder.copyToBytes( (String) value, buf );
+                        Arrays.fill( buf, nb, buf.length, padByte );
                         bytes = buf;
-                        String sval = (String) value;
-                        int leng = Math.min( sval.length(), maxChars );
-                        for ( int i = 0; i < leng; i++ ) {
-                            bytes[ i ] = (byte) sval.charAt( i );
-                        }
-                        for ( int i = leng; i < maxChars; i++ ) {
-                            bytes[ i ] = padByte;
-                        }
                     }
                     out.write( bytes );
                 }
@@ -713,6 +709,9 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             System.arraycopy( shape, 0, charDims, 1, shape.length );
             final byte[] buf = new byte[ maxChars ];
             final byte padByte = config_.getPadCharacter();
+            final byte[] blankBuf = new byte[ maxChars ];
+            final StringEncoder stringEncoder = config_.getUnicodeHandler();
+            Arrays.fill( blankBuf, padByte );
             return new ColumnWriter() {
                 public void writeValue( DataOutput out, Object value )
                         throws IOException {
@@ -722,21 +721,21 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                         int leng = Math.min( svals.length, maxEls );
                         for ( ; is < leng; is++ ) {
                             String str = svals[ is ];
-                            int ic = 0;
-                            if ( str != null ) {
-                                int sleng = Math.min( str.length(), maxChars );
-                                for ( ; ic < sleng; ic++ ) {
-                                    buf[ ic ] = (byte) str.charAt( ic );
-                                }
+                            final byte[] bytes;
+                            if ( str == null || str.length() == 0 ) {
+                                bytes = blankBuf;
                             }
-                            Arrays.fill( buf, ic, maxChars, padByte );
-                            out.write( buf );
+                            else {
+                                int nb = stringEncoder.copyToBytes( str, buf );
+                                Arrays.fill( buf, nb, buf.length, padByte );
+                                bytes = buf;
+                            }
+                            out.write( bytes );
                         }
                     }
                     if ( is < maxEls ) {
-                        Arrays.fill( buf, padByte );
                         for ( ; is < maxEls; is++ ) {
-                            out.write( buf );
+                            out.write( blankBuf );
                         }
                     }
                 }
