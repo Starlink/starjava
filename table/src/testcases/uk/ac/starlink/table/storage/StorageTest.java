@@ -99,7 +99,9 @@ public class StorageTest extends TestCase {
         String[] strData = new String[ nrow ];
         fillCycle( strData, 
                    new String[] { "red", "green", "blue", "aquamarine", 
-                                  "sky-blue-pink", "", null, } );
+                                  "sky-blue-pink", "", null,
+                                  "\u03b5\u03c1\u03c5\u03b8\u03c1\u03cc\u03c2",
+                                 } );
         for ( int i = 0; i < nNum; i++ ) {
             Object array = numData[ i ];
             fillRandom( array, -100, 100 );
