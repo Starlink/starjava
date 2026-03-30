@@ -225,8 +225,10 @@ public abstract class EcsvDecoder<T> {
                         /* Could make different tests here, but *don't* just
                          * check it's not null: jobj may have the value
                          * JSONObject.NULL. */
-                        arr[ i ] = ( jobj instanceof JSONString ||
-                                     jobj instanceof String )
+                        arr[ i ] = ( jobj instanceof String ||
+                                     jobj instanceof Number ||
+                                     jobj instanceof Boolean ||
+                                     jobj instanceof JSONString )
                                  ? jobj.toString()
                                  : null;
                     } );

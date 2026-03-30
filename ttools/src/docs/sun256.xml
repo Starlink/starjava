@@ -16090,6 +16090,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix FITS output handler to write legal FITS character content
         even for non-ASCII input; non-ASCII code points are now
         mapped to the '<code>?</code>' character.</li>
+    <li>Make handling of unquoted strings in ECSV array cells
+        more consistent.</li>
     </ul>
     </p></dd>
 
