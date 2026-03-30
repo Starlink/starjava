@@ -34,7 +34,6 @@ import uk.ac.starlink.table.gui.TableLoadClient;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoadWorker;
 import uk.ac.starlink.table.gui.TableLoader;
-import uk.ac.starlink.topcat.contrib.basti.BaSTITableLoadDialog;
 import uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog;
 import uk.ac.starlink.topcat.vizier.VizierTableLoadDialog;
 import uk.ac.starlink.vo.Ri1RegistryTableLoadDialog;
@@ -77,7 +76,6 @@ public class LoadWindow extends AuxWindow {
         VizierTableLoadDialog.class.getName(),
         TopcatHapiTableLoadDialog.class.getName(),
         GavoTableLoadDialog.class.getName(),
-        BaSTITableLoadDialog.class.getName(),
     };
 
     /**

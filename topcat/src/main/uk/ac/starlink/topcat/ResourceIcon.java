@@ -157,7 +157,6 @@ public class ResourceIcon implements Icon {
         SLIDERS_TRIGGERED = makeIcon( "sliders-trigger1.png" ),
         GAVO = makeIcon( "virgo3.png" ),
         VIZIER = makeIcon( "vizmini.png" ),
-        BASTI = makeIcon( "BaSTI_icon_B.png" ),
         TREE_DIALOG = makeIcon( "browse.png" ),
         CLASSIFY = makeIcon( "classify3.png" ),
         ACTIVATE = makeIcon( "activate3.png" ),
