@@ -34849,6 +34849,7 @@ introduced since the last version:
         more consistent.</li>
     <li>Withdraw the BaSTI Theory Database load dialogue,
         since the BaSTI service no longer exists.</li>
+    <li>Fix bug in colfits string array output.</li>
     </ul>
     </p>
     </dd>

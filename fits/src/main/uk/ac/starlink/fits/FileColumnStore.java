@@ -513,6 +513,9 @@ abstract class FileColumnStore implements ColumnStore {
                             }
                         }
                     }
+                    else {
+                        out.writeInt( 0 );
+                    }
                 }
 
                 public void endStores() throws IOException {
