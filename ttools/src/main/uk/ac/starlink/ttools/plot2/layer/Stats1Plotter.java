@@ -236,8 +236,8 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
                 double mean = stats.getMean();
                 double sd = stats.getSigma();
                 Range xRange = ranges[ isY ? 1 : 0 ];
-                xRange.submit( mean - sd * 2 );
-                xRange.submit( mean + sd * 2 );
+                xRange.submit( scale.scaleToData( mean - sd * 2 ) );
+                xRange.submit( scale.scaleToData( mean + sd * 2 ) );
                 if ( xRange.isFinite() ) {
                     double[] xlims =
                         xRange.getFiniteBounds( scale.isPositiveDefinite() );
@@ -431,8 +431,8 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
      */
     private static class StatsPlan {
         final Scale scale_;
-        final double mean_;
-        final double sigma_;
+        final double smean_;
+        final double ssigma_;
         final double sum_;
         final DataSpec dataSpec_;
 
@@ -445,8 +445,8 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
          */
         StatsPlan( Scale scale, WStats stats, DataSpec dataSpec ) {
             scale_ = scale;
-            mean_ = stats.getMean();
-            sigma_ = stats.getSigma();
+            smean_ = stats.getMean();
+            ssigma_ = stats.getSigma();
             sum_ = stats.getSum();
             dataSpec_ = dataSpec;
         }
@@ -496,7 +496,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             }
             tracer.flush();
             if ( style.showmean_ ) {
-                double dx = mean_;
+                double dx = scale_.scaleToData( smean_ );
                 double gx = xAxis.dataToGraphics( dx );
                 double gylo = yAxis.dataToGraphics( 0 );
                 double gyhi = yAxis.dataToGraphics( factor );
@@ -539,7 +539,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             BinSizer sizer = style.sizer_;
             double binWidth = sizer.getScaleWidth( scale_, xlo, xhi, true )
                             / style.unit_.getExtent();
-            double c = 1.0 / ( sigma_ * Math.sqrt( 2.0 * Math.PI ) );
+            double c = 1.0 / ( ssigma_ * Math.sqrt( 2.0 * Math.PI ) );
             double sum = sum_;
             double max = c * sum * binWidth;
             boolean isCumulative = false;
@@ -547,7 +547,7 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
             double normFactor =
                 style.norm_.getScaleFactor( sum, max, binWidth, ctype,
                                             isCumulative );
-            return normFactor * c * sum_ * binWidth;
+            return normFactor * c * sum * binWidth;
         }
 
         /**
@@ -556,12 +556,12 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
          * The result is lacking a scale factor;
          * its value is unity at the mean.
          *
-         * @param  x  input value in data coordinates
+         * @param  dx  input value in data coordinates
          * @return  unscaled Gaussian function evaluated at <code>x</code>
          */
-        double gaussian( double x ) {
-            double s = scale_.dataToScale( x );
-            double p = ( s - mean_ ) / sigma_;
+        double gaussian( double dx ) {
+            double sx = scale_.dataToScale( dx );
+            double p = ( sx - smean_ ) / ssigma_;
             return Math.exp( - 0.5 * p * p );
         }
 
@@ -575,18 +575,21 @@ public class Stats1Plotter implements Plotter<Stats1Plotter.StatsStyle> {
         public ReportMap getReport( PlanarSurface surface, StatsStyle style ) {
             ReportMap report = new ReportMap();
             double factor = getFactor( surface, style );
-            report.put( MEAN_KEY, mean_ );
-            report.put( STDEV_KEY, sigma_ );
-            report.put( CONST_KEY, factor );
+            report.put( MEAN_KEY,
+                        scale_.isLinear() ? scale_.scaleToData( smean_ )
+                                          : null );
+            report.put( STDEV_KEY,
+                        scale_.isLinear() ? scale_.scaleToData( ssigma_ )
+                                          : null );
             String function = new StringBuffer()
                 .append( CONST_KEY.toText( factor ) )
                 .append( " * " )
                 .append( "exp(-0.5 * square((" )
                 .append( scale_.dataToScaleExpression( "x" ) )
                 .append( "-" )
-                .append( MEAN_KEY.toText( mean_ ) )
+                .append( MEAN_KEY.toText( smean_ ) )
                 .append( ")/" )
-                .append( STDEV_KEY.toText( sigma_ ) )
+                .append( STDEV_KEY.toText( ssigma_ ) )
                 .append( "))" )
                 .toString();
             report.put( FUNCTION_KEY, function );

@@ -16093,6 +16093,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Make handling of unquoted strings in ECSV array cells
         more consistent.</li>
     <li>Fix bug in colfits string array output.</li>
+    <li>Fix some bugs in the
+        <ref id="layer-gaussian"><code>gaussian</code></ref> plot
+        when used with non-linear scaling on the X axis.</li>
     </ul>
     </p></dd>
 

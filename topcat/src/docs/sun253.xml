@@ -34850,6 +34850,9 @@ introduced since the last version:
     <li>Withdraw the BaSTI Theory Database load dialogue,
         since the BaSTI service no longer exists.</li>
     <li>Fix bug in colfits string array output.</li>
+    <li>Fix some bugs in the
+        <ref id="form-gaussian">Gaussian</ref> plot
+        when used with non-linear scaling on the X axis.</li>
     </ul>
     </p>
     </dd>
