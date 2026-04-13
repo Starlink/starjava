@@ -153,26 +153,6 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
     }
 
     /**
-     * Log function, used for transforming X/Y values to values for fitting.
-     *
-     * @param  val  value
-     * @return  log to base 10 of <code>val</code>
-     */
-    private static double log( double val ) {
-        return Math.log10( val );
-    }
-
-    /**
-     * Inverse of log function.
-     *
-     * @param  val   value
-     * @return   ten to the power of <code>val</code>
-     */
-    private static double unlog( double val ) {
-        return Math.pow( 10, val );
-    }
-
-    /**
      * Drawing for linear fit.
      */
     private static class LinearFitDrawing implements Drawing {
