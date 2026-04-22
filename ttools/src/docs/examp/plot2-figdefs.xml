@@ -14,6 +14,7 @@
   <!ENTITY FIG.plot2-layer-contour 'plot2-layer-contour.png'>
   <!ENTITY FIG.plot2-layer-grid 'plot2-layer-grid.png'>
   <!ENTITY FIG.plot2-layer-fill 'plot2-layer-fill.png'>
+  <!ENTITY FIG.plot2-layer-vecfield 'plot2-layer-vecfield.png'>
   <!ENTITY FIG.plot2-layer-quantile 'plot2-layer-quantile.png'>
   <!ENTITY FIG.plot2-layer-skyvector 'plot2-layer-skyvector.png'>
   <!ENTITY FIG.plot2-layer-histogram 'plot2-layer-histogram.png'>

@@ -50,6 +50,7 @@ import uk.ac.starlink.ttools.plot2.layer.SizeXyForm;
 import uk.ac.starlink.ttools.plot2.layer.Stats1Plotter;
 import uk.ac.starlink.ttools.plot2.layer.TracePlotter;
 import uk.ac.starlink.ttools.plot2.layer.Unit;
+import uk.ac.starlink.ttools.plot2.layer.VectorFieldPlotter;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
 /**
@@ -193,6 +194,7 @@ public class PlanePlotType
             new ContourPlotter( true ),
             new GridPlotter( true ),
             new FillPlotter( true ),
+            new VectorFieldPlotter( true ),
             TracePlotter.createPointsTracePlotter( true ),
             new HistogramPlotter( PlaneDataGeom.X_COORD, true, unitKey ),
             new FixedKernelDensityPlotter( PlaneDataGeom.X_COORD, true,

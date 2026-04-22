@@ -1373,6 +1373,16 @@ public class Plot2Example {
                 "*t1=decYear", "*y1=lodErr", "yscale=log", null,
                 "texttype=latex", "fontsize=16",
             } ),
+            new Plot2Example( "layer-vecfield", c, PlotTask.PLANE,
+                              new String[] {
+                "xpix=600", "ypix=300", null,
+                "*in=" + TName.TGAS,
+                "*x=ra", "*y=dec", null,
+                "layer_1=mark", "shading_1=density", "densemap_1=cividis",
+                "densefunc_1=linear", null,
+                "*layer_2=vecfield", "*vx_2=pmra", "*vy_2=pmdec",
+                "*color_2=blue", "*arrow_2=medium_arrow", "*thick_2=1",
+            } ),
             new Plot2Example( "layer-quantile", c, PlotTask.PLANE,
                               new String[] {
                 "*in=" + TName.TGAS,

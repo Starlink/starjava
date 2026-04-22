@@ -16096,6 +16096,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix some bugs in the
         <ref id="layer-gaussian"><code>gaussian</code></ref> plot
         when used with non-linear scaling on the X axis.</li>
+    <li>Add <ref id="layer-vecfield"><code>vecfield</code></ref>
+        plot layer type.</li>
     </ul>
     </p></dd>
 
