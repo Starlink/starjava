@@ -75,6 +75,17 @@ public class BinMapper {
                               scale_.scaleToData( slo + swidth_ ) };
     }
 
+    /**
+     * Returns the value in data space that corresponds to the midpoint
+     * in graphical space of a given bin.
+     *
+     * @param  index  bin index
+     * @return   bin midpoint
+     */
+    public double getBinMidpoint( int index ) {
+        return scale_.scaleToData( sfloor_ + ( index + 0.5 ) * swidth_ );
+    }
+
     @Override
     public int hashCode() {
         int code = 55289;
