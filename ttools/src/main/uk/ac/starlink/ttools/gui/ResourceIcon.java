@@ -69,6 +69,7 @@ public class ResourceIcon {
         FORM_POLYLINE = readIcon( "form-quad-line.png" ),
         FORM_AREA = readIcon( "form-area.png" ),
         FORM_HANDLES = readIcon( "form-handles.png" ),
+        FORM_VECTORS = readIcon( "form-vectors.png" ),
         MODE_FLAT = readIcon( "mode-flat.png" ),
         MODE_AUTO = readIcon( "mode-auto.png" ),
         MODE_DENSITY = readIcon( "mode-density.png" ),
