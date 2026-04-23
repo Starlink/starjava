@@ -239,6 +239,7 @@
   <!ENTITY FIG.form_vecfield '&figs;form_vecfield.png'>
   <!ENTITY FIG.form_grid '&figs;form_grid.png'>
   <!ENTITY FIG.form_skydensity '&figs;form_skydensity.png'>
+  <!ENTITY FIG.form_skyvecfield '&figs;form_skyvecfield.png'>
   <!ENTITY FIG.form_histogram '&figs;form_histogram.png'>
   <!ENTITY FIG.form_kde '&figs;form_kde.png'>
   <!ENTITY FIG.form_knn '&figs;form_knn.png'>
@@ -362,6 +363,7 @@
   <!ENTITY FIG.plot2-layer-contour '&figs;plot2-layer-contour.png'>
   <!ENTITY FIG.plot2-layer-grid '&figs;plot2-layer-grid.png'>
   <!ENTITY FIG.plot2-layer-skydensity '&figs;plot2-layer-skydensity.png'>
+  <!ENTITY FIG.plot2-layer-skyvecfield '&figs;plot2-layer-skyvecfield.png'>
   <!ENTITY FIG.plot2-layer-fill '&figs;plot2-layer-fill.png'>
   <!ENTITY FIG.plot2-layer-vecfield '&figs;plot2-layer-vecfield.png'>
   <!ENTITY FIG.plot2-layer-histogram '&figs;plot2-layer-histogram.png'>
@@ -473,6 +475,8 @@
                       <ref id="form-grid">Grid</ref>'>
   <!ENTITY FORM.skydensity '&IMG.FORM_SKYDENSITY;
                            <ref id="form-skydensity">SkyDensity</ref>'>
+  <!ENTITY FORM.skyvecfield '&IMG.FORM_VECTORS;
+                            <ref id="form-skyvecfield">SkyVecField</ref>'>
   <!ENTITY FORM.fill '&IMG.FORM_FILL; <ref id="form-fill">Fill</ref>'>
   <!ENTITY FORM.vecfield '&IMG.FORM_VECTORS;
                          <ref id="form-vecfield">VecField</ref>'>
@@ -12648,6 +12652,156 @@ by the plot:
 
 </subsubsubsect>
 
+<subsubsubsect id="form-skyvecfield">
+<subhead><title>SkyVecField Form</title></subhead>
+
+<p>The <label>SkyVecField</label> form (&IMG.FORM_VECTORS;)
+plots a field of arrows on a HEALPix grid corresponding to the
+aggregated (typically averaged) value of a 2-d vector quantity
+such as proper motion for the points in each HEALPix cell.
+</p>
+
+<p>Currently, the visible length of the vectors is dependent on the
+order of the grid; they are normalised to appear with a length comparable
+to the size of the HEALPix pixels.
+This length can be adjusted by use of the <label>Scale</label> control. 
+</p>
+
+<p>By default, the absolute values of the vectors are plotted.
+However, if the <label>Relative</label> option is set,
+the mean vector value averaged over the visible plot area
+will be calculated and subtracted from all the plotted vectors.
+The effect of this is to show local variations rather than absolute
+values of the vectors over the visible area.
+The value of such mean offsets is displayed in the
+<label>Report</label> panel at the bottom of the layer control panel.
+</p>
+
+<p>This form may be used in the <ref id="SkyPlotWindow">Sky</ref>
+plot window.
+The <ref id="form-vecfield">VecField</ref> form does the same thing
+for a Plane plot.
+</p>
+
+<figure>
+<caption><px>Example SkyVecField plot</px></caption>
+<figureimage src="&FIG.plot2-layer-skyvecfield;"/>
+</figure>
+
+<figure>
+<caption><px>SkyVecField form configuration panel</px></caption>
+<figureimage src="&FIG.form_skyvecfield;"/>
+</figure>
+
+<p>The configuration options are:
+<dl>
+<dt>Lon(*) Component</dt>
+<dt>Lat Component</dt>
+<dd><p>Longitude and Latitude Components of the vector values
+    to combine per cell and plot.
+    The longitude value is considered to be pre-multiplied by cos(lat).
+    Since these values are normalised before plotting,
+    units are not significant.
+    </p></dd>
+<dt>Weight</dt>
+<dd><p>An optional weighting to apply to each vector.
+    </p></dd>
+<dt>Color</dt>
+<dd><p>Colour of the arrows.
+    </p></dd>
+<dt>Arrow</dt>
+<dd><p>Arrow shape selected from a range of options.
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Controls the line thickness used when drawing arrows.
+    Zero, the default value, means a 1-pixel-wide line is used,
+    and larger values make drawn lines thicker.
+    </p></dd>
+<dt>Scale</dt>
+<dd><p>Changes the factor by which all vector lengths are scaled.
+    If the arrows are too small, slide it right, if they are too big,
+    slide it left.  The slider scale is logarithmic.
+    Alternatively, enter a fixed value in the text field.
+    The default value of unity corresponds to vectors that are
+    a sensible size for the current HEALPix grid.
+    </p></dd>
+<dt>Healpix Level</dt>
+<dd><p>This allows you to control the resolution of the HEALPix grid
+    onto which the weighted values are resampled.
+    According to the radio buttons, you can configure this using either
+    a <label>Abs</label>olute or <label>Rel</label>ative value.
+    In Absolute mode you specify the HEALPix level (<em>k</em>) directly;
+    the number of pixels on the sky is 12*2<sup>2k</sup>.
+    In Relative mode the level is set so that a HEALPix tile has
+    approximately the given number of screen pixels along a side,
+    and hence the absolute level will change if you zoom in and out.
+    In either case, you can see the absolute level at the right hand side
+    of the control.
+    </p></dd>
+<dt>Combine</dt>
+<dd><p>How the vectors in each HEALPix cell are combined to determine the
+    plotted vector in that cell.
+    By default this is <label>Mean</label>, but <label>Sum</label>
+    is also an option.
+    </p></dd>
+<dt>Relative</dt>
+<dd><p>If true, the mean value for all the vectors in the field of view
+    is calculated and subtracted from each displayed vector.
+    The effect of this is to show local variations rather than absolute
+    values of the vectors over the visible area.
+    The value of such mean offsets is displayed in the
+    <label>Report</label> panel below the configuration controls.
+    </p></dd>
+</dl>
+</p>
+
+<p>The <label>Report</label> gives you access to the calculations
+made during plotting:
+<dl>
+<dt>Lon(*) Offset</dt>
+<dt>Lat Offset</dt>
+<dd><p>If the <label>Relative</label> option is selected,
+    these quantities report the field of view averaged values
+    that have been subtracted from per-cell values before plotting.
+    </p></dd>
+<dt>Vector Map</dt>
+<dd><p>This allows you to export the vectors that you can see in the plot
+    in the form of a table.
+    The current implementation writes the table for the whole sky,
+    not just the cells that are visible in the current plot.
+    The table has a row for each healpix pixel;
+    depending on how sparse the data is the HEALPix index might be implicit
+    (corresponding to row index) or explicitly given as a column value.
+    There are also columns giving the aggregated longitude and latitude
+    values for each cell.
+    The <label>Import</label> (&IMG.IMPORT_FORM_SKYDENSITY;) option
+    loads the data as a new table in the TOPCAT application, and
+    the <label>Save</label> (&IMG.SAVE_FORM_SKYDENSITY;) option
+    lets you save it directly to disk in one of the available table formats.
+    These options are also available from the <label>Export</label> menu.
+    </p>
+    <p>Some notes apply for this export:
+    <ol>
+    <li>If you want to export the table following the
+        <webref url="&URL.HEALPIX_FITS;">HEALPix-FITS</webref> convention
+        in a form suitable for use in other applications such as Aladin,
+        you should save it using the output format <label>fits-healpix</label>
+        rather than one of the other FITS variants.</li>
+    <li>When exported as FITS, the sky coordinate system
+        (FITS <code>COORDSYS</code> header) is determined by the current
+        value of the <label>View Sky System</label>, as reported in the
+        <ref id="SkyAxisControl">Sky Axes Control</ref>.</li>
+    <li>The HEALPix level at which the data is exported is that currently
+        plotted as reported by the <label>HEALPix Level</label> report item
+        above, not necessarily the one selected in the style configuration
+        controls.</li>
+    </ol>
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="form-fill">
 <subhead><title>Fill Form</title></subhead>
 
@@ -12737,6 +12891,8 @@ to the plot dimensions.
 
 <p>This form may be used in the <ref id="PlanePlotWindow">Plane</ref>
 plot window.
+The <ref id="form-skyvecfield">SkyVecField</ref> form does the same thing
+for a Sky plot.
 </p>
 
 <figure>
@@ -16118,6 +16274,7 @@ values as their default (both Equatorial) and no conversion will be done.
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
     <li>&FORM.skydensity;</li>
+    <li>&FORM.skyvecfield;</li>
     </ul></li>
 <li>&CONTROL.pair;, with the following plot controls:
     <ul>
@@ -35002,6 +35159,7 @@ introduced since the last version:
         <ref id="form-gaussian">Gaussian</ref> plot
         when used with non-linear scaling on the X axis.</li>
     <li>Add <ref id="form-vecfield">VecField</ref> plot form.</li>
+    <li>Add <ref id="form-skyvecfield">SkyVecField</ref> plot form.</li>
     </ul>
     </p>
     </dd>

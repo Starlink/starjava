@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.layer.SkyCorrelationCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.SkyDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.SkyGridPlotter;
 import uk.ac.starlink.ttools.plot2.layer.SkyVectorCoordSet;
+import uk.ac.starlink.ttools.plot2.layer.SkyVectorFieldPlotter;
 import uk.ac.starlink.ttools.plot2.layer.SkyEllipseCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.SizeXyForm;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
@@ -85,6 +86,7 @@ public class SkyPlotType
             LabelPlotter.AREA_SKY_INSTANCE,
             new ContourPlotter( true ),
             new SkyDensityPlotter( true, true ),
+            new SkyVectorFieldPlotter( true ),
             new HealpixPlotter( true ),
             new SkyGridPlotter(),
         } ) );

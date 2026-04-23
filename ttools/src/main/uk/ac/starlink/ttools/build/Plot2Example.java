@@ -1439,6 +1439,16 @@ public class Plot2Example {
                 "projection=aitoff", "auxmap=PuRd", "auxfunc=histogram", null,
                 "xpix=540", "ypix=250",
             } ),
+            new Plot2Example( "layer-skyvecfield", c, PlotTask.SKY,
+                              new String[] {
+                "xpix=700", "ypix=350", "projection=aitoff",
+                "datasys=equatorial", "viewsys=galactic", "labelpos=none", null,
+                "*in=" + TName.TGAS, "*lon=ra", "*lat=dec", null,
+                "layer_1=mark", "shading_1=density", "densemap_1=sunset",
+                "densefunc_1=sqrt", null,
+                "*layer_2=skyvecfield", "*vlon_2=pmra", "*vlat_2=pmdec",
+                "*color_2=#303030", "*arrow_2=large_arrow", "*thick_2=1",
+            } ),
             new Plot2Example( "layer-healpix", c, PlotTask.SKY, new String[] {
                 "*layer1=healpix", "*in1=" + TName.SIMBAD_HPX,
                 "*healpix1=HPX8", "*value1=NBREF", null,
