@@ -141,6 +141,18 @@ public class SkySurfaceTiler {
     }
 
     /**
+     * Returns the central position of a given tile as a unit vector.
+     *
+     * @param  index  tile index
+     * @return   unit vector at the center of the tile
+     */
+    public double[] getTileCenterVector( long index ) {
+        double[] dpos = CdsHealpixUtil.lonlatToVector( vpc_.center( index ) );
+        rotation_.rotate( dpos );
+        return dpos;
+    }
+
+    /**
      * Returns a set of HEALPix index values corresponding to all those that
      * are visible on this tiler's plot surface.
      * False positives are permitted, but an attempt is made to keep the
