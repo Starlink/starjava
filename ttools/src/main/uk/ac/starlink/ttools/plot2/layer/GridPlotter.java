@@ -94,11 +94,11 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
 
     /** Config key for X bin size configuration. */
     public static final ConfigKey<BinSizer> XBINSIZER_KEY =
-        createBinSizerConfigKey( 'x', XBINWIDTH_KEY );
+        BinSizer.createSizerConfigKey( 'x', "density", XBINWIDTH_KEY, 30 );
 
     /** Config key for Y bin size configuration. */
     public static final ConfigKey<BinSizer> YBINSIZER_KEY =
-        createBinSizerConfigKey( 'y', YBINWIDTH_KEY );
+        BinSizer.createSizerConfigKey( 'y', "density", YBINWIDTH_KEY, 30 );
 
     /** Config key for X bin phase. */
     public static final ConfigKey<Double> XPHASE_KEY = createPhaseKey( 'x' );
@@ -246,50 +246,11 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
      * @param  axname  axis identifier
      * @return   new report key
      */
-    private static ReportKey<Double> createBinWidthReportKey( char axname ) {
+    public static ReportKey<Double> createBinWidthReportKey( char axname ) {
         String sname = axname + "binwidth";
         String lname = toUpperString( axname ) + " Bin Width";
         return ReportKey.createDoubleKey( new ReportMeta( sname, lname ),
                                           false );
-    }
-
-    /**
-     * Constructs a ConfigKey for configuring the bin width on a given axis.
-     *
-     * @param  axname  axis identifier
-     * @param  widthRepKey   associated report key for reporting actual size
-     * @return  new config key
-     */
-    private static ConfigKey<BinSizer>
-            createBinSizerConfigKey( char axname,
-                                     ReportKey<Double> widthRepKey ) {
-        String axName = toUpperString( axname );
-        ConfigMeta meta = new ConfigMeta( axname + "binsize",
-                                          axName + " Bin Size" );
-        meta.setStringUsage( "+<extent>|-<count>" );
-        meta.setShortDescription( axName + " bin size specification" );
-        meta.setXmlDescription( new String[] {
-            "<p>Configures the extent of the density grid bins",
-            "on the " + axName + " axis.",
-            "</p>",
-            "<p>If the supplied value is a positive number",
-            "it is interpreted as a fixed size in data coordinates",
-            "(if the " + axName + " axis is logarithmic,",
-            "the value is a fixed factor).",
-            "If it is a negative number, then it will be interpreted",
-            "as the approximate number of bins to display across",
-            "the plot in the " + axName + " direction",
-            "(though an attempt is made to use only round numbers",
-            "for bin sizes).",
-            "</p>",
-            "<p>When setting this value graphically,",
-            "you can use either the slider to adjust the bin count",
-            "or the numeric entry field to fix the bin size.",
-            "</p>",
-        } );
-        boolean allowZero = false;
-        return BinSizer.createSizerConfigKey( meta, widthRepKey, 30,
-                                              allowZero );
     }
 
     /**
@@ -345,7 +306,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
      * @param  axis  axis
      * @return   extent of a graphics pixel in scale units
      */
-    private static double getRoundedPixelScaleWidth( Axis axis ) {
+    public static double getRoundedPixelScaleWidth( Axis axis ) {
         int glo = axis.getGraphicsLimits()[ 0 ];
         Scale scale = axis.getScale();
         double d1 = axis.graphicsToData( glo );
@@ -589,7 +550,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
      * @param  descrip   column description
      * @return  column in exported grid table
      */
-    private static ColumnData
+    public static ColumnData
             createCoordColumn( XYMapper xyMapper, GridPixer pixer,
                                boolean isY, double frac,
                                String name, String descrip ) {
@@ -1110,7 +1071,7 @@ public class GridPlotter implements Plotter<GridPlotter.GridStyle> {
      * Maps a row index in an exported table
      * to an X, Y position in the bin grid.
      */
-    private interface XYMapper {
+    public interface XYMapper {
 
         /**
          * Gets X grid coordinate for table row.

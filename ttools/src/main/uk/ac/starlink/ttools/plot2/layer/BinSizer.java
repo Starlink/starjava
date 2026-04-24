@@ -84,6 +84,49 @@ public abstract class BinSizer {
     }
 
     /**
+     * Constructs a ConfigKey for configuring the bin width on a given axis.
+     *
+     * @param  axname  axis identifier, lower case
+     * @param  binType  short string describing bin function
+     * @param  widthReportKey associated report key for reporting actual size
+     * @param  dfltNbin  default approximate bin count
+     * @return  new config key
+     */
+    public static ConfigKey<BinSizer>
+            createSizerConfigKey( char axname, String binType,
+                                  ReportKey<Double> widthReportKey,
+                                  int dfltNbin ) {
+        String axName =
+            Character.valueOf( Character.toUpperCase( axname ) ).toString();
+        ConfigMeta meta = new ConfigMeta( axname + "binsize",
+                                          axName + " Bin Size" );
+        meta.setStringUsage( "+<extent>|-<count>" );
+        meta.setShortDescription( axName + " bin size specification" );
+        meta.setXmlDescription( new String[] {
+            "<p>Configures the extent of the " + binType + " grid bins",
+            "on the " + axName + " axis.",
+            "</p>",
+            "<p>If the supplied value is a positive number",
+            "it is interpreted as a fixed size in data coordinates",
+            "(if the " + axName + " axis is logarithmic,",
+            "the value is a fixed factor).",
+            "If it is a negative number, then it will be interpreted",
+            "as the approximate number of bins to display across",
+            "the plot in the " + axName + " direction",
+            "(though an attempt is made to use only round numbers",
+            "for bin sizes).",
+            "</p>",
+            "<p>When setting this value graphically,",
+            "you can use either the slider to adjust the bin count",
+            "or the numeric entry field to fix the bin size.",
+            "</p>",
+        } );
+        boolean allowZero = false;
+        return createSizerConfigKey( meta, widthReportKey, dfltNbin,
+                                     allowZero );
+    }
+
+    /**
      * Returns an XML string describing in general terms how to operate
      * the BinSizer config key.
      *
