@@ -35164,6 +35164,16 @@ introduced since the last version:
         <ref id="outVotable">VOTable output handler</ref>
         can now be written like
         "<code>1.4</code>" rather than "<code>V14</code>".</li>
+    <li>Support for the Unicode-friendly character handling
+        defined by VOTable 1.6 is added.
+        Content with <code>datatype="char"</code>
+        in VOTables declared as Version 1.6 is treated as UTF-8,
+        and the <ref id="outVotable">output handler</ref> option
+        <code>version=1.6</code> may be used
+        to write <code>char</code> data in this way.
+        This support corresponds to the draft VOTable version
+        <webref url="https://www.ivoa.net/Documents/VOTable/20260413/"
+                >WD-VOTable-1.6-20260413</webref>.</li>
     </ul>
     </p>
     </dd>
