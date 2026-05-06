@@ -51,7 +51,7 @@ public class TableWriterTest extends TestCase {
         assertTrue( outputContains( table, "votable(votableVersion=V11)",
                                     "VOTable/v1.1" ) );
         assertTrue( outputContains( table,
-                                    "votable(votableVersion=V14, "
+                                    "votable(votableVersion=1.4, "
                                           + "writeSchemaLocation=false, "
                                           + ",dataFormat=BINARY)",
                                     "<BINARY>" ) );

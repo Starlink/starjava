@@ -235,6 +235,17 @@ public abstract class VOTableVersion implements Comparable<VOTableVersion> {
     }
 
     /**
+     * Converts a string representation to an instance of this class.
+     *
+     * @param   txt   name of version
+     * @return   version instance or null if not recognised
+     * @see  uk.ac.starlink.util.BeanConfig
+     */
+    public static VOTableVersion valueOf( String txt ) {
+        return getKnownVersions().get( txt );
+    }
+
+    /**
      * Returns the version instance used by default for output in this JVM.
      * By default this is determined by the value of the
      * {@link #DEFAULT_VERSION_STRING} constant, but it can be

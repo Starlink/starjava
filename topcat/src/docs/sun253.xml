@@ -35160,6 +35160,10 @@ introduced since the last version:
         when used with non-linear scaling on the X axis.</li>
     <li>Add <ref id="form-vecfield">VecField</ref> plot form.</li>
     <li>Add <ref id="form-skyvecfield">SkyVecField</ref> plot form.</li>
+    <li>The <code>version</code> specifier in the
+        <ref id="outVotable">VOTable output handler</ref>
+        can now be written like
+        "<code>1.4</code>" rather than "<code>V14</code>".</li>
     </ul>
     </p>
     </dd>

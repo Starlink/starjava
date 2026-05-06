@@ -16100,6 +16100,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         plot layer type.</li>
     <li>Add <ref id="layer-skyvecfield"><code>skyvecfield</code></ref>
         plot layer type.</li>
+    <li>The <code>version</code> specifier in the
+        <ref id="outVotable">VOTable output handler</ref>
+        can now be written like
+        "<code>1.4</code>" rather than "<code>V14</code>".</li>
     </ul>
     </p></dd>
 

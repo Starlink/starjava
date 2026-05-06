@@ -43,7 +43,7 @@ public class UnifiedFitsTableWriterTest extends TestCase {
             createPair( ColFitsTableWriter.class.getName(),
                         "colfits=true,primarytype=basic" ),
             createPair( FitsPlusTableWriter.class.getName()
-                        + "(votableversion=V12,date=false)",
+                        + "(votableversion=1.2,date=false)",
                         "primarytype=votable1.2,date=false" ),
             createPair( FitsTableWriter.class.getName() + "(wide=default)",
                         "primarytype=basic,wide=default" ),
