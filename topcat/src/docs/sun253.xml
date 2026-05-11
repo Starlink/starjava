@@ -2783,7 +2783,7 @@ However in general users should not rely on distinguishing between
 
 </subsect>
 
-<subsect>
+<subsect id="jelOperators">
 <subhead><title>Operators</title></subhead>
 
 <p>The operators are pretty much the same as in the C language.
@@ -2814,6 +2814,13 @@ The common ones are:
   <dt><code>&lt;=</code> (less than or equal)</dt>
   <dt><code>&gt;=</code> (greater than or equal)</dt>
   </dl>
+  Note: the comparison operators
+  <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code>,
+  <code>==</code> and <code>!=</code>
+  can be used on Strings as well as numeric values with common-sense meanings
+  (comparison based on Locale-specific string ordering);
+  this is a feature of the JEL-based expression language even though
+  it doesn't work like that in the Java language itself.
 </p></dd>
 
 <dt>Bitwise</dt>
@@ -35174,6 +35181,9 @@ introduced since the last version:
         This support corresponds to the draft VOTable version
         <webref url="https://www.ivoa.net/Documents/VOTable/20260413/"
                 >WD-VOTable-1.6-20260413</webref>.</li>
+    <li>Note in documentation that binary comparison
+        <ref id="jelOperators">operators</ref> 
+        can be used with Strings.</li>
     </ul>
     </p>
     </dd>

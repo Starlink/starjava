@@ -95,9 +95,10 @@ public class Strings {
 
     /**
      * Determines whether two strings are equal.
-     * Note you should use this function instead of <code>s1==s2</code>,
-     * which can (for technical reasons) return false even if the
-     * strings are the same.
+     *
+     * <p>This will usually give the same result as <code>s1==s2</code>,
+     * but it is arguably safer and may behave better when comparing
+     * different kinds of blank strings.
      *
      * @param s1  first string
      * @param s2  second string
