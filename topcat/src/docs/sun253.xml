@@ -541,7 +541,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>12 September 2025</docdate>
+<docdate>14 May 2026</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -35090,122 +35090,151 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v4.10-6">Version 4.10-6 (14 May 2026)</dt>
 <dd><p>
-    <ul>
-    <li><ref id="columnSelector">Column/expression entry boxes</ref>
-        now pop up a list of autocomplete
-        column names when you type into them.
-        This makes it easier to choose from a long list of columns.</li>
-    <li>Trust VOTable data not metadata for row count in case of
-        discrepancy (e.g. FITS-plus data/metadata mismatch).</li>
-    <li>Fix bug in <ref id="StiltsDialog">STILTS window</ref>
-        that prevented output for Match window and possibly others
-        (regression bug since 4.10-4).</li>
-    <li>New array function
-        <ref id="Arrays-sort"><code>sort</code></ref>.</li>
-    <li>Update CDS service and documentation URLs from 
-        <code>u-strasbg.fr</code> to <code>cds.unistra.fr</code>.</li>
-    <li>Fix threading issue when using global variables
-        in synthetic subset definitions.</li>
-    <li>No longer pass "<code>out.meta=l</code>" flag from
-        <ref id="VizierTableLoadDialog">VizieR load window</ref>;
-        this avoids masking data columns with URLs in some cases.</li>
-    <li>Fix per-table VOSI TAP metadata queries to work with
-        delimited identifiers; this means TOPCAT can retrieve
-        TAP column metadata for tables from TAPVizieR in its default
-        <ref id="TapTableLoadDialog_menus">metadata acquisition mode</ref>
-        (VOSI1.1-2step), which had been broken for a while.</li>
-    <li>Improve TAP window performance in some circumstances by
-        eliminating duplicate metadata queries.</li>
-    <li>New <ref id="scheme-test"><code>test</code> scheme</ref> option
-        "<code>u</code>" for diverse Unicode strings.</li>
-    <li>Fix some miscellaneous issues to do with Unicode I/O.</li>
-    <li>The <ref id="outCsv">CSV</ref>,
-            <ref id="outAscii">ASCII</ref>,
-            <ref id="outText">Text</ref> and 
-            <ref id="outIpac">IPAC</ref> output handlers
-        can now write non-ASCII Unicode characters.  Default encoding
-        is UTF-8 (<code>CSV</code> and <code>Text</code>)
-        or ASCII (<code>ASCII</code> and <code>IPAC</code>) 
-        but can be configured
-        with the new <code>encoding</code> option.</li>
-    <li>The <ref id="inCsv">CSV</ref> and <ref id="inAscii">ASCII</ref> 
-        input handlers now cope with Unicode input.
-        Text encoding is UTF-8 by default, but can be configured
-        with the new <code>encoding</code> option.</li>
-    <li>Substantial performance improvements (typically &gt;2x)
-        when reading text-like input files (ASCII, CSV etc).</li>
-    <li>Fix VOTable output bug that sometimes wrote
-        <code>INFO</code> and <code>PARAM</code> elements 
-        in an illegal order.</li>
-    <li>Substantial performance improvements (a few tens of percent)
-        when writing ASCII and CSV files.</li>
-    <li>Fix fencepost error affecting cumulative
-        <ref id="form-histogram">histogram</ref> plots.</li>
-    <li>Overlong text and array fields in the
-        <ref id="TableViewerWindow">Data Window</ref>
-        are now in some cases displayed with an ellipsis (...)
-        in the middle rather than at the end.</li>
-    <li>Functions 
-        <ref id="Coverage-uniqToOrder"><code>uniqToOrder</code></ref> and
-        <ref id="Coverage-uniqToIndex"><code>uniqToIndex</code></ref>
-        are now defined to return -1 in case of invalid input.</li>
-    <li><ref id="GangLayerControl_area">Area</ref> plots with
-        shape type of UNIQ no longer fail in the presence
-        of invalid UNIQ input values.</li>
-    <li>The <ref id="Times-isoToMjd"><code>isoToMjd</code></ref> and
-        <ref id="Times-isoToUnixSec"><code>isoToUnixSec</code></ref>
-        functions now permit leading and trailing whitespace.</li>
-    <li>New coverage function
-        <ref id="Coverage-indicesToMocAscii"
-                   ><code>indicesToMocAscii</code></ref>
-        can create an ASCII MOC string from a set of HEALPix indices
-        at a given level.</li>
-    <li>Fix FITS header string truncation corner case bug
-        relating to single quotes.</li>
-    <li>The UCD selector in the
-        <ref id="SyntheticColumnQueryWindow"
-             >Synthetic Column Window</ref>
-        has finally been updated for compatibility with UCD1+,
-        rather than the long-obsolete UCD1 syntax.</li>
-    <li>Fix FITS output handler to write legal FITS character content
-        even for non-ASCII input; non-ASCII code points are now
-        mapped to the '<code>?</code>' character.</li>
-    <li>Make handling of unquoted strings in ECSV array cells
-        more consistent.</li>
-    <li>Withdraw the BaSTI Theory Database load dialogue,
-        since the BaSTI service no longer exists.</li>
-    <li>Fix bug in colfits string array output.</li>
-    <li>Fix some bugs in the
-        <ref id="form-gaussian">Gaussian</ref> plot
-        when used with non-linear scaling on the X axis.</li>
-    <li>Add <ref id="form-vecfield">VecField</ref> plot form.</li>
-    <li>Add <ref id="form-skyvecfield">SkyVecField</ref> plot form.</li>
-    <li>The <code>version</code> specifier in the
-        <ref id="outVotable">VOTable output handler</ref>
-        can now be written like
-        "<code>1.4</code>" rather than "<code>V14</code>".</li>
-    <li>Support for the Unicode-friendly character handling
-        defined by VOTable 1.6 is added.
-        Content with <code>datatype="char"</code>
-        in VOTables declared as Version 1.6 is treated as UTF-8,
-        and the <ref id="outVotable">output handler</ref> option
-        <code>version=1.6</code> may be used
-        to write <code>char</code> data in this way.
-        This support corresponds to the draft VOTable version
-        <webref url="https://www.ivoa.net/Documents/VOTable/20260413/"
-                >WD-VOTable-1.6-20260413</webref>.</li>
-    <li>Note in documentation that binary comparison
-        <ref id="jelOperators">operators</ref> 
-        can be used with Strings.</li>
-    <li>Experimental input format <ref id="inVer">ver</ref>
-        added for 3d body vertex files.
-        This has been present in the code since v4.10-3, but at this
-        version it's documented and usable without special setup.</li>
-    </ul>
-    </p>
-    </dd>
+    <dl>
+    <dt>New functionality:</dt>
+    <dd><p>
+        <ul>
+        <li><ref id="columnSelector">Column/expression entry boxes</ref>
+            now pop up a list of autocomplete
+            column names when you type into them.
+            This makes it easier to choose from a long list of columns.</li>
+        <li>New plot forms
+            <ref id="form-vecfield">VecField</ref> and
+            <ref id="form-skyvecfield">SkyVecField</ref> added
+            for plotting 2d vector fields calculated from averaged
+            vector quantities.</li>
+        <li>New array function
+            <ref id="Arrays-sort"><code>sort</code></ref>.</li>
+        <li>New coverage function
+            <ref id="Coverage-indicesToMocAscii"
+                 ><code>indicesToMocAscii</code></ref>
+            can create an ASCII MOC string from a set of HEALPix indices
+            at a given level.</li>
+        <li>The UCD selector in the
+            <ref id="SyntheticColumnQueryWindow"
+                 >Synthetic Column Window</ref>
+            has finally been updated for compatibility with UCD1+,
+            rather than the long-obsolete UCD1 syntax.</li>
+        <li>Experimental input format <ref id="inVer">ver</ref>
+            added for 3d body vertex files.
+            This has been present in the code since v4.10-3, but at this
+            version it's documented and usable without special setup.</li>
+        </ul>
+        </p></dd>
+    <dt>Unicode and character I/O:</dt>
+    <dd><p>Most of the I/O handlers have been upgraded to handle Unicode
+        properly rather than tacitly assuming ASCII content;
+        prototype support for the latest draft of the Unicode-friendly
+        VOTable 1.6 is also implemented.
+        There are also some substantial I/O performance improvements.
+        <ul>
+        <li>Support for the Unicode-friendly character handling
+            defined by VOTable 1.6 is added.
+            Content with <code>datatype="char"</code>
+            in VOTables declared as Version 1.6 is treated as UTF-8,
+            and the <ref id="outVotable">output handler</ref> option
+            <code>version=1.6</code> may be used
+            to write <code>char</code> data in this way.
+            This support corresponds to the draft VOTable specification
+            <webref url="https://www.ivoa.net/Documents/VOTable/20260413/"
+                    >WD-VOTable-1.6-20260413</webref>.</li>
+        <li>The <ref id="inCsv">CSV</ref> and <ref id="inAscii">ASCII</ref> 
+            input handlers now cope with Unicode input.
+            Text encoding is UTF-8 by default, but can be configured
+            with the new <code>encoding</code> option.</li>
+        <li>The <ref id="outCsv">CSV</ref>,
+                <ref id="outAscii">ASCII</ref>,
+                <ref id="outText">Text</ref> and 
+                <ref id="outIpac">IPAC</ref> output handlers
+            can now write non-ASCII Unicode characters.  Default encoding
+            is UTF-8 (<code>CSV</code> and <code>Text</code>)
+            or ASCII (<code>ASCII</code> and <code>IPAC</code>) 
+            but can be configured
+            with the new <code>encoding</code> option.</li>
+        <li>Fix FITS output handler to write legal FITS character content
+            even for non-ASCII input; non-ASCII code points are now
+            mapped to the '<code>?</code>' character.</li>
+        <li>Substantial performance improvements (typically &gt;2x)
+            when reading text-like input files (ASCII, CSV etc).</li>
+        <li>Substantial performance improvements (a few tens of percent)
+            when writing ASCII and CSV files.</li>
+        <li>New <ref id="scheme-test"><code>test</code> scheme</ref> option
+            "<code>u</code>" for diverse Unicode strings.</li>
+        <li>Fix some miscellaneous issues to do with Unicode I/O.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and behaviour changes:</dt>
+    <dd><p>
+        <ul>
+        <li>Overlong text and array fields in the
+            <ref id="TableViewerWindow">Data Window</ref>
+            are now in some cases displayed with an ellipsis (...)
+            in the middle rather than at the end.</li>
+        <li>Note in documentation that binary
+            <ref id="jelOperators">comparison operators</ref> 
+            <code>&lt;</code>, <code>&gt;</code> etc
+            can be used with Strings.</li>
+        <li>Withdraw the BaSTI Theory Database load dialogue,
+            since the BaSTI service no longer exists.</li>
+        <li>The <code>version</code> specifier in the
+            <ref id="outVotable">VOTable output handler</ref>
+            can now be written like
+            "<code>1.4</code>" rather than "<code>V14</code>".</li>
+        <li>Update CDS service and documentation URLs from 
+            <code>u-strasbg.fr</code> to <code>cds.unistra.fr</code>.</li>
+        <li>No longer pass "<code>out.meta=l</code>" flag from
+            <ref id="VizierTableLoadDialog">VizieR load window</ref>;
+            this avoids masking data columns with URLs in some cases.</li>
+        <li>Improve TAP window performance in some circumstances by
+            eliminating duplicate metadata queries.</li>
+        <li>Trust VOTable data not metadata for row count in case of
+            discrepancy (e.g. FITS-plus data/metadata mismatch).</li>
+        <li>Functions 
+            <ref id="Coverage-uniqToOrder"><code>uniqToOrder</code></ref> and
+            <ref id="Coverage-uniqToIndex"><code>uniqToIndex</code></ref>
+            are now defined to return -1 in case of invalid input.</li>
+        <li>The <ref id="Times-isoToMjd"><code>isoToMjd</code></ref> and
+            <ref id="Times-isoToUnixSec"><code>isoToUnixSec</code></ref>
+            functions now permit leading and trailing whitespace.</li>
+        <li>Make handling of unquoted strings in
+            <ref id="inEcsv">ECSV</ref> array cells
+            more consistent.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix bug in <ref id="StiltsDialog">STILTS window</ref>
+            that prevented it working for Match window and possibly others
+            (regression bug since 4.10-4).</li>
+        <li>Fix per-table VOSI TAP metadata queries to work with
+            delimited identifiers; this means TOPCAT can retrieve
+            TAP column metadata for tables from TAPVizieR in its default
+            <ref id="TapTableLoadDialog_menus">metadata acquisition mode</ref>
+            (VOSI1.1-2step), which had been broken for a while.</li>
+        <li>Fix threading issue when using
+            <ref id="VariableWindow">global variables</ref>
+            in synthetic subset definitions.</li>
+        <li><ref id="GangLayerControl_area">Area</ref> plots with
+            shape type of UNIQ no longer fail in the presence
+            of invalid UNIQ input values.</li>
+        <li>Fix fencepost error affecting cumulative
+            <ref id="form-histogram">histogram</ref> plots.</li>
+        <li>Fix some bugs in the
+            <ref id="form-gaussian">Gaussian</ref> plot
+            when used with non-linear scaling on the X axis.</li>
+        <li>Fix VOTable output bug that sometimes wrote
+            <code>INFO</code> and <code>PARAM</code> elements 
+            in an illegal order.</li>
+        <li>Fix FITS header string truncation corner case bug
+            relating to single quotes.</li>
+        <li>Fix bug in colfits string array output.</li>
+        </ul>
+        </p></dd>
+    </dl>
+    </p></dd>
 
 </dl>
 </p>

@@ -192,7 +192,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>12 September 2025</docdate>
+<docdate>14 May 2026</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -10962,7 +10962,7 @@ Contact the author if this seems to be a serious issue for you.
 
 <p>Votlint checks that the XML input is well-formed, and, unless the
 <code>valid=false</code> parameter is supplied, that it validates against the
-1.0 DTD or 1.1, 1.2, 1.3 or 1.4 schema as appropriate.
+1.0 DTD or 1.1, 1.2, 1.3, 1.4, 1.5 or 1.6 schema as appropriate.
 Some of the validity checks are also done by
 <code>votlint</code> internally, so that some validity-type 
 errors may give rise to more than one warning.  
@@ -10972,7 +10972,7 @@ In general, the program errs on the side of verbosity.
 <p>In addition to these checks, the following checks are carried out,
 and lead to ERROR reports if violations are found:
 <ul>
-<li><code>TD</code> contents incompatible
+<li><code>TD</code> contents incompatible with
     <code>datatype</code>/<code>arraysize</code> attributes declared
     in <code>FIELD</code></li>
 <li>BINARY/BINARY2 data streams which don't match metadata 
@@ -16019,124 +16019,153 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v3.5-5">Version 3.5-5 (14 May 2026)</dt>
 <dd><p>
-    <ul>
-    <li>Fix taplint ObsCore <code>bib_reference</code> UCD check;
-        at ObsCore 1.1 (but not 1.0) it should be
-        "<code>meta.bib</code>".</li>
-    <li>Taplint upload stage now accepts reordered rows for
-        table round-trip query, avoiding <code>E-UPL-TMCD</code>
-        errors in case of reordering.</li>
-    <li>Trust VOTable data not metadata for row count in case of
-        discrepancy (e.g. FITS-plus data/metadata mismatch).</li>
-    <li>Improve inherited VOTable version handling in
-        <ref id="votcopy"><code>votcopy</code></ref>.</li>
-    <li>New array function
-        <ref id="Arrays-sort"><code>sort</code></ref>.</li>
-    <li>Update CDS service and documentation URLs from
-        <code>u-strasbg.fr</code> to <code>cds.unistra.fr</code>.</li>
-    <li>Validation tools
-        <ref id="taplint"><code>taplint</code></ref> and
-        <ref id="datalinklint"><code>datalinklint</code></ref>
-        now report "<code>(IVOA-test)</code>"
-        in User-Agent HTTP headers as per IVOA Note
-        <webref url="https://www.ivoa.net/documents/Notes/softid/"
-                >SoftID</webref>,
-        which they claimed to have been doing since 2021
-        but till now never have.</li>
-    <li>New <ref id="scheme-test"><code>test</code> scheme</ref> option
-        "<code>u</code>" for diverse Unicode strings.</li>
-    <li>Fix some miscellaneous issues to do with Unicode I/O.</li>
-    <li>The <ref id="outCsv">csv</ref>,
-            <ref id="outAscii">ascii</ref>,
-            <ref id="outText">text</ref> and 
-            <ref id="outIpac">ipac</ref> output handlers
-        can now write non-ASCII Unicode characters.  Default encoding
-        is UTF-8 (<code>csv</code> and <code>text</code>)
-        or ASCII (<code>ascii</code> and <code>ipac</code>)
-        but can be configured
-        with the new <code>encoding</code> option.</li>
-    <li>The <ref id="inCsv">csv</ref> and <ref id="inAscii">ascii</ref>        
-        input handlers now cope with Unicode input.
-        Text encoding is UTF-8 by default, but can be configured
-        with the new <code>encoding</code> option.</li>
-    <li>Substantial performance improvements (typically &gt;2x)
-        when reading text-like input files (ASCII, CSV etc).</li>
-    <li>Fix VOTable output bug that sometimes wrote
-        <code>INFO</code> and <code>PARAM</code> elements
-        in an illegal order.</li>
-    <li>Substantial performance improvements (a few tens of percent)
-        when writing ASCII and CSV files.</li>
-    <li>Fix fencepost error affecting cumulative
-        <ref id="layer-histogram">histogram</ref> plots.</li>
-    <li>Overlong text and array fields in the
-        <ref id="mode-gui"><code>gui</code></ref> output mode table
-        window are now in some cases displayed with an ellipsis (...)
-        in the middle rather than at the end.</li>
-    <li>Functions
-        <ref id="Coverage-uniqToOrder"><code>uniqToOrder</code></ref> and
-        <ref id="Coverage-uniqToIndex"><code>uniqToIndex</code></ref>
-        are now defined to return -1 in case of invalid input.</li>
-    <li><ref id="layer-area">Area</ref> plots with
-        <code>areatypeN=UNIQ</code> no longer fail in the presence
-        of invalid UNIQ input values.</li>
-    <li>The <ref id="Times-isoToMjd"><code>isoToMjd</code></ref> and
-        <ref id="Times-isoToUnixSec"><code>isoToUnixSec</code></ref>
-        functions now permit leading and trailing whitespace.</li>
-    <li>New command <ref id="doc"><code>doc</code></ref> for
-        local browsing of this user document.
-        The HTML version of the documentation is now bundled inside the
-        application, meaning the <code>stilts.jar</code> file
-        has grown by 3Mb or so.</li>
-    <li>New coverage function 
-        <ref id="Coverage-indicesToMocAscii">
-                    <code>indicesToMocAscii</code></ref>
-        can create an ASCII MOC string from a set of HEALPix indices
-        at a given level.</li>
-    <li><ref id="taplint"><code>taplint</code></ref> now complains
-        about reserved words in declared table names.</li>
-    <li>The <ref id="mocshape"><code>mocshape</code></ref> command
-        can now write TMOCs and STMOCs as well as space (S)MOCs.</li>
-    <li>Fix FITS header string truncation corner case bug
-        relating to single quotes.</li>
-    <li>Fix FITS output handler to write legal FITS character content
-        even for non-ASCII input; non-ASCII code points are now
-        mapped to the '<code>?</code>' character.</li>
-    <li>Make handling of unquoted strings in ECSV array cells
-        more consistent.</li>
-    <li>Fix bug in colfits string array output.</li>
-    <li>Fix some bugs in the
-        <ref id="layer-gaussian"><code>gaussian</code></ref> plot
-        when used with non-linear scaling on the X axis.</li>
-    <li>Add <ref id="layer-vecfield"><code>vecfield</code></ref>
-        plot layer type.</li>
-    <li>Add <ref id="layer-skyvecfield"><code>skyvecfield</code></ref>
-        plot layer type.</li>
-    <li>The <code>version</code> specifier in the
-        <ref id="outVotable">VOTable output handler</ref>
-        can now be written like
-        "<code>1.4</code>" rather than "<code>V14</code>".</li>
-    <li>Support for the Unicode-friendly character handling
-        defined by VOTable 1.6 is added.
-        Content with <code>datatype="char"</code>
-        in VOTables declared as Version 1.6 is treated as UTF-8,
-        and the <ref id="outVotable">output handler</ref> option
-        <code>version=1.6</code> may be used
-        to write <code>char</code> data in this way.
-        <ref id="votlint"><code>votlint</code></ref> is also upgraded to
-        check such constructs in VOTables declared as Version 1.6.
-        This support corresponds to the draft VOTable version
-        <webref url="https://www.ivoa.net/Documents/VOTable/20260413/"
-                >WD-VOTable-1.6-20260413</webref>.</li>
-    <li>Note in documentation that binary comparison
-        <ref id="jelOperators">operators</ref>
-        can be used with Strings.</li>
-    <li>Experimental input format <ref id="inVer"><code>ver</code></ref>
-        added for 3d body vertex files.
-        This has been present in the code since v3.5-2, but at this
-        version it's documented and usable without special setup.</li>
-    </ul>
+    <dl>
+    <dt>New functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>The <ref id="mocshape"><code>mocshape</code></ref> command
+            can now write TMOCs and STMOCs as well as space (S)MOCs.</li>
+        <li>New coverage function 
+            <ref id="Coverage-indicesToMocAscii">
+                        <code>indicesToMocAscii</code></ref>
+            can create an ASCII MOC string from a set of HEALPix indices
+            at a given level.</li>
+        <li>New plot layer types
+            <ref id="layer-vecfield"><code>vecfield</code></ref> and
+            <ref id="layer-skyvecfield"><code>skyvecfield</code></ref>
+            for plotting 2d vector fields calculated from averaged
+            vector quantities.</li>
+        <li>New array function
+            <ref id="Arrays-sort"><code>sort</code></ref>.</li>
+        <li>New command <ref id="doc"><code>doc</code></ref> for
+            local browsing of this user document.
+            The HTML version of the documentation is now bundled inside the
+            application, meaning the <code>stilts.jar</code> file
+            has grown by 3Mb or so.</li>
+        <li>Experimental input format <ref id="inVer"><code>ver</code></ref>
+            added for 3d body vertex files.
+            This has been present in the code since v3.5-2, but at this
+            version it's documented and usable without special setup.</li>
+        </ul>
+        </p></dd>
+    <dt>Unicode and character I/O:</dt>
+    <dd><p>Most of the I/O handlers have been upgraded to handle Unicode
+        properly rather than tacitly assuming ASCII content;
+        prototype support for the latest draft of the Unicode-friendly
+        VOTable 1.6 is also implemented.
+        There are also some substantial I/O performance improvements.
+        <ul>
+        <li>Support for the Unicode-friendly character handling
+            defined by VOTable 1.6 is added.
+            Content with <code>datatype="char"</code>
+            in VOTables declared as Version 1.6 is treated as UTF-8,
+            and the <ref id="outVotable">output handler</ref> option
+            <code>version=1.6</code> may be used
+            to write <code>char</code> data in this way.
+            <ref id="votlint"><code>votlint</code></ref> is also upgraded to
+            check such constructs in VOTables declared as version 1.6.
+            This support corresponds to the draft VOTable specification
+            <webref url="https://www.ivoa.net/Documents/VOTable/20260413/"
+                    >WD-VOTable-1.6-20260413</webref>.</li>
+        <li>The <ref id="inCsv">csv</ref> and <ref id="inAscii">ascii</ref>
+            input handlers now cope with Unicode input.
+            Text encoding is UTF-8 by default, but can be configured
+            with the new <code>encoding</code> option.</li>
+        <li>The <ref id="outCsv">csv</ref>,
+                <ref id="outAscii">ascii</ref>,
+                <ref id="outText">text</ref> and
+                <ref id="outIpac">ipac</ref> output handlers
+            can now write non-ASCII Unicode characters.  Default encoding
+            is UTF-8 (<code>csv</code> and <code>text</code>)
+            or ASCII (<code>ascii</code> and <code>ipac</code>)
+            but can be configured
+            with the new <code>encoding</code> option.</li>
+        <li>Fix FITS output handler to write legal FITS character content
+            even for non-ASCII input; non-ASCII code points are now
+            mapped to the '<code>?</code>' character.</li>
+        <li>Substantial performance improvements (typically &gt;2x)
+            when reading text-like input files (ASCII, CSV etc).</li>
+        <li>Substantial performance improvements (a few tens of percent)
+            when writing ASCII and CSV files.</li>
+        <li>New <ref id="scheme-test"><code>test</code> scheme</ref> option
+            "<code>u</code>" for diverse Unicode strings.</li>
+        <li>Fix some miscellaneous issues to do with Unicode I/O.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements and behaviour changes:</dt>
+    <dd><p>
+        <ul>
+        <li><ref id="taplint"><code>taplint</code></ref>
+            <code>UPL</code>oad stage now accepts reordered rows for
+            table round-trip query, avoiding <code>E-UPL-TMCD</code>
+            errors in case of reordering.</li>
+        <li><ref id="taplint"><code>taplint</code></ref> now complains
+            about reserved words in declared table names.</li>
+        <li>The <code>version</code> specifier in the
+            <ref id="outVotable">VOTable output handler</ref>
+            can now be written like
+            "<code>1.4</code>" rather than "<code>V14</code>".</li>
+        <li>Note in documentation that binary
+            <ref id="jelOperators">comparison operators</ref>
+            <code>&lt;</code>, <code>&gt;</code> etc
+            can be used with Strings.</li>
+        <li>The <ref id="Times-isoToMjd"><code>isoToMjd</code></ref> and
+            <ref id="Times-isoToUnixSec"><code>isoToUnixSec</code></ref>
+            functions now permit leading and trailing whitespace.</li>
+        <li>Update CDS service and documentation URLs from
+            <code>u-strasbg.fr</code> to <code>cds.unistra.fr</code>.</li>
+        <li>Trust VOTable data not metadata for row count in case of
+            discrepancy (e.g. FITS-plus data/metadata mismatch).</li>
+        <li>Improve inherited VOTable version handling in
+            <ref id="votcopy"><code>votcopy</code></ref>.</li>
+        <li>Overlong text and array fields in the
+            <ref id="mode-gui"><code>gui</code></ref> output mode table
+            window are now in some cases displayed with an ellipsis (...)
+            in the middle rather than at the end.</li>
+        <li>Functions
+            <ref id="Coverage-uniqToOrder"><code>uniqToOrder</code></ref> and
+            <ref id="Coverage-uniqToIndex"><code>uniqToIndex</code></ref>
+            are now defined to return -1 in case of invalid input.</li>
+        <li>Make handling of unquoted strings in
+            <ref id="inEcsv">ECSV</ref> array cells
+            more consistent.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Validation tools
+            <ref id="taplint"><code>taplint</code></ref> and
+            <ref id="datalinklint"><code>datalinklint</code></ref>
+            now report "<code>(IVOA-test)</code>"
+            in <code>User-Agent</code> HTTP headers as per IVOA Note
+            <webref url="https://www.ivoa.net/documents/Notes/softid/"
+                    >SoftID</webref>,
+            which they claimed to have been doing since 2021
+            but till now never have.</li>
+        <li>Fix <ref id="taplint"><code>taplint</code></ref>
+            <code>OBS</code>core stage <code>bib_reference</code> UCD check;
+            at ObsCore 1.1 (but not 1.0) it should be
+            "<code>meta.bib</code>".</li>
+        <li>Fix VOTable output bug that sometimes wrote
+            <code>INFO</code> and <code>PARAM</code> elements
+            in an illegal order.</li>
+        <li>Fix fencepost error affecting cumulative
+            <ref id="layer-histogram">histogram</ref> plots.</li>
+        <li><ref id="layer-area">Area</ref> plots with
+            <code>areatypeN=UNIQ</code> no longer fail in the presence
+            of invalid UNIQ input values.</li>
+        <li>Fix FITS header string truncation corner case bug
+            relating to single quotes.</li>
+        <li>Fix bug in colfits string array output.</li>
+        <li>Fix some bugs in the
+            <ref id="layer-gaussian"><code>gaussian</code></ref> plot
+            when used with non-linear scaling on the X axis.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
