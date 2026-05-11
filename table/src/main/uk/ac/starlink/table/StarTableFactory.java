@@ -25,6 +25,7 @@ import uk.ac.starlink.table.formats.CsvTableBuilder;
 import uk.ac.starlink.table.formats.IpacTableBuilder;
 import uk.ac.starlink.table.formats.MrtTableBuilder;
 import uk.ac.starlink.table.formats.TstTableBuilder;
+import uk.ac.starlink.table.formats.VerTableBuilder;
 import uk.ac.starlink.table.formats.WDCTableBuilder;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.table.jdbc.JDBCTableScheme;
@@ -118,6 +119,8 @@ import uk.ac.starlink.util.URLDataSource;
  *      (format name="hapi")
  * <li> {@link uk.ac.starlink.gbin.GbinTableBuilder}
  *      (format name="gbin")
+ * <li> {@link uk.ac.starlink.table.formats.VerTableBuilder}
+ *      (format name="ver")
  * <li> {@link uk.ac.starlink.table.formats.WDCTableBuilder}
  *      (format name="wdc")
  * </ul>
@@ -214,6 +217,7 @@ public class StarTableFactory {
         TstTableBuilder.class.getName(),
         IpacTableBuilder.class.getName(),
         "uk.ac.starlink.hapi.HapiTableBuilder",
+        VerTableBuilder.class.getName(),
         WDCTableBuilder.class.getName(),
     };
     private static String[] dfltSchemeClasses = {

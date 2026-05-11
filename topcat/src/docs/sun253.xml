@@ -30,6 +30,7 @@
   <!ENTITY in-mrt SYSTEM 'in-mrt.xml'>
   <!ENTITY in-tst SYSTEM 'in-tst.xml'>
   <!ENTITY in-votable SYSTEM 'in-votable.xml'>
+  <!ENTITY in-ver SYSTEM 'in-ver.xml'>
   <!ENTITY in-wdc SYSTEM 'in-wdc.xml'>
   <!ENTITY out-ascii SYSTEM 'out-ascii.xml'>
   <!ENTITY out-csv SYSTEM 'out-csv.xml'>
@@ -1413,6 +1414,11 @@ or like this:
 <subsubsubsect id="inTst">
 <subhead><title>TST</title></subhead>
 &in-tst;
+</subsubsubsect>
+
+<subsubsubsect id="inVer">
+<subhead><title>Ver</title></subhead>
+&in-ver;
 </subsubsubsect>
 
 <subsubsubsect id="inWdc">
@@ -35184,6 +35190,10 @@ introduced since the last version:
     <li>Note in documentation that binary comparison
         <ref id="jelOperators">operators</ref> 
         can be used with Strings.</li>
+    <li>Experimental input format <ref id="inVer">ver</ref>
+        added for 3d body vertex files.
+        This has been present in the code since v4.10-3, but at this
+        version it's documented and usable without special setup.</li>
     </ul>
     </p>
     </dd>

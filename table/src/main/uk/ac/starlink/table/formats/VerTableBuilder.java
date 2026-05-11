@@ -71,20 +71,18 @@ import uk.ac.starlink.util.URLUtils;
  * @author   Mark Taylor
  * @since    6 Feb 2025
  */
-public class VerTableBuilder implements MultiTableBuilder {
+public class VerTableBuilder extends DocumentedTableBuilder
+                             implements MultiTableBuilder {
 
     private static final int POS_VERTEX_DFLT = 1;
     private static final int POS_PLATE = 2;
 
     public VerTableBuilder() {
+        super( new String[] { "ver", } );
     }
 
     public String getFormatName() {
         return "ver";
-    }
-
-    public boolean looksLikeFile( String location ) {
-        return location.endsWith( ".ver" );
     }
 
     public boolean canImport( DataFlavor flavor ) {
@@ -100,6 +98,18 @@ public class VerTableBuilder implements MultiTableBuilder {
      */
     public boolean canStream() {
         return false;
+    }
+
+    public String[] getExtensions() {
+        return new String[] { "ver", };
+    }
+
+    public boolean docIncludesExample() {
+        return false;
+    }
+
+    public String getXmlDescription() {
+        return readText( "VerTableBuilder.xml" );
     }
 
     public void streamStarTable( InputStream in, TableSink sink, String pos )

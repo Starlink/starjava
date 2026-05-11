@@ -306,6 +306,7 @@ public class FormatsTest extends TableCase {
             "TST",
             "IPAC",
             "HAPI",
+            "ver",
             "WDC",
         };
         StarTableFactory factory = new StarTableFactory();

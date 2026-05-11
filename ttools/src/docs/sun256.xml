@@ -61,6 +61,7 @@
   <!ENTITY in-mrt SYSTEM 'in-mrt.xml'>
   <!ENTITY in-tst SYSTEM 'in-tst.xml'>
   <!ENTITY in-votable SYSTEM 'in-votable.xml'>
+  <!ENTITY in-ver SYSTEM 'in-ver.xml'>
   <!ENTITY in-wdc SYSTEM 'in-wdc.xml'>
   <!ENTITY out-ascii SYSTEM 'out-ascii.xml'>
   <!ENTITY out-csv SYSTEM 'out-csv.xml'>
@@ -2288,6 +2289,11 @@ or like this:
 <subsubsubsect id="inTst">
 <subhead><title><code>tst</code></title></subhead>
 &in-tst;
+</subsubsubsect>
+
+<subsubsubsect id="inVer">
+<subhead><title><code>ver</code></title></subhead>
+&in-ver;
 </subsubsubsect>
 
 <subsubsubsect id="inWdc">
@@ -16126,6 +16132,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Note in documentation that binary comparison
         <ref id="jelOperators">operators</ref>
         can be used with Strings.</li>
+    <li>Experimental input format <ref id="inVer"><code>ver</code></ref>
+        added for 3d body vertex files.
+        This has been present in the code since v3.5-2, but at this
+        version it's documented and usable without special setup.</li>
     </ul>
     </p></dd>
 
