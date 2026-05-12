@@ -126,10 +126,6 @@ public class Driver {
             // never mind
             cmdname = null;
         }
-        Loader.tweakGuiForMac();
-        Loader.setHttpAgent( TopcatUtils.getHttpUserAgent() );
-        Loader.setDefaultProperty( "java.awt.Window.locationByPlatform",
-                                   "true" );
 
         /* Fine tune the logging - we don't need HDS or AST here, so 
          * stop them complaining when they can't be loaded. */
@@ -161,7 +157,7 @@ public class Driver {
         setStandalone( true );
 
         /* Process flags. */
-        List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
+        List<String> argList = new ArrayList<>( Arrays.asList( args ) );
         boolean demo = false;
         int verbosity = 0;
         boolean debug = false;
@@ -301,6 +297,14 @@ public class Driver {
 
         /* Install custom URL handlers. */
         URLUtils.installCustomHandlers();
+
+        /* GUI tweaks. */
+        Loader.tweakGuiForMac();
+        Loader.setDefaultProperty( "java.awt.Window.locationByPlatform",
+                                   "true" );
+
+        /* Set User-Agent field for HTTP communications. */
+        Loader.setHttpAgent( TopcatUtils.getHttpUserAgent() );
 
         /* Configure authentication to use a GUI. */
         AuthManager.getInstance().setUserInterface( new TopcatAuthUi() );
