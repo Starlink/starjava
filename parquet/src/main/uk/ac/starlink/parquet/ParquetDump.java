@@ -1,7 +1,9 @@
 package uk.ac.starlink.parquet;
 
 import java.beans.IntrospectionException;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -18,8 +20,9 @@ import org.apache.parquet.hadoop.metadata.ColumnChunkMetaData;
 import org.apache.parquet.hadoop.metadata.FileMetaData;
 import org.apache.parquet.hadoop.metadata.ParquetMetadata;
 import org.apache.parquet.schema.MessageType;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.BeanStarTable;
-import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.formats.AsciiTableWriter;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.LogUtils;
 
@@ -156,7 +159,7 @@ public class ParquetDump {
         } );
         blockTable.setData( footer_.getBlocks()
                                    .toArray( new BlockMetaData[ 0 ] ) );
-        return Tables.tableToString( blockTable, "ascii" );
+        return formatTable( blockTable );
     }
 
     /**
@@ -204,7 +207,7 @@ public class ParquetDump {
                 "encodings",
                 "minMax",
             } );
-            sbuf.append( Tables.tableToString( chunkTable, "ascii" ) );
+            sbuf.append( formatTable( chunkTable ) );
         }
         return sbuf.toString();
     }
@@ -227,6 +230,26 @@ public class ParquetDump {
             }
         }
         return sbuf.toString();
+    }
+
+    /**
+     * Formats a table as text.  Provides minimal formatting, intended for
+     * small tables to be presented on the terminal.
+     *
+     * @param  table  table
+     * @return  string containing formatted column headers and data
+     */
+    private static String formatTable( StarTable table ) {
+        AsciiTableWriter outHandler = new AsciiTableWriter();
+        outHandler.setEncoding( StandardCharsets.UTF_8 );
+        outHandler.setWriteParameters( false );
+        try ( ByteArrayOutputStream out = new ByteArrayOutputStream() ) {
+            outHandler.writeStarTable( table, out );
+            return new String( out.toByteArray(), StandardCharsets.UTF_8 );
+        }
+        catch ( IOException e ) {
+            return "Formatting error: " + e;
+        }
     }
 
     /**
