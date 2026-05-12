@@ -22,6 +22,7 @@ public class ValueInfoCellRenderer extends DefaultTableCellRenderer {
      *
      * @param vinfo  the info describing the type of object to be rendered
      */
+    @SuppressWarnings("this-escape")
     public ValueInfoCellRenderer( ValueInfo vinfo ) {
         this.vinfo = vinfo;
         setUI( new CustomLabelUI() );
