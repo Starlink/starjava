@@ -5171,6 +5171,14 @@ if the selection list is very long; typing an expression obviously gives
 you a lot more possibilities.
 </p>
 
+<p>If you start typing into the box,
+a drop-down list of suitable columns that
+match what you've typed so far (autocomplete) will appear below it.
+You can either continue typing and hit return,
+or select one of the items from the drop-down list using the up/down
+arrow keys or the mouse.
+</p>
+
 <p>Note that depending on your platform the selection box may not look
 exactly like the figure above.  However, if you can type into it
 (probably by clicking on it) then you should be able to use expressions
@@ -35085,7 +35093,8 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
-    <li>Column/expression entry boxes now pop up a list of autocomplete
+    <li><ref id="columnSelector">Column/expression entry boxes</ref>
+        now pop up a list of autocomplete
         column names when you type into them.
         This makes it easier to choose from a long list of columns.</li>
     <li>Trust VOTable data not metadata for row count in case of
