@@ -17,7 +17,8 @@ by setting the <code>encoding</code> option.
 <p>Here are the detailed rules for how the ASCII-format tables are
 interpreted:
 <ul>
-<li>Bytes in the file are interpreted as ASCII characters</li>
+<li>Bytes in the file are interpreted as Unicode text
+    (by default UTF-8 encoded)</li>
 <li>Each table row is represented by a single line of text</li>
 <li>Lines are terminated by one or more contiguous line termination
     characters: line feed (0x0A) or carriage return (0x0D)</li>
