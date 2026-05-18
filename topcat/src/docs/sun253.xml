@@ -35236,6 +35236,14 @@ introduced since the last version:
     </dl>
     </p></dd>
 
+<dt id="v4.10-7">Version 4.10-7 (18 May 2026)</dt>
+<dd><p>This is identical to version 4.10-6 except that the MacOS DMG file
+    bundles a more recent version of Java,
+    Corretto 11.0.31 instead of 11.0.26.
+    The update may matter because the certificate support is more
+    up to date.
+    </p></dd>
+
 </dl>
 </p>
 
