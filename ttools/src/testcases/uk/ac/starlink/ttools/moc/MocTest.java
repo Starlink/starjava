@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.function.LongFunction;
 import java.util.logging.Level;
 import junit.framework.TestCase;
+import uk.ac.starlink.table.RowRunner;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TimeMapper;
@@ -22,6 +23,8 @@ public class MocTest extends TestCase {
         LogUtils.getLogger( "uk.ac.starlink.table" )
                 .setLevel( Level.WARNING );
         LogUtils.getLogger( "uk.ac.starlink.ttools.mode" )
+                .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.util" )
                 .setLevel( Level.WARNING );
     }
 
@@ -65,6 +68,11 @@ public class MocTest extends TestCase {
     }
 
     public void testStmoc() throws Exception {
+        exerciseStmoc( RowRunner.SEQUENTIAL );
+        exerciseStmoc( RowRunner.PARTEST );
+    }
+
+    public void exerciseStmoc( RowRunner runner ) throws Exception {
 
         // This is a regression test, and not a particularly good one,
         // the data does not attempt to probe any interesting cases,
@@ -78,6 +86,7 @@ public class MocTest extends TestCase {
         // the code being compared originates in the same place
         // (CDS, not independent implementation).
         MapEnvironment stenv = new MapEnvironment();
+        stenv.setValue( "runner", runner );
         stenv.setValue( "moctype", MocShapeMode.MocType.STMOC );
         stenv.setValue( "in",
                         MocTest.class.getResource( "gtc1.csv" ).toString() );

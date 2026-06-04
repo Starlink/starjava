@@ -11,9 +11,14 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.PrimitiveIterator;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.RowCollector;
+import uk.ac.starlink.table.RowRunner;
+import uk.ac.starlink.table.RowSplittable;
 import uk.ac.starlink.table.TimeDomain;
 import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.table.ValueInfo;
@@ -39,6 +44,7 @@ import uk.ac.starlink.ttools.moc.CdsMocBuilder;
 import uk.ac.starlink.ttools.moc.MocBuilder;
 import uk.ac.starlink.ttools.moc.MocImpl;
 import uk.ac.starlink.ttools.moc.MocStreamFormat;
+import uk.ac.starlink.ttools.task.RowRunnerParameter;
 import uk.ac.starlink.util.Destination;
 import uk.ac.starlink.util.IOSupplier;
 
@@ -61,6 +67,7 @@ public class MocShapeMode implements ProcessingMode {
     private final ChoiceParameter<TimeMapper> tmapperParam_;
     private final ChoiceParameter<MocType> moctypeParam_;
     private final ChoiceParameter<MocStreamFormat> mocfmtParam_;
+    private final RowRunnerParameter runnerParam_;
     private final ChoiceParameter<MocImpl> mocimplParam_;
     private final OutputStreamParameter outParam_;
 
@@ -309,6 +316,8 @@ public class MocShapeMode implements ProcessingMode {
         } );
         mocfmtParam_.setDefaultOption( MocStreamFormat.ASCII );
 
+        runnerParam_ = RowRunnerParameter.createScanRunnerParameter( "runner" );
+
         MocImpl[] mocImpls = {
             MocImpl.AUTO,
             MocImpl.CDS,
@@ -345,6 +354,7 @@ public class MocShapeMode implements ProcessingMode {
             t0Param_,
             t1Param_,
             mocfmtParam_,
+            runnerParam_,
             mocimplParam_,
             outParam_,
         };
@@ -367,6 +377,7 @@ public class MocShapeMode implements ProcessingMode {
                        + "=" + mocType;
             throw new ParameterValueException( mocimplParam_, msg );
         }
+        RowRunner runner = runnerParam_.objectValue( env );
         final int order;
         final String coordsExpr;
         final AreaMapper shapeMapper;
@@ -401,33 +412,25 @@ public class MocShapeMode implements ProcessingMode {
         }
         MocStreamFormat mocfmt = mocfmtParam_.objectValue( env );
         Destination dest = outParam_.objectValue( env );
+        TileParser<Area> areaParser =
+              mocType.hasSpace_
+            ? rdr -> createAreaReader( rdr, coordsExpr, shapeMapper,
+                                       shapeParam_ )
+            : null;
+        TileParser<double[]> jdIntervalParser =
+              mocType.hasTime_
+            ? rdr -> createJdIntervalReader( rdr, t0expr, t1expr, tshape,
+                                             tmapper, tmapperParam_ )
+            : null;
         return table -> {
-            SequentialJELRowReader rdr = new SequentialJELRowReader( table );
-            IOSupplier<Area> areaRdr =
-                  mocType.hasSpace_
-                ? createAreaReader( rdr, coordsExpr, shapeMapper, shapeParam_ )
-                : null;
-            IOSupplier<double[]> jdIntervalRdr =
-                  mocType.hasTime_
-                ? createJdIntervalReader( rdr, t0expr, t1expr, tshape, tmapper,
-                                          tmapperParam_ )
-                : null;
 
             /* SMOC. */
             if ( mocType.hasSpace_ && ! mocType.hasTime_ ) {
                 assert !mocType.useCdsImpl_;
-                MocBuilder mocBuilder = mocimpl.createMocBuilder( order );
-                while ( rdr.next() ) {
-                    Area area = areaRdr.get();
-                    if ( area != null ) {
-                        for ( long uniq : area.toMocUniqs( order ) ) {
-                            mocBuilder.addTile( Coverage.uniqToOrder( uniq ),
-                                                Coverage.uniqToIndex( uniq ) );
-                        }
-                    }
-                }
-                rdr.close();
-                mocBuilder.endTiles();
+                SMocCollector collector =
+                    new SMocCollector( order, mocimpl, table, areaParser );
+                MocBuilder mocBuilder = runner.collect( collector, table );
+                collector.finishMoc( mocBuilder );
                 long[] orderCounts = mocBuilder.getOrderCounts();
                 long ntile = 0;
                 double cov = 0;
@@ -454,24 +457,10 @@ public class MocShapeMode implements ProcessingMode {
                 // but since TMoc construction is rather niche I haven't
                 // bothered so far.
                 assert mocType.useCdsImpl_;
-                TMoc tmoc = new TMoc( torder );
-                tmoc.bufferOn( CDSMOC_BUFSIZ );
-                while ( rdr.next() ) {
-                    double[] jdInterval = jdIntervalRdr.get();
-                    if ( jdInterval != null ) {
-                        try {
-                            tmoc.add( jdInterval[ 0 ], jdInterval[ 1 ] );
-                        }
-                        catch ( IOException e ) {
-                            throw e;
-                        }
-                        catch ( Exception e ) {
-                            throw new IOException( "MOC error", e );
-                        }
-                    }
-                }
-                rdr.close();
-                tmoc.bufferOff();
+                TMocCollector collector =
+                    new TMocCollector( torder, table, jdIntervalParser );
+                TMoc tmoc = runner.collect( collector, table );
+                collector.finishMoc( tmoc );
                 try ( OutputStream out = dest.createStream() ) {
                     mocfmt.writeCdsMoc( tmoc, out );
                 }
@@ -483,34 +472,11 @@ public class MocShapeMode implements ProcessingMode {
                 // so at present we have to give up and use cds.moc.STMoc
                 // instead.
                 assert mocType.useCdsImpl_;
-                STMoc stmoc;
-                try {
-                    stmoc = new STMoc( torder, order );
-                }
-                catch ( Exception e ) {
-                    assert false;
-                    throw new IOException( "MOC error", e );
-                }
-                while ( rdr.next() ) {
-                    Area area = areaRdr.get();
-                    double[] jdInterval = jdIntervalRdr.get();
-                    if ( area != null && jdInterval != null ) {
-                        for ( long uniq : area.toMocUniqs( order ) ) {
-                            try {
-                                stmoc.add( Coverage.uniqToOrder( uniq ),
-                                           Coverage.uniqToIndex( uniq ),
-                                           jdInterval[ 0 ], jdInterval[ 1 ] );
-                            }
-                            catch ( IOException e ) {
-                                throw e;
-                            }
-                            catch ( Exception e ) {
-                                throw new IOException( "MOC error", e );
-                            }
-                        }
-                    }
-                }
-                rdr.close();
+                STMocCollector collector =
+                    new STMocCollector( order, torder, table,
+                                        areaParser, jdIntervalParser );
+                STMoc stmoc = runner.collect( collector, table );
+                collector.finishMoc( stmoc );
                 try ( OutputStream out = dest.createStream() ) {
                     mocfmt.writeCdsMoc( stmoc, out );
                 }
@@ -706,6 +672,264 @@ public class MocShapeMode implements ProcessingMode {
                                        txt.equalsIgnoreCase( m.name_ ) )
                          .findFirst()
                          .orElse( null );
+        }
+    }
+
+    /**
+     * Knows how to read a typed value from a row sequence.
+     */
+    @FunctionalInterface
+    private static interface TileParser<T> {
+
+        /**
+         * Returns an object that can extract a MOC coordinate
+         * from the current row of a supplied row reader.
+         *
+         * @param  table row reader
+         * @return   object that returns a typed value corresponding
+         *           to the current row
+         */
+        IOSupplier<T> createReader( SequentialJELRowReader rdr )
+            throws IOException;
+    };
+
+    /**
+     * Collector for assembling SMOCs.
+     * Note that the {@link #finishMoc} method must be called on
+     * the collected result.
+     */
+    private static class SMocCollector extends RowCollector<MocBuilder> {
+
+        private final int order_;
+        private final MocImpl mocimpl_;
+        private final StarTable table_;
+        private final TileParser<Area> areaParser_;
+
+        /**
+         * Constructor.
+         *
+         * @param   order MOC spatial order
+         * @param   mocimpl   MOC implementation
+         * @param   table   table for which rows will be supplied
+         * @param   areaParser   object that can get Area values from rows
+         */
+        SMocCollector( int order, MocImpl mocimpl, StarTable table,
+                       TileParser<Area> areaParser ) {
+            order_ = order;
+            mocimpl_ = mocimpl;
+            table_ = table;
+            areaParser_ = areaParser;
+        }
+
+        public MocBuilder createAccumulator() {
+            return mocimpl_.createMocBuilder( order_ );
+        }
+
+        public void accumulateRows( RowSplittable rseq, MocBuilder mocBuilder )
+                throws IOException {
+            try ( SequentialJELRowReader rdr =
+                      new SequentialJELRowReader( table_, rseq ) ) {
+                IOSupplier<Area> areaRdr = areaParser_.createReader( rdr );
+                while ( rdr.next() ) {
+                    Area area = areaRdr.get();
+                    if ( area != null ) {
+                        for ( long uniq : area.toMocUniqs( order_ ) ) {
+                            mocBuilder.addTile( Coverage.uniqToOrder( uniq ),
+                                                Coverage.uniqToIndex( uniq ) );
+                        }
+                    }
+                }
+            }
+        }
+
+        public MocBuilder combine( MocBuilder b1, MocBuilder b2 ) {
+            b2.endTiles();
+            for ( PrimitiveIterator.OfLong it = b2.createOrderedUniqIterator();
+                  it.hasNext(); ) {
+                long uniq = it.next();
+                b1.addTile( Coverage.uniqToOrder( uniq ),
+                            Coverage.uniqToIndex( uniq ) );
+            }
+            return b1;
+        }
+
+        /**
+         * Must be called on the final result before use.
+         *
+         * @param  mocBuilder  moc object that will not have any more
+         *                     data accumulated to it
+         */
+        public void finishMoc( MocBuilder mocBuilder ) {
+            mocBuilder.endTiles();
+        }
+    }
+
+    /**
+     * Collector for assembling TMOCs.
+     * Note that the {@link #finishMoc} method must be called on
+     * the collected result.
+     */
+    private static class TMocCollector extends RowCollector<TMoc> {
+
+        private final int torder_;
+        private final StarTable table_;
+        private final TileParser<double[]> jdIntervalParser_;
+
+        /**
+         * Constructor.
+         *
+         * @param   torder  TMOC time order
+         * @param   table   table for which rows will be supplied
+         * @param   jdIntervalParser  object that can get JD start,stop
+         *                            pairs from rows
+         */
+        TMocCollector( int torder, StarTable table,
+                       TileParser<double[]> jdIntervalParser ) {
+            torder_ = torder;
+            table_ = table;
+            jdIntervalParser_ = jdIntervalParser;
+        }
+
+        public TMoc createAccumulator() {
+            TMoc tmoc = new TMoc( torder_ );
+            tmoc.bufferOn( CDSMOC_BUFSIZ );
+            return tmoc;
+        }
+
+        public void accumulateRows( RowSplittable rseq, TMoc tmoc )
+                throws IOException {
+            try ( SequentialJELRowReader rdr =
+                      new SequentialJELRowReader( table_, rseq ) ) {
+                IOSupplier<double[]> jdIntervalRdr =
+                    jdIntervalParser_.createReader( rdr );
+                while ( rdr.next() ) {
+                    double[] jdInterval = jdIntervalRdr.get();
+                    if ( jdInterval != null ) {
+                        try {
+                            tmoc.add( jdInterval[ 0 ], jdInterval[ 1 ] );
+                        }
+                        catch ( IOException e ) {
+                            throw e;
+                        }
+                        catch ( Exception e ) {
+                            throw new IOException( "MOC error", e );
+                        }
+                    }
+                }
+            }
+        }
+
+        public TMoc combine( TMoc tmoc1, TMoc tmoc2 ) {
+            tmoc2.bufferOff();
+            try {
+                tmoc1.add( tmoc2 );
+            }
+            catch ( Exception e ) {
+                throw new RuntimeException( "CDS MOC error: " + e, e );
+            }
+            return tmoc1;
+        }
+
+        /**
+         * Must be called on the final result before use.
+         *
+         * @param  tmoc  moc object that will not have any more
+         *               data accumulated to it
+         */
+        public void finishMoc( TMoc tmoc ) {
+            tmoc.bufferOff();
+        }
+    }
+
+    /**
+     * Collector for assembling STMOCs.
+     * Note that the {@link #finishMoc} method should be called on
+     * the collected result (but at time of writing it is a NOP).
+     */
+    private static class STMocCollector extends RowCollector<STMoc> {
+
+        private final int sorder_;
+        private final int torder_;
+        private final StarTable table_;
+        private final TileParser<Area> areaParser_;
+        private final TileParser<double[]> jdIntervalParser_;
+
+        /**
+         * Constructor.
+         *
+         * @param   sorder  order for spatial MOC
+         * @param   torder  order for time MOC
+         * @param   table   table for which rows will be supplied
+         * @param   areaParser   object that can get Area values from rows
+         * @param   jdIntervalParser  object that can get JD start,stop
+         *                            pairs from rows
+         */
+        STMocCollector( int sorder, int torder, StarTable table,
+                        TileParser<Area> areaParser,
+                        TileParser<double[]> jdIntervalParser ) {
+            sorder_ = sorder;
+            torder_ = torder;
+            table_ = table;
+            areaParser_ = areaParser;
+            jdIntervalParser_ = jdIntervalParser;
+        }
+
+        public STMoc createAccumulator() {
+            try {
+                return new STMoc( torder_, sorder_ );
+            }
+            catch ( Exception e ) {
+                assert false;
+                throw new RuntimeException( "MOC error", e );
+            }
+        }
+
+        public void accumulateRows( RowSplittable rseq, STMoc stmoc )
+                throws IOException {
+            try ( SequentialJELRowReader rdr =
+                      new SequentialJELRowReader( table_, rseq ) ) {
+                IOSupplier<Area> areaRdr =
+                    areaParser_.createReader( rdr );
+                IOSupplier<double[]> jdIntervalRdr =
+                    jdIntervalParser_.createReader( rdr );
+                while ( rdr.next() ) {
+                    Area area = areaRdr.get();
+                    double[] jdInterval = jdIntervalRdr.get();
+                    if ( area != null && jdInterval != null ) {
+                        for ( long uniq : area.toMocUniqs( sorder_ ) ) {
+                            try {
+                                stmoc.add( Coverage.uniqToOrder( uniq ),
+                                           Coverage.uniqToIndex( uniq ),
+                                           jdInterval[ 0 ], jdInterval[ 1 ] );
+                            }
+                            catch ( IOException e ) {
+                                throw e;
+                            }
+                            catch ( Exception e ) {
+                                throw new IOException( "MOC error", e );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public STMoc combine( STMoc stmoc1, STMoc stmoc2 ) {
+            try {
+                return stmoc1.union( stmoc2 );
+            }
+            catch ( Exception e ) {
+                throw new RuntimeException( "MOC error", e );
+            }
+        }
+
+        /**
+         * Should be called on the final result before use.
+         *
+         * @param  stmoc  moc object that will not have any more
+         *                data accumulated to it
+         */
+        public void finishMoc( STMoc stmoc ) {
         }
     }
 }

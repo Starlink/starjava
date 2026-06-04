@@ -6985,6 +6985,15 @@ characteristics may be different for the different choices,
 and it may be worthwhile to experiment when working with very large tables.
 </p>
 
+<p>By default, <code>mocshape</code> uses multiple threads for better
+performance.
+In certain circumstances (large <code>order</code>, many cores,
+limited memory) this could lead to running out of memory.
+In this case, if adding more heap memory (<code>-Xmx&lt;NN&gt;G</code>) is
+not an option, then reducing the parallelism by adjusting the
+value of the <code>runner</code> parameter may help.
+</p>
+
 <p>See also the
 <ref id="Coverage">Coverage</ref> class
 for MOC-related functions.
@@ -16171,6 +16180,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li><ref id="mocshape"><code>mocshape</code></ref> now runs
+        multithreaded by default.
+        It has a new parameter <code>runner</code> to control
+        parallelisation.</li>
     </ul>
     </p></dd>
 
