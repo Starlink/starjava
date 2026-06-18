@@ -18,6 +18,7 @@
 *.dvi
 *.log
 *.aux
+*.project
 *~
 *.toc
 splat/src/docs/sun243.pdf
