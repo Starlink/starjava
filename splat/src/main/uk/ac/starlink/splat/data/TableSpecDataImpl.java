@@ -10,6 +10,7 @@ package uk.ac.starlink.splat.data;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.io.IOException;
@@ -49,6 +50,11 @@ import uk.ac.starlink.table.UCD;
 public class TableSpecDataImpl
     extends MEMSpecDataImpl
 {
+	
+	
+    private static Logger logger =
+            Logger.getLogger( "uk.ac.starlink.splat.data.TableSpecDataImpl" );
+
     /** Index of the column containing the coordinates */
     protected int coordColumn = -1;
 
@@ -393,8 +399,10 @@ public class TableSpecDataImpl
             throw e;
         }
         catch (Exception e) {
-            throw new SplatException( "Failed to open table: " +
-                                      starTable.getName(), e );
+            //throw new SplatException( "Failed to open table: " +
+                                     // starTable.getName(), e );
+        	logger.info(e.getMessage());
+        	
         }
     }
     
@@ -592,7 +600,7 @@ public class TableSpecDataImpl
         columnInfos = Tables.getColumnInfos( starTable );
         columnNames = new String[columnInfos.length];
         for ( int i = 0; i < columnNames.length; i++ ) {
-            columnNames[i] = columnInfos[i].getName().replaceAll( "\\s", "_" );
+            columnNames[i] = columnInfos[i].getName().replaceAll( "\\s", "_" ).toLowerCase();
         }
 
         coordColumn =
@@ -968,7 +976,8 @@ public class TableSpecDataImpl
     }
     private String checkUnits(String units) {
 		// units from type "Wavelength ( unit )"
-		
+		if (units == null)
+			return units;
 		
 		// if a unit has a multiplication factor, parse it 
 		// from vounits standard (no whitespace) to AST (add whitespace)
