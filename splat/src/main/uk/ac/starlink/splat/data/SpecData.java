@@ -3231,6 +3231,13 @@ public class SpecData
 		else return null;		
 	}
 	
+
+	public LineIDSpecDataImpl getLineIDImpl() {
+		if (isSDSSTableSpecData())
+			return   (LineIDSpecDataImpl) ((SDSSTableSpecDataImpl) impl).getLineIDImpl();
+		return null;
+	}
+	
 	public void removeLegend() {
 		if (legend != null)
 			legend.removeLegend();
@@ -3264,4 +3271,5 @@ public class SpecData
 			visible=false;					
 		}		
 	}
+
 }

@@ -37,23 +37,25 @@ import uk.ac.starlink.table.UCD;
 public class LineIDTableSpecDataImpl
     extends LineIDMEMSpecDataImpl
 {
-    /** Index of the column containing the coordinates */
-    private int coordColumn = -1;
+    
+
+	/** Index of the column containing the coordinates */
+    protected int coordColumn = -1;
 
     /** Index of the column containing the optional data values */
-    private int dataColumn = -1;
+    protected int dataColumn = -1;
 
     /** Index of the column containing the line identifier labels */
-    private int labelColumn = -1;
+    protected int labelColumn = -1;
 
     /** Names of all the columns in the table */
-    private String[] columnNames = null;
+    protected String[] columnNames = null;
 
     /** ColumnInfo objects for all columns */
-    private ColumnInfo[] columnInfos = null;
+    protected ColumnInfo[] columnInfos = null;
 
     /** Dimension of a column. */
-    private int[] dims = new int[1];
+    protected int[] dims = new int[1];
 
     /** Counter for generating application unique names */
     static int uniqueCount = 0;
@@ -107,6 +109,21 @@ public class LineIDTableSpecDataImpl
         openTable( starTable );
     }
     
+    /**
+     * Create an object by reusing an existing instance if a StarTable.
+     *
+     * @param starTable reference to a {@link StarTable}.
+     */
+    public LineIDTableSpecDataImpl( StarTable starTable, boolean sdss )
+        throws SplatException
+    {
+        super( starTable.getName() );
+        if (!sdss) {
+            setName( starTable );
+            openTable( starTable );
+        }
+    }
+    
   
     /**
      * Create an object by reusing an existing instance if a StarTable.
@@ -126,6 +143,8 @@ public class LineIDTableSpecDataImpl
         openTable( starTable );
        
     }
+    
+    
 
     /**
      * Return the data format.
@@ -243,9 +262,9 @@ public class LineIDTableSpecDataImpl
      * Names of coordinates and label columns (for linetap)
      */
 
-	private String coordColName=null;
+	protected String coordColName=null;
 
-	private String labelColName=null;
+	protected String labelColName=null;
 
     /**
      * Writer for tables.
@@ -491,6 +510,7 @@ public class LineIDTableSpecDataImpl
         }
         //  Find the size of the table. Limited to 2G cells.
         dims[0] = (int) starTable.getRowCount();
+       
 
         //  Access column data, one value per cell.
         coords = new double[dims[0]];
@@ -505,9 +525,10 @@ public class LineIDTableSpecDataImpl
             Arrays.fill(data, SpecData.BAD);
  //       }
 
-
+    
         labels = new String[dims[0]];
-        readColumn( labels, labelColumn );
+        if (labelColumn > -1 && labels != null)
+            readColumn( labels, labelColumn );
 
         //  Create the AST frameset that describes the data-coordinate
         //  relationship.
