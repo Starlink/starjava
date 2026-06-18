@@ -527,7 +527,6 @@ public class InputColumns {
      * @return   boolean array reader
      */
     private static Col<boolean[]> createBooleanArrayCol() {
-        final boolean[] array0 = new boolean[ 0 ];
         return new Col<boolean[]>() {
             public Class<boolean[]> getContentClass() {
                 return boolean[].class;
@@ -553,7 +552,7 @@ public class InputColumns {
                     public boolean[] getValue() {
                         if ( value_ == null ) {
                             if ( n_ == 0 ) {
-                                value_ = array0;
+                                value_ = null;
                             }
                             else {
                                 value_ = new boolean[ n_ ];
@@ -578,7 +577,6 @@ public class InputColumns {
      * @return  string array reader
      */
     private static Col<String[]> createStringArrayCol() {
-        final String[] array0 = new String[ 0 ];
         return new Col<String[]>() {
             public Class<String[]> getContentClass() {
                 return String[].class;
@@ -603,7 +601,7 @@ public class InputColumns {
                     public String[] getValue() {
                         if ( value_ == null ) {
                             int n = list_.size();
-                            value_ = n == 0 ? array0
+                            value_ = n == 0 ? null
                                             : list_.toArray( new String[ n ] );
                         }
                         return value_;

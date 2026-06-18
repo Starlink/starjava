@@ -16184,6 +16184,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         multithreaded by default.
         It has a new parameter <code>runner</code> to control
         parallelisation.</li>
+    <li>Fix bug in parquet <code>boolean[]</code> array handling
+        related to null values.</li>
     </ul>
     </p></dd>
 
