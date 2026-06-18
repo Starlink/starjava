@@ -79,6 +79,7 @@ public class TableColumnChooser
         //  Default patterns for column names and utypes.
         coordNamePatterns = new ArrayList();
         addCoordNamePattern( "wave.*" );
+        addCoordNamePattern( ".*wave" );
         addCoordNamePattern( "freq.*" );
         addCoordNamePattern( "velo.*" );
         addCoordNamePattern( "redshift.*" );
@@ -101,6 +102,7 @@ public class TableColumnChooser
         addCoordUcdPattern( "time.*" );
  
         dataNamePatterns = new ArrayList();
+        addDataNamePattern( ".*flux" );
         addDataNamePattern( "flux.*" );
         addDataNamePattern( "inten.*" );
         addDataNamePattern( "temp.*" );
@@ -119,8 +121,9 @@ public class TableColumnChooser
 
 
         errorNamePatterns = new ArrayList();
+        addErrorNamePattern( ".*err" );
         addErrorNamePattern( "error.*" );
-        addErrorNamePattern("error");
+        addErrorNamePattern( "error");
         addErrorNamePattern( "sigma.*" );
         addErrorNamePattern( "stddev.*" );
 
@@ -135,6 +138,7 @@ public class TableColumnChooser
         addLabelNamePattern( "identifiers.*" );
         addLabelNamePattern( "label.*" );
         addLabelNamePattern( "name.*" );
+        addLabelNamePattern( ".*name" );
         addLabelNamePattern( "linename" ); // SDSS Lines
        
 
