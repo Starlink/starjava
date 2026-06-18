@@ -363,32 +363,35 @@ public class SpecDataFactory
         boolean isRemote = namer.isRemote();
        
         if ( isRemote ) {
-             int remotetype = checkMimeType(namer.getURL());
-             if (remotetype == DATALINK) { // if it's a datalink file, it has to be parsed and its information extracted
-                 try { // try opening the link with #this semantics.
-                     DataLinkResponse dlp = new DataLinkResponse(specspec);
-                     String thisLink= dlp.getThisLink();
-                    
-                    	 if ( dlp.getThisContentType() == null || dlp.getThisContentType().isEmpty()) //if not, use contenttype
-                    		 type = GUESS;
-                    	 else 
-                    		 type = mimeToSPLATType(dlp.getThisContentType()); 
-                    	 // got the datalink information, do it all again with the new url
-                    	 return getAll(thisLink, type);
-                     	
-                 } catch (IOException e) {
-                     throw new SplatException(e);
-                 } catch (SAXException e) {
-                	 throw new SplatException(e);
-		 }
-             }
-                 
-           //  if ( remotetype != GUESS && remotetype != NOT_SUPPORTED)
+        	int remotetype = checkMimeType(namer.getURL());
+        	if (remotetype == DATALINK) { // if it's a datalink file, it has to be parsed and its information extracted
+        		try { // try opening the link with #this semantics.
+        			DataLinkResponse dlp = new DataLinkResponse(specspec);
+        			String thisLink= dlp.getThisLink();
+
+        			if ( dlp.getThisContentType() == null || dlp.getThisContentType().isEmpty()) //if not, use contenttype
+        				type = GUESS;
+        			else 
+        				type = mimeToSPLATType(dlp.getThisContentType()); 
+        			// got the datalink information, do it all again with the new url
+        			return getAll(thisLink, type);
+
+        		} catch (IOException e) {
+        			throw new SplatException(e);
+        		} catch (SAXException e) {
+        			throw new SplatException(e);
+        		}
+        	}
+
+           // if ( remotetype != GUESS && remotetype != NOT_SUPPORTED)
            //      type = remotetype;
               
              if ( ( /*type != TABLE &&*/ type != HDX ) || ( type == GUESS ) ) {               
                 PathParser pathParser = remoteToLocalFile( namer.getURL(), type ); 
                 specspec = pathParser.ndfname();
+                type = remotetype;
+                return getAll(specspec, type);
+                
             }
         }
 
@@ -453,7 +456,7 @@ public class SpecDataFactory
 
             for (SpecDataImpl impl : impls) {
                 specDataList.add(makeSpecDataFromImpl( impl, isRemote, namer.getURL() ));
-            	specDataList.add(makeSpecDataFromImpl( impl, isRemote, namer.getURL() ));
+            	//specDataList.add(makeSpecDataFromImpl( impl, isRemote, namer.getURL() ));
             }
 
             return specDataList;
@@ -465,7 +468,7 @@ public class SpecDataFactory
         return specDataList;
       }
 
-    private int checkMimeType(URL url) throws SplatException {
+     public static int checkMimeType(URL url) throws SplatException {
         String conttype = "";
 
         try {
@@ -1593,7 +1596,7 @@ public class SpecDataFactory
         } catch (Exception e) {
             throw new SplatException( e );
         }
-
+        
         return namer;
     }
 
@@ -2238,12 +2241,19 @@ public class SpecDataFactory
         authenticator=auth;
     }
     
-    private URLConnection openConnection(URL url) throws SplatException, IOException {
+    private static URLConnection openConnection(URL url) throws SplatException, IOException {
         
         URLConnection connection = url.openConnection();
+        
+       
 
         if ( connection instanceof HttpURLConnection ) {
-            int code = ((HttpURLConnection)connection).getResponseCode();
+        	int code=-1;
+        	try {
+               code = ((HttpURLConnection)connection).getResponseCode();
+        	} catch (Exception e ) {
+        		
+        	}
             if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
                     code == HttpURLConnection.HTTP_MOVED_TEMP ||
                     code == HttpURLConnection.HTTP_SEE_OTHER ) {
