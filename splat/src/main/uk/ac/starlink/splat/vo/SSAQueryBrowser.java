@@ -2574,7 +2574,7 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
      * adds the parameters to a hashmap. Every parameter should be unique, 
      * and a counter shows how many servers support each parameter  
      * Exclude the parameters that are already included in the main menues of splat query browser
-     * @param - metadata the parameters read from all servers 
+     * @param - metadata  the parameters read from all servers 
      * 
      */
     private synchronized static void processMetadata( ParamElement[] metadata, SSAPRegResource server) {
@@ -2586,10 +2586,8 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
         while ( i < metadata.length ) {
             String paramName = metadata[i].getName();
             if (    ! paramName.equalsIgnoreCase("INPUT:REQUEST") &&  // these parameters should be ignored
-                    ! paramName.equalsIgnoreCase("INPUT:COLLECTION") && 
                     ! paramName.equalsIgnoreCase("INPUT:COMPRESS") && 
                     ! paramName.equalsIgnoreCase("INPUT:OUTPUTFORMAT") &&
-                    ! paramName.equalsIgnoreCase("INPUT:COLLECTION") && 
                     ! paramName.equalsIgnoreCase("INPUT:POS") &&        // these parameters should be entered in the main browser
                     ! paramName.equalsIgnoreCase("INPUT:SIZE") &&
                     ! paramName.equalsIgnoreCase("INPUT:MAXREC") &&
