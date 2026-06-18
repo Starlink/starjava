@@ -51,6 +51,7 @@ import jsky.util.SwingWorker;
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.data.LineIDSpecData;
+import uk.ac.starlink.splat.data.LineIDSpecDataImpl;
 import uk.ac.starlink.splat.data.LineIDTableSpecDataImpl;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.GlobalSpecPlotList;
@@ -88,6 +89,7 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
 //    private SplatBrowser browser;
     private JPanel contentPane;
     private PlotControl plot;
+    
     /**
      * The ProgressFrame. This appears to denote that something is happening.
      */
@@ -205,7 +207,6 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
             		if (index < 0 ) {
             			index=0;
             		}
-            		setPlot( globalList.getPlot(index)); 
             	} 
             	else setPlot(null);
             }
@@ -700,10 +701,15 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
         
 		return con;
 	}
-    public void addLinesandDisplay( StarTable table, String name) {
+    public void addLinesandDisplay( LineIDSpecDataImpl impl, StarTable table, String name) {
     	  
     	addLinesTable(table, name);
-   	    displayLines(table);
+   	    displayLines(table, (LineIDTableSpecDataImpl) impl);
+   }
+    public void addLinesandDisplay( LineIDTableSpecDataImpl impl, StarTable table, String name) {
+  	  
+    	addLinesTable(table, name);
+   	    displayLines(table, impl);
    }
     
     protected void addLinesTable( StarTable table, String name) {
@@ -787,6 +793,13 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
 
     protected void displayLines(StarTable table) {
     	
+    	displayLines( table, null );
+    	
+    }
+    
+    // if we already habve the impl, no need to build it again
+    protected void displayLines(StarTable table, LineIDTableSpecDataImpl lineImpl) {
+    	
     	if (activePlotBox.getSelectedIndex()==-1 )
     		return;
     	if (activePlotBox.getSelectedItem().toString().equals("No plots available"))
@@ -800,13 +813,17 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
         }
         try {
         	LineIDTableSpecDataImpl impl = null;
-        	if (linesQuery.isLinetapSelected()) {
-        		impl = new LineIDTableSpecDataImpl(table, "vacuum_wavelength", null, "title");
+        	
+        	if (lineImpl == null ) {
+        		if (linesQuery.isLinetapSelected()) {
+        			impl = new LineIDTableSpecDataImpl(table, "vacuum_wavelength", null, "title");
         		
+        		}        
+        		else 
+        			impl = new LineIDTableSpecDataImpl(table);
         	}
-        
-        	else 
-        		impl = new LineIDTableSpecDataImpl(table);
+        	else
+        		impl=lineImpl;
       
         	
 
@@ -1117,8 +1134,10 @@ protected void displayOneLine(StarJTable table, int row) {
 	@Override
 	public void plotCreated(PlotChangedEvent e) {
 		updatePlotList();
-		PlotControl plot = globalList.getPlot(e.getIndex());
-		setPlot(plot);		
+		if (activePlotBox.getSelectedIndex() <0 || activePlotBox.getSelectedItem().toString().equals("No plots available")) {
+			PlotControl plot = globalList.getPlot(e.getIndex());
+			setPlot(plot);		
+		}
 	}
 
 	@Override
