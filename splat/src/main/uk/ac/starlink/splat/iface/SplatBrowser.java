@@ -2395,6 +2395,22 @@ public class SplatBrowser
     public void tryAddSpectrum( SpectrumIO.Props props )
         throws SplatException, TableFormatException, IOException
     {
+    	// sometimes the type is wrong. For remote locations, check the mimetype
+    	 NameParser namer = new NameParser( props.getSpectrum() );
+    	 if ( props.getType() == SpecDataFactory.NOT_SUPPORTED) {
+    		 try {
+    			 boolean isRemote = namer.isRemote();
+
+    			 if ( isRemote ) {
+    				 int remotetype = SpecDataFactory.checkMimeType(namer.getURL());
+    				 props.setType(remotetype);
+    			 }
+    		 }
+    		 catch (Exception e) {
+
+    		 }
+    	 }
+    	
         if ( props.getType() == SpecDataFactory.SED || props.getType() == SpecDataFactory.TABLE ) {
             //  Could be a source of several spectra.
             SpecData spectra[] =
@@ -2440,6 +2456,7 @@ public class SplatBrowser
                         }
                     } 
                     
+                    
                     spectra = specDataFactory.get( props.getSpectrum(), props.getType(), props.getObjectType() ); 
                     for (int s=0; s < spectra.size(); s++ ){
                         spectrum=spectra.get(s);
@@ -2447,6 +2464,7 @@ public class SplatBrowser
                         if (sname != null && ! sname.isEmpty())
                             props.setShortName(sname);
                         	props.apply( spectrum ); 
+                        
 //                        spectrum.setObjectType(props.getObjectType());
                       /*  if ( spectrum.isSDSSTableSpecData() ) {    
                         	addSpectrum(spectrum);
@@ -2707,11 +2725,8 @@ public class SplatBrowser
                 
             }
 
-            //  Add all spectra in a single list for efficiency.
-            /* SpecData spectra[] = new SpecData[specIndices.length - 1];
-            for ( int i = 0; i < specIndices.length - 1; i++ ) {
-                spectra[i] = globalList.getSpectrum( specIndices[i+1] );
-            }*/
+         
+        
             
             if (allSelectedSpectra.size() > 0) {
                 SpecData spec = null;
@@ -2721,7 +2736,8 @@ public class SplatBrowser
                 plotIndex = globalList.getPlotIndex( plot.getPlot() );
                 if ( spec.isSDSSTableSpecData() ) {    
                 	showLinesBrowser(plot.getPlot());
-                	spectralLinesBrowser.addLinesandDisplay(spec.getLineIDTable(), spec.getShortName());            
+                	//spectralLinesBrowser.addLinesandDisplay(spec.getLineIDImpl(), spec.getShortName());            
+                	spectralLinesBrowser.addLinesandDisplay(spec.getLineIDImpl(), spec.getLineIDTable() ,spec.getShortName());            
                 } 
                 
                 allSelectedSpectra.remove(0);
