@@ -16186,6 +16186,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         parallelisation.</li>
     <li>Fix bug in parquet <code>boolean[]</code> array handling
         related to null values.</li>
+    <li>Stop parquet output handler writing annoying .x.parquet.crc
+        files every time it writes x.parquet.</li>
     </ul>
     </p></dd>
 

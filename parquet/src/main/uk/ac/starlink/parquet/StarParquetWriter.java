@@ -70,8 +70,9 @@ public class StarParquetWriter extends ParquetWriter<Object[]> {
          * @param  table  table to write
          * @param  path  destination path
          */
-        public StarBuilder( StarTable table, Path path ) {
+        public StarBuilder( StarTable table, Path path ) throws IOException {
             super( path );
+            path.getFileSystem( new Configuration() ).setWriteChecksum( false );
             table_ = table;
         }
 

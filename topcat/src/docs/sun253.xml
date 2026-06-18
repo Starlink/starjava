@@ -35249,6 +35249,8 @@ introduced since the last version:
     <ul>
     <li>Fix bug in parquet <code>boolean[]</code> array handling
         related to null values.</li>
+    <li>Stop parquet output handler writing annoying .x.parquet.crc
+        files every time it writes x.parquet.</li>
     </ul>
     </p></dd>
 
