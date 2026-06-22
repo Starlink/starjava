@@ -46,6 +46,7 @@ public abstract class ParquetStarTable extends AbstractStarTable {
     private final InputColumn<?>[] incols_;
     private final Map<String,String> extrametaMap_;
     private String votmeta_;
+    private String maml_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.parquet" );
@@ -75,6 +76,9 @@ public abstract class ParquetStarTable extends AbstractStarTable {
 
     /** Required value for VOTable metadata version. */
     public static final String REQUIRED_VOTMETAVERSION = "1.0";
+
+    /** Extra metadata key for MAML metadata. */
+    public static final String MAML_KEY = "maml";
 
     /**
      * Constructor.
@@ -112,6 +116,10 @@ public abstract class ParquetStarTable extends AbstractStarTable {
         String votmeta = metaMap.remove( VOTMETA_KEY );
         String votmetaVersion = metaMap.remove( VOTMETAVERSION_KEY );
         setVOTableMetadataText( votmeta );
+
+        /* Record MAML metadata if present. */
+        String maml = metaMap.remove( MAML_KEY );
+        setMamlMetadataText( maml );
   
         /* Record remaining per-file metadata as parameters. */
         List<DescribedValue> params = getParameters();
@@ -235,6 +243,29 @@ public abstract class ParquetStarTable extends AbstractStarTable {
      */
     public void setVOTableMetadataText( String votmeta ) {
         votmeta_ = votmeta;
+    }
+
+    /**
+     * Returns the text content of a YAML block intended to supply
+     * MAML metadata for this table.
+     *
+     * @return  MAML metadata YAML text, or null
+     */
+    public String getMamlMetadataText() {
+        return maml_;
+    }
+
+    /**
+     * Sets the text content of a YAML block intented to supply
+     * MAML metadata for this table.
+     * This is called at construction time using parquet key-value metadata
+     * in accordance with MAML rules, but it may be called
+     * subsequently to modify or reset the associated YAML block.
+     *
+     * @param  maml  MAML metadata YAML text
+     */
+    public void setMamlMetadataText( String maml ) {
+        maml_ = maml;
     }
 
     /**

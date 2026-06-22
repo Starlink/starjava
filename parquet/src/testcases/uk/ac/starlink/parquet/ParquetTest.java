@@ -50,4 +50,23 @@ public class ParquetTest extends TestCase {
             dumpFunc.apply( dump );
         }
     }
+
+    public void testMaml() throws IOException {
+        URL url = ParquetTest.class.getResource( "example_maml.parquet" );
+        StarTable table = new StarTableFactory( true )
+                         .makeStarTable( new URLDataSource( url ) );
+        assertEquals( 7, table.getColumnCount() );
+        assertEquals( 5, table.getRowCount() );
+        ColumnInfo idInfo = table.getColumnInfo( 0 );
+        ColumnInfo nameInfo = table.getColumnInfo( 1 );
+        ColumnInfo raInfo = table.getColumnInfo( 4 );
+        ColumnInfo magInfo = table.getColumnInfo( 6 );
+        assertEquals( "meta.id;meta.main", idInfo.getUCD() );
+        assertNull( nameInfo.getUCD() );
+        assertEquals( "phot.mag", magInfo.getUCD() );
+        assertNull( idInfo.getUnitString() );
+        assertEquals( "deg", raInfo.getUnitString() );
+        assertEquals( "2025-09-01",
+                      table.getParameterByName( "date" ).getValue() );
+    }
 }

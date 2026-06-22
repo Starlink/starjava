@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javax.xml.transform.dom.DOMSource;
@@ -19,6 +20,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
@@ -53,6 +56,7 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
 
     private Boolean cacheCols_;
     private Boolean votMeta_;
+    private Boolean mamlMeta_;
     private int nThread_;
     private boolean tryUrl_;
     private String votableLoc_;
@@ -130,7 +134,10 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
         ParquetIO io = ParquetUtil.getIO();
         boolean useCache = useCache( datsrc, wantRandom, storage );
 
-        /* We have to include unsupported columns in the first instance
+        /* Use the VOParquet convention to decorate the parquet table
+         * with an associated VOTable document if present,
+         * according to configuration.
+         * We have to include unsupported columns in the first instance
          * so we can compare parquet and VOTable columns when (maybe)
          * trying to apply VOTable metadata.  Once that's done,
          * eliminate the unsupported columns before returning the result. */
@@ -145,7 +152,18 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
             String votTxt = readUtf8FromLocation( votableLoc_ );
             parquetTable.setVOTableMetadataText( votTxt );
         }
-        return hideUnsupportedColumns( applyVOTableMetadata( parquetTable ) );
+        StarTable outTable =
+            hideUnsupportedColumns( applyVOTableMetadata( parquetTable ) );
+
+        /* If there is MAML metadata present, apply that.
+         * In (the inadvisable) case that both MAML and VOTable metadata
+         * are present, only apply MAML if we've been explicitly told to. */
+        String mamlTxt = parquetTable.getMamlMetadataText();
+        if ( votableLoc_ == null || Boolean.TRUE.equals( mamlMeta_ ) ) {
+            applyMamlMetadata( outTable, mamlTxt );
+        }
+
+        return outTable;
     }
 
     public void streamStarTable( InputStream istrm, TableSink sink,
@@ -293,6 +311,46 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
      */
     public Boolean getVOTableMetadata() {
         return votMeta_;
+    }
+
+    /**
+     * Determines whether a MAML block in the input parquet file
+     * will be used to supply metadata.
+     * A null value (the default) uses such metadata if it is present.
+     *
+     * @param  mamlMeta  whether to read metadata from a MAML block
+     */
+    @ConfigMethod(
+        property = "maml",
+        example = "true",
+        doc = "<p>If true, the content of the parquet extra metadata\n"
+            + "key-value list item with key\n"
+            + "<code>" + ParquetStarTable.MAML_KEY + "</code> will be read\n"
+            + "to supply additional metadata for the input table.\n"
+            + "If set false, such an item will be ignored.\n"
+            + "If set null, the default, then such MAML metadata\n"
+            + "will be used if it is present and no better source of\n"
+            + "additional metadata is apparent.\n"
+            + "MAML is a YAML-based metadata format defined at\n"
+            + "<webref url='https://github.com/asgr/MAML-Format'/>.\n"
+            + "Partial MAML support is implemented;\n"
+            + "some of the more useful per-column and per-table items are\n"
+            + "applied, but not everything is.\n"
+            + "</p>"
+    )
+    public void setMamlMetadata( Boolean mamlMeta ) {
+        mamlMeta_ = mamlMeta;
+    }
+
+    /**
+     * Indicates whether a MAML block in the input parquet file
+     * will be used to supply metadata.
+     * A null value (the default) uses such metadata if it is present.
+     *
+     * @return  whether to read metadata from a MAML block
+     */
+    public Boolean getMamlMetadata() {
+        return mamlMeta_;
     }
 
     /**
@@ -457,7 +515,60 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
             }
         }
     }
-    
+
+    /**
+     * Decorates a supplied parquet table with a supplied YAML block
+     * in accordance with the MAML metadata format.
+     * MAML support in STIL is currently best-efforts.
+     *
+     * @param  inTable  table to decorate
+     * @param  mamlText   YAML block, may be null if no MAML present
+     */
+    private void applyMamlMetadata( StarTable inTable, String mamlTxt )
+            throws TableFormatException {
+        if ( mamlTxt == null || Boolean.FALSE.equals( mamlMeta_ ) ) {
+            if ( Boolean.TRUE.equals( mamlMeta_ ) ) {
+                throw new TableFormatException( "No MAML metadata found" );
+            }
+            else {
+                return;
+            }
+        }
+        MamlParser parser = new SnakeMamlParser();
+        MamlMetadata maml = parser.parseMaml( mamlTxt );
+        String tname = maml.getName();
+        if ( tname != null ) {
+            inTable.setName( tname );
+        }
+        for ( Map.Entry<String,String> entry :
+              maml.getParameters().entrySet() ) {
+            DescribedValue dval =
+                new DescribedValue( new DefaultValueInfo( entry.getKey(),
+                                                          String.class, null ),
+                                    entry.getValue() );
+            inTable.getParameters().add( dval );
+        }
+        Map<String,MamlMetadata.Field> fieldMap = maml.getFields();
+        for ( int ic = 0; ic < inTable.getColumnCount(); ic++ ) {
+            ColumnInfo cinfo = inTable.getColumnInfo( ic );
+            MamlMetadata.Field field = fieldMap.get( cinfo.getName() );
+            if ( field != null ) {
+                String unit = field.getUnit();
+                String info = field.getInfo();
+                String ucd = field.getUcd();
+                if ( unit != null ) {
+                    cinfo.setUnitString( unit );
+                }
+                if ( info != null ) {
+                    cinfo.setDescription( info );
+                }
+                if ( ucd != null ) {
+                    cinfo.setUCD( ucd );
+                }
+            }
+        }
+    }
+
     /**
      * Take an input table and remove any columns which have been marked
      * by the parquet reader as unsupported.

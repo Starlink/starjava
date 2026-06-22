@@ -35252,6 +35252,10 @@ introduced since the last version:
         related to null values.</li>
     <li>Stop parquet output handler writing annoying .x.parquet.crc
         files every time it writes x.parquet.</li>
+    <li>Partial support for 
+        <webref url="https://github.com/asgr/MAML-Format">MAML</webref> 
+        metadata in <ref id="inParquet">parquet input</ref> 
+        (not output).</li>
     </ul>
     </p></dd>
 
