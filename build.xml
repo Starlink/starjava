@@ -216,14 +216,14 @@
     <echo message="Executing CDF target: ${what}"/>
     <ant dir="./cdf" target="${what}"/>
 
-    <echo message="Executing PARQUET target: ${what}"/>
-    <ant dir="./parquet" target="${what}"/>
-
     <echo message="Excecuting FEATHER target: ${what}"/>
     <ant dir="./feather" target="${what}"/>
 
     <echo message="Executing ECSV target: ${what}"/>
     <ant dir="./ecsv" target="${what}"/>
+
+    <echo message="Executing PARQUET target: ${what}"/>
+    <ant dir="./parquet" target="${what}"/>
 
     <echo message="Executing PDS target: ${what}"/>
     <ant dir="./pds" target="${what}"/>
@@ -555,11 +555,11 @@
          <include name="**"/>
       </packageset>
 
-      <packageset dir="parquet/build/java" defaultexcludes="yes">
+      <packageset dir="ecsv/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
-      <packageset dir="ecsv/build/java" defaultexcludes="yes">
+      <packageset dir="parquet/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
