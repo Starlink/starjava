@@ -64,5 +64,14 @@ public interface MamlMetadata {
          * @return  value of "ucd" entry in field, if it's a scalar
          */
         String getUcd();
+
+        /**
+         * Returns the fixed length of an array-valued column.
+         * This is the value of the MAML v1.2 "col_size" item
+         * for vector, not exploded, columns.
+         *
+         * @return  value of "col_size" entry in field, or -1 if not present
+         */
+        int getColSize();
     }
 }

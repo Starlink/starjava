@@ -556,6 +556,7 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
                 String unit = field.getUnit();
                 String info = field.getInfo();
                 String ucd = field.getUcd();
+                int colsize = field.getColSize();
                 if ( unit != null ) {
                     cinfo.setUnitString( unit );
                 }
@@ -564,6 +565,9 @@ public class ParquetTableBuilder extends DocumentedTableBuilder {
                 }
                 if ( ucd != null ) {
                     cinfo.setUCD( ucd );
+                }
+                if ( colsize > 0 && cinfo.isArray() ) {
+                    cinfo.setShape( new int[] { colsize } );
                 }
             }
         }

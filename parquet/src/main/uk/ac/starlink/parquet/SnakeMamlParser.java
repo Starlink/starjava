@@ -12,7 +12,7 @@ import uk.ac.starlink.table.TableFormatException;
  * MamlParser based on the SnakeYaml library.
  *
  * <p>In principle, this implementation is coded from the
- * MAML 1.0 format description at
+ * MAML 1.0-1.2 format description at
  * <a href="https://github.com/asgr/MAML-Format">
  *          https://github.com/asgr/MAML-Format</a>.
  * In practice it was done partly by looking at example files in the
@@ -66,6 +66,11 @@ public class SnakeMamlParser implements MamlParser {
                     if ( fname != null ) {
                         String funit = getStringValue( fmap, "unit" );
                         String finfo = getStringValue( fmap, "info" );
+                        Number colsizeObj =
+                            getTypedValue( fmap, "col_size", Number.class );
+                        int fcolsize = colsizeObj == null
+                                     ? -1
+                                     : colsizeObj.intValue();
                         Object ucdObj = fmap.get( "ucd" );
                         final String fucd;
                         if ( ucdObj instanceof String ) {
@@ -91,6 +96,9 @@ public class SnakeMamlParser implements MamlParser {
                                 return fucd == null || fucd.trim().length() == 0
                                      ? null
                                      : fucd;
+                            }
+                            public int getColSize() {
+                                return fcolsize;
                             }
                         } );
                     }
