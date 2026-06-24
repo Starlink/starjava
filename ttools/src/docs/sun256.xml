@@ -16192,6 +16192,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <webref url="https://github.com/asgr/MAML-Format">MAML</webref>
         metadata in <ref id="inParquet">parquet input</ref>
         (not output).</li>
+    <li>Fix SVG <ref id="graphicExporter">graphics output format</ref>
+        to work for Java versions &gt;=11, previously broken.
+        It is still broken for non-LTS Java versions 9 and 10;
+        you shouldn't be using those.</li>
     </ul>
     </p></dd>
 

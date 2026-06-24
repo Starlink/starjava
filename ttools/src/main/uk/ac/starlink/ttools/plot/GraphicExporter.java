@@ -18,12 +18,8 @@ import java.util.List;
 import java.util.zip.GZIPOutputStream;
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
-import org.jfree.graphics2d.svg.MeetOrSlice;
-import org.jfree.graphics2d.svg.PreserveAspectRatio;
-import org.jfree.graphics2d.svg.SVGGraphics2D;
-import org.jfree.graphics2d.svg.SVGUnits;
-import org.jfree.graphics2d.svg.ViewBox;
 import org.jibble.epsgraphics.EpsGraphics2D;
+import uk.ac.starlink.ttools.SvgGraphicsProvider;
 
 /**
  * Exports painted graphics to an output file in some graphics format.
@@ -188,27 +184,12 @@ public abstract class GraphicExporter {
                 throws IOException {
             int w = picture.getPictureWidth();
             int h = picture.getPictureHeight();
-            SVGGraphics2D g2 = new SVGGraphics2D( w, h, SVGUnits.PX );
+            SvgGraphicsProvider svgp = SvgGraphicsProvider.getInstance();
+            Graphics2D g2 = svgp.createGraphics2D( w, h );
             picture.paintPicture( g2 );
-            Writer writer = new OutputStreamWriter( out, "UTF-8" );
-
-            /* Export to suitable XML.  There are some subtleties in getting
-             * this right; following advice and experimentation, setting both
-             * the viewBox attribute and dimensions (width/height) attributes,
-             * with preserveAspectRatio left to defaults, seems to provide the
-             * right behaviour for default and rescaled image size in both
-             * IMG and OBJECT elements.  Output is to a single SVG element,
-             * undecorated by an XML or DOCTYPE declaration.
-             * These details are subject to change if expert SVG users decide
-             * they're doing the wrong thing. */
-            String id = null;
-            boolean includeDimensions = true;
-            ViewBox viewBox = new ViewBox( 0, 0, w, h );
-            PreserveAspectRatio aspect = null;
-            MeetOrSlice meet = null;
-            writer.write( g2.getSVGElement( id, includeDimensions, viewBox,
-                                            aspect, meet ) );
-            writer.close();
+            try ( Writer writer = new OutputStreamWriter( out, "UTF-8" ) ) {
+                writer.write( svgp.getSVGElement( g2 ) );
+            }
         }
     };
 
