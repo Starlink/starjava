@@ -2,7 +2,6 @@ package uk.ac.starlink.ecsv;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,21 +35,18 @@ public class EcsvReader implements Closeable {
     /**
      * Constructor.
      *
-     * @param  in  input stream; doesn't need to be buffered
+     * @param  lineRdr  line reader
      * @param  yamlParser   knows how to extrace ECSV metadata from YAML
      * @param  colCheck  what to do on CSV/YAML column name mismatches
      */
-    public EcsvReader( InputStream in, YamlParser yamlParser,
+    public EcsvReader( LineReader lineRdr, YamlParser yamlParser,
                        MessagePolicy colCheck )
             throws IOException, EcsvFormatException {
+        lineRdr_ = lineRdr;
 
         /* Initialise workspace. */
         words_ = new ArrayList<String>();
         wbuf_ = new StringBuilder();
-
-        /* Prepare line reader.  ECSV 1.0 is documented as using ASCII
-         * rather than, for instance, UTF-8. */
-        lineRdr_ = LineReader.createAsciiLineReader( in );
 
         /* Parse YAML header to acquire metadata. */
         EcsvHeader header = EcsvHeader.readHeader( lineRdr_ );

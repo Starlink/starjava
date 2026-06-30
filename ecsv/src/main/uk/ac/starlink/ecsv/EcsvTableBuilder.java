@@ -272,8 +272,13 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
     private EcsvReader createEcsvReader( InputStream in,
                                          MessagePolicy colCheck )
             throws IOException {
+
+        /* Prepare line reader.  ECSV 1.0 is documented as using ASCII
+         * rather than, for instance, UTF-8. */
+        LineReader lineRdr =
+            LineReader.createAsciiLineReader( applyHeader( in ) );
         try {
-            return new EcsvReader( applyHeader( in ), yamlParser_, colCheck );
+            return new EcsvReader( lineRdr, yamlParser_, colCheck );
         }
         catch ( EcsvFormatException e ) {
             throw new TableFormatException( e.getMessage(), e );
