@@ -1,8 +1,11 @@
 package uk.ac.starlink.ecsv;
 
+import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 
 /**
  * Reads lines of text from an input stream.
@@ -45,6 +48,19 @@ public abstract class LineReader implements Closeable {
      */
     public static LineReader createAsciiLineReader( InputStream in ) {
         return new AsciiLineReader( in );
+    }
+
+    /**
+     * Returns a LineReader instance that decodes the input stream to
+     * characters using a given charset.
+     *
+     * @param  in  input stream
+     * @param  encoding   character encoding
+     * @return   line reader
+     */
+    public static LineReader createCharsetLineReader( InputStream in,
+                                                      Charset encoding ) {
+        return new CharsetLineReader( in, encoding );
     }
 
     /**
@@ -130,5 +146,42 @@ public abstract class LineReader implements Closeable {
                 ipos_++;
             }
         };
+    }
+
+    /**
+     * LineReader implementation that reads from an input stream using
+     * a given character encoding.
+     */
+    private static class CharsetLineReader extends LineReader {
+
+        private final BufferedReader rdr_;
+
+        /**
+         * Constructor.
+         *
+         * @param   in  input stream
+         * @param   encoding  character encoding
+         */
+        CharsetLineReader( InputStream in, Charset encoding ) {
+            super( in );
+            rdr_ = new BufferedReader( new InputStreamReader( in, encoding ) );
+        }
+
+        public String readLine() throws IOException {
+            while ( true ) {
+                String line = rdr_.readLine();
+                if ( line == null ) {
+                    return null;
+                }
+                else if ( line.trim().length() > 0 ) {
+                    return line;
+                }
+            }
+        }
+
+        @Override
+        public void close() throws IOException {
+            rdr_.close();
+        }
     }
 }

@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -38,6 +40,7 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
 
     private final YamlParser yamlParser_;
     private String headerLoc_;
+    private Charset encoding_;
     private MessagePolicy colCheck_;
     private byte[] headerBuf_;
 
@@ -50,6 +53,7 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
     public EcsvTableBuilder() {
         super( new String[] { "ecsv" } );
         yamlParser_ = new SnakeYamlParser();
+        encoding_ = StandardCharsets.US_ASCII;
         colCheck_ = MessagePolicy.WARN;
     }
 
@@ -96,6 +100,44 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
     }
 
     /**
+     * Sets the character encoding for the input stream.
+     * ECSV 1.0 by the book supports only ASCII, so that's the default,
+     * but this allows you to choose a different encoding such as UTF-8,
+     * which works without problems.
+     *
+     * @param  encoding  character encoding
+     */
+    @ConfigMethod(
+        property = "encoding",
+        usage = "ASCII|UTF-8|UTF-16|...",
+        example = "UTF-8",
+        doc = "<p>Specifies the character encoding used to interpret "
+            + "the input file.\n"
+            + "ECSV 1.0 is defined to use ASCII-encoded header and data "
+            + "sections,\n"
+            + "so setting this encoding to a non-ASCII value such as UTF-8\n"
+            + "is in violation of the ECSV 1.0 standard.\n"
+            + "However, if the header or data in your ECSV-like file\n"
+            + "contains non-ASCII characters,\n"
+            + "then setting this configuration option will allow them\n"
+            + "to be read as intended.\n"
+            + "</p>",
+        sequence = 2
+    )
+    public void setEncoding( Charset encoding ) {
+        encoding_ = encoding;
+    }
+
+    /**
+     * Returns the character encoding for the input stream.
+     *
+     * @return  character encoding
+     */
+    public Charset getEncoding() {
+        return encoding_;
+    }
+
+    /**
      * Sets the column checking message policy.
      *
      * @param  colCheck  determines action if YAML header columns don't match
@@ -108,7 +150,7 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
             + "first line of the CSV part of the file.\n"
             + "</p>",
         example = "FAIL",
-        sequence = 2
+        sequence = 3
     )
     public void setColcheck( MessagePolicy colCheck ) {
         colCheck_ = colCheck;
@@ -272,11 +314,8 @@ public class EcsvTableBuilder extends DocumentedTableBuilder {
     private EcsvReader createEcsvReader( InputStream in,
                                          MessagePolicy colCheck )
             throws IOException {
-
-        /* Prepare line reader.  ECSV 1.0 is documented as using ASCII
-         * rather than, for instance, UTF-8. */
         LineReader lineRdr =
-            LineReader.createAsciiLineReader( applyHeader( in ) );
+            LineReader.createCharsetLineReader( applyHeader( in ), encoding_ );
         try {
             return new EcsvReader( lineRdr, yamlParser_, colCheck );
         }
