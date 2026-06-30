@@ -2,7 +2,10 @@ package uk.ac.starlink.ecsv;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.reflect.Array;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,7 +43,6 @@ import uk.ac.starlink.util.ConfigMethod;
 public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
 
     private final String formatName_;
-    private final byte badChar_;
     private final String nl_;
     private final String indent_;
     private final ByteList bbuf_;
@@ -97,7 +99,6 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
         super( new String[] { "ecsv" } );
         setDelimiter( Character.toString( delimiter ) );
         formatName_ = "ECSV" + ( nameSuffix == null ? "" : nameSuffix );
-        badChar_ = (byte) '?';
         nl_ = "\n";
         indent_ = "  ";
         bbuf_ = new ByteList();
@@ -161,7 +162,7 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
         return delimiter_;
     }
 
-    public void writeStarTable( StarTable table, OutputStream out )
+    public void writeStarTable( StarTable table, OutputStream ostrm )
             throws IOException {
 
         /* Prepare per-column encoders. */
@@ -175,6 +176,10 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
                                + cinfo );
             }
         }
+
+        /* Prepare writer.  ECSV 1.0 is defined as ASCII. */
+        Writer out =
+            new OutputStreamWriter( ostrm, StandardCharsets.US_ASCII );
 
         /* Write preamble. */
         writeHeaderLine( out, "%ECSV 1.0" );
@@ -251,6 +256,7 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
         finally {
             rseq.close();
         }
+        out.flush();
     }
 
     /**
@@ -314,7 +320,7 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
      * @return  metaMap   content for value; if null or empty,
      *                    nothing is written
      */
-    private void writeMetaMap( OutputStream out, int nIndent, String metaKey,
+    private void writeMetaMap( Writer out, int nIndent, String metaKey,
                                Map<String,?> metaMap )
             throws IOException {
         if ( metaMap != null && ! metaMap.isEmpty() ) {
@@ -364,7 +370,7 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
      * @param   key   entry key
      * @param   value  entry string value
      */
-    private void writeHeaderPairString( OutputStream out, int nIndent,
+    private void writeHeaderPairString( Writer out, int nIndent,
                                         String key, String value )
             throws IOException {
         String indentTxt = repeatIndent( nIndent );
@@ -396,7 +402,7 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
      * @param   key   entry key
      * @param   array  entry array value
      */
-    private void writeHeaderPairArray( OutputStream out, int nIndent,
+    private void writeHeaderPairArray( Writer out, int nIndent,
                                        String key, Object array )
             throws IOException {
         String indentTxt = repeatIndent( nIndent );
@@ -460,7 +466,7 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
      * @param  out  output stream
      * @param  txt  YAML line to write
      */
-    private void writeHeaderLine( OutputStream out, CharSequence txt )
+    private void writeHeaderLine( Writer out, CharSequence txt )
             throws IOException {
         out.write( '#' );
         out.write( ' ' );
@@ -473,19 +479,10 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
      * @param  out  output stream
      * @param  txt  line to write (excluding newline)
      */
-    private void writeLine( OutputStream out, CharSequence txt )
+    private void writeLine( Writer out, CharSequence txt )
             throws IOException {
-        int nc = txt.length();
-        bbuf_.clear();
-        for ( int ic = 0; ic < nc; ic++ ) {
-            char c = txt.charAt( ic );
-            byte b = (byte) ( c & 0x7f );
-            bbuf_.add( b == c ? b : badChar_ );
-        }
-        for ( int ic = 0; ic < nl_.length(); ic++ ) {
-            bbuf_.add( (byte) nl_.charAt( ic ) );
-        }
-        out.write( bbuf_.getByteBuffer(), 0, bbuf_.size() );
+        out.append( txt );
+        out.write( nl_ );
     }
 
     /**
