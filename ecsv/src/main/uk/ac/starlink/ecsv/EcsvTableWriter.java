@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.Array;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,6 +49,7 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
     private final ByteList bbuf_;
     private char delimiter_;
     private String nullRep_;
+    private Charset encoding_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ecsv" );
 
@@ -98,6 +100,7 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
     public EcsvTableWriter( char delimiter, String nameSuffix ) {
         super( new String[] { "ecsv" } );
         setDelimiter( Character.toString( delimiter ) );
+        encoding_ = StandardCharsets.US_ASCII;
         formatName_ = "ECSV" + ( nameSuffix == null ? "" : nameSuffix );
         nl_ = "\n";
         indent_ = "  ";
@@ -137,7 +140,8 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
             + "Permitted values are "
             + "\"<code>space</code>\" or \"<code>comma</code>\".</p>",
         usage = "comma|space",
-        example = "comma"
+        example = "comma",
+        sequence = 1
     )
     public void setDelimiter( String delimiter ) {
         if ( " ".equals( delimiter ) || "space".equals( delimiter ) ) {
@@ -162,6 +166,41 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
         return delimiter_;
     }
 
+    /**
+     * Sets the character encoding for the output stream.
+     * ECSV 1.0 by the book supports only ASCII, so that's the default,
+     * but this allows you to choose a different encoding such as UTF-8,
+     * which works without problems.
+     *
+     * @param  encoding  character encoding
+     */
+    @ConfigMethod(
+        property = "encoding",
+        usage = "ASCII|UTF-8|UTF-16|...",
+        example = "UTF-8",
+        doc = "<p>Specifies the character encoding used to write the output.\n"
+            + "ECSV 1.0 is defined to use ASCII-encoded header and data "
+            + "sections,\n"
+            + "so setting this encoding to a non-ASCII value such as UTF-8\n"
+            + "will write output that is not legal ECSV 1.0.\n"
+            + "However, such files may be readable by ECSV readers\n"
+            + "that do not enforce the ASCII restriction.\n"
+            + "</p>",
+        sequence = 2
+    )
+    public void setEncoding( Charset encoding ) {
+        encoding_ = encoding;
+    }
+
+    /**
+     * Returns the character encoding for the input stream.
+     *
+     * @return  character encoding
+     */
+    public Charset getEncoding() {
+        return encoding_;
+    }
+
     public void writeStarTable( StarTable table, OutputStream ostrm )
             throws IOException {
 
@@ -178,8 +217,7 @@ public class EcsvTableWriter extends DocumentedStreamStarTableWriter {
         }
 
         /* Prepare writer.  ECSV 1.0 is defined as ASCII. */
-        Writer out =
-            new OutputStreamWriter( ostrm, StandardCharsets.US_ASCII );
+        Writer out = new OutputStreamWriter( ostrm, encoding_ );
 
         /* Write preamble. */
         writeHeaderLine( out, "%ECSV 1.0" );

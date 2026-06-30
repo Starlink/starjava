@@ -35260,11 +35260,12 @@ introduced since the last version:
         to work for Java versions &gt;=11, previously broken.
         It is still broken for non-LTS Java versions 9 and 10;
         you shouldn't be using those.</li>
-    <li>The <ref id="inEcsv">ECSV input handler</ref> now has an
-        <code>encoding</code> configuration option so it can
-        be configured to read Unicode (e.g. UTF-8) input.  
-        This is in violation of the ECSV 1.0 standard which mandates 
-        ASCII (still default for this reader),
+    <li>The ECSV 
+        <ref id="inEcsv">input</ref> and <ref id="outEcsv">output</ref> 
+        handlers now have an <code>encoding</code> configuration option 
+        so they can be configured to read/write Unicode (e.g. UTF-8). 
+        This is in violation of the ECSV 1.0 standard which mandates
+        ASCII (still default for these reader/writers),
         but it works anyway.</li>
     </ul>
     </p></dd>

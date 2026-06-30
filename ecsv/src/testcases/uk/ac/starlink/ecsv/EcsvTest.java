@@ -4,8 +4,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.logging.Level;
+import junit.framework.AssertionFailedError;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
@@ -80,6 +82,19 @@ public class EcsvTest extends TestCase {
         checkRoundTripSerialize( tscheme.createTable( "100,*" ) );
     }
 
+    public void testUnicode() throws IOException {
+        StarTable utable = new TestTableScheme().createTable( "100,ibu" );
+        EcsvTableBuilder ain = new EcsvTableBuilder();
+        EcsvTableBuilder uin = new EcsvTableBuilder();
+        uin.setEncoding( StandardCharsets.UTF_8 );
+        EcsvTableWriter aout = new EcsvTableWriter();
+        EcsvTableWriter uout = new EcsvTableWriter();
+        uout.setEncoding( StandardCharsets.UTF_8 );
+        roundTripSerialize( utable, aout, ain );
+        roundTripSerialize( utable, uout, uin );
+        failRoundTripSerialize( utable, uout, ain );
+    }
+
     private void checkRoundTripSerialize( StarTable table ) throws IOException {
         EcsvTableBuilder rdr = new EcsvTableBuilder();
         roundTripSerialize( table, EcsvTableWriter.SPACE_WRITER, rdr );
@@ -103,6 +118,21 @@ public class EcsvTest extends TestCase {
         out2.close();
         byte[] buf2 = out2.toByteArray();
         assertArrayEquals( buf1, buf2 );
+    }
+
+    private void failRoundTripSerialize( StarTable t0, 
+                                         StarTableWriter writer,
+                                         TableBuilder reader )
+            throws IOException {
+        boolean success;
+        try {
+            roundTripSerialize( t0, writer, reader );
+            success = true;
+        }
+        catch ( AssertionFailedError e ) {
+            success = false;
+        }
+        assertFalse( success );
     }
 
     public void testSubtypes() throws IOException {
