@@ -122,7 +122,6 @@ public class NameParser
     {
         return isRemote;
     }
-
     /**
      * Return the URL of the specification.
      */
@@ -130,7 +129,14 @@ public class NameParser
     {
         return url;
     }
-
+    
+    /**
+    * Return the path
+    */
+    public String getPath() {
+    	return pathParser.path();
+    }
+    
     /**
      * Return the "name" of the specification. For a local file this will be
      * the filename, plus any qualifying characteristics (HDS paths, FITS

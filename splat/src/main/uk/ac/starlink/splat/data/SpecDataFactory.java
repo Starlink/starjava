@@ -16,12 +16,17 @@
 package uk.ac.starlink.splat.data;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.PushbackInputStream;
 import java.net.FileNameMap;
 import java.net.HttpURLConnection;
@@ -37,6 +42,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
@@ -541,6 +547,13 @@ public class SpecDataFactory
         try {
             NameParser namer = new NameParser( specspec );
             isRemote = namer.isRemote();
+            
+            // if gzipped, unzip it
+            if ( namer.getFormat().equals("GZIP")) {
+                String spec=unzipFile(specspec);
+                namer = new NameParser (spec);
+            	
+            }
 
             specurl = namer.getURL();
             //  Remote HDX/VOTable-like files should be downloaded by thile
@@ -581,7 +594,42 @@ public class SpecDataFactory
     }
 
 
-    /**
+    private String unzipFile(String specspec) throws IOException 
+    {
+              
+             String outputName;
+            
+             if (specspec.endsWith(".gz")) {
+                 outputName = specspec.substring(0, specspec.length() - 3);
+             } else if (specspec.endsWith(".gzip")) {
+                 outputName = specspec.substring(0, specspec.length() - 5);
+             } else {
+                 throw new IllegalArgumentException("Not a .gz/.gzip file: " + specspec);
+             }
+
+             
+        	 try (
+        		 InputStream in = new GZIPInputStream( new FileInputStream(specspec));
+        	     OutputStream out = new BufferedOutputStream(new FileOutputStream(outputName))) {
+        		 
+        	     byte[] buffer = new byte[8192];
+        	     int len;
+
+        	     while ((len = in.read(buffer)) != -1) {
+        	         out.write(buffer, 0, len);
+        	     }
+        	 } catch (IOException e) {
+        		
+ 				e.printStackTrace();
+        		 return null;
+        	 }			
+        	 
+             return outputName;
+
+    
+	}
+
+	/**
      *  Create an instance of SpecData for the given format.
      *
      *  @param specspec the specification of the spectrum to be
@@ -650,6 +698,7 @@ public class SpecDataFactory
             isRemote = namer.isRemote();
 
             specurl = namer.getURL();
+            		
             //  Remote HDX/VOTable-like files should be downloaded by thile
 
             //  library. A local copy loses the basename context.
