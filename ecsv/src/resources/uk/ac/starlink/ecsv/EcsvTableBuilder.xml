@@ -38,7 +38,8 @@ taking an existing CSV file
 and decorating it with a header that gives column datatypes,
 and possibly other metadata such as units.
 This allows you to force the datatype of given columns
-(the CSV reader guesses datatype based on content, but can get it wrong)
+(the <ref id="inCsv">CSV reader</ref> guesses datatype based on content,
+but can get it wrong)
 and it can also be read much more efficiently than a CSV file
 and its format can be detected automatically.
 </p>
@@ -49,7 +50,7 @@ referenced using the <code>header</code> configuration option.
 In Gaia EDR3 for instance, the ECSV headers are supplied alongside
 the CSV files available for raw download of all tables in the
 Gaia source catalogue, so e.g. STILTS can read
-one of the gaia_source CSV files with full metadata
+one of the <code>gaia_source</code> CSV files with full metadata
 as follows:
 <pre>
    stilts tpipe

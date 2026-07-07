@@ -15,7 +15,7 @@ The version supported by this writer is currently ECSV 1.0.
 controlled by the <code>delimiter</code> configuration option.
 If <code>ecsv(delimiter=comma)</code> is used, then removing
 the YAML header will leave a CSV file that can be interpreted
-by the CSV inputhandler or imported into other
+by the <ref id="inCsv">CSV input handler</ref> or imported into other
 CSV-capable applications.
 </p>
 
