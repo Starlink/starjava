@@ -7,6 +7,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -431,7 +432,13 @@ public class TapServiceFinderPanel extends JPanel {
                         showError( "Service search error", err );
                     }
                     catch ( ExecutionException err ) {
-                        showError( "Service search error", err.getCause() );
+                        String[] msgLines =
+                              err.getCause() instanceof UnknownHostException
+                            ? new String[] {
+                                  "Possible problem with network connection?",
+                              }
+                            : new String[ 0 ];
+                        showError( "Service search error", err, msgLines );
                     }
                     catch ( InterruptedException err ) {
                         showError( "Service search interrupted", err );
@@ -476,13 +483,16 @@ public class TapServiceFinderPanel extends JPanel {
              * its host panel.
              *
              * @param  title  error heading
-             * @return   err  exception
+             * @param  err  exception
+             * @param  msgLines  optional additional lines of user-directed
+             *                   text
              */
-            private void showError( final String title, final Throwable err ) {
+            private void showError( String title, Throwable err,
+                                    String... msgLines ) {
                 submit( new Runnable() {
                     public void run() {
                         ErrorDialog.showError( TapServiceFinderPanel.this,
-                                               title, err );
+                                               title, err, msgLines );
                     }
                 } );
             }

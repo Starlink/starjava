@@ -9,6 +9,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -399,10 +400,20 @@ public class RegistryPanel extends JPanel {
                                 countTxt = null;
                             }
                             else if ( error1 != null ) {
+                                String[] msgLines =
+                                      error1 instanceof UnknownHostException
+                                    ? new String[] {
+                                          error1.toString(),
+                                          "Possible problem " +
+                                          "with network connection?",
+                                          "Or try another Registry URL.",
+                                          " ",
+                                      }
+                                    : new String[ 0 ];
                                 if ( visible ) {
                                     ErrorDialog.showError( RegistryPanel.this,
                                                            "Query Error",
-                                                           error1 );
+                                                           error1, msgLines );
                                 }
                                 else {
                                     logger_.warning( "Registry query failed: "
