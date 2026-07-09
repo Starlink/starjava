@@ -2232,8 +2232,11 @@ public class SpecDataFactory
                   simpleType.equals( "votable" ) ) {
             stype = SpecDataFactory.TABLE;
 
-        } else if (!simpleType.isEmpty())
-            stype = SpecDataFactory.NOT_SUPPORTED;
+        } else if (!simpleType.isEmpty())   
+        // use Guess here. Some providers just don't care for the right mimetype
+        // although the file is perfectly valid.
+        //stype = SpecDataFactory.NOT_SUPPORTED;
+             stype = SpecDataFactory.GUESS;
         return stype;
     }
 
