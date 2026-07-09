@@ -54,6 +54,16 @@ public class ObsCoreQueryServerPanel extends AbstractServerPanel implements Acti
     private static int SIMPLESEARCH_INDEX=0;
     private static int ADQLSEARCH_INDEX=1;
     
+    @Override
+    public int getDefaultWidth() {
+        return WIDTH;
+    }
+
+    @Override
+    public int getDefaultHeight() {
+        return HEIGHT;
+    }
+    
     
     // Service type string
     private static String serviceType="ObsCore";
