@@ -58,10 +58,19 @@ public class SSAServerTable extends AbstractServerPanel  implements PropertyChan
             Logger.getLogger( "uk.ac.starlink.splat.vo.SSAServerTable" );
 
     
-   // sizes
-    
-    private static int WIDTH = 340;
+   // sizes/
+    private static int WIDTH = 1000;
     private static int HEIGHT = 900;
+    
+    @Override
+    public int getDefaultWidth() {
+        return WIDTH;
+    }
+
+    @Override
+    public int getDefaultHeight() {
+        return HEIGHT;
+    }
     
     // Service type string
     private static String serviceType="SSAP";

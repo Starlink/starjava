@@ -52,6 +52,15 @@ public class LinesQueryPanel extends AbstractServerPanel implements ActionListen
     private JPopupMenu speciesPopup;
     private String chosenSpecies = "";
    
+    @Override
+    public int getDefaultWidth() {
+        return WIDTH;
+    }
+
+    @Override
+    public int getDefaultHeight() {
+        return HEIGHT;
+    }
     
     public LinesQueryPanel( LineBrowser browser )  {
         super(); 

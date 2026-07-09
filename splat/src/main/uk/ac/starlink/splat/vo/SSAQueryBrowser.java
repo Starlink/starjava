@@ -70,6 +70,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.xml.sax.InputSource;
@@ -560,6 +561,8 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
      */
     private DataLinkQueryFrame dataLinkFrame = null;
 
+	private JSplitPane splitPanel;
+
     // private JPopupMenu specPopupMenu;
 
     /**
@@ -588,6 +591,14 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
         initUI();
         this.pack();
         this.setVisible(true);
+        SwingUtilities.invokeLater(() -> {
+            splitPanel.setDividerLocation(0.3);
+            splitPanel.revalidate();
+            splitPanel.repaint();
+        });
+ 
+        
+        this.setVisible(true);
         initMenusAndToolbar();
         initFrame(); 
                
@@ -602,25 +613,29 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
      */
     private void initUI()
     {
+    	this.setMinimumSize(new Dimension(650, 400)); 
        
         JPanel contentPane = (JPanel) getContentPane();
       
         contentPane.setPreferredSize(new Dimension(800,720));
         contentPane.setMinimumSize(new Dimension(600,400));
-                
-        JSplitPane splitPanel = new JSplitPane();
+        splitPanel = new JSplitPane();
         splitPanel.setOneTouchExpandable(true);
         splitPanel.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
-        splitPanel.setDividerLocation(0.3);
+        splitPanel.setResizeWeight(0.0);   
+        //splitPanel.setDividerLocation(0.3);
       
        
         this.add(splitPanel);
         leftPanel = initServerComponents();
+        leftPanel.setMinimumSize(new Dimension(250, 200));
+        leftPanel.setPreferredSize(new Dimension(250, 200));
+        leftPanel.setMaximumSize(new Dimension(500, Integer.MAX_VALUE));
          
     //    tabPane.addTab("Server selection", leftPanel);
       
         centrePanel = new JPanel( new GridBagLayout() );
-        centrePanel.setMinimumSize(new Dimension(400,200));
+        centrePanel.setMinimumSize(new Dimension(150,200));
         gbcentre=new GridBagConstraints();
         gbcentre.anchor=GridBagConstraints.NORTHWEST;
         gbcentre.gridx=0;
@@ -645,9 +660,10 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
 
     public JPanel initServerComponents()
     {
-    	JPanel sp = new JPanel();
-    	sp.setLayout(new BoxLayout(sp, BoxLayout.Y_AXIS));
-    	sp.setAlignmentY((float) 1.);
+    //	JPanel sp = new JPanel();
+    	JPanel sp = new JPanel(new BorderLayout());
+    //	sp.setLayout(new BoxLayout(sp, BoxLayout.Y_AXIS));
+    //	sp.setAlignmentY((float) 1.);
 
     	if (serverList==null) {
     		SSAServerTable tmp = new SSAServerTable();
@@ -659,7 +675,7 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
     		serverPanel=new SSAServerTable( serverList );
 
     	serverPanel.addPropertyChangeListener(this);
-    	sp.add(serverPanel);
+    	sp.add(serverPanel,BorderLayout.CENTER);
     	return sp;
     }
 

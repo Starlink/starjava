@@ -75,6 +75,12 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
     private  String serviceType="";
     private  int WIDTH;
     private  int HEIGHT;
+    
+    @Override
+    public Dimension getMaximumSize() {
+        return new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
+    }
+
   
   //  private AbstractServerList serverList;
     
@@ -86,7 +92,8 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
     private  String MANUALLY_ADDED_STR = "ManuallyAdded";
     private static boolean ManuallyAddPossible = true;
 
-  
+    abstract public int getDefaultWidth();
+    abstract public int getDefaultHeight();
     
     /**
      * File chooser for storing and restoring server lists.
@@ -188,11 +195,11 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
      */
     protected void initUI(JComponent optionsComponent, JComponent serverPanel)
     {
-        WIDTH=getWidth();
-        HEIGHT=getHeight(); 
+        int prefWidth = getDefaultWidth();
+        int prefHeight = getDefaultHeight();
       // this.setPreferredSize(new Dimension(this.WIDTH,this.HEIGHT));
-       setMinimumSize(new Dimension(WIDTH-100,HEIGHT-300));
-       setPreferredSize(new Dimension(WIDTH,HEIGHT));
+       setMinimumSize(new Dimension(prefWidth-100,prefHeight-300));
+       setPreferredSize(new Dimension(prefWidth,prefHeight));
    
        
         setLayout(new GridBagLayout());
