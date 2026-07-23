@@ -16203,6 +16203,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         This is in violation of the ECSV 1.0 standard which mandates
         ASCII (still default for these reader/writers),
         but it works anyway.</li>
+    <li>Add missing <code>ORDERING</code> header to the FITS output
+        of <ref id="mocshape"><code>mocshape</code></ref>.</li>
     </ul>
     </p></dd>
 

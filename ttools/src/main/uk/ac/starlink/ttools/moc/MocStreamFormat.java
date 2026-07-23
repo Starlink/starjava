@@ -582,6 +582,8 @@ public abstract class MocStreamFormat {
                                          "Maximum MOC order" ),
                 cfact.createIntegerCard( "MOCORDER", maxOrder,
                                          "Maximum MOC order" ),
+                cfact.createStringCard( "ORDERING", "NUNIQ",
+                                        "MOC packaging semantics" ),
                 cfact.createStringCard( "MOCTOOL", "STIL",
                                         "Name of MOC generator" ),
                 CardFactory.END_CARD,
