@@ -3,7 +3,6 @@ package uk.ac.starlink.fits;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -39,7 +38,7 @@ public class BufferManager {
     private final String logLabel_;
     private final Unmapper unmapper_;
     private final Map<ByteBuffer,Void> dupBuffers_;
-    private MappedByteBuffer buffer0_;
+    private UnmappableBuffer buffer0_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.fits" );
 
@@ -51,7 +50,8 @@ public class BufferManager {
      * @param  leng     length of mapped region
      * @param  logLabel   description of mapped region
      *                    suitable for use in logging messages
-     * @param  unmapper  used to unmap buffers, may be null for safety
+     * @param  unmapper  used to unmap buffers,
+     *                   may be null for safety (equivalent to Unmapper.NOP)
      */
     public BufferManager( FileChannel channel, long offset, int leng,
                           String logLabel, Unmapper unmapper ) {
@@ -59,7 +59,7 @@ public class BufferManager {
         offset_ = offset;
         leng_ = leng;
         logLabel_ = logLabel;
-        unmapper_ = unmapper;
+        unmapper_ = unmapper == null ? Unmapper.NOP : unmapper;
 
         /* Note ByteBuffer equality methods depend on their current state
          * (mark, position etc) which may change during their lifetimes,
@@ -122,7 +122,7 @@ public class BufferManager {
      *
      * @return   mapped buffer
      */
-    private synchronized MappedByteBuffer getMappedBuffer()
+    private synchronized ByteBuffer getMappedBuffer()
             throws IOException {
         if ( buffer0_ == null ) {
             logger_.config( "Mapping " + logLabel_ );
@@ -132,10 +132,9 @@ public class BufferManager {
                            + ( offset_ + leng_ ) + ") - truncated/corrupted?";
                 throw new EOFException( msg );
             }
-            buffer0_ = channel_.map( FileChannel.MapMode.READ_ONLY,
-                                     offset_, leng_ );
+            buffer0_ = unmapper_.mapFile( channel_, offset_, leng_ );
         }
-        return buffer0_;
+        return buffer0_.getBuffer();
     }
 
     /**
@@ -146,8 +145,7 @@ public class BufferManager {
      */
     private synchronized void unmapBuffer() {
         if ( buffer0_ != null ) {
-            boolean unmapped = unmapper_ == null ? false
-                                                 : unmapper_.unmap( buffer0_ );
+            boolean unmapped = buffer0_.unmapBuffer();
             buffer0_ = null;
             logger_.config( "Dispose of mapped buffer " + logLabel_
                           + ( unmapped ? " (unmapped)" : " (no effect)" ) );
