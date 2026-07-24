@@ -4398,12 +4398,13 @@ The following ones have special significance within TOPCAT:
     tables in memory, and larger ones on disk.
     </p></dd>
 
-<dt><code>startable.unmap</code></dt>
+<dt id="startable.unmap"><code>startable.unmap</code></dt>
 <dd><p>Determines whether and how unmapping of memory mapped buffers is done.
-    Possible values are "<code>sun</code>" (the default),
-    "<code>cleaner</code>", "<code>unsafe</code>" or "<code>none</code>".
+    Possible values are "<code>sun</code>", "<code>cleaner</code>", 
+    "<code>unsafe</code>", "<code>memseg</code>", "<code>none</code>" and
+    "<code>default</code>".
     In most cases you are advised to leave this alone, but in the event of
-    unmapping-related JVM crashes (not expected!), setting it to 
+    unmapping-related JVM crashes (not expected!), setting it to
     <code>none</code> may help.
     </p></dd>
 
@@ -35269,6 +35270,9 @@ introduced since the last version:
         but it works anyway.</li>
     <li>Improve error messages in <ref id="vo-windows">VO windows</ref>
         for the case when there is no network connectivity.</li>
+    <li>Update FITS <ref id="startable.unmap">buffer unmapping</ref> 
+        to use classes available from Java 22.
+        This avoids some nasty warning messages at Java 24 and later.</li>
     </ul>
     </p></dd>
 

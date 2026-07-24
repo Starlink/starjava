@@ -68,12 +68,53 @@ public class BasicInputTest extends TestCase {
         exerciseBlockInput( chan, off1, leng1, leng1, 0 );
         exerciseBlockInput( chan, off1, leng1, leng1*2, 0 );
 
+        Unmapper unmapper = Unmapper.getInstance();
+        UnmappableBuffer ubuf = unmapper.mapFile( chan, isiz, isiz );
+        assertEquals( (byte) 1, ubuf.getBuffer().get( 0 ) );
+        boolean isUnmapped = ubuf.unmapBuffer();
+
+        // This ought to work but if it doesn't it's not catastrophic;
+        // it may be that the JRE is just not capable of buffer unmapping.
+        // I haven't come across any such so far, e.g. all Oracle JDKs between
+        // versions 6 and 26 can do it, but there may be some that don't.
+        // In that case this test could be commented out or otherwise skipped.
+        assertTrue( isUnmapped );
+
+        Unmapper nopUnmapper = Unmapper.NOP;
+        UnmappableBuffer ubuf1 = nopUnmapper.mapFile( chan, isiz * 2, isiz * 2);
+        assertEquals( (byte) 2, ubuf1.getBuffer().get( 0 ) );
+        assertFalse( ubuf1.unmapBuffer() );
+
         // Note this one fails: the EOFException is not thrown at the
         // right place.  Hmm.
 //      exerciseInput( seqOffInput( off1,
 //                                  new BufferedDataInputStream(
 //                                      new FileInputStream( file ) ) ) );
 
+    }
+
+    public void testUnmapper() {
+        Unmapper unmapper = Unmapper.getInstance();
+        String unmapperName = unmapper.toString();
+        int jvers = TestCase.getJavaMajorVersion();
+
+        // It's not really critical that these tests pass in exactly this form,
+        // but they are here to make sure that different JREs
+        // at least don't all use the same Unmapper implementation.
+        if ( jvers >= 22 ) {
+            assertEquals( "MemorySegment", unmapperName );
+        }
+        else if ( jvers >= 19 ) {
+            assertTrue( unmapperName.equals( "MemorySegment" ) ||
+                        unmapperName.equals( "Unsafe" ) );
+        }
+        else if ( jvers >= 9 ) {
+            assertEquals( "Unsafe", unmapperName );
+        }
+        else {
+            assertTrue( unmapperName.equals( "Cleaner" ) ||
+                        unmapperName.equals( "Unsafe" ) );
+        }
     }
 
     private void exerciseBlockInput( FileChannel chan, long off, long leng,

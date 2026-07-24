@@ -2,6 +2,7 @@ package uk.ac.starlink.fits;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -15,8 +16,9 @@ import uk.ac.starlink.util.Loader;
  * Knows how to map a region of a file in such a way that it is possible
  * to attempt subsequent freeing of associated resources.
  *
- * <p>This is a tricky business.  There is no good way to unmap the memory
- * mapped by a MappedByteBuffer.  The MappedByteBuffer javadocs say
+ * <p>This is a tricky business.  At Java 8 there is no good way to
+ * unmap the memory mapped by a {@link java.nio.MappedByteBuffer}.
+ * The MappedByteBuffer javadocs say
  * <i>"A mapped byte buffer and the file mapping that it represents remain
  * valid until the buffer itself is garbage-collected."</i>,
  * and there is no explicit unmap method.
@@ -28,26 +30,32 @@ import uk.ac.starlink.util.Loader;
  * some platforms (I see it on Scientific Linux 6.5 with 24Gb RAM, but
  * not SL 6.3 with 4Gb, but I'm not sure what the relevant differences are).
  *
- * <p>The preferred method used here is to employ classes in the
- * implementation-specific <code>sun.*</code> namespace to do the
- * unmapping.  This is clearly not guaranteed to work on all J2SE
- * implementations, and moreover it risks a JVM crash if the
- * buffer instance is used after the umapping has been done.
- * So use it WITH EXTREME CAUTION.
- * If the relevant classes are not available at runtime,
- * unmapping simply isn't done.
+ * <p>The best way around this is dependent on Java version.
+ * Before about Java 22, the only way was using implementation-specific
+ * classes in the <code>sun.*</code> namespace to do the unmapping.
+ * This is not guaranteed to work on all J2SE implementations,
+ * and moreover it risks a JVM crash if the buffer instance is used
+ * after the umapping has been done.  So use it WITH EXTREME CAUTION.
  *
- * <p>See also Java Bug
- * <a href="http://bugs.java.com/bugdatabase/view_bug.do?bug_id=4724038"
- *                                                   >Java Bug #4724038</a>.
+ * <p>At Java 22 and later (previewed in Java 19?), public classes in the
+ * <code>java.lang.foreign</code> package can be used for this purpose,
+ * which is safe.
  *
- * <p>Forcing garbage collection with <code>System.gc()</code> calls would
- * be another possibility (may be added here at some point),
- * but it's not guaranteed to do anything, and doing it too often
- * would impact performance.
+ * <p>Provision of the default Unmapper instance, available from the
+ * static {@link #getInstance} method, is therefore done using
+ * reflection to provide an implementation that depends on the current JRE.
+ * It is possible to specify a preference for how this is done among
+ * the available options (or providing a custom Unampper implementation)
+ * by use of the {@link #UNMAP_PROPERTY} ({@value #UNMAP_PROPERTY})
+ * system property,
+ * or programmatically using the {@link #setInstance setInstance} method.
  *
  * @author   Mark Taylor
  * @since    2 Dec 2014
+ * @see <a href="http://bugs.java.com/bugdatabase/view_bug.do?bug_id=4724038"
+ *                                                        >Java Bug #4724038</a>
+ * @see <a href="https://openjdk.org/jeps/498">JEP 498</a>
+ * @see <a href="https://openjdk.org/jeps/471">JEP 471</a>
  */
 public abstract class Unmapper {
 
@@ -61,15 +69,19 @@ public abstract class Unmapper {
      * <ul>
      * <li>"<code>sun</code>": best-efforts sun.misc-based option</li>
      * <li>"<code>cleaner</code>": sun.misc.Cleaner-based option
-     *     (available in Oracle java6 through java8)</li>
+     *     (available in Oracle Java 6 through Java 8)</li>
      * <li>"<code>unsafe</code>": sun.misc.Unsafe-based option
-     *     (available in Oracle java9 and later?)</li>
+     *     (available in Oracle Java 9 through Java 25?)</li>
+     * <li>"<code>memseg</code>": java.lang.foreign.MemorySegment-based option
+     *     (available in approx Java 22 and later)</li>
      * <li>"<code>none</code>": no unmapping</li>
+     * <li>"<code>default</code>": tries to use <code>memseg</code>,
+     *     then <code>sun</code>, then <code>none</code>,
+     *     depending on what's available</li>
      * </ul>
-     * The default is to use "<code>sun</code>" if available,
-     * else fall back to none.
      * You can also give the classname of an <code>Unmapper</code>
      * concrete subclass with a no-arg constructor.
+     * <p>If the property is not set, behaviour is as "<code>default</code>".
      */
     public static final String UNMAP_PROPERTY = "startable.unmap";
 
@@ -78,6 +90,12 @@ public abstract class Unmapper {
      * It is safe.
      */
     public static final Unmapper NOP = new NopUnmapper();
+
+    /**
+     * Constructor.
+     */
+    protected Unmapper() {
+    }
 
     /**
      * Creates an object that represents a read-only mapped region of a file,
@@ -99,9 +117,14 @@ public abstract class Unmapper {
             throws IOException;
 
     /**
-     * Returns an instance of this class.
+     * Returns the standard instance of this class.
+     * Under normal circumstances this will return a usable instance,
+     * but if the {@link #UNMAP_PROPERTY} has asked for something specific that
+     * cannot be provided, a RuntimeException will be thrown.
      *
-     * @return  instance
+     * @return  lazily constructed instance
+     * @throws  RuntimeException   if an option has been explicitly chosen 
+     *                             that cannot be instantiated
      */
     public synchronized static Unmapper getInstance() {
         if ( instance_ == null ) {
@@ -111,72 +134,94 @@ public abstract class Unmapper {
     }
 
     /**
+     * Sets the instance of this class that will be returned by
+     * the {@link #getInstance} method.
+     *
+     * @param  unmapper   default instance
+     */
+    public void setInstance( Unmapper unmapper ) {
+        instance_ = unmapper;
+    }
+
+    /**
      * Constructs an Unmapper instance suitable for the current platform.
+     * Under normal circumstances this will return a usable instance,
+     * but if the {@link #UNMAP_PROPERTY} has asked for something specific that
+     * cannot be provided, a RuntimeException will be thrown.
+     * Configuration information will be written through the logging system.
      *
      * @return  instance
+     * @throws  RuntimeException   if an option has been explicitly chosen 
+     *                             that cannot be instantiated
      */
     private static Unmapper createInstance() {
-        String pref;
-        try {
-            pref = System.getProperty( UNMAP_PROPERTY );
-        }
-        catch ( SecurityException e ) {
-            pref = null;
-        }
-        Option opt;
-        if ( pref == null ) {
-            logger_.info( "Buffer unmapping: "
-                        + "attempt to use sun.misc implementation" );
-            opt = Option.SUN;
-        }
-        else {
-            opt = Option.getOption( pref );
-            if ( opt != null ) {
-                logger_.info( "Buffer unmapping: "
-                            + "attempt to use " + opt
-                            + " by explicit request" );
-            }
-        }
-        if ( opt != null ) {
-            try {
-                Unmapper unmapper = opt.createUnmapper();
-                logger_.config( "Buffer unmapping: using " + unmapper
-                              + "; unmapping should work" );
-                return unmapper;
-            }
-            catch ( Throwable e ) {
-                logger_.log( Level.WARNING,
-                             "Buffer unmapping failed, fall back to no-op", e );
-                return new NopUnmapper();
-            }
-        }
-        else if ( "none".equalsIgnoreCase( pref ) ) {
+        String pref = System.getProperty( UNMAP_PROPERTY );
+        if ( "none".equalsIgnoreCase( pref ) ) {
             logger_.info( "Buffer unmapping: "
                         + "using no-op unmapper by explicit request" );
             logger_.config( "Buffer unmapping: no explicit unmapping" );
-            return new NopUnmapper();
+            return NOP;
+        }
+        if ( pref == null || pref.trim().length() == 0 ||
+             "default".equalsIgnoreCase( pref ) ) {
+            logger_.info( "Buffer unmapping: "
+                        + "use best available implementation" );
+            try {
+                Unmapper unmapper = createDefaultUnmapper();
+                logger_.info( "Buffer unmapping: using " + unmapper
+                            + "; unmapping should work" );
+                return unmapper;
+            }
+            catch ( ReflectiveOperationException e ) {
+                logger_.log( Level.INFO,
+                             "Default unmapper creation failed: " + e, e );
+                logger_.info( "Fall back to no-op, no unmapping will be done" );
+                return NOP;
+            }
+        }
+        Option opt = Option.getOption( pref );
+        if ( opt != null ) {
+            logger_.info( "Buffer unmapping: "
+                        + "use option " + opt + " by explicit request" );
+            try {
+                Unmapper unmapper = opt.createUnmapper();
+                logger_.info( "Buffer unmapping: using " + unmapper
+                            + "; unmapping should work" );
+                return unmapper;
+            }
+            catch ( ReflectiveOperationException e ) {
+                throw new RuntimeException( "Buffer unmapper creation failed "
+                                          + "for option \"" + opt + "\"", e );
+            }
         }
         else {
             Unmapper unmapper = Loader.getClassInstance( pref, Unmapper.class );
             if ( unmapper != null ) {
                 logger_.info( "Using custom buffer unmapper " + pref
                             + " by explicit request" );
+                logger_.info( "Buffer unmapping: using " + unmapper );
                 return unmapper;
             }
             else {
-                logger_.log( Level.WARNING,
-                             "Can't use unknown unmapper " + pref
-                           + ", fall back to no-op" );
-                return new NopUnmapper();
+                throw new RuntimeException( "Unknown value \"" + pref + "\""
+                                          + " for system property "
+                                          + UNMAP_PROPERTY );
             }
         }
     }
 
     /**
-     * Returns an unmapper using one of the sun.misc-based classes,
+     * Returns a working unmapper using one of the sun.misc-based classes,
      * according to what's available.
+     *
+     * @return  unmapper that can unmap
+     * @throws  ReflectiveOperationException   if creation failed for
+     *                                         surprising reasons or because
+     *                                         none of the suitable sun.misc
+     *                                         classes were available
      */
-    private static Unmapper createSunUnmapper() throws Exception {
+    private static Unmapper createSunUnmapper()
+            throws ReflectiveOperationException {
         boolean hasCleaner;
         try {
             Class.forName( "sun.misc.Cleaner" );
@@ -187,6 +232,29 @@ public abstract class Unmapper {
         }
         return hasCleaner ? new CleanerUnmapper()
                           : new UnsafeUnmapper();
+    }
+
+    /**
+     * Returns a working unmapper using the best option available.
+     *
+     * @return  unmapper that can unmap
+     * @throws  ReflectiveOperationException   if creation failed for
+     *                                         surprising reasons or because
+     *                                         none of the unmapping
+     *                                         classes were available
+     */
+    private static Unmapper createDefaultUnmapper()
+            throws ReflectiveOperationException {
+        boolean hasMemorySegment;
+        try {
+            Class.forName( "java.lang.foreign.MemorySegment" );
+            hasMemorySegment = true;
+        }
+        catch ( ClassNotFoundException e ) {
+            hasMemorySegment = false;
+        }
+        return hasMemorySegment ? new MemorySegmentUnmapper()
+                                : createSunUnmapper();
     }
 
     /**
@@ -202,7 +270,7 @@ public abstract class Unmapper {
         /**
          * Constructor.
          */
-        CleanerUnmapper() throws Exception {
+        CleanerUnmapper() throws ReflectiveOperationException {
             directBufferClazz_ = Class.forName( "sun.nio.ch.DirectBuffer" );
             cleanerClazz_ = Class.forName( "sun.misc.Cleaner" );
             cleanerMethod_ = directBufferClazz_.getMethod( "cleaner" );
@@ -245,13 +313,23 @@ public abstract class Unmapper {
 
     /**
      * Unmapper implementation using the Sun-specific sun.misc.Unsafe class.
-     * This is present in Oracle java9.
+     * This is present and usable in Oracle java 9 through 22;
+     * JEP 498 (https://openjdk.org/jeps/498) discusses its deprecation
+     * in later versions.
+     * At Java 23 it is deprecated for removal, and at Java 24 and 25
+     * using it in this way triggers an alarming user-visible WARNING message.
+     * JEP 498 claimes that attempts to use it in this way at Java 26 or later
+     * will result in exceptions, but my tests using Oracle Java 26.0.2
+     * just show the user-visible warnings like in Java 25.
      */
     private static class UnsafeUnmapper extends Unmapper {
         private final Object unsafe_;
         private final Method invokeCleanerMethod_;
 
-        UnsafeUnmapper() throws Exception {
+        /**
+         * Constructor.
+         */
+        UnsafeUnmapper() throws ReflectiveOperationException {
             Class<?> unsafeClazz = Class.forName( "sun.misc.Unsafe" );
             Field theUnsafe = unsafeClazz.getDeclaredField( "theUnsafe" );
             theUnsafe.setAccessible( true );
@@ -296,9 +374,136 @@ public abstract class Unmapper {
     }
 
     /**
+     * Unmapper implementation using the java.lang.foreign.MemorySegment
+     * class, introduced permanently at Java 22 (previewed at Java 19?).
+     * This is safe, that is it will not cause system crashes.
+     * Implemented via reflection so it can compile at earlier JDK versions.
+     */
+    private static class MemorySegmentUnmapper extends Unmapper {
+
+        private final Class<?> memorySegmentClazz_;
+        private final Class<?> arenaClazz_;
+        private final Object arena_;
+        private final Method mapMethod_;
+        private final Method asByteBufferMethod_;
+        private final Method unloadMethod_;
+
+        /**
+         * Constructor using default arena type.
+         */
+        MemorySegmentUnmapper() throws ReflectiveOperationException {
+            this( ArenaType.AUTO );
+        }
+
+        /**
+         * Constructor using specified arena type.
+         *
+         * @param  arenaType  arena type
+         */
+        MemorySegmentUnmapper( ArenaType arenaType )
+                throws ReflectiveOperationException {
+            memorySegmentClazz_ =
+               Class.forName( "java.lang.foreign.MemorySegment" );
+            arenaClazz_ = Class.forName( "java.lang.foreign.Arena" );
+            arena_ = arenaClazz_
+                    .getMethod( arenaType.staticMethodName_, new Class<?>[ 0 ] )
+                    .invoke( null );
+            mapMethod_ = FileChannel.class
+                        .getMethod( "map", FileChannel.MapMode.class,
+                                    long.class, long.class, arenaClazz_ );
+            asByteBufferMethod_ =
+                memorySegmentClazz_.getMethod( "asByteBuffer" );
+            unloadMethod_ = memorySegmentClazz_.getMethod( "unload" );
+        }
+
+        public UnmappableBuffer mapFile( FileChannel channel,
+                                         long offset, int leng ) 
+                throws IOException {
+            return new UnmappableBuffer() {
+                Object memorySegment_;
+                ByteBuffer buf_;
+                /* anonymous constructor */ {
+                    try {
+                        memorySegment_ =
+                            mapMethod_.invoke( channel,
+                                               FileChannel.MapMode.READ_ONLY,
+                                               offset, leng, arena_ );
+                        buf_ = (ByteBuffer)
+                               asByteBufferMethod_.invoke( memorySegment_ );
+                    }
+                    catch ( InvocationTargetException e ) {
+                        Throwable e2 = e.getTargetException();
+                        if ( e2 instanceof IOException ) {
+                            throw (IOException) e2;
+                        }
+                        else {
+                            throw new RuntimeException( e );
+                        }
+                    }
+                    catch ( ReflectiveOperationException e ) {
+                        assert false;
+                        throw new RuntimeException( e );
+                    }
+                }
+                public ByteBuffer getBuffer() {
+                    return buf_;
+                }
+                public boolean unmapBuffer() {
+                    Object memorySegment = memorySegment_;
+                    if ( memorySegment != null ) {
+                        memorySegment_ = null;
+                        buf_ = null;
+                        try {
+                            unloadMethod_.invoke( memorySegment );
+                            return true;
+                        }
+                        catch ( Exception e ) {
+                            return false;
+                        }
+                    }
+                    else {
+                        return false;
+                    }
+                }
+            };
+        }
+
+        @Override
+        public String toString() {
+            return "MemorySegment";
+        }
+
+        /**
+         * Type of java.lang.foreign.Arena object to use for mapped buffer
+         * management.
+         */
+        enum ArenaType {
+
+            GLOBAL( "global" ),
+            AUTO( "ofAuto" ),
+            CONFINED( "ofConfined" ),
+            SHARED( "ofShared" );
+
+            final String staticMethodName_;
+
+            /**
+             * Constructor.
+             *
+             * @param  staticMethodName  name of a public static parameterless
+             *                           method of the java.lang.foreign.Arena
+             *                           class that returns an Arena instance
+             */
+            ArenaType( String staticMethodName ) {
+                staticMethodName_ = staticMethodName;
+            }
+        }
+    }
+
+    /**
      * Unmapper that does nothing.
      */
     private static class NopUnmapper extends Unmapper {
+
         public UnmappableBuffer mapFile( FileChannel channel,
                                          long offset, int leng )
                 throws IOException {
@@ -314,6 +519,7 @@ public abstract class Unmapper {
                 }
             };
         }
+
         @Override
         public String toString() {
             return "Nop";
@@ -325,17 +531,22 @@ public abstract class Unmapper {
      */
     private enum Option {
         CLEANER() {
-            Unmapper createUnmapper() throws Exception {
+            Unmapper createUnmapper() throws ReflectiveOperationException {
                 return new CleanerUnmapper();
             }
         },
         UNSAFE() {
-            Unmapper createUnmapper() throws Exception {
+            Unmapper createUnmapper() throws ReflectiveOperationException {
                 return new UnsafeUnmapper();
             }
         },
+        MEMSEG() {
+            Unmapper createUnmapper() throws ReflectiveOperationException {
+                return new MemorySegmentUnmapper();
+            }
+        },
         SUN() {
-            Unmapper createUnmapper() throws Exception {
+            Unmapper createUnmapper() throws ReflectiveOperationException {
                 return createSunUnmapper();
             }
         };
@@ -345,7 +556,7 @@ public abstract class Unmapper {
          *
          * @return  new unmapper
          */
-        abstract Unmapper createUnmapper() throws Exception;
+        abstract Unmapper createUnmapper() throws ReflectiveOperationException;
 
         /**
          * Returns a member of this enum if it matches the given name.
