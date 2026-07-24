@@ -18,6 +18,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.Adler32;
 import java.util.zip.Checksum;
+import uk.ac.starlink.fits.AbstractFitsTableWriter;
 import uk.ac.starlink.fits.CardFactory;
 import uk.ac.starlink.fits.CardImage;
 import uk.ac.starlink.fits.FitsUtil;
@@ -584,6 +585,10 @@ public abstract class MocStreamFormat {
                                          "Maximum MOC order" ),
                 cfact.createStringCard( "ORDERING", "NUNIQ",
                                         "MOC packaging semantics" ),
+                cfact.createStringCard( "DATE",
+                                        AbstractFitsTableWriter
+                                       .getCurrentDate(),
+                                        "Date of HDU creation (UTC)" ),
                 cfact.createStringCard( "MOCTOOL", "STIL",
                                         "Name of MOC generator" ),
                 CardFactory.END_CARD,
