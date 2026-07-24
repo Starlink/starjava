@@ -1259,4 +1259,21 @@ public class TestCase extends junit.framework.TestCase {
         return combineMessages( msg, "element [" + ix + "] mismatch" );
     }
 
+    /**
+     * Returns the java major version number.
+     * This shouldn't fail, but surprising aspects of the runtime
+     * environment might cause an exception; I consider that OK
+     * for a method that will only execute during unit tests.
+     *
+     * @return  java major version number; 1.8 is returned as 8
+     */
+    public static int getJavaMajorVersion() {
+        String svers = System.getProperty( "java.version" );
+        if ( svers.startsWith( "1." ) ) {
+            svers = svers.substring( 2 );
+        }
+        svers = svers.replaceFirst( "[^0-9].*", "" );
+        return Integer.parseInt( svers );
+    }
+
 }

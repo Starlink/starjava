@@ -2,6 +2,7 @@ package uk.ac.starlink.util;
 
 import junit.framework.AssertionFailedError;
 
+import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -143,6 +144,28 @@ public class TestCaseTest extends TestCase {
                                              new double[] { 3.5, 4.5 } },
                               new Object[] { new short[] { 1, 2 },
                                              new double[] { 3.5, 4.5 } } );
+    }
+
+    public void testVersion() {
+        int jvers = TestCase.getJavaMajorVersion();
+        assertTrue( jvers >= 8 );
+        Integer runtimeVersion;
+        try {
+            Method versionMethod = Runtime.class.getMethod( "version" );
+            Object versionObj = versionMethod.invoke( null );
+            Method majorMethod = versionMethod.getReturnType()
+                                              .getMethod( "major" );
+            runtimeVersion = (Integer) majorMethod.invoke( versionObj );
+        }
+        catch ( ReflectiveOperationException e ) {
+            runtimeVersion = null;
+        }
+        if ( jvers >= 9 ) {
+            assertEquals( runtimeVersion.intValue(), jvers );
+        }
+        else {
+            assertNull( runtimeVersion );
+        }
     }
 
     private void validateString( String text )
