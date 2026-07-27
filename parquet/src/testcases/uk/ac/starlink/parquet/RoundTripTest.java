@@ -50,6 +50,7 @@ public class RoundTripTest extends TestCase {
             CompressionCodecName.UNCOMPRESSED,
             CompressionCodecName.GZIP,
             CompressionCodecName.SNAPPY,
+            CompressionCodecName.ZSTD,
             CompressionCodecName.LZ4_RAW,
         };
         for ( CompressionCodecName codec : codecs ) {
