@@ -23,3 +23,4 @@
 splat/src/docs/sun243.pdf
 ttools/src/downloads/*.jar
 parquet/src/downloads/*.jar
+parquet/src/cache

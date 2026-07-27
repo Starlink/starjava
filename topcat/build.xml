@@ -595,6 +595,12 @@
       <arg value="-xent"/><arg value="*"/>
       <arg value="-xent"/><arg value="META-INF/*"/>
       <arg value="-xent"/><arg value="META-INF/maven/"/>
+      <arg value="-dent"/><arg value="META-INF/services/org.apache.hadoop.security.token.TokenRenewer"/>
+      <arg value="-dent"/><arg value="META-INF/services/org.apache.hadoop.security.token.TokenIdentifier"/>
+      <arg value="-dent"/><arg value="META-INF/services/com.fasterxml.jackson.core.JsonFactory"/>
+      <arg value="-dent"/><arg value="META-INF/services/com.fasterxml.jackson.core.ObjectCodec"/>
+      <arg value="-xent"/><arg value="META-INF/versions/9/module-info.class"/>
+      <arg value="-dent"/><arg value="shaded/parquet/it/"/>
       <arg value="-file"/><arg value="${star.bin}/topcat"/>
       <arg value="-file"/><arg value="${star.bin}/stilts"/>
       <arg value="-file"/><arg value="${star.etc}/ttools/stilts.py"/>

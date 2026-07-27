@@ -321,6 +321,7 @@
      !   relative URLs of the local packages, without installation -->
     <fileset dir="${star.build.dir}">
       <include name="*/lib/*/*.jar"/>
+      <include name="*/src/downloads/*.jar"/>
     </fileset>
 
   </path>
