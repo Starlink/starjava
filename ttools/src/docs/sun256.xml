@@ -16210,6 +16210,15 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Update FITS <ref id="startable.unmap">buffer unmapping</ref>
         to use classes available from Java 22.
         This avoids some nasty warning messages at Java 24 and later.</li>
+    <li>The bundled parquet support libraries have been upgraded
+        in a way that should support Parquet I/O
+        for Java 25 and later;
+        attempting parquet I/O with previous versions of STILTS
+        running under Java 25+ failed.
+        This has been done by upgrading Hadoop support libraries
+        from 3.2.3 to 3.4.3; that library combination is not supported
+        and tested by parquet-java, so problems are possible,
+        but it seems to work.  Please report any issues.</li>
     </ul>
     </p></dd>
 

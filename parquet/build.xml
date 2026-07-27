@@ -1015,16 +1015,15 @@
       <jardownload owner="org/apache/parquet" version="1.13.1" name="parquet-format-structures"/>
       <jardownload owner="org/apache/parquet" version="1.13.1" name="parquet-hadoop"/>
       <jardownload owner="org/apache/parquet" version="1.13.1" name="parquet-jackson"/>
-      <jardownload owner="org/apache/hadoop" version="3.2.3" name="hadoop-common"/>
-      <jardownload owner="org/apache/hadoop" version="3.2.3" name="hadoop-auth"/>
-      <jardownload owner="org/apache/hadoop" version="3.2.3" name="hadoop-mapreduce-client-core"/>
-      <jardownload owner="commons-collections" version="3.2.2" name="commons-collections"/>
+      <jardownload owner="org/apache/hadoop" version="3.4.3" name="hadoop-common"/>
+      <jardownload owner="org/apache/hadoop" version="3.4.3" name="hadoop-auth"/>
+      <jardownload owner="org/apache/hadoop" version="3.4.3" name="hadoop-mapreduce-client-core"/>
+      <jardownload owner="org/apache/commons" version="4.4" name="commons-collections4"/>
+      <jardownload owner="org/apache/commons" version="1.26.1" name="commons-compress"/>
       <jardownload owner="org/apache/commons" version="2.1.1" name="commons-configuration2"/>
       <jardownload owner="org/apache/commons" version="3.9" name="commons-lang3"/>
       <jardownload owner="io/airlift" version="0.21" name="aircompressor"/>
-      <jardownload owner="com/google/guava" version="1.0.1" name="failureaccess"/>
-      <jardownload owner="com/google/guava" version="27.0.1-jre" name="guava"/>
-      <jardownload owner="org/apache/htrace" version="4.1.0-incubating" name="htrace-core4"/>
+      <jardownload owner="org/apache/hadoop/thirdparty" version="1.5.0" name="hadoop-shaded-guava"/>
       <jardownload owner="org/slf4j" version="1.7.22" name="slf4j-api"/>
       <jardownload owner="org/slf4j" version="1.7.22" name="slf4j-nop"/>
       <jardownload owner="org/xerial/snappy" version="1.1.8.3" name="snappy-java"/>

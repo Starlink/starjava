@@ -35276,6 +35276,15 @@ introduced since the last version:
     <li>Add <label>Upload ID Join</label> option to TAP window
         <ref id="TapTableLoadDialog_query_text"
              >Examples-&gt;Upload menu</ref>.</li>
+    <li>The bundled parquet support libraries have been upgraded
+        in a way that should support Parquet I/O
+        for Java 25 and later;
+        attempting parquet I/O with previous versions of TOPCAT
+        running under Java 25+ failed.
+        This has been done by upgrading Hadoop support libraries
+        from 3.2.3 to 3.4.3; that library combination is not supported 
+        and tested by parquet-java, so problems are possible,
+        but it seems to work.  Please report any issues.</li>
     </ul>
     </p></dd>
 

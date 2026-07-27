@@ -600,6 +600,7 @@
       <arg value="-dent"/><arg value="META-INF/services/com.fasterxml.jackson.core.JsonFactory"/>
       <arg value="-dent"/><arg value="META-INF/services/com.fasterxml.jackson.core.ObjectCodec"/>
       <arg value="-xent"/><arg value="META-INF/versions/9/module-info.class"/>
+      <arg value="-xent"/><arg value="org/apache/hadoop/security/authentication/server/package-info.class"/>
       <arg value="-dent"/><arg value="shaded/parquet/it/"/>
       <arg value="-file"/><arg value="${star.bin}/topcat"/>
       <arg value="-file"/><arg value="${star.bin}/stilts"/>

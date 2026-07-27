@@ -58,12 +58,6 @@ public class RoundTripTest extends TestCase {
                 testRoundTrip( table, codec, votmeta );
             }
         }
-        try {
-            testRoundTrip( table, CompressionCodecName.LZ4, false );
-            fail();
-        }
-        catch ( RuntimeException e ) {
-        }
     }
 
     private void testRoundTrip( StarTable table, CompressionCodecName codec,

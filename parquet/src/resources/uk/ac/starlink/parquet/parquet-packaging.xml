@@ -15,40 +15,11 @@ At time of writing, the required libraries are included in
 the <code>topcat-extra.jar</code> monolithic jar file
 (though not <code>topcat-full.jar</code>),
 and are included if you have the <code>topcat-all.dmg</code> file.
-They can also be found in the starjava github repository
-(<a href="https://github.com/Starlink/starjava/tree/master/parquet/src/lib"
-         >https://github.com/Starlink/starjava/tree/master/parquet/src/lib</a>
-or you can acquire them from the
-<a href="https://github.com/apache/parquet-mr">Parquet MR</a> package.
+They are also available from Maven central as dependencies of
+<a href="https://central.sonatype.com/artifact/org.apache.parquet/parquet-cli/1.13.1"
+   >org.apache.parquet/parquet-cli/1.13.1</a>.
 These arrangements may be revised in future releases, for instance if
 parquet usage becomes more mainstream.
-The required dependencies are a minimal subset of those required
-by the Parquet MR submodule
-<code>parquet-cli</code> at version 1.13.1,
-in particular the files
-<code>aircompressor-0.21.jar</code>
-<code>commons-collections-3.2.2.jar</code>
-<code>commons-configuration2-2.1.1.jar</code>
-<code>commons-lang3-3.9.jar</code>
-<code>failureaccess-1.0.1.jar</code>
-<code>guava-27.0.1-jre.jar</code>
-<code>hadoop-auth-3.2.3.jar</code>
-<code>hadoop-common-3.2.3.jar</code>
-<code>hadoop-mapreduce-client-core-3.2.3.jar</code>
-<code>htrace-core4-4.1.0-incubating.jar</code>
-<code>parquet-cli-1.13.1.jar</code>
-<code>parquet-column-1.13.1.jar</code>
-<code>parquet-common-1.13.1.jar</code>
-<code>parquet-encoding-1.13.1.jar</code>
-<code>parquet-format-structures-1.13.1.jar</code>
-<code>parquet-hadoop-1.13.1.jar</code>
-<code>parquet-jackson-1.13.1.jar</code>
-<code>slf4j-api-1.7.22.jar</code>
-<code>slf4j-nop-1.7.22.jar</code>
-<code>snappy-java-1.1.8.3.jar</code>
-<code>stax2-api-4.2.1.jar</code>
-<code>woodstox-core-5.3.0.jar</code>
-<code>zstd-jni-1.5.0-1.jar</code>.
 </blockquote>
 <blockquote>
 These libraries support some, but not all, of the compression formats
@@ -64,18 +35,5 @@ At time of writing all common architectures are covered, but there is
 the possibility of failure with a <code>java.lang.UnsatisfiedLinkError</code>
 on other platforms if attempting to read/write files that use those
 compression algorithms.
-</blockquote>
-<blockquote>
-Note also that there are known problems with Parquet I/O when running
-with Java versions later than Java 21;
-you may encounter a message like
-<pre>
-   java.lang.UnsupportedOperationException: getSubject is not supported
-</pre>
-This is to do with the underlying Hadoop libraries
-(see <webref url="https://issues.apache.org/jira/browse/HADOOP-19212"
-             >this Hadoop bugtracking issue</webref>)
-and for now the only solution is to
-run using an earlier Java version like Java 8, 11, 17 or 21.
 </blockquote>
 </p>
