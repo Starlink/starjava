@@ -45,6 +45,7 @@ public class SuperJar {
     private final File[] flatFiles_;
     private final File[] jarDeps_;
     private final PathSet excludePaths_;
+    private final PathSet dedupePaths_;
     private static PrintStream logStrm_ = System.err;
 
     /**
@@ -56,13 +57,16 @@ public class SuperJar {
      *          dependencies but which should not be included in the result
      * @param   excludePaths  jar file entries which should be excluded 
      *                        from the result
+     * @param   dedupePaths   known duplicate jar file entries, to be excluded
+     *                        on second or subsequent encounters
      */
     public SuperJar( File[] jarFiles, File[] flatFiles, String[] jarExcludes,
-                     PathSet excludePaths )
+                     PathSet excludePaths, PathSet dedupePaths )
             throws IOException {
         jarFiles_ = jarFiles;
         flatFiles_ = flatFiles;
         excludePaths_ = excludePaths;
+        dedupePaths_ = dedupePaths;
         jarDeps_ = getDependencies( jarFiles, jarExcludes );
     }
 
@@ -94,6 +98,7 @@ public class SuperJar {
         writeFlatFiles( jout );
 
         /* Write all items from input jar files. */
+        Deduplicator deduplicator = createDeduplicator();
         for ( int ij = 0; ij < jarDeps_.length; ij++ ) {
             JarInputStream jin =
                 new JarInputStream(
@@ -101,7 +106,8 @@ public class SuperJar {
                         new FileInputStream( jarDeps_[ ij ] ) ) );
             for ( JarEntry jent; ( jent = jin.getNextJarEntry() ) != null;
                   jin.closeEntry() ) {
-                if ( ! excludeEntry( jent ) ) {
+                if ( ! excludeEntry( jent ) &&
+                     ! deduplicator.isDuplicate( jent ) ) {
                     jout.putNextEntry( jent );
                     IOUtils.copy( jin, jout );
                     jout.closeEntry();
@@ -141,6 +147,7 @@ public class SuperJar {
         writeFlatFiles( zout );
 
         /* Write each of the jar files. */
+        Deduplicator deduplicator = createDeduplicator();
         for ( int ij = 0; ij < jarDeps_.length; ij++ ) {
             File jfile = jarDeps_[ ij ];
             String jtail = jfile.getName();
@@ -173,6 +180,7 @@ public class SuperJar {
                 for ( JarEntry jent; ( jent = jin.getNextJarEntry() ) != null;
                       jin.closeEntry() ) {
                     if ( ! excludeEntry( jent ) &&
+                         ! deduplicator.isDuplicate( jent ) &&
                          ! jent.getName().startsWith( "META-INF" ) ) {
                         jout.putNextEntry( jent );
                         IOUtils.copy( jin, jout );
@@ -193,7 +201,8 @@ public class SuperJar {
                             new FileInputStream( jfile ) ) );
                 for ( ZipEntry zent; ( zent = zin.getNextEntry() ) != null;
                       zin.closeEntry() ) {
-                    if ( ! excludeEntry( zent ) ) {
+                    if ( ! excludeEntry( zent ) &&
+                         ! deduplicator.isDuplicate( zent ) ) {
                         z2out.putNextEntry( zent );
                         IOUtils.copy( zin, z2out );
                     }
@@ -214,6 +223,15 @@ public class SuperJar {
      */
     private boolean excludeEntry( ZipEntry entry ) {
         return entry.isDirectory() || excludePaths_.matches( entry );
+    }
+
+    /**
+     * Returns a deduplicator object for this SuperJar.
+     *
+     * @return  new deduplicator
+     */
+    private Deduplicator createDeduplicator() {
+        return new Deduplicator( dedupePaths_ );
     }
 
     /**
@@ -432,6 +450,40 @@ public class SuperJar {
     }
 
     /**
+     * Keeps track of a entries within a given list of paths so it
+     * can identify ones that have been seen before.
+     */
+    private static class Deduplicator {
+
+        private final PathSet dedupePathSet_;
+        private final Collection<String> seenNames_;
+
+        /**
+         * Constructor.
+         *
+         * @param  dedupePathSet  scope for duplicate tracking
+         */
+        Deduplicator( PathSet dedupePathSet ) {
+            dedupePathSet_ = dedupePathSet;
+            seenNames_ = new HashSet<String>();
+        }
+
+        /**
+         * Takes note of the supplied entry, and indicates whether it is
+         * a second-or-later occurence from one of the paths given
+         * in the dedupeSet.
+         *
+         * @param  zent  entry
+         * @return   true iff the entry is within the dedupe set and
+         *           has been submitted to this method before
+         */
+        public boolean isDuplicate( ZipEntry zent ) {
+            return dedupePathSet_.matches( zent ) 
+                && ! seenNames_.add( zent.getName() );
+        }
+    }
+
+    /**
      * Writes a new jar or zip file based on the contents of an existing
      * jar file and the jar files referenced by its manifest.
      *
@@ -460,9 +512,11 @@ public class SuperJar {
      * excluded (e.g. axis.jar or axis/axis.jar would both work).
      * <code>-x</code> is a deprecated synonym for <code>-xjar</code>.
      *
-     * <p>The <code>-xent</code> flag may be
+     * <p>The <code>-xent</code> and <code>-dent</code> flags may be
      * supplied one or more times to give full paths for jar entries
-     * which should not be included in the output.
+     * which should not be included in the output (<code>-xent</code>),
+     * or which are known to appear multiple times in the input, and for
+     * which only the first appearance will be included (<code>-dent</code>).
      * 
      * These are interpreted as follows:
      * <ul>
@@ -489,6 +543,7 @@ public class SuperJar {
         String usage = "SuperJar [-oj out-jar] [-oz out-zip]\n"
                      + "         [-xjar jar [-xjar jar] ..]\n"
                      + "         [-xent entry [-xent entry] ..]\n"
+                     + "         [-dent entry [-dent entry] ..]\n"
                      + "         [-file flatfile [-file flatfile] ..]\n"
                      + "         jarfile [jarfile ..]";
 
@@ -500,6 +555,7 @@ public class SuperJar {
         File outZip = null;
         List<String> jarExcludeList = new ArrayList<>();
         List<String> entryExcludeList = new ArrayList<>();
+        List<String> entryDedupeList = new ArrayList<>();
         entryExcludeList.add( "MANIFEST.MF" );
         for ( Iterator<String> it = arglist.iterator(); it.hasNext(); ) {
             String arg = it.next();
@@ -529,6 +585,11 @@ public class SuperJar {
                 entryExcludeList.add( it.next() );
                 it.remove();
             }
+            else if ( arg.equals( "-dent" ) ) {
+                it.remove();
+                entryDedupeList.add( it.next() );
+                it.remove();
+            }
             else if ( arg.equals( "-file" ) ) {
                 it.remove();
                 flatFileList.add( new File( it.next() ) );
@@ -547,10 +608,12 @@ public class SuperJar {
         File[] flatFiles = flatFileList.toArray( new File[ 0 ] );
         String[] jarExcludes = jarExcludeList.toArray( new String[ 0 ] );
         PathSet entryExcludes = new PathSet( entryExcludeList );
+        PathSet entryDedupes = new PathSet( entryDedupeList );
 
         /* Construct the writer. */
         SuperJar sj =
-            new SuperJar( jarFiles, flatFiles, jarExcludes, entryExcludes );
+            new SuperJar( jarFiles, flatFiles, jarExcludes, entryExcludes,
+                          entryDedupes );
 
         /* Warn if no output. */
         if ( outJar == null && outZip == null ) {
