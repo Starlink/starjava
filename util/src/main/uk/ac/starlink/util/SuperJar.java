@@ -44,34 +44,25 @@ public class SuperJar {
     private final File[] jarFiles_;
     private final File[] flatFiles_;
     private final File[] jarDeps_;
-    private final Collection<String> excludeSet_;
+    private final PathSet excludePaths_;
     private static PrintStream logStrm_ = System.err;
 
     /**
      * Constructor.
      *
-     * <p>The <code>entryExcludes</code> values are full pathnames
-     * with no leading "/", interpreted as follows:
-     * <ul>
-     * <li>ending in "/": exclude that directory and all children
-     * <li>ending in "/*": exclude all flat files, but not subdirectories
-     *     of that directory
-     * <li>otherwise: exclude the flat file with that exact name
-     * </ul>
-     *
      * @param   jarFiles  top-level jar files containing files and dependencies
      * @param   flatFiles  files for inclusion at top level of output
      * @param   jarExcludes  names of jar files which may be named as class-path
      *          dependencies but which should not be included in the result
-     * @param   entryExcludes  jar file entries which should be excluded 
-     *          from the result
+     * @param   excludePaths  jar file entries which should be excluded 
+     *                        from the result
      */
     public SuperJar( File[] jarFiles, File[] flatFiles, String[] jarExcludes,
-                     String[] entryExcludes ) throws IOException {
+                     PathSet excludePaths )
+            throws IOException {
         jarFiles_ = jarFiles;
         flatFiles_ = flatFiles;
-        excludeSet_ = new HashSet<String>( Arrays.asList( entryExcludes ) );
-        excludeSet_.add( "MANIFEST.MF" );
+        excludePaths_ = excludePaths;
         jarDeps_ = getDependencies( jarFiles, jarExcludes );
     }
 
@@ -222,30 +213,7 @@ public class SuperJar {
      * @return  true iff <code>entry</code> is marked for exclusion
      */
     private boolean excludeEntry( ZipEntry entry ) {
-        if ( entry.isDirectory() ) {
-            return true;
-        }
-        String name = entry.getName();
-        for ( String exclude : excludeSet_ ) {
-            if ( exclude.endsWith( "/" ) ) {
-                if ( name.startsWith( exclude ) ) {
-                    return true;
-                }
-            }
-            else if ( exclude.endsWith( "/*" ) || exclude.equals( "*" ) ) {
-                String dir = exclude.substring( 0, exclude.length() - 1 );
-                if ( name.startsWith( dir ) && 
-                     name.indexOf( '/', dir.length() ) == -1 ) {
-                    return true;
-                }
-            }
-            else {
-                if ( name.equals( exclude ) ) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return entry.isDirectory() || excludePaths_.matches( entry );
     }
 
     /**
@@ -409,6 +377,61 @@ public class SuperJar {
     }
 
     /**
+     * Defines a set of zip file paths.
+     */
+    public static class PathSet {
+
+        private final String[] paths_;
+
+        /**
+         * Constructor.
+         * The supplied strings are full zip entry pathnames with no
+         * leading "/", interpreted as follows:
+         * <ul>
+         * <li>ending in "/": exclude that directory and all children
+         * <li>ending in "/*": exclude all flat files, but not subdirectories
+         *     of that directory
+         * <li>otherwise: exclude the flat file with that exact name
+         * </ul>
+         *
+         * @param  paths  list of paths to include, copied at construction time
+         */
+        public PathSet( Collection<String> paths ) {
+            paths_ = paths.toArray( new String[ 0 ] );
+        }
+
+        /**
+         * Indicates whether the given entry falls within this path set.
+         *
+         * @param  entry   zip entry
+         * @return  true iff entry matches
+         */
+        public boolean matches( ZipEntry entry ) {
+            String name = entry.getName();
+            for ( String path : paths_ ) {
+                if ( path.endsWith( "/" ) ) {
+                    if ( name.startsWith( path ) ) {
+                        return true;
+                    }
+                }
+                else if ( path.endsWith( "/*" ) || path.equals( "*" ) ) {
+                    String dir = path.substring( 0, path.length() - 1 );
+                    if ( name.startsWith( dir ) && 
+                         name.indexOf( '/', dir.length() ) == -1 ) {
+                        return true;
+                    }
+                }
+                else {
+                    if ( name.equals( path ) ) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+    /**
      * Writes a new jar or zip file based on the contents of an existing
      * jar file and the jar files referenced by its manifest.
      *
@@ -437,8 +460,10 @@ public class SuperJar {
      * excluded (e.g. axis.jar or axis/axis.jar would both work).
      * <code>-x</code> is a deprecated synonym for <code>-xjar</code>.
      *
-     * <p>The <code>-xent</code> flag may be supplied one or more times to give
-     * full paths for jar entries which should not be included in the output.
+     * <p>The <code>-xent</code> flag may be
+     * supplied one or more times to give full paths for jar entries
+     * which should not be included in the output.
+     * 
      * These are interpreted as follows:
      * <ul>
      * <li>ending in "/": exclude that directory and all children
@@ -473,8 +498,9 @@ public class SuperJar {
         List<File> flatFileList = new ArrayList<File>();
         File outJar = null;
         File outZip = null;
-        List<String> jarExcludeList = new ArrayList<String>();
-        List<String> entryExcludeList = new ArrayList<String>();
+        List<String> jarExcludeList = new ArrayList<>();
+        List<String> entryExcludeList = new ArrayList<>();
+        entryExcludeList.add( "MANIFEST.MF" );
         for ( Iterator<String> it = arglist.iterator(); it.hasNext(); ) {
             String arg = it.next();
             if ( arg.startsWith( "-h" ) ) {
@@ -520,7 +546,7 @@ public class SuperJar {
         File[] jarFiles = jarlist.toArray( new File[ 0 ] );
         File[] flatFiles = flatFileList.toArray( new File[ 0 ] );
         String[] jarExcludes = jarExcludeList.toArray( new String[ 0 ] );
-        String[] entryExcludes = entryExcludeList.toArray( new String[ 0 ] );
+        PathSet entryExcludes = new PathSet( entryExcludeList );
 
         /* Construct the writer. */
         SuperJar sj =
