@@ -7,7 +7,7 @@ fa752c3cb5474b05e14bf2ed7e242020 commons-lang3-3.9.jar
 a0eb52d25c35c2cd95d8147e7cffdf48 hadoop-common-3.4.3.jar
 56bf4dcb3cbed7a1173a65908be87921 hadoop-mapreduce-client-core-3.4.3.jar
 db298e666e75d1e537457e50ca474bbe hadoop-shaded-guava-1.5.0.jar
-2b140a2e29dfa36d66f0456da2b0871d lz4-java-1.9.0.jar
+6839253be348576133a60dc16c164f92 lz4-pure-java-1.8.0.jar
 e945617f2a11e6f5c7e52a41ef78c072 parquet-cli-1.13.1.jar
 d75526e32d2630e5bad8d9fce847d838 parquet-column-1.13.1.jar
 6a52cc2d093a61027d8df49b6ae39a6a parquet-common-1.13.1.jar
