@@ -52,6 +52,7 @@ public class RoundTripTest extends TestCase {
             CompressionCodecName.SNAPPY,
             CompressionCodecName.ZSTD,
             CompressionCodecName.LZ4_RAW,
+            CompressionCodecName.LZ4,
         };
         for ( CompressionCodecName codec : codecs ) {
             for ( boolean votmeta : new boolean[] { false, true } ) {

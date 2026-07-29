@@ -25,7 +25,7 @@ parquet usage becomes more mainstream.
 These libraries support some, but not all, of the compression formats
 defined for parquet, currently
 <code>uncompressed</code>, <code>gzip</code>, <code>snappy</code>,
-<code>zstd</code> and <code>lz4_raw</code>.
+<code>zstd</code>, <code>lz4</code> and <code>lz4_raw</code>.
 Supplying more of the parquet-mr dependencies at runtime would
 extend this list.
 Unlike the rest of TOPCAT/STILTS/STIL which is written in pure java,

@@ -16219,6 +16219,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         from 3.2.3 to 3.4.3; that library combination is not supported
         and tested by parquet-java, so problems are possible,
         but it seems to work.  Please report any issues.</li>
+    <li>The parquet I/O handlers now support LZ4 compression.</li>
     </ul>
     </p></dd>
 

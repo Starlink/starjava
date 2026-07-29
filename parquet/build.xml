@@ -1030,6 +1030,7 @@
       <jardownload owner="org/codehaus/woodstox" version="4.2.1" name="stax2-api"/>
       <jardownload owner="com/fasterxml/woodstox" version="5.3.0" name="woodstox-core"/>
       <jardownload owner="com/github/luben" version="1.5.0-1" name="zstd-jni"/>
+      <jardownload owner="at/yawk/lz4" version="1.9.0" name="lz4-java"/>
     </updatedownloads>
   </target>
 
