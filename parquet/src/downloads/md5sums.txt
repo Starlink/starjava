@@ -15,8 +15,8 @@ d75526e32d2630e5bad8d9fce847d838 parquet-column-1.13.1.jar
 b41fcfc59d68450b5153472d5a92345c parquet-format-structures-1.13.1.jar
 77cea2800fb038443a062ed25c0742cd parquet-hadoop-1.13.1.jar
 83b70b16ef2ebd3e35d32af63a9d99c9 parquet-jackson-1.13.1.jar
-897d990eb5463fd5288092524c105769 slf4j-api-1.7.22.jar
-edcb78467a0ddda53b9beedc7a3857e0 slf4j-nop-1.7.22.jar
+403dffa46cdd2e3c82da19df4f394a4c slf4j-api-2.0.7.jar
+9052ae0144e42ae4eac4f08c1d3b6a94 slf4j-nop-2.0.7.jar
 fdacc9d6d764fe918daca743a67ce24f snappy-java-1.1.8.3.jar
 af8377bc7882332e22456616a9f164f6 stax2-api-4.2.1.jar
 89fb07387e448325eacc9c642e3d69af woodstox-core-5.3.0.jar
