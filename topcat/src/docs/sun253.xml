@@ -35273,6 +35273,9 @@ introduced since the last version:
     <li>Update FITS <ref id="startable.unmap">buffer unmapping</ref> 
         to use classes available from Java 22.
         This avoids some nasty warning messages at Java 24 and later.</li>
+    <li>Add <label>Upload ID Join</label> option to TAP window
+        <ref id="TapTableLoadDialog_query_text"
+             >Examples-&gt;Upload menu</ref>.</li>
     </ul>
     </p></dd>
 

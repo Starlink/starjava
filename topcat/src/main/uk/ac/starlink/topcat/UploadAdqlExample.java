@@ -76,9 +76,9 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
                                            tcList );
                 }
             },
-            new UploadAdqlExample( "Upload Join",
+            new UploadAdqlExample( "Upload Spatial Join",
                                    "Upload a local table and join a remote "
-                                 + "table with it",
+                                 + "table with it using RA, Dec",
                                    tcList ) {
                 public String getAdqlText( boolean lineBreaks,
                                            VersionedLanguage lang,
@@ -88,8 +88,24 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
                     if ( ! TapCapabilityPanel.canUpload( tcap ) ) {
                         return null;
                     } 
-                    return getJoinText( lineBreaks, tcap, lang, tables, table,
-                                        tcList );
+                    return getSpatialJoinText( lineBreaks, tcap, lang,
+                                               tables, table, tcList );
+                }
+            },
+            new UploadAdqlExample( "Upload ID Join",
+                                   "Upload a local table and join a remote "
+                                 + "table with it using an identifier column",
+                                   tcList ) {
+                public String getAdqlText( boolean lineBreaks,
+                                           VersionedLanguage lang,
+                                           TapCapability tcap,
+                                           TableMeta[] tables, TableMeta table,
+                                           double[] skypos ) {
+                    if ( ! TapCapabilityPanel.canUpload( tcap ) ) {
+                        return null;
+                    }
+                    return getIdJoinText( lineBreaks, tcap, lang,
+                                          tables, table, tcList );
                 }
             },
         };
@@ -128,7 +144,8 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
     }
 
     /**
-     * Returns text for an upload query involving a join with a remote table.
+     * Returns text for an upload query involving a join with a remote table
+     * on RA and Dec columns.
      *
      * @param  lineBreaks  whether output ADQL should include multiline
      *                     formatting
@@ -137,11 +154,14 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
      * @param  tables  table metadata set
      * @param  table  currently selected table
      * @param  tcList  JList of known TopcatModels
+     * @return   ADQL text, or null if no suitable query can be constructed
      */
-    private static String getJoinText( boolean lineBreaks, TapCapability tcap,
-                                       VersionedLanguage lang,
-                                       TableMeta[] tables, TableMeta table,
-                                       JList<TopcatModel> tcJlist ) {
+    private static String getSpatialJoinText( boolean lineBreaks,
+                                              TapCapability tcap,
+                                              VersionedLanguage lang,
+                                              TableMeta[] tables,
+                                              TableMeta table,
+                                              JList<TopcatModel> tcJlist ) {
         AdqlSyntax syntax = AdqlSyntax.getInstance();
         TableWithCols[] rdRemotes =
             getRaDecTables( toTables( table, tables ), 1 );
@@ -232,6 +252,103 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
     }
 
     /**
+     * Returns text for an upload query involving a join with a remote table
+     * on identifier columns.
+     *
+     * @param  lineBreaks  whether output ADQL should include multiline
+     *                     formatting
+     * @param  tcap  table capabilities for service
+     * @param  lang  ADQL language variant
+     * @param  tables  table metadata set
+     * @param  table  currently selected table
+     * @param  tcList  JList of known TopcatModels
+     * @return   ADQL text, or null if no suitable query can be constructed
+     */
+    private static String getIdJoinText( boolean lineBreaks, TapCapability tcap,
+                                         VersionedLanguage lang,
+                                         TableMeta[] tables, TableMeta table,
+                                         JList<TopcatModel> tcJlist ) {
+        AdqlSyntax syntax = AdqlSyntax.getInstance();
+        TableWithCols[] remoteIdTables =
+            getIdTables( toTables( table, tables ), 1 );
+        if ( remoteIdTables.length == 0 ) {
+            return null;
+        }
+        TableWithCols remoteIdTable = remoteIdTables[ 0 ];
+        String remoteIdCol = remoteIdTable.getColumns()[ 0 ];
+        ListModel<TopcatModel> tcListModel = tcJlist.getModel();
+        List<TopcatModel> tcList = new ArrayList<>();
+        TopcatModel selItem = tcJlist.getSelectedValue();
+        if ( selItem != null ) {
+            tcList.add( selItem );
+        }
+        for ( int i = 0; i < tcListModel.getSize(); i++ ) {
+            TopcatModel item = tcListModel.getElementAt( i );
+            if ( item != null && item != selItem ) {
+                tcList.add( item );
+            }
+        }
+        TopcatModel[] tcs = tcList.toArray( new TopcatModel[ 0 ] );
+        TopcatModel localIdTable = null;
+        String localIdCol = null;
+        for ( int i = 0; i < tcs.length && localIdTable == null; i++ ) {
+            localIdCol = getIdName( tcs[ i ], syntax );
+            if ( localIdCol != null ) {
+                localIdTable = tcs[ i ];
+            }
+        }
+        if ( localIdTable == null ) {
+            return null;
+        }
+        Breaker breaker = createBreaker( lineBreaks );
+        String localAlias = "tc";
+        String remoteAlias = "db";
+        boolean isUsing =
+              ( syntax.isAdqlDelimitedIdentifier( localIdCol ) ||
+                syntax.isAdqlDelimitedIdentifier( remoteIdCol ) )
+            ? localIdCol.equals( remoteIdCol )
+            : localIdCol.equalsIgnoreCase( remoteIdCol );
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( "SELECT " )
+            .append( "TOP " )
+            .append( 1000 )
+            .append( breaker.space( 7 ) )
+            .append( "*" )
+            .append( breaker.space( 0 ) )
+            .append( "FROM " )
+            .append( remoteIdTable.getTable().getName() );
+        if ( ! isUsing ) {
+            sbuf.append( " AS " )
+                .append( remoteAlias );
+        }
+        sbuf.append( breaker.space( 0 ) )
+            .append( "JOIN " )
+            .append( "TAP_UPLOAD.t" )
+            .append( localIdTable.getID() );
+        if ( ! isUsing ) {
+            sbuf.append( " AS " )
+                .append( localAlias );
+         }
+         sbuf.append( breaker.space( 2 ) );
+         if ( isUsing ) {
+             sbuf.append( "USING (" )
+                 .append( localIdCol )
+                 .append( ")" );
+         }
+         else {
+             sbuf.append( "ON " )
+                 .append( localAlias )
+                 .append( "." )
+                 .append( localIdCol )
+                 .append( " = " )
+                 .append( remoteAlias )
+                 .append( "." )
+                 .append( remoteIdCol );
+         }
+         return sbuf.toString();
+    }
+
+    /**
      * Returns the names for suitable RA/Dec columns in degrees from a table.
      * If no such column pair can be found, null is returned.
      * The column names are suitable for insertion into ADQL,
@@ -292,5 +409,55 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
             }
         }
         return scores[ 0 ] > 0 && scores[ 1 ] > 0 ? coords : null;
+    }
+
+    /**
+     * Returns the name for a suitable identifier columns from a table.
+     * If no such column can be found, null is returned.
+     * The column name is suitable for insertion into ADQL,
+     * that is it must not be further quoted.
+     *
+     * @param  tcModel   topcat table to be investigated
+     * @param  syntax    query language syntax
+     * @return    name of identifier column,
+     *           or null if nothing suitable
+     */
+    private static String getIdName( TopcatModel tcModel, AdqlSyntax syntax ) {
+        TableColumnModel colModel = tcModel.getColumnModel();
+        int topScore = 0;
+        String idName = null;
+        int ncol = colModel.getColumnCount();
+        for ( int ic = 0; ic < ncol; ic++ ) {
+            ColumnInfo info = ((StarTableColumn) colModel.getColumn( ic ))
+                             .getColumnInfo();
+            String ucd = info.getUCD() == null
+                       ? ""
+                       : info.getUCD().trim().toLowerCase();
+            String unit = info.getUnitString();
+            String name = info.getName();
+            if ( name != null && name.trim().length() > 0 ) {
+                int score = 0;
+                if ( ucd.equals( "meta.id;meta.main" ) ) {
+                    score = 16;  
+                }
+                else if ( ucd.startsWith( "meta.id" ) ) {
+                    score = 8;
+                }
+                else if ( ucd.startsWith( "meta_id" ) ) {
+                    score = 6;
+                }
+                if ( unit != null ) {
+                    score -= 1;
+                }
+                if ( "id".equalsIgnoreCase( name ) ) {
+                    score += 2;
+                }
+                if ( score > topScore ) {
+                    topScore = score;
+                    idName = name;
+                }
+            }
+        }
+        return topScore > 0 ? idName : null;
     }
 }
