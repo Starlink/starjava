@@ -307,6 +307,30 @@ public abstract class AbstractAdqlExample implements AdqlExample {
     }
 
     /**
+     * Identifies tables in a given array which contain what looks like
+     * an identifier column.
+     *
+     * @param  tables  candidate table list
+     * @param  max   the maximum number of output tables required
+     * @return  array of tables with ID columns
+     */
+    public static TableWithCols[] getIdTables( TableMeta[] tables, int max ) {
+        List<TableWithCols> tlist = new ArrayList<>();
+        for ( int i = 0; i < tables.length && tlist.size() < max; i++ ) {
+            TableMeta table = tables[ i ];
+            ColumnMeta[] cols = table.getColumns();
+            if ( cols != null ) {
+                String idName = getIdName( cols );
+                if ( idName != null ) {
+                    tlist.add( new TableWithCols( table,
+                                                  new String[] { idName } ) );
+                }
+            }
+        }
+        return tlist.toArray( new TableWithCols[ 0 ] );
+    }
+
+    /**
      * Returns the names for suitable RA/Dec columns in degrees from a table.
      * If no such column pair can be found, null is returned.
      *
@@ -352,6 +376,52 @@ public abstract class AbstractAdqlExample implements AdqlExample {
             }
         }
         return scores[ 0 ] > 0 && scores[ 1 ] > 0 ? coords : null;
+    }
+
+    /**
+     * Returns the name of a column in a table that looks like an identifier.
+     * If no suitable column can be found, null is returned.
+     *
+     * @param   table  table to investiate
+     * @return   name of ID-like column, or null
+     */
+    private static String getIdName( ColumnMeta[] cols ) { 
+        int topScore = 0;
+        String idName = null;
+        for ( int ic = 0; ic < cols.length; ic++ ) {
+            ColumnMeta col = cols[ ic ];
+            String ucd = col.getUcd() == null
+                       ? ""
+                       : col.getUcd().trim().toLowerCase();
+            String unit = col.getUnit();
+            String name = col.getName();          
+            if ( name != null && name.trim().length() > 0 ) {
+                int score = 0;
+                if ( ucd.equals( "meta.id;meta.main" ) ) {
+                    score = 16;
+                }
+                else if ( ucd.startsWith( "meta.id" ) ) {
+                    score = 8;
+                }
+                else if ( ucd.startsWith( "meta_id" ) ) {
+                    score = 6;
+                }
+                if ( col.isIndexed() ) {
+                    score += 2;
+                }
+                if ( unit != null ) {
+                    score -= 1;
+                }
+                if ( "id".equalsIgnoreCase( name ) ) {
+                    score += 2;
+                }
+                if ( score > topScore ) {
+                    topScore = score;
+                    idName = name;
+                }
+            }
+        }
+        return topScore > 0 ? idName : null;
     }
 
     /**
