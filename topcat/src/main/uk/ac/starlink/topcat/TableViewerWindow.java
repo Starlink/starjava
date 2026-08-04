@@ -563,6 +563,30 @@ public class TableViewerWindow extends AuxWindow {
              popper.add( explodeAct );
         }
 
+        popper.addSeparator();
+
+        /* Get the current row that is being selected. */
+        final int jrow = rowSelectionModel_.getMinSelectionIndex();
+
+        /* Action to open the cell text in a viewer. */
+        Action viewCellAct =
+            new BasicAction( "View Cell", ResourceIcon.ZOOM_IN,
+                             "View the cell contents in a viewer." ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    CellViewWindow cell_view =
+                        new CellViewWindow( "Cell Viewer", parent );
+                    TableModel tm = jtable_.getModel();
+                    String selectedCell = tm.getValueAt( jrow, jcol ).toString();
+                    cell_view.setText( selectedCell );
+                    cell_view.setVisible( true );
+                }
+            };
+
+        /* Only enable the Cell View option if something is selected. If no row
+         * column is selected, it will be displayed in deactived state. */
+        viewCellAct.setEnabled( jrow >= 0 && jcol >= 0 );
+        popper.add( viewCellAct );
+
         return popper;
     }
 
