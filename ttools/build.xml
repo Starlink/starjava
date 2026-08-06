@@ -606,10 +606,16 @@
       <arg value="-xjar"/><arg value="topcat.jar"/>
       <arg value="-xjar"/><arg value="org.mortbay.jmx.jar"/>
       <arg value="-xjar"/><arg value="jasper-combined.jar"/>
-      <arg value="-xjar"/><arg value="parquet-mr-stil.jar"/>
       <arg value="-xent"/><arg value="*"/>
       <arg value="-xent"/><arg value="META-INF/*"/>
       <arg value="-xent"/><arg value="META-INF/maven/"/>
+      <arg value="-dent"/><arg value="META-INF/services/org.apache.hadoop.security.token.TokenRenewer"/>
+      <arg value="-dent"/><arg value="META-INF/services/org.apache.hadoop.security.token.TokenIdentifier"/>
+      <arg value="-dent"/><arg value="META-INF/services/com.fasterxml.jackson.core.JsonFactory"/>
+      <arg value="-dent"/><arg value="META-INF/services/com.fasterxml.jackson.core.ObjectCodec"/>
+      <arg value="-xent"/><arg value="META-INF/versions/9/module-info.class"/>
+      <arg value="-xent"/><arg value="org/apache/hadoop/security/authentication/server/package-info.class"/>
+      <arg value="-dent"/><arg value="shaded/parquet/it/"/>
       <arg value="-file"/><arg value="${star.bin}/stilts"/>
       <arg value="-file"/><arg value="${star.etc.pkg}/stilts.py"/>
       <arg value="-file"/><arg value="${src.docs}/LICENSE.txt"/>

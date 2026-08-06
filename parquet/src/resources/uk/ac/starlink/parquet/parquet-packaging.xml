@@ -1,32 +1,29 @@
 <p><strong>Note:</strong>
 <blockquote>
-The parquet I/O handlers require large external libraries,
-which are not always bundled with the library/application software
-because of their size.
-In some configurations, parquet support may not be present,
-and attempts to read or write parquet files will result in
+The parquet I/O handlers require large external libraries.
+In previous releases of this software they were not always bundled
+with the library/application software because of their size,
+but in the current release they are included in the
+<code>topcat-full.jar</code>, <code>stilts.jar</code> and
+<code>topcat-all.dmg</code> files, so it is likely they will
+be present.  So you usually will not encounter this problem,
+but if these libraries are absent then
+attempts to read or write parquet files will result in
 a message like:
 <pre>
    Parquet-mr libraries not available
 </pre>
 If you can supply the relevant libaries on the classpath at runtime,
-the parquet support will work.
-At time of writing, the required libraries are included in
-the <code>topcat-extra.jar</code> monolithic jar file
-(though not <code>topcat-full.jar</code>),
-and are included if you have the <code>topcat-all.dmg</code> file.
-They are also available from Maven central as dependencies of
+the parquet support will work; they can be identified as dependencies of
 <a href="https://central.sonatype.com/artifact/org.apache.parquet/parquet-cli/1.13.1"
    >org.apache.parquet/parquet-cli/1.13.1</a>.
-These arrangements may be revised in future releases, for instance if
-parquet usage becomes more mainstream.
 </blockquote>
 <blockquote>
-These libraries support some, but not all, of the compression formats
+The bundled libraries support most, but not all, of the compression formats
 defined for parquet, currently
 <code>uncompressed</code>, <code>gzip</code>, <code>snappy</code>,
 <code>zstd</code>, <code>lz4</code> and <code>lz4_raw</code>.
-Supplying more of the parquet-mr dependencies at runtime would
+Supplying more of the parquet-mr/parquet-java dependencies at runtime would
 extend this list.
 Unlike the rest of TOPCAT/STILTS/STIL which is written in pure java,
 some of these libraries (currently the snappy and zstd compression codecs)

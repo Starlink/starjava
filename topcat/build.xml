@@ -564,7 +564,7 @@
 
     <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
       <classpath refid="classpath"/>
-      <arg value="-oj"/><arg value="${dist.lib.pkg}/topcat-full.jar"/>
+      <arg value="-oj"/><arg value="${dist.lib.pkg}/topcat-lite.jar"/>
       <arg value="-xjar"/><arg value="junit.jar"/>
       <arg value="-xjar"/><arg value="log4j.jar"/>
       <arg value="-xjar"/><arg value="log4j-core.jar"/>
@@ -585,7 +585,7 @@
 
     <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
       <classpath refid="classpath"/>
-      <arg value="-oj"/><arg value="${dist.lib.pkg}/topcat-extra.jar"/>
+      <arg value="-oj"/><arg value="${dist.lib.pkg}/topcat-full.jar"/>
       <arg value="-xjar"/><arg value="junit.jar"/>
       <arg value="-xjar"/><arg value="log4j.jar"/>
       <arg value="-xjar"/><arg value="log4j-core.jar"/>

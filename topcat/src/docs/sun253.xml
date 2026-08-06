@@ -3835,9 +3835,8 @@ it has been installed on your system; some of these are described below.
 <p>There may be some sort of short-cut icon on your desktop which
 starts up the program - in this case just clicking on it will probably work.
 Failing that you may be able to locate the
-jar file (probably named <code>topcat.jar</code>, 
-<code>topcat-full.jar</code> or
-<code>topcat-extra.jar</code>)
+jar file (probably named <code>topcat.jar</code> or
+<code>topcat-full.jar</code>)
 and click on that.  These files would be located in the
 <code>java/lib/topcat/</code> directory in a standard Starjava installation.
 Note that when you start by clicking on something
@@ -35286,6 +35285,9 @@ introduced since the last version:
         and tested by parquet-java, so problems are possible,
         but it seems to work.  Please report any issues.</li>
     <li>The parquet I/O handlers now support LZ4 compression.</li>
+    <li>The standard <code>topcat-full.jar</code> jar file now comes
+        with parquet I/O support bundled, there is no longer a
+        <code>topcat-extra.jar</code> file.</li>
     </ul>
     </p></dd>
 

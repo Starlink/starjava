@@ -917,9 +917,8 @@ the bits of compiled code that it uses to run an application.
 Depending on how you have done your installation the core STILTS
 classes could be in various places, but they are probably in a
 file with one of the names 
-<code>stilts.jar</code>,
-<code>topcat-full.jar</code> or
-<code>topcat-extra.jar</code>.
+<code>stilts.jar</code> or
+<code>topcat-full.jar</code>.
 The full pathname of one of these files can therefore be used as
 your classpath.  In some cases these files are self-contained and
 in some cases they reference other jar files in the filesystem -
@@ -7104,12 +7103,6 @@ These reports can be suppressed by category using the
 <code>report</code> parameter.
 </p>
 
-<p><em>Note: this command will only work if the parquet support
-libraries are on the classpath at runtime;
-depending on how you are running STILTS this may not be the case.
-See the note at <ref id="inParquet"/>.
-</em></p>
-
 &parqlint-summary;
 
 <subsubsect id="parqlint-examples">
@@ -7182,12 +7175,6 @@ Note it does not provide facilities for examining the actual data content
 in a parquet file, but generic STILTS table commands such as
 <ref id="tpipe"><code>tpipe</code></ref> can be used to do that.
 </p>
-
-<p><em>Note: this command will only work if the parquet support
-libraries are on the classpath at runtime;
-depending on how you are running STILTS this may not be the case.
-See the note at <ref id="inParquet"/>.
-</em></p>
 
 <p><em>Note: This command is currently experimental and its behaviour
 may change in future releases.
@@ -16223,6 +16210,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix bug in <ref id="mode-checksum"><code>checksum</code></ref>
         mode that produced indeterminate values for
         String-array-valued columns.</li>
+    <li>The <code>stilts.jar</code> file now comes with parquet
+        I/O support bundled, since parquet files are becoming
+        increasingly mainstream. This has more than doubled the size
+        of the jar file, which is annoying, sorry about that.</li>
     </ul>
     </p></dd>
 
