@@ -541,7 +541,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>14 May 2026</docdate>
+<docdate>21 August 2026</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -35245,50 +35245,74 @@ introduced since the last version:
     up to date.
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v4.10-8">Version 4.10-8 (21 August 2026)</dt>
 <dd><p>
-    <ul>
-    <li>Fix bug in parquet <code>boolean[]</code> array handling
-        related to null values.</li>
-    <li>Stop parquet output handler writing annoying .x.parquet.crc
-        files every time it writes x.parquet.</li>
-    <li>Partial support for 
-        <webref url="https://github.com/asgr/MAML-Format">MAML</webref> 
-        metadata in <ref id="inParquet">parquet input</ref> 
-        (not output).</li>
-    <li>Fix SVG <ref id="plot2-export">graphics output format</ref>
-        to work for Java versions &gt;=11, previously broken.
-        It is still broken for non-LTS Java versions 9 and 10;
-        you shouldn't be using those.</li>
-    <li>The ECSV 
-        <ref id="inEcsv">input</ref> and <ref id="outEcsv">output</ref> 
-        handlers now have an <code>encoding</code> configuration option 
-        so they can be configured to read/write Unicode (e.g. UTF-8). 
-        This is in violation of the ECSV 1.0 standard which mandates
-        ASCII (still default for these reader/writers),
-        but it works anyway.</li>
-    <li>Improve error messages in <ref id="vo-windows">VO windows</ref>
-        for the case when there is no network connectivity.</li>
-    <li>Update FITS <ref id="startable.unmap">buffer unmapping</ref> 
-        to use classes available from Java 22.
-        This avoids some nasty warning messages at Java 24 and later.</li>
-    <li>Add <label>Upload ID Join</label> option to TAP window
-        <ref id="TapTableLoadDialog_query_text"
-             >Examples-&gt;Upload menu</ref>.</li>
-    <li>The bundled parquet support libraries have been upgraded
-        in a way that should support Parquet I/O
-        for Java 25 and later;
-        attempting parquet I/O with previous versions of TOPCAT
-        running under Java 25+ failed.
-        This has been done by upgrading Hadoop support libraries
-        from 3.2.3 to 3.4.3; that library combination is not supported 
-        and tested by parquet-java, so problems are possible,
-        but it seems to work.  Please report any issues.</li>
-    <li>The parquet I/O handlers now support LZ4 compression.</li>
-    <li>The standard <code>topcat-full.jar</code> jar file now comes
-        with parquet I/O support bundled, there is no longer a
-        <code>topcat-extra.jar</code> file.</li>
-    </ul>
+    <dl>
+    <dt>Packaging, build, Java version support:</dt>
+    <dd><p>
+        <ul>
+        <li>The <code>topcat-all.dmg</code> file is now signed and
+            notarized so that Mac users can install it without
+            objections from the Gatekeeper,
+            with or without <code>homebrew</code>.</li>
+        <li>The standard <code>topcat-full.jar</code> jar file now comes with
+            <ref id="inParquet">Parquet I</ref>/<ref id="outParquet">O</ref>
+            support bundled, there is no longer a separate
+            <code>topcat-extra.jar</code> file.</li>
+        <li>Fix SVG <ref id="plot2-export">graphics output format</ref>
+            to work for Java versions &gt;=11, previously broken.
+            It is still broken for Java versions 9 and 10;
+            it's not recommended to use those non-LTS versions anyway.</li>
+        <li>Update FITS <ref id="startable.unmap">buffer unmapping</ref> 
+            to use classes available from Java 22.
+            This avoids some nasty warning messages at Java 24 and later.</li>
+        <li>The bundled parquet support libraries have been upgraded
+            in a way that should support Parquet I/O
+            for Java 25 and later;
+            attempting parquet I/O with previous versions of TOPCAT
+            running under Java 25+ failed.
+            This has been done by upgrading Hadoop support libraries
+            from 3.2.3 to 3.4.3; that library combination is not supported 
+            and tested by parquet-java, so problems are possible,
+            but it seems to work.  Please report any issues.</li>
+        <li>TOPCAT is now believed to run and build 
+            under all currently available Long Term Support versions of Java: 
+            8, 11, 17, 21 and 25.</li>
+        </ul>
+        </p></dd>
+    <dt>Enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>Add <label>Upload ID Join</label> option to TAP window
+            <ref id="TapTableLoadDialog_query_text"
+                 >Examples-&gt;Upload menu</ref>.</li>
+        <li>Improve error messages in <ref id="vo-windows">VO windows</ref>
+            for the case when there is no network connectivity.</li>
+        <li>Partial support for 
+            <webref url="https://github.com/asgr/MAML-Format">MAML</webref> 
+            metadata in <ref id="inParquet">parquet input</ref> 
+            (not output).</li>
+        <li>The ECSV 
+            <ref id="inEcsv">input</ref> and <ref id="outEcsv">output</ref> 
+            handlers now have an <code>encoding</code> configuration option 
+            so they can be configured to read/write Unicode (e.g. UTF-8). 
+            This is in violation of the ECSV 1.0 standard which mandates
+            ASCII (still default for these reader/writers),
+            but it works anyway.</li>
+        <li>The parquet I/O handlers now support LZ4 compression.</li>
+        <li>Stop parquet output handler from writing annoying
+            <code>.x.parquet.crc</code> files every time it writes
+            <code>x.parquet</code>.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix bug in parquet <code>boolean[]</code> array handling
+            related to null values.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>

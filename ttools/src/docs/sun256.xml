@@ -192,7 +192,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>14 May 2026</docdate>
+<docdate>21 August 2026</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -16165,56 +16165,80 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt id="v3.5-6">Version 3.5-6 (21 August 2026)</dt>
 <dd><p>
-    <ul>
-    <li><ref id="mocshape"><code>mocshape</code></ref> now runs
-        multithreaded by default.
-        It has a new parameter <code>runner</code> to control
-        parallelisation.</li>
-    <li>Fix bug in parquet <code>boolean[]</code> array handling
-        related to null values.</li>
-    <li>Stop parquet output handler writing annoying .x.parquet.crc
-        files every time it writes x.parquet.</li>
-    <li>Partial support for
-        <webref url="https://github.com/asgr/MAML-Format">MAML</webref>
-        metadata in <ref id="inParquet">parquet input</ref>
-        (not output).</li>
-    <li>Fix SVG <ref id="graphicExporter">graphics output format</ref>
-        to work for Java versions &gt;=11, previously broken.
-        It is still broken for non-LTS Java versions 9 and 10;
-        you shouldn't be using those.</li>
-    <li>The ECSV
-        <ref id="inEcsv">input</ref> and <ref id="outEcsv">output</ref>
-        handlers now have an <code>encoding</code> configuration option
-        so they can be configured to read/write Unicode (e.g. UTF-8).
-        This is in violation of the ECSV 1.0 standard which mandates
-        ASCII (still default for these reader/writers),
-        but it works anyway.</li>
-    <li>Add missing <code>ORDERING</code> and <code>DATE</code>
-        headers to the FITS output of 
-        <ref id="mocshape"><code>mocshape</code></ref>.</li>
-    <li>Update FITS <ref id="startable.unmap">buffer unmapping</ref>
-        to use classes available from Java 22.
-        This avoids some nasty warning messages at Java 24 and later.</li>
-    <li>The bundled parquet support libraries have been upgraded
-        in a way that should support Parquet I/O
-        for Java 25 and later;
-        attempting parquet I/O with previous versions of STILTS
-        running under Java 25+ failed.
-        This has been done by upgrading Hadoop support libraries
-        from 3.2.3 to 3.4.3; that library combination is not supported
-        and tested by parquet-java, so problems are possible,
-        but it seems to work.  Please report any issues.</li>
-    <li>The parquet I/O handlers now support LZ4 compression.</li>
-    <li>Fix bug in <ref id="mode-checksum"><code>checksum</code></ref>
-        mode that produced indeterminate values for
-        String-array-valued columns.</li>
-    <li>The <code>stilts.jar</code> file now comes with parquet
-        I/O support bundled, since parquet files are becoming
-        increasingly mainstream. This has more than doubled the size
-        of the jar file, which is annoying, sorry about that.</li>
-    </ul>
+    <dl>
+    <dt>Packaging, build, Java version support:</dt>
+    <dd><p>
+        <ul>
+        <li>The <code>stilts.jar</code> file now comes bundled
+            with Parquet support libraries by default.
+            This has more than doubled the size of the jar file
+            which is annoying, sorry about that, but it means that
+            <ref id="inParquet">parquet I</ref>/<ref id="outParquet">O</ref>
+            works without having to use a special jar file.</li>
+        <li>Mac users can now install <code>stilts</code>
+            without gatekeeper/quarantine trouble using the
+            <code>topcat-all.dmg</code> file,
+            with or without <code>homebrew</code>.</li>
+        <li>Fix SVG <ref id="graphicExporter">graphics output format</ref>
+            to work for Java versions &gt;=11, previously broken.
+            It is still broken for Java versions 9 and 10;
+            it's not recommended to use those non-LTS versions anyway.</li>
+        <li>Update FITS <ref id="startable.unmap">buffer unmapping</ref>
+            to use classes available from Java 22.
+            This avoids some nasty warning messages at Java 24 and later.</li>
+        <li>The bundled parquet support libraries have been upgraded
+            in a way that should support Parquet I/O
+            for Java 25 and later;
+            attempting parquet I/O with earlier versions of STILTS
+            running under Java 25+ failed.
+            This has been done by upgrading Hadoop support libraries
+            from 3.2.3 to 3.4.3; that library combination is not supported
+            and tested by parquet-java, so problems are possible,
+            but it seems to work.  Please report any issues.</li>
+        <li>STILTS is now believed to run and build
+            under all currently available Long Term Support versions of Java:
+            8, 11, 17, 21 and 25.</li>
+        </ul>
+        </p></dd>
+    <dt>Enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li><ref id="mocshape"><code>mocshape</code></ref> is now
+            multithreaded.  It has a new parameter <code>runner</code>
+            to control parallelisation.</li>
+        <li>Partial support for
+            <webref url="https://github.com/asgr/MAML-Format">MAML</webref>
+            metadata in <ref id="inParquet">parquet input</ref>
+            (not output).</li>
+        <li>The ECSV
+            <ref id="inEcsv">input</ref> and <ref id="outEcsv">output</ref>
+            handlers now have an <code>encoding</code> configuration option
+            so they can be configured to read/write Unicode (e.g. UTF-8).
+            This is in violation of the ECSV 1.0 standard which mandates
+            ASCII (still default for these reader/writers),
+            but it works anyway.</li>
+        <li>Add missing <code>ORDERING</code> and <code>DATE</code>
+            headers to the FITS output of 
+            <ref id="mocshape"><code>mocshape</code></ref>.</li>
+        <li>The parquet I/O handlers now support LZ4 compression.</li>
+        <li>Stop parquet output handler from writing annoying
+            <code>.x.parquet.crc</code> files every time it writes
+            <code>x.parquet</code>.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix bug in parquet <code>boolean[]</code> array handling
+            related to null values.</li>
+        <li>Fix bug in <ref id="mode-checksum"><code>checksum</code></ref>
+            mode that produced indeterminate values for
+            String-array-valued columns.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
