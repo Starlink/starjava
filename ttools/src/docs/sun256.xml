@@ -16220,6 +16220,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         and tested by parquet-java, so problems are possible,
         but it seems to work.  Please report any issues.</li>
     <li>The parquet I/O handlers now support LZ4 compression.</li>
+    <li>Fix bug in <ref id="mode-checksum"><code>checksum</code></ref>
+        mode that produced indeterminate values for
+        String-array-valued columns.</li>
     </ul>
     </p></dd>
 

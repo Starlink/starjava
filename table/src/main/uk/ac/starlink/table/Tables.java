@@ -474,6 +474,9 @@ public class Tables {
             else if ( clazz == double[].class ) {
                 hasher = a -> Arrays.hashCode( (double[]) a );
             }
+            else if ( clazz.getComponentType() != null ) {
+                hasher = a -> Arrays.deepHashCode( (Object[]) a );
+            }
             else {
                 hasher = a -> a.hashCode();
             }
