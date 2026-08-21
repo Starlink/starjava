@@ -158,17 +158,20 @@ public class FeatureTreeModel implements TreeModel {
                 label.setText( text );
                 int wrapWidth = viewport.getWidth()
                               - getIndentX( node ) - icon_.getIconWidth();
-                int labelWidth = viewport.getGraphics()
-                                .getFontMetrics( label.getFont() )
-                                .stringWidth( text );
-                if ( labelWidth > wrapWidth ) {
-                    Matcher matcher = FUNC_REGEX.matcher( node.text_ );
-                    if ( matcher.matches() ) {
-                        int narg = matcher.group( 2 ).replaceAll( "[^,]", "" )
-                                  .length() + 1;
-                        String abbrev = matcher.group( 1 )
-                                      + "(..." + narg + " args...)";
-                        label.setText( abbrev );
+                Graphics g = viewport.getGraphics();
+                if ( g != null ) {
+                    int labelWidth = g.getFontMetrics( label.getFont() )
+                                      .stringWidth( text );
+                    if ( labelWidth > wrapWidth ) {
+                        Matcher matcher = FUNC_REGEX.matcher( node.text_ );
+                        if ( matcher.matches() ) {
+                            int narg = matcher.group( 2 )
+                                      .replaceAll( "[^,]", "" )
+                                      .length() + 1;
+                            String abbrev = matcher.group( 1 )
+                                          + "(..." + narg + " args...)";
+                            label.setText( abbrev );
+                        }
                     }
                 }
                 return label;
