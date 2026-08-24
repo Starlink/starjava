@@ -19,11 +19,14 @@ public class Match1TypeParameter extends Parameter<Match1Type> {
     /** Parameter value for identify action. */
     public static final String IDENTIFY = "identify";
 
-    /** Parameter value for keep0 action. */
-    public static final String ELIMINATE_0 = "keep0";
+    /** Parameter value prefix for n-retain elimination action. */
+    public static final String ELIMINATE_PREFIX = "keep";
 
+    /** Parameter value for keep0 action. */
+    public static final String ELIMINATE_0 = ELIMINATE_PREFIX + "0";
+  
     /** Parameter value for keep1 action. */
-    public static final String ELIMINATE_1 = "keep1";
+    public static final String ELIMINATE_1 = ELIMINATE_PREFIX + "1";
 
     /** Parameter value prefix for n-fold table output. */
     public static final String WIDE_PREFIX = "wide";
@@ -44,6 +47,9 @@ public class Match1TypeParameter extends Parameter<Match1Type> {
             .append( ELIMINATE_0 )
             .append( '|' )
             .append( ELIMINATE_1 )
+            .append( '|' )
+            .append( ELIMINATE_PREFIX )
+            .append( 'N' )
             .append( '|' )
             .append( WIDE_PREFIX )
             .append( 2 )
@@ -76,6 +82,8 @@ public class Match1TypeParameter extends Parameter<Match1Type> {
             "The result is a new table containing only \"single\" rows,",
             "that is ones which don't match any other rows in the table.",
             "Any other rows are thrown out.",
+            "This is just a special case",
+            "of <code>" + ELIMINATE_PREFIX + "N</code>.",
             "</li>",
             "<li><code>" + ELIMINATE_1 + "</code>:",
             "The result is a new table in which only one row",
@@ -83,6 +91,13 @@ public class Match1TypeParameter extends Parameter<Match1Type> {
             "from each group of matching ones is retained.",
             "A subsequent intra-table match with the same criteria",
             "would therefore show no matches.",
+            "This is just a special case",
+            "of <code>" + ELIMINATE_PREFIX + "N</code>.",
+            "</li>",
+            "<li><code>" + ELIMINATE_PREFIX + "N</code>:",
+            "The result is a new table in which a maximum of N rows",
+            "(the first N in input table order)",
+            "from each group of matching rows is retained.",
             "</li>",
             "<li><code>" + WIDE_PREFIX + "N</code>:",
             "The result is a new \"wide\" table consisting of matched rows in",
@@ -116,11 +131,18 @@ public class Match1TypeParameter extends Parameter<Match1Type> {
         if ( sval.equalsIgnoreCase( IDENTIFY ) ) {
             return Match1Type.createIdentifyType();
         }
-        else if ( sval.equalsIgnoreCase( ELIMINATE_0 ) ) {
-            return Match1Type.createEliminateMatchesType( 0 );
-        }
-        else if ( sval.equalsIgnoreCase( ELIMINATE_1 ) ) {
-            return Match1Type.createEliminateMatchesType( 1 );
+        else if ( sval.toLowerCase().startsWith( ELIMINATE_PREFIX ) ) {
+            String postFix = sval.substring( ELIMINATE_PREFIX.length() );
+            int nkeep;
+            try {
+                nkeep = Integer.parseInt( postFix );
+            }
+            catch ( NumberFormatException e ) {
+                throw new ParameterValueException( this,
+                                                   postFix + " not a number",
+                                                   e );
+            }
+            return Match1Type.createEliminateMatchesType( nkeep );
         }
         else if ( sval.toLowerCase().startsWith( WIDE_PREFIX.toLowerCase() ) ) {
             String postFix = sval.substring( WIDE_PREFIX.length() );

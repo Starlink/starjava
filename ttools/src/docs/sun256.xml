@@ -16280,6 +16280,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         by 401 or 403 HTTP response codes.</li>
     <li><ref id="tmatch1"><code>tmatch1</code></ref> no longer
         fails with an error if the match count is zero.</li>
+    <li>Add new option <code>keepN</code> for <code>tmatch1</code>
+        <ref id="tmatch1-action"><code>action</code></ref>
+        parameter.</li>
     </ul>
     </p></dd>
 
