@@ -424,11 +424,14 @@ public class RowMatcher {
         }
         startMatch();
 
+        /* Bin rows. */
+        LinkSet binLinks = getInternalBinLinks( 0 );
+
         /* Locate all the pairs. */
-        LinkSet links = findPairs( getAllPossibleInternalLinks( 0 ) );
+        LinkSet pairLinks = findPairs( binLinks );
 
         /* Join up pairs into larger groupings. */
-        links = agglomerateLinks( links );
+        LinkSet links = agglomerateLinks( pairLinks );
 
         /* Add unmatched rows if required. */
         if ( includeSingles ) {
@@ -531,14 +534,17 @@ public class RowMatcher {
     }
 
     /**
-     * Goes through the rows of a single table and gets a set of all
-     * the groups of rows which are possibly linked by a chain of matches.
+     * Bins table rows according to this object's matching criteria
+     * and returns a LinkSet with one RowLink for each bin.
+     * Each of these links contains the RowRefs associated with that bin.
+     * Only RowLinks with more than one entry are included in the result,
+     * since single-entry links will not lead to any matches.
      *
      * @param   itable  index of table to examine
-     * @return  set of {@link RowLink} objects which constitute possible
-     *          matches
+     * @return  set of {@link RowLink} objects each corresponding to a
+     *          matchkit bin
      */
-    private LinkSet getAllPossibleInternalLinks( int itable )
+    private LinkSet getInternalBinLinks( int itable )
             throws IOException, InterruptedException {
         StarTable table = tables_[ itable ];
         MatchComputer.BinnedRows binned =
