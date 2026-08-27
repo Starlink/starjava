@@ -357,18 +357,14 @@ public class RowMatcher {
         }
         startMatch();
 
-        /* Get all the possible pairs. */
-        LinkSet pairs = findPairs( getAllPossibleLinks() );
-
-        /* Exclude any pairs which represent links between different rows
-         * of the same table. */
-        eliminateInternalLinks( pairs );
+        /* Get all the possible non-internal pairs. */
+        LinkSet pairs = findPairs( getAllPossibleLinks(), false );
 
         /* Join up pairs into larger groupings. */
         LinkSet links = agglomerateLinks( pairs );
         pairs = null;
 
-        /* This could introduce more internal links - get rid of them. */
+        /* This could introduce internal links - get rid of them. */
         eliminateInternalLinks( links );
 
         /* We now have a set of links corresponding to all the matches
@@ -442,7 +438,7 @@ public class RowMatcher {
         else {
 
             /* Locate all the pairs. */
-            LinkSet pairLinks = findPairs( binLinks );
+            LinkSet pairLinks = findPairs( binLinks, true );
 
             /* Join up pairs into larger groupings. */
             links = agglomerateLinks( pairLinks );
@@ -507,17 +503,20 @@ public class RowMatcher {
     /**
      * Identifies all the pairs of equivalent rows in a set of RowLinks.
      * Internal matches (ones corresponding to two rows of the same table)
-     * are included as well as external ones.
+     * may optionally be included as well as external ones.
      * The input set <code>possibleLinks</code> may be affected
      * by this routine.
      * 
      * @param  possibleLinks  a set of {@link RowLink} objects which 
      *         correspond to groups of possibly matched objects according
      *         to the match engine's criteria
+     * @param  allowInternal  if true, links between rows of the same table
+     *         are included in the result; if false all returned pairs
+     *         are between rows of different tables
      * @return  a set of RowLink objects which represent all the actual
      *          distinct row pairs from <code>possibleLinks</code>
      */
-    private LinkSet findPairs( LinkSet possibleLinks )
+    private LinkSet findPairs( LinkSet possibleLinks, boolean allowInternal )
             throws IOException, InterruptedException {
         LinkSet pairs = createLinkSet();
         MatchKit matchKit = engine_.createMatchKitFactory().get();
@@ -545,16 +544,20 @@ public class RowMatcher {
                 /* Do a pairwise comparison of all the rows in the same group.
                  * If they match, add the new pair to the set of pairs. */
                 for ( int i = 0; i < nref; i++ ) {
+                    RowRef ref1 = link.getRef( i );
                     for ( int j = 0; j < i; j++ ) {
-                        RowLink2 pair = new RowLink2( link.getRef( i ),
-                                                      link.getRef( j ) );
-                        if ( ! pairs.containsLink( pair ) ) {
-                            double score =
-                                matchKit.matchScore( binnedRows[ i ],
-                                                     binnedRows[ j ] );
-                            if ( score >= 0 ) {
-                                pair.setScore( score );
-                                pairs.addLink( pair );
+                        RowRef ref2 = link.getRef( j );
+                        if ( allowInternal ||
+                             ref1.getTableIndex() != ref2.getTableIndex() ) {
+                            RowLink2 pair = new RowLink2( ref1, ref2 );
+                            if ( ! pairs.containsLink( pair ) ) {
+                                double score =
+                                    matchKit.matchScore( binnedRows[ i ],
+                                                         binnedRows[ j ] );
+                                if ( score >= 0 ) {
+                                    pair.setScore( score );
+                                    pairs.addLink( pair );
+                                }
                             }
                         }
                     }

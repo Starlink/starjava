@@ -35324,7 +35324,8 @@ introduced since the last version:
         that overwrote prefix field on Classify.</li>
     <li>Substantial matching improvements in some special cases:
         Exact <ref id="MatchWindow1">Internal matching</ref>
-        with many identical values.</li>
+        with many identical values,
+        <ref id="MatchWindowN">Multi-table matching</ref>.</li>
     </ul>
     </p></dd>
 

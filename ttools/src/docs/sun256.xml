@@ -16285,7 +16285,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         parameter.</li>
     <li>Substantial matching improvements in some special cases:
         <ref id="tmatch1"><code>tmatch1</code></ref> with
-        <code>matcher=exact</code> and many identical values.</li>
+        <code>matcher=exact</code> and many identical values,
+        <ref id="tmatchn"><code>tmatchn</code></ref> with
+        <code>multimode=group</code>.</li>
     </ul>
     </p></dd>
 
