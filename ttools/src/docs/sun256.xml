@@ -16283,6 +16283,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add new option <code>keepN</code> for <code>tmatch1</code>
         <ref id="tmatch1-action"><code>action</code></ref>
         parameter.</li>
+    <li>Substantial matching improvements in some special cases:
+        <ref id="tmatch1"><code>tmatch1</code></ref> with
+        <code>matcher=exact</code> and many identical values.</li>
     </ul>
     </p></dd>
 

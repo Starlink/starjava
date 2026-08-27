@@ -73,6 +73,25 @@ public class TableMatch1Test extends TableTestCase {
         assertEquals( 0L, match1( 600, "wide2" ).getRowCount() );
     }
 
+    public void testExactMatcher() throws Exception {
+        MapEnvironment env = new MapEnvironment()
+           .setValue( "progress", "none" )
+           .setValue( "in", ":loop:30000" )
+           .setValue( "icmd", "shuffle" )
+           .setValue( "matcher", "exact" )
+           .setValue( "values", "i/10000" )
+           .setValue( "action", "identify" )
+           .setValue( "ocmd", "sort groupid; uniq groupid" );
+        new TableMatch1().createExecutable( env ).execute();
+        StarTable result = Tables.randomTable( env.getOutputTable( "omode" ) );
+        assertEquals( 3, result.getRowCount() );
+        for ( int irow = 0; irow < 3; irow++ ) {
+            Object[] row = result.getRow( irow );
+            assertEquals( irow + 1, ((Integer) row[ 1 ]).intValue() );
+            assertEquals( 10000, ((Integer) row[ 2 ]).intValue() );
+        }
+    }
+
     private void checkMessierPairs( double err ) throws Exception {
         StarTable pairSep =
             match1( err, "wide2",

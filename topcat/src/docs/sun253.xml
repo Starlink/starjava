@@ -35322,6 +35322,9 @@ introduced since the last version:
     <li>Fix bug in
         <ref id="ClassifyWindow">Column Classification Window</ref>
         that overwrote prefix field on Classify.</li>
+    <li>Substantial matching improvements in some special cases:
+        Exact <ref id="MatchWindow1">Internal matching</ref>
+        with many identical values.</li>
     </ul>
     </p></dd>
 

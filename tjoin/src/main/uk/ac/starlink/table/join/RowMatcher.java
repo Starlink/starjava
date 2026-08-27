@@ -427,11 +427,26 @@ public class RowMatcher {
         /* Bin rows. */
         LinkSet binLinks = getInternalBinLinks( 0 );
 
-        /* Locate all the pairs. */
-        LinkSet pairLinks = findPairs( binLinks );
+        /* In the special case that we have an equality-like matcher
+         * (all pairs either equal or unequal) we can go quite directly
+         * to the result.  This could actually be done in one step,
+         * without calling getInternalBinLinks first, but it's
+         * convenient and not very expensive to do it this way. */
+        final LinkSet links;
+        if ( engine_.isEquality() ) {
+            links = findEqualityLinks( binLinks );
+        }
 
-        /* Join up pairs into larger groupings. */
-        LinkSet links = agglomerateLinks( pairLinks );
+        /* Otherwise we have to look for pairwise matches and walk links
+         * to identify the connected groups. */
+        else {
+
+            /* Locate all the pairs. */
+            LinkSet pairLinks = findPairs( binLinks );
+
+            /* Join up pairs into larger groupings. */
+            links = agglomerateLinks( pairLinks );
+        }
 
         /* Add unmatched rows if required. */
         if ( includeSingles ) {
@@ -444,6 +459,48 @@ public class RowMatcher {
 
         /* Return the list. */
         endMatch();
+        return links;
+    }
+
+    /**
+     * Takes a LinkSet with RowLinks grouped by matcher bin
+     * and returns a LinkSet with RowLinks grouped tuples that are
+     * considered equal.
+     * This only works for an equality-like matcher, that is one where
+     * tuple comparison has a binary yes/no result.
+     *
+     * @param  binLinks  link set grouped by matcher bin
+     * @return   link set grouped by equality of tuples
+     */
+    private LinkSet findEqualityLinks( LinkSet binLinks )
+            throws IOException, InterruptedException {
+        assert engine_.isEquality();
+        MatchKit matchKit = engine_.createMatchKitFactory().get();
+        Map<EqualityTuple,Set<RowRef>> refsMap = new HashMap<>();
+        try ( ProgressTracker tracker =
+                  new ProgressTracker( indicator_, binLinks.size(),
+                                       "Identifying exact internal links" ) ) {
+            for ( Iterator<RowLink> it = binLinks.iterator(); it.hasNext(); ) {
+                RowLink link = it.next();
+                it.remove();
+                int nref = link.size();
+                assert nref > 1;
+                for ( int ir = 0; ir < nref; ir++ ) {
+                   RowRef ref = link.getRef( ir );
+                   EqualityTuple et =
+                       EqualityTuple.create( matchKit, readTuple( ref ) );
+                   if ( et != null ) {
+                       refsMap.computeIfAbsent( et, k -> new HashSet<RowRef>() )
+                              .add( ref );
+                   }
+                }
+                tracker.nextProgress();
+            }
+        }
+        LinkSet links = createLinkSet();
+        for ( Set<RowRef> refSet : refsMap.values() ) {
+            links.addLink( RowLink.createLink( refSet ) );
+        }
         return links;
     }
 
@@ -1500,6 +1557,70 @@ public class RowMatcher {
         public Intersection( Coverage coverage, long[] inRangeCounts ) {
             coverage_ = coverage;
             inRangeCounts_ = inRangeCounts;
+        }
+    }
+
+    /**
+     * Implements an object with equality semantics based on a tuple
+     * match along with the matching relation of a corresponding MatchKit.
+     * This is only a good idea if the MatchKit is equality-like.
+     * Such objects are suitable for use as {@link java.util.Map} keys.
+     * Although the MatchKit is a member of this tuple, it is really
+     * associated with the equality context, that is the Map rather
+     * than individual entries of that Map.
+     */
+    private static class EqualityTuple {
+
+        private final MatchKit matchKit_;
+        private final Object[] tuple_;
+        private final int hashCode_;
+
+        /**
+         * Constructor.
+         *
+         * @param  matchKit  equality-like match kit
+         * @param  tuple   array representing the data
+         * @param  hashCode   hash code
+         */
+        private EqualityTuple( MatchKit matchKit, Object[] tuple,
+                               int hashCode ) {
+            matchKit_ = matchKit;
+            tuple_ = tuple;
+            hashCode_ = hashCode;
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode_;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof EqualityTuple ) {
+                EqualityTuple other = (EqualityTuple) o;
+                assert this.matchKit_.equals( other.matchKit_ );
+                return this.matchKit_.equals( other.matchKit_ )
+                    && matchKit_.matchScore( this.tuple_, other.tuple_ ) == 0;
+            }
+            else {
+                return false;
+            }
+        }
+
+        /**
+         * Creates an instance of this class, or null if the data is blank.
+         *
+         * @param  matchKit  match kit
+         * @param  tuple   array representing the data
+         * @return   tuple instance, or null if data is blank
+         */
+        public static EqualityTuple create( MatchKit matchKit,
+                                            Object[] tuple ) {
+            Object[] bins = matchKit.getBins( tuple );
+            return bins.length == 1
+                 ? new EqualityTuple( matchKit, tuple.clone(),
+                                      bins[ 0 ].hashCode() )
+                 : null;
         }
     }
 }
