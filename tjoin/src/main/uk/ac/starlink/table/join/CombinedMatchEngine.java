@@ -176,6 +176,15 @@ public class CombinedMatchEngine implements MatchEngine {
         return params.toArray( new DescribedValue[ 0 ] );
     }
 
+    public boolean isEquality() {
+        for ( MatchEngine engine : engines_ ) {
+            if ( ! engine.isEquality() ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public void setName( String name ) {
         name_ = name;
     }

@@ -56,6 +56,10 @@ public abstract class AbstractSkyMatchEngine implements MatchEngine {
         return new DescribedValue[] { pixellator_.getTuningParameter() };
     }
 
+    public boolean isEquality() {
+        return false;
+    }
+
     /**
      * Returns this object's pixellator.
      *

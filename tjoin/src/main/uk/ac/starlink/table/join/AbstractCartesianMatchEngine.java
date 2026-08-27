@@ -145,6 +145,10 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         return new DescribedValue[] { binFactorParam_ };
     }
 
+    public boolean isEquality() {
+        return false;
+    }
+
     /**
      * Returns an immutable factory for CartesianBinner objects
      * associated with the current state of this object.

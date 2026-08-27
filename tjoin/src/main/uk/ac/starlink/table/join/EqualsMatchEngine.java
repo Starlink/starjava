@@ -41,6 +41,10 @@ public class EqualsMatchEngine implements MatchEngine {
         }
     };
 
+    public boolean isEquality() {
+        return true;
+    }
+
     public Supplier<MatchKit> createMatchKitFactory() {
         return () -> KIT;
     };

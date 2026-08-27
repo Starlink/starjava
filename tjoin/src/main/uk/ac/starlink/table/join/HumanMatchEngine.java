@@ -175,6 +175,10 @@ public class HumanMatchEngine implements MatchEngine {
         return scoreInfo_;
     }
 
+    public boolean isEquality() {
+        return baseEngine_.isEquality();
+    }
+
     /**
      * Unwraps a tuple of objects from a client of this engine, providing
      * one suitable for the base engine.

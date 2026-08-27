@@ -126,4 +126,23 @@ public interface MatchEngine {
      * @return  array of described values which may influence match performance
      */
     DescribedValue[] getTuningParameters();
+
+    /**
+     * Indicates whether the current settings of this factory correspond to
+     * equality-like matching.  This should return true only if for the
+     * generated MatchKits:
+     * <ul>
+     * <li>{@link MatchKit#matchScore matchScore} always returns only 0 or a
+     *     negative value (either the match is perfect or there is no match)
+     * <li>{@link MatchKit#getBins getBins} always returns one or zero values
+     *     (only blank tuples are allowed to return zero values)
+     * <li>the matching relation match(a,b)==0 is transitive
+     *     and symmetric; it should generally be reflexive as well,
+     *     except that blank tuples are allowed not to match themselves
+     * </ul>
+     *
+     * @return   true iff MatchKits returned by this engine have
+     *           equality-like matching
+     */
+    boolean isEquality();
 }
