@@ -479,9 +479,7 @@ public class RowMatcher {
                  * to get them multiple times. */
                 Object[][] binnedRows = new Object[ nref ][];
                 for ( int i = 0; i < nref; i++ ) {
-                    RowRef ref = link.getRef( i );
-                    StarTable table = tables_[ ref.getTableIndex() ];
-                    binnedRows[ i ] = table.getRow( ref.getRowIndex() );
+                    binnedRows[ i ] = readTuple( link.getRef( i ) );
                 }
 
                 /* Do a pairwise comparison of all the rows in the same group.
@@ -858,9 +856,7 @@ public class RowMatcher {
                  * to get them multiple times. */
                 Object[][] binnedRows = new Object[ nref ][];
                 for ( int iref = 0; iref < nref; iref++ ) {
-                    RowRef ref = link.getRef( iref );
-                    StarTable table = tables_[ ref.getTableIndex() ];
-                    binnedRows[ iref ] = table.getRow( ref.getRowIndex() );
+                    binnedRows[ iref ] = readTuple( link.getRef( iref ) );
                 }
 
                 /* Iterate over each of the reference table rows. */
@@ -1152,6 +1148,17 @@ public class RowMatcher {
 
         /* Replace the contents of the used list with the new contents. */
         return agglomeratedLinks;
+    }
+
+    /**
+     * Reads the tuple values corresponding to a RowRef for this matcher.
+     *
+     * @param  rowRef  row reference
+     * @return   array of tuple values
+     */
+    private Object[] readTuple( RowRef rowRef ) throws IOException {
+        return tables_[ rowRef.getTableIndex() ]
+              .getRow( rowRef.getRowIndex() );
     }
 
     /**
