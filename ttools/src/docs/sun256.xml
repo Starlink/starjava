@@ -5877,6 +5877,9 @@ Detailed descriptions and examples for each command can be found in
              plaintextref="yes"><code>coneskymatch</code></ref>:
         &coneskymatch-purpose;
         </li>
+    <li><ref id="tapskymatch" plaintextref="yes"><code>tapskymatch</code></ref>:
+        &tapskymatch-purpose;
+        </li>
     <li><ref id="sqlskymatch" plaintextref="yes"><code>sqlskymatch</code></ref>:
         &sqlskymatch-purpose;
         </li>
