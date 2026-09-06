@@ -49,13 +49,11 @@ public class ArrayShapePlotter extends ShapePlotter {
      * @param   form  multiple shape determiner
      * @param   mode  colour determiner
      */
-    @SuppressWarnings("this-escape")
     public ArrayShapePlotter( String name, ShapeForm form, ShapeMode mode ) {
         super( name, form, mode, createArrayCoordGroup( form, mode ) );
         form_ = form;
         xsCoord_ = FloatingArrayCoord.X;
         ysCoord_ = FloatingArrayCoord.Y;
-        CoordGroup cgrp = getCoordGroup();
         icXs_ = 0;
         icYs_ = 1;
     }
