@@ -35318,6 +35318,9 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix bug in
+        <ref id="ClassifyWindow">Column Classification Window</ref>
+        that overwrote prefix field on Classify.</li>
     </ul>
     </p></dd>
 

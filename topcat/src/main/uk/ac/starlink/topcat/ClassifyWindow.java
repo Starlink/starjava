@@ -70,6 +70,11 @@ public class ClassifyWindow extends AuxWindow {
                                                             true ) );
         colSelector_.addItemListener( new ItemListener() {
             public void itemStateChanged( ItemEvent evt ) {
+                ColumnData cdata = getClassifyData();
+                String prefix = cdata == null
+                              ? null
+                              : sanitiseText( cdata.toString(), true, 6 ) + "_";
+                prefixField_.setText( prefix );
                 updateState();
                 if ( startAct_.isEnabled() ) {
                     startAct_.actionPerformed( null );
@@ -234,8 +239,6 @@ public class ClassifyWindow extends AuxWindow {
     private void startClassification() {
         ColumnData cdata = getClassifyData();
         if ( cdata != null ) {
-            prefixField_.setText( sanitiseText( cdata.toString(), true, 6 )
-                                + "_" );
             ClassifyWorker worker = new ClassifyWorker( cdata );
             setActiveWorker( worker );
             new Thread( worker, "Classifier" ).start();
