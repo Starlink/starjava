@@ -4659,8 +4659,8 @@ for each row:
 <dd><p>Evaluates to a double-precision random number <code>0&lt;=x&lt;1</code>.
     <strong>NOTE:</strong> this token is deprecated since it can behave
     unpredictably (the same cell does not always yield the same result).
-    Use instead the <code>random()</code> function in class
-    <ref id="Maths" plaintextref="yes">Maths</ref>.
+    Use instead the functions in class
+    <ref id="Randoms" plaintextref="yes">Randoms</ref>.
     </p></dd>
 </dl>
 </p>
