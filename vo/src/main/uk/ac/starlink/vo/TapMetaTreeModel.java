@@ -89,13 +89,11 @@ public class TapMetaTreeModel implements TreeModel {
      */
     public TreePath getPathForTableName( String tname ) {
         if ( schemas_ != null && tname != null ) {
+            tname = tableNameNormalise( tname );
             for ( SchemaMeta schema : schemas_ ) {
                 for ( TableMeta table : schema.getTables() ) {
-                    String cmpName = table.getName();
-                    if ( cmpName != null && cmpName.startsWith( "\"" ) ) {
-                        cmpName = cmpName.replace( "\"", "" );
-                    }
-                    if ( tname.equalsIgnoreCase( cmpName ) ) {
+                    String cmpName = tableNameNormalise( table.getName() );
+                    if ( tname.equals( cmpName ) ) {
                         return new TreePath( new Object[] {
                             getRoot(), schema, table,
                         } );
@@ -214,6 +212,20 @@ public class TapMetaTreeModel implements TreeModel {
             assert node instanceof TableMeta;
             return new TapNode( null );
         }
+    }
+
+    /**
+     * Performs some normalisation of the table name that may assist in
+     * matching table names from different places where exact identity
+     * is not critical.
+     *
+     * @param  tname  table name
+     * @return  normalised table name
+     */
+    private String tableNameNormalise( String tname ) {
+        return tname == null
+             ? null
+             : tname.toLowerCase().replaceAll( "\"", "" );
     }
 
     /**
