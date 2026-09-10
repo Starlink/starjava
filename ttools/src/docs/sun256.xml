@@ -7427,10 +7427,12 @@ stilts plot2plane yflip=true layer_1=mark in_1=cat.fits x_1=BMAG-RMAG y_1=BMAG
 <dt><verbatim>
 stilts plot2plane layer=histogram in=hip_main.fits x=plx xlog=true
                   xlabel=Parallax ylabel=
+                  out=histo.png
 </verbatim></dt>
 <dd><p>Plots a histogram of parallaxes for Hipparcos data,
     with a logarithmic X axis.  The axes are labelled explicitly,
     with an empty string in the case of the Y axis.
+    Output is to a PNG file.
     </p></dd>
 
 <dt><verbatim>
@@ -7558,9 +7560,11 @@ stilts plot2sky projection=aitoff
                 gridcolour=green labelcolour=black
                 fontsize=10 gridaa=true texttype=antialias
                 sex=true crowd=4
+                out=skygrid.svg
 </verbatim></dt>
 <dd><p>This just plots a celestial coordinate grid with no data.
     Various options are tweaked to adjust the appearance of the grid.
+    Output is to an SVG file.
     </p></dd>
 
 <dt><verbatim>
@@ -7661,6 +7665,8 @@ stilts plot2cube in=gavo_g2.fits
                  shading=aux aux=HALOID opaque=2.5 auxmap=red-blue
                  layer_m=mark shape_m=open_circle size_m=2
                  layer_v=xyzvector xdelta_v=velX ydelta_v=velY zdelta_v=velZ
+                                   autoscale_v=true 
+                 xpix=900 ypix=800 out=viz.pdf
 </verbatim></dt>
 <dd><p>Plots points in three dimensions with little arrows representing
     velocity as well as position markers; layer <code>_m</code> draws the
@@ -7668,6 +7674,7 @@ stilts plot2cube in=gavo_g2.fits
     Points and vectors are coloured according to the HALOID data value.
     The positional coordinates (x, y, z) and the shading options are
     common to both layers, so they can be specified without a prefix.
+    Output is to a PDF file.
     </p></dd>
 
 </dl>
@@ -7812,6 +7819,7 @@ stilts plot2corner in=:attractor:100000,rampe
 <dd><p>Plots a grid of scatter plots for a 3-d dataset.
     This presents three plots: X vs. Y, X vs. Z, and Y vs. Z
     in the lower triangle of the grid.
+    Display is to an interactive plot on the screen.
     </p></dd>
 
 <dt><verbatim>
@@ -7837,6 +7845,7 @@ stilts plot2corner in=rrlyrae.fits
                    layer_A_k=kde layer_C_k=kde smooth_A_k=-50 smooth_C_k=-50
                    layer_f=contour color_f=light_grey smooth_f=10 nlevel_f=6
                    leglabel_A=RRAB leglabel_C=RRC legseq=_A_m,_C_m legpos=1,1
+                   out=corner.png
 </verbatim></dt>
 <dd><p>In this example there are two separate input datasets
     (different selections from the same input table)
@@ -7846,6 +7855,7 @@ stilts plot2corner in=rrlyrae.fits
     As well as the <code>mark</code> and <code>kde</code> layers,
     an additional <code>contour</code> layer (of the whole input table)
     is overplotted on the scatter plot grid elements.
+    Output is to a PNG file.
     </p></dd>
 
 </dl>
@@ -7943,6 +7953,7 @@ stilts plot2time xpix=1000 ypix=300
 <dd><p>Three time series are plotted on the same axes as lines in different
     colours.  In this case we trust the markup in the VOTable input
     to describe the format of the <code>epoch</code> column.
+    Output is to an interactive plot in a window.
     </p></dd>
 
 <dt><verbatim>
@@ -7952,6 +7963,7 @@ stilts plot2time xpix=1000 ypix=1000
                  layer.t=line y.t=Bt zone.t=ZT
                  layer.n=line y.n=Bn zone.n=ZN
                  titleZR="Br" titleZT="Bt" titleZN="Bn"
+                 out=time-plot.pdf
 </verbatim></dt>
 <dd><p>The same data is plotted as in the previous example, but in this
     case each line is drawn in a different panel (zone), stacked vertically.
@@ -7961,6 +7973,7 @@ stilts plot2time xpix=1000 ypix=1000
     The time coordinate in this case is supplied as a decimal year column
     which does not have sufficient metadata to identify it as such,
     so we specify the time format explicitly as <code>decyear</code>.
+    Output is to a PDF file.
     </p></dd>
 
 <dt><verbatim>
