@@ -32,6 +32,8 @@ public class TableMatch1Test extends TableTestCase {
                 .setLevel( Level.WARNING );
         LogUtils.getLogger( "uk.ac.starlink.table.storage" )
                 .setLevel( Level.WARNING );
+        LogUtils.getLogger( "uk.ac.starlink.ttools.join" )
+                .setLevel( Level.SEVERE );
     }
 
     public void testMessier1Degree() throws Exception {
@@ -67,13 +69,8 @@ public class TableMatch1Test extends TableTestCase {
 
         checkMessierPairs( 700 );
         assertEquals( 1L, match1( 700, "wide2" ).getRowCount() );
-        try {
-            checkMessierPairs( 600 );
-            fail();
-        }
-        catch ( TaskException e ) {
-            assertTrue( e.getMessage().indexOf( "No matches" ) >= 0 );
-        }
+        checkMessierPairs( 600 );
+        assertEquals( 0L, match1( 600, "wide2" ).getRowCount() );
     }
 
     private void checkMessierPairs( double err ) throws Exception {

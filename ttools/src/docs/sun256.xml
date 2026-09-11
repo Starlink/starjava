@@ -9747,7 +9747,7 @@ It can match rows on the basis of their relative position in the sky,
 or alternatively using many other criteria such as separation in 
 in some isotropic or anisotropic Cartesian space,
 identity of a key value, or some combination of these;
-the full range of match criteria is dicussed in <ref id="MatchEngine"/>.
+the full range of match criteria is discussed in <ref id="MatchEngine"/>.
 </p>
 
 <p>The basic task performed by the intra-table matcher is to identify
@@ -9965,7 +9965,7 @@ It can match rows on the basis of their relative position in the sky,
 or alternatively using many other criteria such as separation in
 in some isotropic or anisotropic Cartesian space,
 identity of a key value, or some combination of these;
-the full range of match criteria is dicussed in <ref id="MatchEngine"/>.
+the full range of match criteria is discussed in <ref id="MatchEngine"/>.
 </p>
 
 <p>Since the match criteria define what counts as a match between two
@@ -16278,6 +16278,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="taplint"><code>taplint</code></ref> tests
         that are blocked from accessing protected tables
         by 401 or 403 HTTP response codes.</li>
+    <li><ref id="tmatch1"><code>tmatch1</code></ref> no longer
+        fails with an error if the match count is zero.</li>
     </ul>
     </p></dd>
 

@@ -94,12 +94,13 @@ public class Match1Mapping implements SingleTableMapping {
             throw new ExecutionException( "Match was interrupted", e );
         }
 
-        /* Check the result is not empty - it's not really worth returning
-         * table if it is, since it's probably equivalent to the input. */
+        /* Report on the number of matches. */
         int matchCount = matches.size();
-        logger.info( matchCount + " matches found" );
-        if ( matchCount == 0 ) {
-            throw new ExecutionException( "No matches were found" );
+        if ( matchCount > 0 ) {
+            logger.info( matchCount + " matches found" );
+        }
+        else {
+            logger.warning( "No matches found" );
         }
 
         /* Return a table representing the results. */
