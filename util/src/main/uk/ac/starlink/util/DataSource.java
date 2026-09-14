@@ -664,6 +664,13 @@ public abstract class DataSource {
         catch ( MalformedURLException e ) {
         }
 
+        /* Try trimming unintended whitespace. */
+        String tloc = loc.trim();
+        if ( ! tloc.equals( loc ) ) {
+            assert tloc.equals( tloc.trim() );
+            return makeDataSource( tloc, allowSystem );
+        }
+
         /* No luck. */
         String msg = new StringBuffer()
             .append( "No file" )

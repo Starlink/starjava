@@ -16288,6 +16288,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>matcher=exact</code> and many identical values,
         <ref id="tmatchn"><code>tmatchn</code></ref> with
         <code>multimode=group</code>.</li>
+    <li>Leading/trailing spaces in filenames will be trimmed where
+        appropriate for table input specifications.</li>
     </ul>
     </p></dd>
 

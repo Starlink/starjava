@@ -35326,6 +35326,8 @@ introduced since the last version:
         Exact <ref id="MatchWindow1">Internal matching</ref>
         with many identical values,
         <ref id="MatchWindowN">Multi-table matching</ref>.</li>
+    <li>Leading/trailing spaces in filenames will be trimmed where
+        appropriate when loading tables.</li>
     </ul>
     </p></dd>
 
