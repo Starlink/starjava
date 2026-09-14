@@ -8739,6 +8739,32 @@ stilts tapquery tapurl=https://gea.esac.esa.int/tap-server/tap
     (prompting you for username and password) if it offers authentication.
     </p></dd>
 
+<dt><verbatim>
+stilts tapquery sync=true
+                tapurl=http://simbad.cds.unistra.fr/simbad/sim-tap
+                nupload=1 upload1=identifiers.txt ufmt1=ascii upname1=t1
+                adql="SELECT up.*, sb.oid, sb.ra, sb.dec, sb.otype
+                      FROM tap_upload.t1 AS up
+                      LEFT OUTER JOIN ident AS si ON up.ID = si.id
+                      LEFT OUTER JOIN basic AS sb ON si.oidref = sb.oid"
+                out=with-simbad.fits
+</verbatim></dt>
+<dd><p>Performs an upload query on a local table <code>identifiers.txt</code>,
+    which contains a column <code>ID</code> containing source IDs that
+    may be known to SIMBAD.
+    The table is uploaded to the SIMBAD TAP service,
+    and a join via SIMBAD's <code>basic</code> and <code>ident</code> tables
+    is performed that adds information from the <code>basic</code> table
+    (SIMBAD internal identifier, sky position and object type)
+    to the uploaded table.
+    The output is a new table like the uploaded one but with SIMBAD
+    information added to the rows for identifiers that SIMBAD knows about.
+    The <code>LEFT OUTER JOIN</code>s here ensure that all the rows from
+    the uploaded table are preserved in the output;
+    if you just want those IDs that are actually present in SIMBAD
+    you can replace them with default (<code>INNER</code>) <code>JOIN</code>s.
+    </p></dd>
+
 <dt><verbatim><![CDATA[
 stilts tapquery
        tapurl=http://dc.g-vo.org/tap
