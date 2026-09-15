@@ -1039,7 +1039,7 @@ public class ControlWindow extends AuxWindow
      *
      * @return  list model of {@link TopcatModel} objects
      */
-    public ListModel<TopcatModel> getTablesListModel() {
+    public DefaultListModel<TopcatModel> getTablesListModel() {
         return tablesModel_;
     }
 

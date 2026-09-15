@@ -35328,6 +35328,8 @@ introduced since the last version:
         <ref id="MatchWindowN">Multi-table matching</ref>.</li>
     <li>Leading/trailing spaces in filenames will be trimmed where
         appropriate when loading tables.</li>
+    <li>If a table received by SAMP has been deleted from the table list,
+        it is now possible to re-send the same table again.</li>
     </ul>
     </p></dd>
 
