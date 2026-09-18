@@ -28,8 +28,8 @@ import uk.ac.starlink.ttools.plot.Matrices;
  * <p>There are currently three main sets of functions here:
  * <ul>
  * <li>position and velocity vector calculation and manipulation</li>
- * <li>distance estimation from parallaxes</li>
  * <li>astrometry propagation to different epochs</li>
+ * <li>distance estimation from parallaxes</li>
  * </ul>
  *
  * <p><strong>Position and velocity vectors</strong></p>
@@ -64,6 +64,35 @@ import uk.ac.starlink.ttools.plot.Matrices;
  * based on the error and correlation quantities from the Gaia catalogue
  * are not currently provided.  They would require fairly complicated
  * invocations.  If there is demand they may be implemented in the future.
+ *
+ * <p><strong>Epoch Propagation</strong></p>
+ *
+ * <p>The Gaia source catalogue provides, for at least some sources,
+ * the six-parameter astrometric solution
+ * (Right Ascension, Declination, Parallax,
+ * Proper motion in RA and Dec, and Radial Velocity),
+ * along with errors on these values and correlations between these errors.
+ * While a crude estimate of the position at an earlier or later epoch
+ * than that of the measurement can be made by multiplying
+ * the proper motion components by epoch difference and adding to the
+ * measured position, a more careful treatment is required for
+ * accurate propagation between epochs of the astrometric parameters,
+ * and if required their errors and correlations.
+ * The expressions for this are set out in section 1.5.5 (Volume 1) of
+ * <em>The Hipparcos and Tycho Catalogues</em>,
+ * <a href="https://www.cosmos.esa.int/web/hipparcos/catalogues"
+ *    >ESA SP-1200</a> (1997)
+ * (but see below), and the code is based on an implementation by
+ * Alexey Butkevich and Daniel Michalik (DPAC).
+ * A correction is applied to the SP-1200 treatment of
+ * radial velocity uncertainty following <em>Michalik et al. 2014</em>
+ * <a href="http://ukads.nottingham.ac.uk/abs/2014A%26A...571A..85M"
+ *                                           >2014A&amp;A...571A..85M</a>
+ * because of their better handling of small radial velocities or parallaxes.
+ *
+ * <p>The calculations give the same results, though not exactly in
+ * the same form, as the epoch propagation functions available
+ * in the Gaia archive service.
  *
  * <p><strong>Distance estimation</strong></p>
  *
@@ -127,35 +156,6 @@ import uk.ac.starlink.ttools.plot.Matrices;
  * it pre-applies a parallax correction of -0.029mas, and
  * it uses different uncertainty measures and in some cases (bimodal PDF)
  * a different best distance estimator.
- *
- * <p><strong>Epoch Propagation</strong></p>
- *
- * <p>The Gaia source catalogue provides, for at least some sources,
- * the six-parameter astrometric solution
- * (Right Ascension, Declination, Parallax,
- * Proper motion in RA and Dec, and Radial Velocity),
- * along with errors on these values and correlations between these errors.
- * While a crude estimate of the position at an earlier or later epoch
- * than that of the measurement can be made by multiplying
- * the proper motion components by epoch difference and adding to the
- * measured position, a more careful treatment is required for
- * accurate propagation between epochs of the astrometric parameters,
- * and if required their errors and correlations.
- * The expressions for this are set out in section 1.5.5 (Volume 1) of
- * <em>The Hipparcos and Tycho Catalogues</em>,
- * <a href="https://www.cosmos.esa.int/web/hipparcos/catalogues"
- *    >ESA SP-1200</a> (1997)
- * (but see below), and the code is based on an implementation by
- * Alexey Butkevich and Daniel Michalik (DPAC).
- * A correction is applied to the SP-1200 treatment of
- * radial velocity uncertainty following <em>Michalik et al. 2014</em>
- * <a href="http://ukads.nottingham.ac.uk/abs/2014A%26A...571A..85M"
- *                                           >2014A&amp;A...571A..85M</a>
- * because of their better handling of small radial velocities or parallaxes.
- *
- * <p>The calculations give the same results, though not exactly in
- * the same form, as the epoch propagation functions available
- * in the Gaia archive service.
  *
  * @author   Mark Taylor
  * @since    2 Mar 2018
