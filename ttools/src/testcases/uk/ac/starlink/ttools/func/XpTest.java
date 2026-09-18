@@ -1,11 +1,11 @@
 package uk.ac.starlink.ttools.func;
 
 import java.io.IOException;
-import junit.framework.TestCase;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.URLDataSource;
 
 public class XpTest extends TestCase {
@@ -44,6 +44,12 @@ public class XpTest extends TestCase {
         float[] xpErrCalc =
             sampler.xpSampleFluxErrors( bpCoeffErrs, bpCoeffCorrs,
                                         rpCoeffErrs, rpCoeffCorrs );
+        assertArrayEquals( wavelengths, Gaia.XP_SAMPLED_WAVELENGTHS_DR3 );
+        assertArrayEquals( xpCalc,
+                           Gaia.xpSampledFluxesDr3( bpCoeffs, rpCoeffs ) );
+        assertArrayEquals( xpErrCalc,
+                           Gaia.xpSampledErrorsDr3(bpCoeffErrs, bpCoeffCorrs,
+                                                   rpCoeffErrs, rpCoeffCorrs ));
         int irow = 0;
         try ( RowSequence csseq = sampled.getRowSequence() ) {
             while ( csseq.next() ) {

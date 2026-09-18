@@ -94,6 +94,34 @@ import uk.ac.starlink.ttools.plot.Matrices;
  * the same form, as the epoch propagation functions available
  * in the Gaia archive service.
  *
+ * <p><strong>XP Spectrum Sampling</strong></p>
+ *
+ * <p>The BP/RP (collectively XP) spectra are provided from the Gaia
+ * catalogue primarily as coefficients of basis functions, defining
+ * a so-called "continuous" spectrum.
+ * It may be more convenient in some cases to sample these onto a
+ * wavelength grid so that for instance a wavelength/flux graph can
+ * be visualised.  At Gaia DR3 such "sampled" spectra were available
+ * from the archive sampled onto a default 343-point wavelength grid
+ * for some of the sources with XP spectra only.  At DR4 only
+ * continuous spectra are supplied.
+ * Some constants and functions here are supplied to perform this sampling:
+ * <pre>
+ *    XP_SAMPLED_WAVELENGTHS_DR3 
+ *    xpSampledFluxesDr3(bpCoeffs, rpCoeffs)
+ *    xpSampledErrorsDr3(bpCoeffErrs, bpCoeffCorrs, rpCoeffErrs, rpCoeffCorrs)
+ * </pre>
+ * These functions use the coefficients and algorithms from
+ * Montegriffo et al., <em>"Gaia Data Release 3: External calibration
+ * of BP/RP low-resolution spectroscopic data"</em>,
+ * A&amp;A 674, A3 (2023)
+ * <a href="https://ui.adsabs.harvard.edu/abs/2023A%26A...674A...3M"
+ *                                           >2023A&amp;A...674A...3M</a>.
+ * Note that these manipulations and much more flexible ones can also
+ * be performed using the
+ * <a href="https://gaia-dpci.github.io/GaiaXPy-website/">GaiaXPy</a> package.
+ *
+ *
  * <p><strong>Distance estimation</strong></p>
  *
  * <p>Gaia measures parallaxes, but some scientific use cases require
@@ -176,6 +204,10 @@ public class Gaia {
 
     /** The speed of light in km/s (exact). */
     public static final double C_KMS = 299792.458;
+
+    /** Wavelength grid (nm) for default sampling of Gaia DR3 XP spectra. */
+    public static final double[] XP_SAMPLED_WAVELENGTHS_DR3 =
+        XpSpectrumSampler.DR3.getWavelengths();
 
     private static final double RVNORM = AU_YRKMS;
     private static final double RVNORM1 = 1.0 / RVNORM;
@@ -873,6 +905,64 @@ public class Gaia {
      */
     public static double rvKmsToMasyr( double rvKms, double plxMas ) {
         return rvKms * plxMas * RVNORM1;
+    }
+
+    /**
+     * Converts Gaia DR3 XP continuous spectra to sampled spectra,
+     * sampled onto the default wavelength grid.
+     * The wavelength grid has 343 elements and is given by the constant
+     * <code>XP_SAMPLED_WAVELENGTHS_DR3</code>.
+     *
+     * @example <code>xpSampledFluxesDr3(bp_coefficients,
+     *                                   rp_coefficients)</code>
+     *
+     * @param  bpCoeffs  55-element array of continuous BP spectral
+     *                   coefficients, available from Gaia archive DataLink
+     *                   files as <code>bp_coefficients</code>
+     * @param  rpCoeffs  55-element array of continuous RP spectral
+     *                   coefficients, available from Gaia archive DataLink
+     *                   files as <code>rp_coefficients</code>
+     * @return  343-element sampled flux array (W.m**-2.nm**-1)
+     */
+    public static double[] xpSampledFluxesDr3( double[] bpCoeffs,
+                                               double[] rpCoeffs ) {
+        return XpSpectrumSampler.DR3.xpSampleFluxes( bpCoeffs, rpCoeffs );
+    }
+
+    /**
+     * Converts Gaia DR3 XP continuous spectrum flux errors and correlations
+     * to flux errors at each point on the default wavelength grid.
+     * The wavelength grid has 343 elements and is given by the constant
+     * <code>XP_SAMPLED_WAVELENGTHS_DR3</code>.
+     *
+     * @example  <code>xpSampledErrorsDr3(bp_coefficient_errors,
+     *                                    bp_coefficient_correlations,
+     *                                    rp_coefficient_errors,
+     *                                    rp_coefficient_correlations)</code>
+     *
+     * @param  bpCoeffErrs 55-element array of continuous BP coefficient errors,
+     *                     available from Gaia archive DataLink files as
+     *                     <code>bp_coefficient_errors</code>
+     * @param  bpCoeffCorrs 1485-element array giving continuous BP
+     *                      coefficient correlation matrix,
+     *                      available from Gaia archive DataLink files as
+     *                      <code>bp_coefficient_correlations</code>
+     * @param  rpCoeffErrs 55-element array of continuous RP coefficient errors,
+     *                     available from Gaia archive DataLink files as
+     *                     <code>rp_coefficient_errors</code>
+     * @param  rpCoeffCorrs 1485-element array giving continuous RP
+     *                      coefficient correlation matrix,
+     *                      available from Gaia archive DataLink files as
+     *                      <code>rp_coefficient_correlations</code>
+     * @return  343-element array of sampled flux errors (W.m**-2.nm**-1)
+     */
+    public static float[] xpSampledErrorsDr3( float[] bpCoeffErrs,
+                                              float[] bpCoeffCorrs,
+                                              float[] rpCoeffErrs,
+                                              float[] rpCoeffCorrs ) {
+        return XpSpectrumSampler.DR3
+              .xpSampleFluxErrors( bpCoeffErrs, bpCoeffCorrs,
+                                   rpCoeffErrs, rpCoeffCorrs );
     }
 
     /**

@@ -16316,6 +16316,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>multimode=group</code>.</li>
     <li>Leading/trailing spaces in filenames will be trimmed where
         appropriate for table input specifications.</li>
+    <li>New functions <code>xpSampledFluxesDr3</code>,
+                      <code>xpSampledErrorsDr3</code>,
+                      <code>XP_SAMPLED_WAVELENGTHS_DR3</code>
+        in class <ref id="Gaia">Gaia</ref>
+        for converting Gaia BP/RP spectra
+        from continuous to sampled form.</li>
     </ul>
     </p></dd>
 

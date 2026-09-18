@@ -35330,6 +35330,12 @@ introduced since the last version:
         appropriate when loading tables.</li>
     <li>If a table received by SAMP has been deleted from the table list,
         it is now possible to re-send the same table again.</li>
+    <li>New functions <code>xpSampledFluxesDr3</code>, 
+                      <code>xpSampledErrorsDr3</code>,
+                      <code>XP_SAMPLED_WAVELENGTHS_DR3</code>
+        in class <ref id="Gaia">Gaia</ref>
+        for converting Gaia BP/RP spectra
+        from continuous to sampled form.</li>
     </ul>
     </p></dd>
 
