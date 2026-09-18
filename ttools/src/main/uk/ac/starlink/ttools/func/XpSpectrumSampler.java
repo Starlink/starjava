@@ -132,15 +132,23 @@ class XpSpectrumSampler {
             return null;
         }
 
-        /* Montegriffo et al., eq (34). */
-        double[] bpSampled = mvProduct( bpMatrix_, bpCoeffs );
-        double[] rpSampled = mvProduct( rpMatrix_, rpCoeffs );
-
-        /* Merge BP and RP. */
         double[] sampled = new double[ nSample_ ];
-        for ( int i = 0; i < nSample_; i++ ) {
-            sampled[ i ] = bpSampled[ i ] * bpMerge_[ i ]
-                         + rpSampled[ i ] * rpMerge_[ i ];
+        for ( int is = 0; is < nSample_; is++ ) {
+
+            /* Resample coefficient to wavelength basis,
+             * Montegriffo et al. eq (34). */
+            double[] bpRow = bpMatrix_[ is ];
+            double[] rpRow = rpMatrix_[ is ];
+            double bpSample = 0;
+            double rpSample = 0;
+            for ( int ib = 0; ib < nBase_; ib++ ) {
+                bpSample += bpCoeffs[ ib ] * bpRow[ ib ];
+                rpSample += rpCoeffs[ ib ] * rpRow[ ib ];
+            }
+
+            /* Merge BP and RP. */
+            sampled[ is ] = bpSample * bpMerge_[ is ]
+                          + rpSample * rpMerge_[ is ];
         }
         return sampled;
     }
@@ -184,65 +192,69 @@ class XpSpectrumSampler {
 
         /* Prepare square covariance matrices from subdiagonal correlation
          * matrices. */
-        double[][] bpCoeffCorrs = fillInMatrix( nBase_, bpCoeffCorrsSubdiag );
-        double[][] rpCoeffCorrs = fillInMatrix( nBase_, rpCoeffCorrsSubdiag );
         double[][] bpCoeffCovars =
-            toCovariance( nBase_, bpCoeffCorrs, bpCoeffErrs );
+            toCovariance( nBase_, bpCoeffCorrsSubdiag, bpCoeffErrs );
         double[][] rpCoeffCovars =
-            toCovariance( nBase_, rpCoeffCorrs, rpCoeffErrs );
+            toCovariance( nBase_, rpCoeffCorrsSubdiag, rpCoeffErrs );
 
-        /* Montegriffo et al. eq (37). */
-        double[][] bpFluxCovars = congruence( bpMatrix_, bpCoeffCovars );
-        double[][] rpFluxCovars = congruence( rpMatrix_, rpCoeffCovars );
+        /* Resample coefficient to wavelength basis and retrieve the
+         * leading diagonal to get errors in the new basis -
+         * Montegriffo et al. eq (37). */
+        double[] bpFluxVariances =
+            congruenceLeadingDiagonal( bpMatrix_, bpCoeffCovars );
+        double[] rpFluxVariances =
+            congruenceLeadingDiagonal( rpMatrix_, rpCoeffCovars );
 
-        /* Extract error values from leading diagonal of resampled
-         * covariance matrix. */
-        double[] bpFluxErrs = new double[ nSample_ ]; 
-        double[] rpFluxErrs = new double[ nSample_ ];
-        for ( int is = 0; is < nSample_; is++ ) {
-            bpFluxErrs[ is ] = Math.sqrt( bpFluxCovars[ is ][ is ] );
-            rpFluxErrs[ is ] = Math.sqrt( rpFluxCovars[ is ][ is ] );
-        }
-
-        /* Merge errors in quadrature. */
+        /* Merge BP and RP errors in quadrature. */
         float[] fluxErrs = new float[ nSample_ ];
         for ( int is = 0; is < nSample_; is++ ) {
-            fluxErrs[ is ] =
-                (float) Math.hypot( bpFluxErrs[ is ] * bpMerge_[ is ],
-                                    rpFluxErrs[ is ] * rpMerge_[ is ] );
+            double fluxVar =
+                bpFluxVariances[ is ] * bpMerge_[ is ] * bpMerge_[ is ] +
+                rpFluxVariances[ is ] * rpMerge_[ is ] * rpMerge_[ is ];
+            fluxErrs[ is ] = (float) Math.sqrt( fluxVar );
         }
         return fluxErrs;
     }
 
     /**
-     * Multiplies a matrix by a vector.
+     * Prepares a square symmetric covariance matrix from a
+     * subdiagonal correlation matrix and associated errors.
      *
-     * @param  a  [m][n] rectangular input matrix
-     * @param  v  n-element input vector
-     * @return  m-element vector
+     * @param  n   linear dimension of matrix
+     * @param  corrsSubdiag  (n*(n-1)/2)-element vector giving subdiagonal
+     *                       elements of the correlation matrix
+     *                       (1-element row, 2-element row, 3-element row, ...)
+     * @param  errs   n-element array giving errors
+     * @return  n*n covariance matrix
      */
-    private static double[] mvProduct( double[][] a, double[] v ) {
-        int n = v.length;
-        int m = a.length;
-        double[] product = new double[ m ];
-        for ( int i = 0; i < m; i++ ) {
-            double[] row = a[ i ];
-            for ( int j = 0; j < n; j++ ) {
-                product[ i ] += v[ j ] * row[ j ];
+    private static double[][] toCovariance( int n, float[] corrsSubdiag,
+                                            float[] errs ) {
+        double[][] covars = new double[ n ][ n ];
+        int k = 0;
+        for ( int i = 1; i < n; i++ ) {
+            for ( int j = 0; j < i; j++ ) {
+                double d = corrsSubdiag[ k++ ] * errs[ i ] * errs[ j ];
+                covars[ j ][ i ] = d;
+                covars[ i ][ j ] = d;
             }
         }
-        return product;
+        for ( int i = 0; i < n; i++ ) {
+            covars[ i ][ i ] = 1.0 * errs[ i ] * errs[ i ];
+        }
+        return covars;
     }
 
     /**
-     * Performs the congruence transformation A * B * A^T for a square
-     * matrix B.
+     * Behaves as if performing the congruence transformation
+     * A * B * A^T for a square matrix B, and then returning the
+     * leading diagonal of the result.
      *
      * @param   a  n*m matrix A
      * @param   b  n*n matrix B
-     * @return  m*m matrix
+     * @return  m-element vector giving leading diagonal of A*B*A^T
      */
-    private static double[][] congruence( double[][] a, double[][] b ) {
+    private static double[] congruenceLeadingDiagonal( double[][] a,
+                                                       double[][] b ) {
         int m = a.length;
         int n = b.length;
         double[][] left = new double[ m ][ n ];
@@ -253,59 +265,13 @@ class XpSpectrumSampler {
                 }
             }
         }
-        double[][] result = new double[ m ][ m ];
-        for ( int i = 0; i < m; i++ ) {
-            for ( int j = 0; j < m; j++ ) {
-                for ( int k = 0; k < n; k++ ) {
-                    result[ i ][ j ] += left[ i ][ k ] * a[ j ][ k ];
-                }
+        double[] diag = new double[ m ];
+        for ( int ij = 0; ij < m; ij++ ) {
+            for ( int k = 0; k < n; k++ ) {
+                diag[ ij ] += left[ ij ][ k ] * a[ ij ][ k ];
             }
         }
-        return result;
-    }
-
-    /**
-     * Converts a correlation matrix to a covariance matrix.
-     *
-     * @param   n   order of matrix
-     * @param   corrs  n*n correlation matrix
-     * @param   errs   n-element error matrix
-     * @return   n*n covariance matrix
-     */
-    private static double[][] toCovariance( int n, double[][] corrs,
-                                            float[] errs ) {
-        double[][] covars = new double[ n ][ n ];
-        for ( int i = 0; i < n; i++ ) {
-            for ( int j = 0; j < n; j++ ) {
-                covars[ i ][ j ] = corrs[ i ][ j ] * errs[ i ] * errs[ j ];
-            }
-        }
-        return covars;
-    }
-
-    /**
-     * Creates a symmetric square matrix from a subdiagonal matrix.
-     * The leading diagonal is filled with 1s.
-     *
-     * @param  order   linear dimension of matrix
-     * @param  subDiagonal  array giving subdiagonal elements of matrix
-     *                      (1-element row, 2-element row, 3-element row, ...)
-     * @return  order*order matrix
-     */
-    private static double[][] fillInMatrix( int order, float[] subDiagonal ) {
-        double[][] matrix = new double[ order ][ order ];
-        int k = 0;
-        for ( int i = 1; i < order; i++ ) {
-            for ( int j = 0; j < i; j++ ) {
-                double d = subDiagonal[ k++ ];
-                matrix[ j ][ i ] = d;
-                matrix[ i ][ j ] = d;
-            }
-        }
-        for ( int i = 0; i < order; i++ ) {
-            matrix[ i ][ i ] = 1.0;
-        }
-        return matrix;
+        return diag;
     }
 
     /**
