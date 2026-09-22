@@ -35336,6 +35336,10 @@ introduced since the last version:
         in class <ref id="Gaia">Gaia</ref>
         for converting Gaia BP/RP spectra
         from continuous to sampled form.</li>
+    <li>The <ref id="inGbin">GBIN input handler</ref>
+        now reads multi-dimensional arrays as
+        flattened 1d arrays of primitives etc rather than
+        (generally unusable) arrays of Java array objects.</li>
     </ul>
     </p></dd>
 

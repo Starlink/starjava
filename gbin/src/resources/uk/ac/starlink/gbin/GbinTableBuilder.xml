@@ -56,6 +56,15 @@ See the source code (e.g. <code>uk.ac.starlink.gbin.GbinTableProfile</code>)
 for more details.
 </p>
 
+<p>Multidimensional array values are flattened into 1-d arrays,
+so for instance a value which appears in a GBIN file as a
+<code>double[][][]</code> array will appear in the input table
+as a <code>double[]</code> array, since the rest of this library cannot
+generally work with multi-dimensional arrays.
+The array elements are retained, but information about the
+shape of such arrays is lost in this process.
+</p>
+
 <p>If the object types stored in the GBIN file are known to the
 special metadata-bearing class
 <code>gaia.cu9.tools.documentationexport.MetadataReader</code>

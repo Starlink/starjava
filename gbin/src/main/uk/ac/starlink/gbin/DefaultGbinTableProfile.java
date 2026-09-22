@@ -1,9 +1,12 @@
 package uk.ac.starlink.gbin;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Default implementation of GbinTableProfile.
@@ -137,9 +140,9 @@ public class DefaultGbinTableProfile implements GbinTableProfile {
 
         /* Arrays need treating specially. */
         else if ( clazz.isArray() ) {
-            Class<?> scalarClass = getScalarClass( clazz );
-            if ( reprMap_.containsKey( scalarClass ) ) {
-                Representation<?> scalarRepr = reprMap_.get( scalarClass );
+            Class<?> scalarClazz = getScalarClass( clazz );
+            if ( reprMap_.containsKey( scalarClazz ) ) {
+                Representation<?> scalarRepr = reprMap_.get( scalarClazz );
 
                 /* If the scalar type is a structured object
                  * (either appears in the map of known types with
@@ -161,7 +164,11 @@ public class DefaultGbinTableProfile implements GbinTableProfile {
                  * to a different representation (e.g. toString) will
                  * go wrong here. */
                 else {
-                    return createSimpleColumnRepresentation( clazz );
+                    Class<?> flatClazz = Array.newInstance( scalarClazz, 0 )
+                                        .getClass();
+                    return createFlattenRepresentation( clazz,
+                                                        flatClazz,
+                                                        scalarClazz );
                 }
             }
             else {
@@ -186,11 +193,11 @@ public class DefaultGbinTableProfile implements GbinTableProfile {
      *           have any more "[]"s to strip
      */
     private Class<?> getScalarClass( Class<?> clazz ) {
-        if ( reprMap_.containsKey( clazz ) ) {
-            return clazz;
-        }
-        else if ( clazz.isArray() ) {
+        if ( clazz.isArray() ) {
             return getScalarClass( clazz.getComponentType() );
+        }
+        else if ( reprMap_.containsKey( clazz ) ) {
+            return clazz;
         }
         else {
             return clazz;
@@ -232,6 +239,73 @@ public class DefaultGbinTableProfile implements GbinTableProfile {
     private static <T> Representation<T>
             createSimpleColumnRepresentation( Class<T> clazz ) {
         return createIdentityRepresentation( clazz, true );
+    }
+
+    /**
+     * Returns a representation that flattens multi-dimensional java arrays
+     * (T[][]...) into STIL-friendly one-dimensional arrays (T[]).
+     *
+     * @param  inputClazz  multi-dimensional array type of the input java array
+     * @param  flatClazz   1-dimensional array type
+     * @param  scalarClazz   component type of flatClazz, may be primitive
+     */
+    private static <F> Representation<F>
+            createFlattenRepresentation( Class<?> inputClazz,
+                                         Class<F> flatClazz,
+                                         Class<?> scalarClazz ) {
+        return new Representation<F>() {
+            public Class<F> getContentClass() {
+                return flatClazz;
+            }
+            public boolean isColumn() {
+                return true;
+            }
+            public F representValue( Object value ) {
+                if ( inputClazz.isInstance( value ) ) {
+                    int n = (int) flatten( value ).count();
+                    @SuppressWarnings("unchecked")
+                    F flat = (F) Array.newInstance( scalarClazz, n );
+                    int[] ic = new int[ 1 ];
+                    flatten( value ).forEach( el -> {
+                        Array.set( flat, ic[ 0 ]++, el );
+                    } );
+                    return flat;
+                }
+                else {
+                    return null;
+                }
+            }
+
+            /**
+             * Recursive function to flatten an array of arrays (of arrays...).
+             * This is not efficient, it boxes and unboxes everything to
+             * avoid having to have different implementations for each
+             * primitive type.
+             *
+             * @param  obj  input multi-dimensional array
+             * @return  flat stream of component objects
+             *          (possibly boxed primitives)
+             */
+            private Stream<Object> flatten( Object obj ) {
+                if ( obj == null ) {
+                    return Stream.empty();
+                }
+                else if ( flatClazz.isInstance( obj ) ) {
+                    int n = Array.getLength( obj );
+                    Object[] array = new Object[ n ];
+                    for ( int i = 0; i < n; i++ ) {
+                        array[ i ] = Array.get( obj, i );
+                    }
+                    return Arrays.stream( array );
+                }
+                else {
+                    assert obj.getClass().isArray();
+                    return IntStream.range( 0, Array.getLength( obj ) )
+                          .mapToObj( i -> Array.get( obj, i ) )
+                          .flatMap( e -> flatten( e ) );
+                }
+            }
+        };
     }
 
     /**
