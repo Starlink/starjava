@@ -21,6 +21,7 @@ public class SSAPRegCapability
     private int intfIndex;
   // for backwards compatibility
     private String dataType;
+    protected String speciesURL;
    
 
     /**
@@ -45,6 +46,8 @@ public class SSAPRegCapability
         dataSource = rci.getDataSource();
         creationType = rci.getCreationType();
         intfIndex=rci.getIntfIndex();
+        speciesURL = rci.getSpeciesUrl();
+        //setSpeciesUrl(rci.getSpeciesUrl());
     }
 
    
@@ -147,5 +150,18 @@ public class SSAPRegCapability
     {
         this.dataType = dataType;
     }
+    
+    // SLAPV2 species URL
+
+	public String getSpeciesUrl() {
+		return speciesURL;
+	}
+
+	public void setSpeciesUrl(String speciesUrl) {
+		this.speciesURL = speciesUrl;
+	}
+    
+   
+    
    
 }

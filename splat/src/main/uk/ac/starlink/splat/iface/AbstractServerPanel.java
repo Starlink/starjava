@@ -118,7 +118,6 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
        // tagsFile = getTagsFilename();
         serviceType = getServiceType();        
         serverTags = new ServerTags(getTagsFilename());
-        serverTable = new ServerPopupTable();
        //tagsMap = new HashMap<String,ArrayList<String>>();
        // serverTagsMap = new HashMap<String,ArrayList<String>>();     
         
@@ -252,12 +251,6 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
         
         jsp.getAccessibleContext().setAccessibleName("Services");
         
-      //  jsp.setViewportView(serverTable);
-   //     jsp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-   //     jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        //jsp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-
-       
         GridBagConstraints gbcServer=new GridBagConstraints();
         gbcServer.gridx=0;
         gbcServer.gridy=0;
@@ -577,6 +570,7 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
     	StarTable table = makeRegistryQuery();
         updateServers( table );
     }
+    
     public void updateServers (StarTable table) {
         TableRowSorter<DefaultTableModel> savedSorter = getTableRowSorter();
         List<RowSorter.SortKey> sortKeys = (List<SortKey>) savedSorter.getSortKeys();
@@ -592,7 +586,7 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
         serverTable.updateUI();
         
         this.firePropertyChange("changeServerlist", false, true);
-      //  this.firePropertyChange("changeServerTable", false, true);
+     
     }
     
     /**
@@ -696,7 +690,7 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
         return serverTable.getSelectedRowCount();
         
     }
- 
+   
     
     //=================== Tags =====================  
          

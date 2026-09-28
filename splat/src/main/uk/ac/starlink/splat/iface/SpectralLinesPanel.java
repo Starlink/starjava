@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -44,16 +45,14 @@ import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.vo.LineBrowser;
 import uk.ac.starlink.splat.vo.LineTapParameters;
+import uk.ac.starlink.splat.vo.LinesQueryPanel;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 
 
 public class SpectralLinesPanel extends JPanel implements  ActionListener, DocumentListener, PropertyChangeListener {
 	
-	
-	
-	private String SPECIESDB_URL = "http://dc.zah.uni-heidelberg.de/tap";
-	private String SPECIES_TABLE = "species.main";
+
 	private String chosenSpecies;
     /** UI preferences. */
     protected static Preferences prefs =
@@ -111,6 +110,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
 
 
     protected LineBrowser browser;
+    protected LinesQueryPanel lqPanel;
 
   
     double[] lambda2 = null;
@@ -141,18 +141,19 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
 	private JTabbedPane queryModePanel;
 	private JTextArea queryTextArea;
 	private JPanel advancedQueryPanel;
+	private JTextField maxrecField;
 
-
-  
 
     /**
      * Create an instance.
      * @param WIDTH 
      */
  
-    public SpectralLinesPanel(LineBrowser LineBrowser, int width) 
+    public SpectralLinesPanel(LinesQueryPanel lqpanel, LineBrowser LineBrowser, int width) 
     {
         browser = LineBrowser;
+        lqPanel = lqpanel;
+        
         this.plot = browser.getPlot();
         this.width=width;
        // this.height = height;
@@ -164,6 +165,12 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
         initUI(rangePanel, queryPanel);     
         //this.add(BorderLayout.PAGE_START, contentPane);
         lineTap = new LineTapParameters();
+      //  LinesQueryPanel lqPanel = browser.getLinesQueryPanel();
+        lqPanel.addPropertyChangeListener("selectionChanged", evt -> {
+            elementCombo.onSelectionChanged((Boolean) evt.getNewValue());
+            moleculeCombo.onSelectionChanged((Boolean) evt.getNewValue());
+        });
+
        
     }
     
@@ -222,6 +229,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
         add(qPanel, gbc);
        
         JPanel buttonPanel=new JPanel();
+        buttonPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc1 = new GridBagConstraints();
         gbc1.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.NONE;
@@ -229,12 +237,28 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
         gbc1.weighty=0;
         gbc1.gridx=0;  
         gbc1.gridy=0;
+        
+        JLabel maxrecLabel = new JLabel("Maxrec:");
+        gbc1.gridx = 0;
+        gbc1.anchor = GridBagConstraints.EAST;
+        gbc1.insets = new Insets(0, 0, 0, 5);  
+        buttonPanel.add(maxrecLabel, gbc1);
+
+        maxrecField = new JTextField(6); 
+        maxrecField.addActionListener(this);
+        maxrecField.getDocument().putProperty("owner", maxrecField); //set the owner
+        maxrecField.getDocument().addDocumentListener( this );
+        
+        gbc1.gridx = 1;
+        gbc1.anchor = GridBagConstraints.WEST;
+        gbc1.insets = new Insets(0, 0, 0, 15);  // gap before the Query button
+        buttonPanel.add(maxrecField, gbc1);
  
         queryButton = new JButton( new QueryAction("Query"));
         queryButton.setToolTipText( "Search for spectral lines" ); 
         gbc1.anchor = GridBagConstraints.CENTER;
         // gbc.fill=GridBagConstraints.HORIZONTAL;
-        gbc1.gridx=1;
+        gbc1.gridx=2;
         
         buttonPanel.add(queryButton, gbc1);
         
@@ -280,6 +304,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
     	   // guided or advanced query
     	 
     	   queryModePanel = new JTabbedPane();
+    	   String queryTemplate =  "[SELECTED_SERVICE_URL]?";
 
 
     	   // atoms or molecules
@@ -295,10 +320,18 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
     	   
     	   // advanced query panel
     	   advancedQueryPanel = new JPanel(new GridBagLayout());
+
+     	   queryTextArea = new JTextArea(5,30);
+     	   queryTextArea.setLineWrap(true);        // enables wrapping at all
+     	   queryTextArea.setWrapStyleWord(true);
+     	   queryTextArea.setToolTipText("complete the SLAPV2 query. \nDO not change [SELECTED_SERVICE_URL].\n Selected services will be queried ");
+    	   queryTextArea.setText(queryTemplate);
+    	  
     	   
     	   JPanel advancedHeaderPanel = new JPanel(new BorderLayout());
     	   advancedHeaderPanel.add(new JLabel("type your query:"), BorderLayout.LINE_START);
     	  
+    	   
     	   JCheckBox showInfoCheckBox = new JCheckBox("show Info");
     	   showInfoCheckBox.addActionListener(new ActionListener() {
                @Override
@@ -312,13 +345,22 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
                    }
                }
            });
-    	   advancedHeaderPanel.add(showInfoCheckBox, BorderLayout.LINE_END);
+    	   JButton clearButton = new JButton( "clear");
+    	   clearButton.addActionListener(new ActionListener() {
+               @Override
+               public void actionPerformed(ActionEvent e) {
+            	   queryTextArea.setText(queryTemplate);
+               }
+           });
+    	   
+    	 
+    	   advancedHeaderPanel.add(showInfoCheckBox, BorderLayout.CENTER);
+    	   advancedHeaderPanel.add(clearButton, BorderLayout.LINE_END);
     	   
     	   advancedQueryPanel.add(advancedHeaderPanel);
     	   gbc1.gridy=1;
-    	
-     	   queryTextArea = new JTextArea(5,30);
     	   advancedQueryPanel.add(queryTextArea, gbc1);
+    	   queryTextArea.setText("[SELECTED_SERVICE_URL]?");
     	  // JButton sendQueryButton = new JButton("Search");
     	  // advancedQueryPanel.add(sendQueryButton);
     	   
@@ -334,7 +376,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
            gbc1.gridy=0;
            
      
-           elementCombo = new AutoFillCombo("element:", false);
+           elementCombo = new AutoFillCombo("element:", false, browser);
            
            elementCombo.addPropertyChangeListener(this);
            
@@ -349,7 +391,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
                       
            JPanel moleculeQueryPanel = new JPanel(new GridBagLayout());
            
-           moleculeCombo = new AutoFillCombo("molecule:", true);
+           moleculeCombo = new AutoFillCombo("molecule:", true, browser );
            moleculeCombo.addPropertyChangeListener(this);     
            gbc1.gridx=0;
            gbc1.gridy=1;
@@ -397,7 +439,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
         
       //  chargeFiel.setEditable(true);
         chargeField.addActionListener(this);
-        chargeField.setToolTipText("Ionization charge / ion charge. Not supported by SLAP)");
+        chargeField.setToolTipText("Ionization charge / ion charge.");
    //     chargeField.setPreferredSize(new Dimension(100, 20));
         chargeField.getDocument().putProperty("owner", chargeField); //set the owner
         chargeField.getDocument().addDocumentListener( this );
@@ -429,14 +471,16 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
     
     private void queryLinesAdvanced(String query) {
     	 // get the selected table
-    	 Pattern pattern = Pattern.compile("(?i)\\bFROM\\s+([a-zA-Z0-9_.]+)");
-         Matcher matcher = pattern.matcher(query);
+    	// need to adapt to SLAP2 query
+    	
+    	// Pattern pattern = Pattern.compile("(?i)\\bFROM\\s+([a-zA-Z0-9_.]+)");
+        // Matcher matcher = pattern.matcher(query);
          
-         String table="";
-         if (matcher.find()) {
-             table = matcher.group(1); // Return the table name
-         } 
-    	 browser.makeQuery(query.trim().replaceAll("\\r|\\n", ""), table); 
+        
+         //if (matcher.find()) {
+         //    table = matcher.group(1); // Return the table name
+         //} 
+    	 browser.makeQuery(query.trim().replaceAll("\\r|\\n", "")); 
     	 
     }
 
@@ -470,9 +514,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
                 int msa = sd.getMostSignificantAxis();
                 try {
                     FrameSet frameSet = sd.getFrameSet();
-                    String unit = frameSet.getUnit(msa);
-                   
-                   
+                    String unit = frameSet.getUnit(msa);    
                     
                     String sys = frameSet.getC("System");
                     logger.info("system=WAVE,unit("+msa+")=angstrom  "+ sys );
@@ -508,7 +550,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
             
 //        }
    
-        browser.makeQuery(ranges, lambdas, getSpecies(), getCharge(), getInChiKey());       
+        browser.makeQuery(ranges, lambdas, getSpecies(), getCharge(),  getInChiKey(), getMaxRec());       
 	}
 
 
@@ -571,7 +613,12 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
     
     public String getWavelengthUnit() {
    	 return (String) wlUnitsCombo.getSelectedItem();
-   }
+    }
+    
+    public String getMaxRec() {
+   	 return  maxrecField.getText();
+   	  	
+    }
 
 
     private JPanel makeLabelFieldPanel (String labelstr, JComponent component) {
@@ -678,9 +725,10 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
 
 	@Override
 	public void changedUpdate(DocumentEvent e) {
-		// TODO Auto-generated method stub
+	
 	      Object owner = e.getDocument().getProperty("owner");
-	      if(owner != null){
+	      if (owner == chargeField) {
+	     
 	    	    String chargeText = chargeField.getText();
                 
                 if ( chargeText != null && chargeText.length() > 0 ) {
@@ -694,7 +742,25 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
                     }
                     chargeField.setForeground(Color.black);
                 }
-	      }
+	      } else if (owner == maxrecField) {
+                
+                String maxrecText = maxrecField.getText();
+                
+                if (maxrecText != null && maxrecText.length() > 0) {
+                    try {
+                        int maxrec = Integer.parseInt(maxrecText);
+                        if (maxrec < 0) {
+                            maxrecField.setForeground(Color.red);
+                            return;
+                        }
+                    }
+                    catch (NumberFormatException e1) {
+                        maxrecField.setForeground(Color.red);
+                        return;
+                    }
+                    maxrecField.setForeground(Color.black);
+                }          
+		  }
 	}
 
 
@@ -710,6 +776,7 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
 		else if (src.equals(elementCombo)) {
 			
 			element = elementCombo.getElement().trim();
+			inChiKey="";
 		
 			if (element != null && ! element.isEmpty() && element.contains("-")) {
 				int dash=element.indexOf('-');
@@ -720,134 +787,97 @@ public class SpectralLinesPanel extends JPanel implements  ActionListener, Docum
 	}
 	// Separate class for the information window
 	class InfoWindow extends JFrame {
-	    public InfoWindow() {
-	        setTitle("LineTap Quantities");
-	        setSize(600, 300);
-	        setLocationRelativeTo(null); // Center the window
-	        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Close only this window
+		public InfoWindow() {
+			setTitle("SLAPV2 Quantities");
+			setSize(600, 300);
+			setLocationRelativeTo(null); // Center the window
+			setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Close only this window
 
-	      
-	        // Add the text to the window
-	        add(getInfoPanel());
 
-	        // Show the window
-	        setVisible(true);
-	    }
-	    // show information useful for writing an adql query
-	    private JScrollPane getInfoPanel() {
-			
-	   	       // The Linetap Quantities - todo: later 
-	    	   // read from a file that can be updated
-	          	
-		        JTextPane infoText =  new JTextPane();
-		        infoText.setContentType("text/html");
-		        
-		        String info = "Linetap Quantities<BR>"
-		        + "<HTML><table class=\"tabular\" cellpadding=\"0\" cellspacing=\"0\">"
-		        
-		        +"<tr><th width=20 align=left><b>Name [Unit]</b> </th><th width=10 align=left>UCD</th><th align=left ><b>Type</b></th><th align=\"left\" width=60><b>Description</b></th></tr>"
+			// Add the text to the window
+			add(getInfoPanel());
 
-		        +"<tr><td align=\"left\"><tt>title</tt>"
-		   
-		        + " </td><td align=left>meta.id</td><td width=\"0\"><b>text</b> </td><td align=\"left\"> Human-readable line designation.</td></tr>"
+			// Show the window
+			setVisible(true);
+		}
+		// show information useful for writing an adql query
+		private JScrollPane getInfoPanel() {
 
-		        + "<tr><td align=\"left\"/></tr>"
+			// The SLAPV2 Quantities - todo: later 
+			// read from a file that can be updated
 
-		        + "<tr><td align=\"left\"><tt>vacuum_wavelength</tt> [Å] "
-		   
-		        + "</td><td align=left>em.wl</td><td width=\"0\"><b>float</b> </td><td align=\"left\"> Vacuum wavelength of the transition</td></tr>"
+			JTextPane infoText =  new JTextPane();
+			infoText.setContentType("text/html");
 
-		        + "<tr><td   align=\"left\"/></tr>"
+			String info = "SLAPV2 Quantities<BR>"
+		+ "<HTML><table class=\"tabular\" cellpadding=\"0\" cellspacing=\"0\">"
 
-		        + "<tr><td align=\"left\"><tt>vacuum_wavelength_error</tt> [Å] "
-		   
-		        + "</td><td align=left>stat.error<br>em.wl</td><td width=\"0\">float </td><td align=\"left\"> Total error in vacuum_wavelength</td></tr>"
+        + "<tr><th width=20 align=left><b>Parameter</b></th><th align=left>Unit</th><th align=\"left\" width=60><b>Short Description</b></th><th align=\"left\">Example</th></tr>"
 
-		        + "<tr><td   align=\"left\"/></tr>"
+        + "<tr><td align=\"left\"><tt>WAVELENGTH</tt></td>"
+        + "<td align=\"left\">m (vacuum)</td>"
+        + "<td align=\"left\">Spectral range</td>"
+        + "<td align=\"left\">WAVELENGTH=5.1E-6 5.6E-6</td></tr>"
 
-		        + "<tr><td align=\"left\"><tt>method</tt> "
-		   
-		        + "</td><td align=left>meta.code.class</td><td width=\"0\">text </td><td align=\"left\"> Method the wavelength was obtained with (XSAMS controlled vocabulary)</td></tr>"
+        + "<tr><td align=\"left\"><tt>SPECIES</tt></td>"
+        + "<td align=\"left\">&mdash;</td>"
+        + "<td align=\"left\">Species name or formula</td>"
+        + "<td align=\"left\">SPECIES=CO2</td></tr>"
 
-		        + "<tr><td   align=\"left\"/></tr>"
+        + "<tr><td align=\"left\"><tt>SPECIES_MASS</tt></td>"
+        + "<td align=\"left\">u (unified atomic mass unit)</td>"
+        + "<td align=\"left\">Species mass range</td>"
+        + "<td align=\"left\">SPECIES_MASS=0 12.011</td></tr>"
 
-		        + "<tr><td align=\"left\"><tt>element</tt> "
-		   
-		        + "</td><td align=left>phys.atmol.element</td><td width=\"0\">text </td><td align=\"left\"> Element name for atomic transitions, NULL otherwise.</td></tr>"
+        + "<tr><td align=\"left\"><tt>INCHIKEY</tt></td>"
+        + "<td align=\"left\">&mdash;</td>"
+        + "<td align=\"left\">InChIKey of species</td>"
+        + "<td align=\"left\">INCHIKEY=XEEYBQQBJWHFJM-UHFFFAOYSA-N</td></tr>"
 
-		        + "<tr><td   align=\"left\"/></tr>"
+        + "<tr><td align=\"left\"><tt>ION_CHARGE</tt></td>"
+        + "<td align=\"left\">integer</td>"
+        + "<td align=\"left\">ion charge range</td>"
+        + "<td align=\"left\">SPECIES=Fe&amp;ION_CHARGE=1</td></tr>"
 
-		        + "<tr><td align=\"left\"><tt>ion_charge</tt>" 
-		   
-		        + "</td><td align=left>phys.electCharge</td><td width=\"0\">integer </td><td align=\"left\"> Total charge (ionisation level) of the emitting particle.</td></tr>"
+        + "<tr><td align=\"left\"><tt>LOWER_LEVEL_ENERGY</tt></td>"
+        + "<td align=\"left\">J (Joules)</td>"
+        + "<td align=\"left\">lower level energy range</td>"
+        + "<td align=\"left\">LOWER_LEVEL_ENERGY=3.93E-18 3.94E-18</td></tr>"
 
-		        + "<tr><td   align=\"left\"/></tr>"
+        + "<tr><td align=\"left\"><tt>UPPER_LEVEL_ENERGY</tt></td>"
+        + "<td align=\"left\">J (Joules)</td>"
+        + "<td align=\"left\">upper level energy range</td>"
+        + "<td align=\"left\">UPPER_LEVEL_ENERGY=3.93E-18 3.94E-18</td></tr>"
 
-		        + "<tr><td align=\"left\"><tt>mass_number</tt>" 
-		   
-		        + "</td><td align=left>phys.atmol.weight</td><td width=\"0\">integer </td><td align=\"left\"> Number of nucleons in the atom or molecule</td></tr>"
+        + "<tr><td align=\"left\"><tt>EINSTEINA</tt></td>"
+        + "<td align=\"left\">s<sup>-1</sup></td>"
+        + "<td align=\"left\">Einstein A  range</td>"
+        + "<td align=\"left\">EINSTEINA=1.1E-7 1.2E-7</td></tr>"
 
-		        + "<tr><td   align=\"left\"/></tr>"
+        + "<tr><td align=\"left\"><tt>MAXREC</tt></td>"
+        + "<td align=\"left\">&mdash;</td>"
+        + "<td align=\"left\">Max Recirds returned</td>"
+        + "<td align=\"left\">MAXREC=10</td></tr>"
 
-		        + "<tr><td align=\"left\"><tt>upper_energy</tt> [J] "
-		   
-		        + "</td><td align=left>phys.energy<br>phys.atmol.initial</td><td width=\"0\">float </td><td align=\"left\"> Energy of the upper state</td></tr>"
+        + "</table>";
 
-		        + "<tr><td   align=\"left\"/></tr>"
 
-		        + "<tr><td align=\"left\"><tt>lower_energy</tt> [J] "
-		   
-		        + "</td><td align=left>phys.energy<br>phys.atmol.final</td><td width=\"0\">float </td><td align=\"left\"> Energy of the lower state</td></tr>"
 
-		        + "<tr><td   align=\"left\"/></tr>"
+			infoText.setText(info);
+			infoText.setEditable(false); // Make it read-only
+			infoText.setOpaque(false);   // Blend with background
+			infoText.setBackground(Color.WHITE);
+			JScrollPane scrollPane = new JScrollPane(infoText);
+			scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		        + "<tr><td align=\"left\"><tt>inchi</tt>" 
-		   
-		       + "</td><td align=left>meta.id<br>phys.atmol<br>meta.main</td><td width=\"0\">text </td><td align=\"left\"> International Chemical Identifier InChI.</td></tr>"
-
-		        + "<tr><td   align=\"left\"/></tr>"
-
-		        + "<tr><td align=\"left\"><tt>inchikey</tt>" 
-		   
-		       + "</td><td align=left>meta.id<br>phys.atmol</td><td width=\"0\">text </td><td align=\"left\"> The InChi key (hash) generated from inchi.</td></tr>"
-
-		        + "<tr><td   align=\"left\"/></tr>"
-
-		        + "<tr><td align=\"left\"><tt>einstein_a</tt>" 
-		   
-		       + "</td><td align=left>phys.atmol.transProb</td><td width=\"0\">float </td><td align=\"left\"> Einstein A coefficient of the radiative transition.</td></tr>"
-
-		        + "<tr><td   align=\"left\"/></tr>"
-
-		        + "<tr><td align=\"left\"><tt>xsams_uri</tt>" 
-		   
-		       + "</td><td align=left>meta.ref</td><td width=\"0\">text </td><td align=\"left\"> A URI for a full XSAMS description of this line.</td></tr>"
-
-		        + "<tr><td   align=\"left\"/></tr>"
-
-		        + "<tr><td align=\"left\"><tt>line_reference</tt>" 
-		   
-		       + "</td><td align=left>meta.ref</td><td width=\"0\"><b>text</b> </td><td align=\"left\"> Reference to the source of the line data<br> this could be a bibcode, a DOI, or a plain URI.</td></tr>"
-
-		        + "<tr><td align=\"left\">"
-		        +"</td></tr></table>";
-		       
-		        		
-		        infoText.setText(info);
-		        infoText.setEditable(false); // Make it read-only
-		        infoText.setOpaque(false);   // Blend with background
-		        infoText.setBackground(Color.WHITE);
-		        JScrollPane scrollPane = new JScrollPane(infoText);
-		        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		       
 			return scrollPane;
 		}
 
 	}
 
-	public void setLinetapTab(boolean linetapSelected) {		
+	public void setAdvancedTab(boolean slap2Selected) {		
 
-		if (linetapSelected) {
+		if (slap2Selected) {
 			queryModePanel.addTab("Advanced Query", null, advancedQueryPanel);
 
 		} else {

@@ -89,6 +89,8 @@ public class SSARegistryQueryDialog
             rqPanel_.setPresetQueries( defaultOBSCoreQuery_ );
         else if (protocol_ == SplatRegistryQuery.LINETAP)
             rqPanel_.setPresetQueries( defaultLINETAPQuery_ );
+        else if (protocol_ == SplatRegistryQuery.SLAP)
+            rqPanel_.setPresetQueries( defaultSLAPQuery_ );
         return rqPanel_;
     }
 

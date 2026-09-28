@@ -5,6 +5,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -16,6 +17,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -40,12 +42,12 @@ public class LinesQueryPanel extends AbstractServerPanel implements ActionListen
     
     private int SLAP_INDEX=0;
     private int VAMDC_INDEX=1;
-    private int LINETAP_INDEX=2;
+    //private int LINETAP_INDEX=2;
 
     private static String tagsFile = "linesTagsV2.xml";
-    private ServerPopupTable slapServices=null;
+    private SlapServerPopupTable slapServices=null;
     private ServerPopupTable vamdcServices=null;
-    private LinetapPopupTable linetapServices=null;
+  //  private LinetapPopupTable linetapServices=null;
     private JTabbedPane servTabPanel;
     private SpectralLinesPanel slPanel = null;
     private LineBrowser browser;
@@ -65,6 +67,13 @@ public class LinesQueryPanel extends AbstractServerPanel implements ActionListen
     public LinesQueryPanel( LineBrowser browser )  {
         super(); 
         this.browser=browser;
+        this.addPropertyChangeListener(evt -> {
+            if ("selectionChanged".equals(evt.getPropertyName())) {
+            	boolean newValue = (Boolean) evt.getNewValue();
+                //System.out.println("Selection changed: " + evt.getNewValue());
+               // selectionChangedAction();
+            }
+        });
         initUI( initOptionsPanel(), initServersPanel() );
         setVisible(true);
        // setSize(WIDTH,HEIGHT);
@@ -85,7 +94,8 @@ public class LinesQueryPanel extends AbstractServerPanel implements ActionListen
         queryPanel.add(browser.getPlotChoicePanel());
         
         gbcOptions.gridy=1;
-        slPanel = new SpectralLinesPanel(browser, WIDTH-10);
+        slPanel = new SpectralLinesPanel(this, browser, WIDTH-10);
+       
       //  slPanel.setPreferredSize(new Dimension(slPanel.getWidth(), optionsHeight-10 ));
         
         queryPanel.add(slPanel,gbcOptions);
@@ -112,33 +122,24 @@ public class LinesQueryPanel extends AbstractServerPanel implements ActionListen
          servTabPanel.setMaximumSize(new Dimension(WIDTH, HEIGHT-optionsHeight));
          servTabPanel.add( makeSlapPanel(), SLAP_INDEX);
          servTabPanel.add( makeVamdcPanel(), VAMDC_INDEX);
-         servTabPanel.add( makeLinetapPanel(), LINETAP_INDEX);
+     //    servTabPanel.add( makeLinetapPanel(), LINETAP_INDEX);
          
-         servTabPanel.setTitleAt(LINETAP_INDEX, "LINETAP");  
-         servTabPanel.setTitleAt(SLAP_INDEX, "SLAP");
+      //   servTabPanel.setTitleAt(LINETAP_INDEX, "LINETAP");  
+         servTabPanel.setTitleAt(SLAP_INDEX, "SLAP2");
          servTabPanel.setTitleAt(VAMDC_INDEX, "VAMDC");     
           
-         servTabPanel.setSelectedIndex(LINETAP_INDEX);
+     //    servTabPanel.setSelectedIndex(LINETAP_INDEX);
 
-         setServerTable(linetapServices);
+         setServerTable(slapServices);
          
          servTabPanel.addChangeListener(new ChangeListener() {
              public void stateChanged(ChangeEvent e) {
                  if (isSLAPSelected()) {
                      setServerTable(slapServices);
-                     slPanel.setLinetapTab(false);
-                     slPanel.deactivateCharge(); // does not work for SLAP (yet)
-                 } else  if (isLinetapSelected()){
-                	 
-                	 setServerTable(linetapServices);
-                	 slPanel.reloadUI(true);
-                     slPanel.activateCharge(); 
-                     slPanel.setLinetapTab(true);
+                     slPanel.setAdvancedTab(true);
                  } else {
                 	 setServerTable(vamdcServices);                   
-                     slPanel.activateCharge();
-                     slPanel.setLinetapTab(false);
-                //     slPanel.reloadUI(false);
+                     slPanel.setAdvancedTab(false);
                  }
              }
                  
@@ -149,17 +150,17 @@ public class LinesQueryPanel extends AbstractServerPanel implements ActionListen
    private JPanel makeSlapPanel() {
         
         try {
-            slapServices = new ServerPopupTable(new SLAPServerList());
+            slapServices = new SlapServerPopupTable(new SLAPServerList());
+          //  slapServices.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
      //       slapServices.setComponentPopupMenu(makeServerPopup());  
         } catch (SplatException e) {
-           slapServices=getSLAPServices();
+           slapServices=(SlapServerPopupTable) getSLAPServices();
         }
-
         return initServerPanel(slapServices);
  
     }
-   private ServerPopupTable getSLAPServices() {
-       return new ServerPopupTable(new SLAPServerList(querySLAPRegistry()));
+   private SlapServerPopupTable getSLAPServices() {
+       return new SlapServerPopupTable(new SLAPServerList(querySLAPRegistry()));
    }
    
    private StarTable querySLAPRegistry() {
@@ -176,38 +177,7 @@ public class LinesQueryPanel extends AbstractServerPanel implements ActionListen
        return table;
    }
    
-   private JPanel makeLinetapPanel() {
-       
-       try {
-           linetapServices = new LinetapPopupTable(new LinetapServerList());
-      } catch (SplatException e) {
-          linetapServices=getLinetapServices();
-      }
 
-       return initServerPanel(linetapServices);
-
-   }
- 
-  private LinetapPopupTable getLinetapServices() {
-      return new LinetapPopupTable(new LinetapServerList(queryLinetapRegistry()));
-  }
-  
-  private StarTable queryLinetapRegistry() {
-      
-      StarTable table = null;
-     // SSARegistryQueryDialog dialog = new SSARegistryQueryDialog(LINETAP_INDEX);
-      try {                
-          table =  TableLoadPanel.loadTable( this, new SSARegistryQueryDialog(SplatRegistryQuery.LINETAP), new StarTableFactory() );
-      }
-      catch ( IOException e ) {
-          ErrorDialog.showError( this, "Registry query failed", e );
-          return null;
-      }
-      return table;
-  }
-  
-   
-   
    private JPanel makeVamdcPanel() {
        
        try {
@@ -215,7 +185,7 @@ public class LinesQueryPanel extends AbstractServerPanel implements ActionListen
            setManuallyAddPossible(false);
     //       slapServices.setComponentPopupMenu(makeServerPopup());  
        } catch (SplatException e) {
-           vamdcServices = getVAMDCServices();
+           vamdcServices =   getVAMDCServices();
        }
        
        JPanel vamdcPanel = initServerPanel(vamdcServices);
@@ -259,24 +229,24 @@ public class LinesQueryPanel extends AbstractServerPanel implements ActionListen
     protected StarTable makeRegistryQuery() {
         if (isSLAPSelected()) {
             return querySLAPRegistry();
-        } else if (isLinetapSelected()){
-            return queryLinetapRegistry();
+     //   } else if (isLinetapSelected()){
+     //       return queryLinetapRegistry();
         } else {
         	return VAMDCLib.queryRegistry();
         }
     }
     // return the slap services table
-    public ServerPopupTable getSlapTable() {
+    public SlapServerPopupTable getSlapTable() {
         return slapServices;
     }
     // return the slap services table
     public ServerPopupTable getVamdcTable() {
         return vamdcServices;
     }
-    public ServerPopupTable getLinetapTable() {
+  //  public ServerPopupTable getLinetapTable() {
 		// TODO Auto-generated method stub
-		return linetapServices;
-	}
+//		return linetapServices;
+//	}
     
  //   public String getInChiKey(String species ) {
  //   	return slPanel.getInChiKey( species);
@@ -293,22 +263,20 @@ public class LinesQueryPanel extends AbstractServerPanel implements ActionListen
     	//return queryInchiKey(species );
     }
    
-
-
 	public boolean isSLAPSelected() {
         // TODO Auto-generated method stub
         return (servTabPanel.getSelectedIndex() == SLAP_INDEX);
     }
-    public boolean isLinetapSelected() {
-        // TODO Auto-generated method stub
-        return (servTabPanel.getSelectedIndex() == LINETAP_INDEX);
-    }
+ ///   public boolean isLinetapSelected() {
+////        // TODO Auto-generated method stub
+//        return (servTabPanel.getSelectedIndex() == LINETAP_INDEX);
+ //   }
     
     private void getServers() {
         if (isSLAPSelected()) {
             getSLAPServices();
-        } else if (isLinetapSelected()) {
-        	getLinetapServices();
+   //     } else if (isLinetapSelected()) {
+  //      	getLinetapServices();
         } else {
             getVAMDCServices();
         }
@@ -321,6 +289,7 @@ public class LinesQueryPanel extends AbstractServerPanel implements ActionListen
 		
 	}
 	
+	
 
 
 	@Override
@@ -330,7 +299,7 @@ public class LinesQueryPanel extends AbstractServerPanel implements ActionListen
 		
 		
 	}
-
+		
 	
 
 }
