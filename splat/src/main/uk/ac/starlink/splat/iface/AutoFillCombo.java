@@ -8,13 +8,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,28 +31,45 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableModel;
 
 import jsky.util.Logger;
+import uk.ac.starlink.splat.vo.LineBrowser;
+import uk.ac.starlink.splat.vo.LinesQueryPanel;
+import uk.ac.starlink.splat.vo.MetadataInputParameter;
+import uk.ac.starlink.splat.vo.SSAPRegResource;
+import uk.ac.starlink.splat.vo.ServerPopupTable;
+import uk.ac.starlink.splat.vo.SpeciesTable;
 import uk.ac.starlink.splat.vo.TapQueryWithDatalink;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ConcatStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.util.ContentCoding;
+import uk.ac.starlink.votable.VOTableBuilder;
 
 @SuppressWarnings("serial")
-public class AutoFillCombo  extends JPanel implements ActionListener, DocumentListener{
+public class AutoFillCombo  extends JPanel implements ActionListener, DocumentListener {
 
 	JTextField textf;
 	JComboBox<String> matchesBox;
+	LineBrowser browser;
 
 	Boolean elementChosen=false; // true: a choice has been made in the combobox
 	Boolean makeQuery=false;  // true :query database for species ; false: get list of elements. 
-	Map <String,SpeciesItem> speciesInChiKey = null;
 	String[] emptyBox= {"",""};
+	
+	SpeciesTable speciesTable;
+	Map <String,SpeciesItem> speciesInChiKey = null;
 
-	public AutoFillCombo( String label, boolean querySpecies ) {
+	
+
+	public AutoFillCombo( String label, boolean querySpecies, LineBrowser browser ) {
 		
 		 makeQuery= querySpecies;
-		
+		 this.browser = browser;
+		 
 		 GridBagConstraints gbc = new GridBagConstraints();
          gbc.anchor = GridBagConstraints.PAGE_START;
          gbc.fill = GridBagConstraints.HORIZONTAL; 
@@ -69,8 +90,7 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 		matchesBox.setMaximumSize(this.getSize());
 		matchesBox.addActionListener(this);
 		//matchesBox.addItemListener(this);
-		
-		
+				
 		
 		gbc.gridx=0;
 		gbc.gridy=0;
@@ -79,7 +99,12 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 		gbc.gridy=1;
 		this.add (matchesBox, gbc);
 	
+		speciesTable = null;//new SpeciesTable(browser);
 		
+	}
+	
+	private void updateSpecies() {
+		speciesTable = new SpeciesTable(browser);
 	}
 	
 	private void updateCombo(ArrayList<String> results ) {
@@ -89,7 +114,7 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 			matchesBox.addItem("");
 			matchesBox.setSelectedItem("");
 		} else {
-		    matchesBox.setModel ( new DefaultComboBoxModel(results.toArray()));
+		    matchesBox.setModel( new DefaultComboBoxModel(results.toArray()));
 			matchesBox.addItem("");	    
 		    matchesBox.showPopup();
 	    }
@@ -118,6 +143,8 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 	}
 	*/
 	
+
+	
 	public String getElement(  ) {
 
 		return textf.getText();
@@ -132,9 +159,9 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 					Logger.info (this, spcs);
 					SpeciesItem chosen = (SpeciesItem) speciesInChiKey.get(spcs);
 					String inchik = chosen.getInchikey();
-					return (  speciesInChiKey.get( spcs ).getInchikey() );
+					return (speciesInChiKey.get( spcs ).getInchikey() );
 			} catch ( Exception e) {
-				Logger.info( this, "no inchiHey found");
+				//Logger.info( this, "no inchiHey found");
 				return "";
 			}
 		} else {
@@ -239,62 +266,51 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 
 	} // Elements
 	
-	static class SpeciesQuery {
 		
-		private static String SPECIESDB_URL = "http://dc.zah.uni-heidelberg.de/tap";
-		private static String SPECIES_TABLE = "species.main";
-	
-		
-		private static StarTable querySpecies( String pref ) {
+		private  Map<String,SpeciesItem>  getMatches(String pref) {
 			
-		 
-			
-		   	TapQueryWithDatalink tq;
-	    	StarTable startable;
-	    	
-	    	String query = "SELECT DISTINCT name, formula, inchikey FROM "+SPECIES_TABLE+" WHERE name ILIKE '"+pref+"%' OR FORMULA ILIKE '"+pref+"'" ;
-	       
-	    	try {
-				tq =  new TapQueryWithDatalink( new URL(SPECIESDB_URL), query,  null );
-			} catch (MalformedURLException e) {
-			
-				e.printStackTrace();
-				return null;
-			}
-	    	StarTableFactory tfact = new StarTableFactory();
-	    	try {
-				startable = tq.executeSync( tfact.getStoragePolicy(), ContentCoding.NONE );
-			} catch (IOException e) {
-				e.printStackTrace();
-				return null;
-			}
-	    	return startable;
-
-		
-		}
-		
-		private static Map<String,SpeciesItem>  getMatches(String pref) {
-			
-		//	ArrayList <String> results = new ArrayList<String>();
+			//	ArrayList <String> results = new ArrayList<String>();
 			Map <String, SpeciesItem> results = new HashMap<String,SpeciesItem>();
 			
 			//  !!!!!!!!!!! if user already edited the  line, separate name and formula and query again
 			
 	
-			StarTable st = querySpecies(pref.toLowerCase());
 			
+			if (speciesTable == null) // no services selected yet
+				return null;
 			
+			StarTable st = speciesTable.getTable(); 
+			
+			pref = pref.toLowerCase();
 			
 			for (int i = 0; i < st.getRowCount(); i++) {  // Loop through the rows						
 		        // name, formula, inchikey
+				int nameIndex = speciesTable.getNameIndex();
+				int formulaIndex = speciesTable.getFormulaIndex();
+				int inchikeyIndex = speciesTable.getInchiKeyIndex();
+				
 				try {
+					String name = ((String) st.getCell(i,nameIndex)).toLowerCase();
+					String formula = (String) st.getCell(i,formulaIndex) ;
+					String inchikey = (String) st.getCell(i,inchikeyIndex);
 					
-					SpeciesItem species = new SpeciesItem();
-					species.setName( (String) st.getCell(i,0) );
-					species.setFormula( (String) st.getCell(i,1) );
-					species.setInchikey( (String) st.getCell(i,2) );
+					boolean nameMatch=false;
+					boolean formulaMatch=false;
+					
+					if ( name != null && ! name.isEmpty() )
+					    nameMatch = name.startsWith(pref);
+					if (formula != null && !formula.isEmpty())
+						formulaMatch = formula.equalsIgnoreCase(pref);
+
+			        if (nameMatch || formulaMatch) {
+			           
+			        	SpeciesItem species = new SpeciesItem();
+			        	species.setName( (String) st.getCell(i,nameIndex) );
+			        	species.setFormula( (String) st.getCell(i,formulaIndex) );
+			        	species.setInchikey( (String) st.getCell(i,inchikeyIndex) );
 			
-					results.put( species.getKey(), species);
+			        	results.put( species.getKey(), species);
+			        }
 				
 				} catch (IOException e) {
 					
@@ -308,28 +324,26 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 			
 		} // getMatches
 		
-		
-	} // SpeciesQuery
-	
 	static class SpeciesItem {
+		
 		String name;
 		String formula;
 		String inchikey;
-		
+			
 		public SpeciesItem () {
 			name = "";
 			formula= "";
 			inchikey= "";
 		}
-		
-		public String getName() 
-		{ return name;
+			
+		public String getName() {
+			return name;
 		}
-		public void setName ( String speciesname ) {
+		public void setName ( String speciesname ) {				
 			name = speciesname;
 		}
-		public String getFormula() 
-		{ return formula;
+		public String getFormula() {
+			return formula;
 		}
 		public void setFormula ( String speciesformula ) {
 			formula = speciesformula;
@@ -343,14 +357,14 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 		public String getKey() {
 			return(String.format("%s  [ %s ]", name, formula));
 		}
-		
-	}
+			
+	}//SpeciesItem
 
+	
 	@Override
 	public void insertUpdate(DocumentEvent e) {
 		
-		updateAction(e);
-		
+		updateAction(e);		
 		
 	}
 
@@ -372,7 +386,7 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
   
 	protected void updateAction(DocumentEvent e) {
 		
-		
+
 		  ArrayList<String> result = new ArrayList<String>();
 		  Map<String, SpeciesItem> resultMap;
 		  Object owner = e.getDocument().getProperty("owner");
@@ -380,17 +394,19 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 			  String text = textf.getText();
 			  if ( text != null && ! text.isEmpty() ) {
 				  if ( makeQuery ) {					  
-					  if (! elementChosen ) { // did not select new combobox element
-						  try {
-
-							  resultMap = SpeciesQuery.getMatches(text);
-						  }
-						  catch (Exception e1) {
-
-							  return;
-						  }	 
-						  updateCombo(resultMap);
-					  } else {
+					  if (! elementChosen )
+						try {
+							 // did not select new combobox element
+							resultMap = getMatches(text); 
+							if (resultMap == null)
+								return;
+							updateCombo(resultMap);
+				
+						} catch (Exception e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					else {
 						  elementChosen=false;
 					  }
 
@@ -441,6 +457,20 @@ public class AutoFillCombo  extends JPanel implements ActionListener, DocumentLi
 
 
 	}
+	
+	  public void onSelectionChanged(boolean changed) {
+			System.out.println("CHANGEDSELECTION");
+	        updateSpecies();
+	  }
+
+/*	@Override
+	public void propertyChange(PropertyChangeEvent pvt) {
+		if (pvt.getPropertyName().equals("selectionChanged")) {
+			System.out.println("CHANGEDSELECTION");
+            updateSpecies();
+        }
+		
+	}*/
 
 /*	@Override
 	public void itemStateChanged(ItemEvent e) {

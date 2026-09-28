@@ -31,17 +31,18 @@ import uk.ac.starlink.table.StarTable;
  * A RowPopupTable that represents a table of ssa service resources
  *
  * @author mm
+ * @param <T>
  *
  */
- public class ServerPopupTable extends RowPopupTable {
+ 
+public class ServerPopupTable<T extends SSAPRegResource> extends RowPopupTable {
 
 
-     
+    protected AbstractServerList<T> serverList;
 
-	protected AbstractServerList serverList;
    //  private TableRowSorter<DefaultTableModel> sorter;
 
-     static final int NRCOLS = 15;                    // the number of columns in the table
+   //  static final int NRCOLS = 15;                    // the number of columns in the table
 
      // the table indexes
 
@@ -60,11 +61,14 @@ import uk.ac.starlink.table.StarTable;
       public static final int STDID_INDEX = 12;
       public static final int VERSION_INDEX = 13;
       public static final int SUBJECTS_INDEX = 14;
-      public static final int TABLENAME_INDEX = 15;
-      public static final int TAGS_INDEX = 16;
+      public static final int SPECIESURL_INDEX = 15;
+      public static final int TABLENAME_INDEX = 16;
+      public static final int TAGS_INDEX = 17;
+      
+      
       
      // the table headers
-     private String[] headers = { "short name", "title", "description", "identifier",
+     private static final String[] headers = { "short name", "title", "description", "identifier",
                                  "publisher", "contact", "access URL", "reference URL", "waveband", "content type",
                                  "data source", "creation type", "stantardid", "version", "subjects"};//, "tags"};
 
@@ -72,7 +76,7 @@ import uk.ac.starlink.table.StarTable;
      public ServerPopupTable() {
          super();
          try {
-            serverList=new SSAServerList(false);
+        	serverList = (AbstractServerList<T>) new SSAServerList( false );
         } catch (SplatException e) {
             //
         }
@@ -80,11 +84,12 @@ import uk.ac.starlink.table.StarTable;
 
      public ServerPopupTable(AbstractServerList list) {
          super();
-         serverList=list;     
+         serverList=list; 
          populate();
          sortTableAlphabetically();
-
      }
+     
+     
     /*
      * Populate
      * fills the table with the values of serverList
@@ -142,6 +147,7 @@ import uk.ac.starlink.table.StarTable;
                 tablerow[CREATIONTYPE_INDEX] = cap.getCreationType();
                 tablerow[STDID_INDEX] = cap.getStandardId();
                 tablerow[VERSION_INDEX] = cap.getVersion();
+          
 
                 model.addRow(tablerow);
             }

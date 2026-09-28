@@ -91,6 +91,8 @@ public class SSAServerTable extends AbstractServerPanel  implements PropertyChan
     private JRadioButton src_theo = null;
     private JRadioButton src_obs = null;
     
+    private JRadioButton type_spec = null;
+    private JRadioButton type_lc = null;
     
     // user defined tags
    // @SuppressWarnings("rawtypes")
@@ -120,6 +122,12 @@ public class SSAServerTable extends AbstractServerPanel  implements PropertyChan
     private RowFilter<DefaultTableModel, Object> band_IRFilter;
     private RowFilter<DefaultTableModel, Object> band_MmFilter;
     private RowFilter<DefaultTableModel, Object> band_RadioFilter;
+
+
+	private RowFilter<DefaultTableModel, Object> lightcurveFilter;
+
+
+	private RowFilter<DefaultTableModel, Object> specFilter;
       
 
     /** Make sure the proxy environment is setup */
@@ -252,6 +260,31 @@ public class SSAServerTable extends AbstractServerPanel  implements PropertyChan
         
         srcPanel.add(src_obs);
         srcPanel.add(src_theo);
+        
+        JPanel typePanel = new JPanel (new GridLayout(1, 2));
+        typePanel.setBorder ( BorderFactory.createTitledBorder( "Data Type" ) );
+        
+        
+        bg = new ButtonGroup();
+        
+        type_spec = new JRadioButton("Spectra", true);
+        type_spec.setToolTipText("<html>service contains spectra</html>");
+       
+        bg.add(type_spec);       
+        type_spec.setName("type_spec");
+        type_spec.addItemListener(checkBoxlistener);
+        
+        type_lc = new JRadioButton("Light-curves", false);
+        type_lc.setToolTipText("<html>service contains light-curves</html>");
+     
+        bg.add(type_lc);
+        type_lc.setName("type_lc");
+        type_lc.addItemListener(checkBoxlistener);
+        
+        typePanel.add(type_spec);
+        typePanel.add(type_lc);
+        
+        
   
         // Options Component: User Defined Tags
         JPanel tagPanel= makeTagPanel();
@@ -264,13 +297,20 @@ public class SSAServerTable extends AbstractServerPanel  implements PropertyChan
         gbcOptions.weighty=0;
         gbcOptions.gridx=0;
         gbcOptions.gridy=0;
-      
-        optionsPanel.add(srcPanel,gbcOptions);
+  
+        
+        optionsPanel.add(typePanel,gbcOptions);
         gbcOptions.weighty=.5;
         gbcOptions.gridy=1;
         optionsPanel.add(bandPanel,gbcOptions);
-        
+
+ 
+        optionsPanel.add(srcPanel,gbcOptions);
+        gbcOptions.weighty=.5;
         gbcOptions.gridy=2;
+        optionsPanel.add(bandPanel,gbcOptions);
+        
+        gbcOptions.gridy=3;
         gbcOptions.weighty=1;
         optionsPanel.add(tagPanel, gbcOptions);
         
@@ -285,7 +325,7 @@ public class SSAServerTable extends AbstractServerPanel  implements PropertyChan
        
        optionsScroller.getViewport().add( invOptionsPanel, null );
        optionsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-       optionsScroller.setMinimumSize(new Dimension(220,240));
+       optionsScroller.setMinimumSize(new Dimension(200,280));
         
        return optionsScroller;
     }
@@ -345,14 +385,24 @@ public class SSAServerTable extends AbstractServerPanel  implements PropertyChan
  
     private void initFilters() {
         
-         theoFilter = new RowFilter<DefaultTableModel, Object>() {
+    	 lightcurveFilter = new RowFilter<DefaultTableModel, Object>() {
             
             public boolean include( RowFilter.Entry<? extends DefaultTableModel, ? extends Object> entry) {
-                return (entry.getStringValue(ServerPopupTable.CONTTYPE_INDEX).toLowerCase().contains("simulation") || 
-                        entry.getStringValue(ServerPopupTable.DATASOURCE_INDEX).toLowerCase().contains("theory") );
+                return (entry.getStringValue(ServerPopupTable.SUBJECTS_INDEX).toLowerCase().contains("light-curve") || 
+                       ((entry.getStringValue(ServerPopupTable.TITLE_INDEX).toLowerCase().contains("light") &&
+                        (entry.getStringValue(ServerPopupTable.TITLE_INDEX).toLowerCase().contains("curve")))));
             }    
           };
-          obsFilter = RowFilter.notFilter(theoFilter);    
+          specFilter = RowFilter.notFilter(lightcurveFilter);    
+          
+          theoFilter = new RowFilter<DefaultTableModel, Object>() {
+              
+              public boolean include( RowFilter.Entry<? extends DefaultTableModel, ? extends Object> entry) {
+                  return (entry.getStringValue(ServerPopupTable.CONTTYPE_INDEX).toLowerCase().contains("simulation") || 
+                          entry.getStringValue(ServerPopupTable.DATASOURCE_INDEX).toLowerCase().contains("theory") );
+              }    
+           };
+           obsFilter = RowFilter.notFilter(theoFilter);    
           
           band_RadioFilter = new RowFilter<DefaultTableModel, Object>() {
               public boolean include( RowFilter.Entry<? extends DefaultTableModel, ? extends Object> entry) {
@@ -401,21 +451,26 @@ public class SSAServerTable extends AbstractServerPanel  implements PropertyChan
       
         
         RowFilter<DefaultTableModel,Object> sourceFilter = src_obs.isSelected()?obsFilter:theoFilter;
+        RowFilter<DefaultTableModel,Object> typeFilter = type_lc.isSelected()?lightcurveFilter:specFilter;
        
+        TableRowSorter<DefaultTableModel> typeSorter = getTableRowSorter();
         TableRowSorter<DefaultTableModel> sorter = getTableRowSorter();
-        
-        if ( band_all.isSelected()) {
-            sorter.setRowFilter(sourceFilter);
-            
-        } 
-        else {   
-            
-            List<RowFilter<DefaultTableModel,Object>> bandfilters = new ArrayList<RowFilter<DefaultTableModel,Object>>();   
-            List<RowFilter<DefaultTableModel,Object>> filters = new ArrayList<RowFilter<DefaultTableModel,Object>>(); 
+
+        List<RowFilter<DefaultTableModel,Object>> filters = new ArrayList<RowFilter<DefaultTableModel,Object>>(); 
+
+        if ( type_lc.isSelected()) {
+        	sorter.setRowFilter(typeFilter);
+   
+        } else if ( band_all.isSelected()) {
+        	sorter.setRowFilter(sourceFilter);
+        }
+        else {
+        	filters.add(typeFilter);
+        	filters.add(sourceFilter);
+        	
+        	List<RowFilter<DefaultTableModel,Object>> bandfilters = new ArrayList<RowFilter<DefaultTableModel,Object>>(); 
             
             String selected = "";
-            
-            filters.add(sourceFilter);
             
             if ( band_rad.isSelected()) {
                 selected+=" radio ";
@@ -521,7 +576,13 @@ public class SSAServerTable extends AbstractServerPanel  implements PropertyChan
                 }
                 if (name.equals("src_obs") &&  e.getStateChange() == ItemEvent.SELECTED) {
                     firePropertyChange("changeToObservation", false, true);
-                 }
+                }
+                if (name.equals("type_spec") &&  e.getStateChange() == ItemEvent.SELECTED) {
+                    firePropertyChange("changeToSpectra", false, true);
+                }
+                if (name.equals("type_lc") &&  e.getStateChange() == ItemEvent.SELECTED) {
+                    firePropertyChange("changeToLightCurves", false, true);
+                }
                 
             } // if selected/deselected
             

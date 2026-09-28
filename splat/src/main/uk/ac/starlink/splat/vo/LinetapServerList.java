@@ -40,7 +40,7 @@ public class LinetapServerList extends AbstractServerList {
         if (shortname != null && shortname != "")
             shortname = shortname.trim();
         else shortname = server.getTableName();
-        SSAPRegResource resource = serverList.get(shortname); 
+        SSAPRegResource resource = (SSAPRegResource) serverList.get(shortname); 
         if (resource != null ) { // check if there is already a resource with same shortname
             String ident = resource.getIdentifier();    
             if (ident != null && ident.equals( server.getIdentifier()) ) { // same identifier (other capability)     

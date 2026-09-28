@@ -45,6 +45,8 @@ public class SSAPRegResource implements RegResource
      */
     public SSAPRegResource( SSAPRegResource resource )
     {
+    	
+    
         shortName = resource.getShortName();
         title = resource.getTitle();
         identifier = resource.getIdentifier();
@@ -73,6 +75,7 @@ public class SSAPRegResource implements RegResource
             contentType = capabilities[0].getDataType();
         
     }
+  
 
     /**
      * Constructor. Initialised from a {@link AddNewServerFrame}, allows

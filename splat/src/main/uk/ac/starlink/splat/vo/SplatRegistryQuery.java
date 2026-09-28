@@ -142,9 +142,9 @@ public class SplatRegistryQuery implements RegistryQuery {
        else  if (protocol == SSAP)
                adql_ = getSSAPAdql();
        else if (protocol == SLAP)
-               adql_ = getSLAPAdql();
-       else if (protocol == LINETAP)
-           adql_ = getLINETAPAdql();
+               adql_ = getSLAPV2Adql() ;
+      // else if (protocol == LINETAP)
+     //      adql_ = getSLAPV2Adql();
     }
     
     private String getSSAPAdql() {
@@ -168,7 +168,7 @@ public class SplatRegistryQuery implements RegistryQuery {
     }
 
     private String getSLAPAdql() {
-
+    	
         return "SELECT short_name, res_title,  res_description, ivoid, access_url, reference_url, "+
                 "waveband, content_type, baseroles, rolenames,  emails, cappaths, capvals, " +
                 "standard_id, std_version, res_subjects " +
@@ -186,6 +186,7 @@ public class SplatRegistryQuery implements RegistryQuery {
                 "FROM rr.res_role GROUP BY ivoid) as q "+
                 "WHERE standard_id='ivo://ivoa.net/std/slap'" ;
     }
+    
 
     private String getObsCoreAdql() {
 
@@ -209,15 +210,39 @@ public class SplatRegistryQuery implements RegistryQuery {
                 "AND (1=ivo_nocasematch(detail_value, 'ivo://ivoa.net/std/obscore%'))";
     }
     
-    private String getLINETAPAdql() {
+    private String getSLAPV2Adql() {
+    	
+    	return  "WITH species AS (" +
+    		    "    SELECT ivoid, ivo_string_agg(access_url, '#') AS species_access_url " +
+    		    "    FROM rr.interface NATURAL JOIN rr.capability " +
+    		    "    WHERE standard_id = 'ivo://ivoa.net/std/slap#species-2.0' " +
+    		    "    GROUP BY ivoid" +
+    		    ") " +
+    		    "SELECT short_name, res_title, res_description, res.ivoid, access_url, reference_url, " +
+    		    "       waveband, content_type, baseroles, rolenames, emails, cappaths, capvals, " +
+    		    "       standard_id, std_version, res_subjects, species_access_url " +
+    		    "FROM rr.resource AS res NATURAL JOIN rr.interface NATURAL JOIN rr.capability " +
+    		    "NATURAL LEFT OUTER JOIN (" +
+    		    "    SELECT ivoid, " +
+    		    "           ivo_string_agg(detail_xpath, '#') AS cappaths, " +
+    		    "           ivo_string_agg(detail_value, '#') AS capvals " +
+    		    "    FROM rr.res_detail GROUP BY ivoid" +
+    		    ") AS qq " +
+    		    "NATURAL LEFT OUTER JOIN (" +
+    		    "    SELECT ivoid, ivo_string_agg(res_subject, ', ') AS res_subjects " +
+    		    "    FROM rr.res_subject GROUP BY ivoid" +
+    		    ") AS sbj " +
+    		    "NATURAL LEFT OUTER JOIN (" +
+    		    "    SELECT ivoid, " +
+    		    "           ivo_string_agg(base_role, '#') AS baseroles, " +
+    		    "           ivo_string_agg(role_name, '#') AS rolenames, " +
+    		    "           ivo_string_agg(email, '#') AS emails " +
+    		    "    FROM rr.res_role GROUP BY ivoid" +
+    		    ") AS q " +
+    		    "NATURAL LEFT OUTER JOIN species " +
+    		    "WHERE standard_id = 'ivo://ivoa.net/std/slap#lines-2.0'";
 
-        return "SELECT DISTINCT  table_name, ivoid, access_url FROM rr.res_table " 
-        		//+ "NATURAL JOIN rr.resource "
-        		+ "NATURAL JOIN rr.capability "
-        		+ "NATURAL JOIN rr.interface WHERE "
-        		+ "table_utype LIKE 'ivo://ivoa.net/std/linetap#lines-1.0%' AND standard_id LIKE 'ivo://ivoa.net/std/tap#%' AND intf_role='std'" ;
     }
-
 
     public DescribedValue[] getMetadata() {
         return new DescribedValue[] {
@@ -400,12 +425,13 @@ public class SplatRegistryQuery implements RegistryQuery {
             
             String tableName = getString( row, "table_name" );
                    
-            
+            String speciesURL = getString( row, "species_access_url" );
             String cappaths = getString( row, "cappaths" );
             String capvals = getString( row, "capvals" );
              
             String baseRoles = getString( row, "baseroles" );
             String roleNames = getString( row, "rolenames" );
+       
             String email = getString( row, "emails" ).replace("<", "&lt;").replace(">", "&gt;"); // replace needed if information is displayed in html
             String contact = "";
             String publisher = "";
@@ -477,16 +503,18 @@ public class SplatRegistryQuery implements RegistryQuery {
 
             SSAPRegResource resource = (SSAPRegResource) resMap_.get(ivoid);
 
-            SSAPRegCapability cap = new SSAPRegCapability("", accessUrl );
+           
+            SLAPRegCapability cap = new SLAPRegCapability( "", accessUrl );
+            cap.setCreationType( creationType );
+            cap.setDataSource( dataSource );
+            cap.setStandardId( standardId );
+            cap.setSpeciesURL( speciesURL);
 
-            cap.setCreationType(creationType);
-            cap.setDataSource(dataSource);
-            cap.setStandardId(standardId);
+            SSAPRegCapability[] caps = new SSAPRegCapability[1];
+            caps[0] = cap;   // SLAPRegCapability is-a SSAPRegCapability
+            resource.setCapabilities( caps );
 
 
-            SSAPRegCapability [] caps = new SSAPRegCapability[1];
-            caps[0] = cap;
-            resource.setCapabilities(caps);
            
         }
 

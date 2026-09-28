@@ -16,6 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -102,7 +103,7 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
     private SpecData currentLines = null;
     private int SLAP_INDEX=0;
     private int VAMDC_INDEX=1;
-    private int LINETAP_INDEX=2;
+// private int LINETAP_INDEX=2;
     private VAMDCLib vamdc;
     
     // menubar
@@ -153,6 +154,7 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
          globalList.addPlotListener(this);
          setVisible( true );
          plot.addPropertyChangeListener(this);
+         linesQuery.addPropertyChangeListener(this);
     }
     
     private void initMenubar() {
@@ -216,6 +218,9 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
         // Lines QUery panel
         
         linesQuery = new LinesQueryPanel(this);
+        linesQuery.addPropertyChangeListener(this);
+
+       
       //  splitPane.setDividerLocation( 0.5); //linesQuery.getWidth() );
 
         splitPane.setLeftComponent( linesQuery );
@@ -260,57 +265,60 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
    
    }
    
-   public void makeQuery( String queryString, String table) {
+   public ServerPopupTable prepareQuery( ) {
 	   
-	   
-       ServerPopupTable currentTable=null;
-       String accessURL = "";
+	   resultsPanel.removeAllResults();
+	       ServerPopupTable currentTable=null;
 
-    
-	   // we have the query string, have to find the service
-	   if (linesQuery.isLinetapSelected()) {
-	        progressFrame = new ProgressPanelFrame( "Querying LINETAP Services" );    
-	       currentTable= linesQuery.getLinetapTable();
-	       int accessURLrow = currentTable.getRowIndexByValue( ServerPopupTable.SHORTNAME_INDEX, (Object) table);
-	       if (accessURLrow>0) {
-	    	   accessURL = currentTable.getAccessURL(accessURLrow );
-	       } else
-	    	   return; // give error message!
-	       
-	       resultsPanel.removeAllResults();
 	       if (progressFrame != null) {
 	           progressFrame.closeWindowEvent();
 	           progressFrame=null;
 	       }
-	       progressFrame = new ProgressPanelFrame( "Querying LINETAP Services" );  
-	  
-	   }
-	   executeQuery (queryString, table, accessURL);
+
+	       if (linesQuery.isSLAPSelected()) {
+	           progressFrame = new ProgressPanelFrame( "Querying SLAP Services" );     
+	           currentTable = linesQuery.getSlapTable();
+	        
+	       } else {
+	    	   progressFrame = new ProgressPanelFrame( "Querying VAMDC Services" );    
+	           currentTable = linesQuery.getVamdcTable();
+	       }
+	   return currentTable;
+   }
+   
+   public void makeQuery( String queryTemplate) {
+	   
+	   ServerPopupTable currentTable = prepareQuery();
+	   
+
+       for ( int r : currentTable.getSelectedRows() ) {
+    	   
+    	   String queryString="";
+           
+           int row=currentTable.convertRowIndexToModel(r);
+           final String shortname = currentTable.getShortName(row);
+           
+           String accessURL=currentTable.getAccessURL(row);
+           
+           if (linesQuery.isSLAPSelected()) {
+               	queryString = queryTemplate.replace("[SELECTED_SERVICE_URL]?", "");
+           
+           		queryString = accessURL+queryString;
+           }
+           	   
+           /// VAMDC Advanced Query not implemented yet
+               
+           executeQuery (queryString, shortname, accessURL);
+           
+       }	 
 	   
    }
+   
+   
+   public void makeQuery( ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String species, String charge, String inChiKey, String maxrec) {
 
-   public void makeQuery( ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String species, String charge, String inChiKey) {
-
-       resultsPanel.removeAllResults();
-       ServerPopupTable currentTable=null;
-
-       if (progressFrame != null) {
-           progressFrame.closeWindowEvent();
-           progressFrame=null;
-       }
-
-       if (linesQuery.isSLAPSelected()) {
-           progressFrame = new ProgressPanelFrame( "Querying SLAP Services" );     
-           currentTable = linesQuery.getSlapTable();
-           // makeSlapQuery(ranges, lambda);           
-       } else  if (linesQuery.isLinetapSelected()) {
-           progressFrame = new ProgressPanelFrame( "Querying LINETAP Services" );    
-           currentTable = linesQuery.getLinetapTable();
-       } else {
-    	   progressFrame = new ProgressPanelFrame( "Querying VAMDC Services" );    
-           currentTable = linesQuery.getVamdcTable();
-           // makeVamdcQuery(ranges, lambda);
-       }
+	   ServerPopupTable currentTable = prepareQuery();
+    
        for ( int r : currentTable.getSelectedRows() ) {
            
            int row=currentTable.convertRowIndexToModel(r);
@@ -320,66 +328,15 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
            String accessURL=currentTable.getAccessURL(row);
            
            if (linesQuery.isSLAPSelected()) 
-               queryString = makeSlapQuery(ranges, lambdas, species, accessURL);
-           else if (linesQuery.isLinetapSelected()) {
-        // = linesQuery.getLineTapQuery(  currentTable.getTableName(row) );
-
-          queryString = makeLinetapQuery(  currentTable.getTableName(row), ranges, lambdas, species, charge, inChiKey, accessURL);
-        	 //  Logger.info(this, "Linetap Query:"+queryString);
-               }
-           else
+               queryString = makeSlapQuery(ranges, lambdas, species, inChiKey, accessURL, charge, maxrec);
+           	   
+            else
                queryString= makeVamdcQuery(ranges, lambdas, species, charge, inChiKey, currentTable.getAccessURL(row));
 
            
            executeQuery (queryString, shortname, accessURL);
-           /*
-           Logger.info(this, "query= "+queryString);
-           final ProgressPanel progressPanel = new ProgressPanel( "Querying: " + shortname );
-           progressFrame.addProgressPanel( progressPanel );
-
-           final SwingWorker worker = new SwingWorker()
-           {
-               boolean interrupted = false;
-               public Object construct() 
-               {
-                   progressPanel.start();
-                   try {
-                       startQuery( shortname, queryString, accessURL, progressPanel );
-                   }
-                   catch (Exception e) {
-                       interrupted = true;
-                   }
-                   return null;
-               }
-
-
-
-
-			public void finished()
-               {
-                   progressPanel.stop();
-                   //  Display the results.
-                   if ( ! interrupted ) {
-                       //        addResultsDisplay( ssaQuery );
-                   }
-               }
-           };
-           progressPanel.addActionListener( new ActionListener()
-           {
-               public void actionPerformed( ActionEvent e )
-               {
-                   if ( worker != null ) {
-                       worker.interrupt();
-                   }
-               }
-           });
-
-           worker.start();  
-           */
+           
        }
-
-
-
 
    }
    
@@ -433,50 +390,8 @@ public class LineBrowser extends JFrame implements  MouseListener, PlotListener 
 
    }
 
-   private String makeLinetapQuery(String table, ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String name, String charge, String inchikey, String accessURL) {
-	   String query = accessURL;
 
-	   String request="SELECT * from "+table+" WHERE ";
-
-	   String wlist="";
-	   if (ranges!= null && ranges.size()==0) {
-		   wlist="";
-	   } else {
-		   // frequency range from selection
-		   wlist="vacuum_wavelength";
-		   for (int spec =0;spec<ranges.size();spec++) { 
-			   int[] range=ranges.get(spec);
-
-			   for (int i=0;i<range.length;i+=2) {
-				   double rangeval []  = getRanges(i, range, lambdas, spec);        	
-				   wlist+=" between "+ rangeval[0]+" and "+rangeval[1];
-
-				   if (i+1<rangeval.length-1)
-					   wlist+=" OR vacuum_wavelength ";
-			   }
-			   if (spec<ranges.size()-1)
-				   wlist+=" OR vacuum_wavelength  ";
-		   }
-	   }
-	   String and="";
-	   if (!wlist.isEmpty()) {    
-		   request+=wlist;
-		   and=" AND ";
-       }
-       if (! inchikey.isEmpty()) {
-           request += and+ "inchikey ILIKE '%"+inchikey+"%'";
-       } else if ( !name.isEmpty()) {
-    	   request += and+ "element ILIKE  '"+name+"'";
-    	   and="AND ";
-       	   if ( ! charge.isEmpty() && Integer.parseInt(charge) != 0 ) 
-       			request += and+ "ion_charge ="+charge;
-       }
-       
-       return request;
-
-}
-
-private double[] getRanges(int index, int[] range, ArrayList<double[]> lambdas, int spec) {
+   private double[] getRanges(int index, int[] range, ArrayList<double[]> lambdas, int spec) {
 	double [] rangevalue = new double [2]; 
    
     double[] lambda=lambdas.get(spec);
@@ -490,7 +405,7 @@ private double[] getRanges(int index, int[] range, ArrayList<double[]> lambdas, 
 	return rangevalue;
 }
 
-private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String element, String stage,String inchiKey, String accessURL) {
+   private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String element, String stage,String inchiKey, String accessURL) {
 
 
        final String query = accessURL+"sync?LANG=VSS2&REQUEST=doQuery&FORMAT=XSAMS&QUERY=";
@@ -529,21 +444,17 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
     	   request += and+"(( inchiKey = \'"+inchiKey+  "\' ))";
        }
 
-       try {
-           return query+URLEncoder.encode(request, "UTF-8");
-       } catch (UnsupportedEncodingException e) {
-           e.printStackTrace();
-       }
 
-       return query;
+       return query+encodeQuery(request);
+    
 
    }
 
-   private String makeSlapQuery( ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String element, String accessURL) {
+   private String makeSlapQuery( ArrayList<int[]> ranges, ArrayList<double[]> lambdas, String element, String inchikey, String accessURL, String charge, String maxrec) {
 
        final String query = accessURL;
        
-       String request="REQUEST=queryData&";
+       String request="";
        if (!query.endsWith("?")) {
            request="?"+request;
        }
@@ -554,7 +465,8 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
            double[] lambda=lambdas.get(spec);
            for (int i=0;i<range.length;i+=2) {
         	   double [] rangeval = getRanges(i, range, lambdas, spec); 
-               wlist+=rangeval[0]+"/"+rangeval[1];
+        	   // convert angstroms to meters
+               wlist+=rangeval[0]*1e-10+" "+rangeval[1]*1e-10;
                if (i+1<range.length-1)
                    wlist+=",";
            }
@@ -567,37 +479,63 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
            and="&";
        }
        if (! element.isEmpty()) {
-           request += and+ "CHEMICAL_ELEMENT="+element;
+           request += and+ "SPECIES="+element;
+           and="&";
        }
-
-   /*    try {
-           return query+URLEncoder.encode(request, "UTF-8");
-       } catch (UnsupportedEncodingException e) {
-           e.printStackTrace();
-       }*/
+       if (! inchikey.isEmpty()) {
+           request += and+ "INCHIKEY="+inchikey;
+           and="&";
+       }
+       if (! charge.isEmpty()) {
+           request += and+ "ION_CHARGE="+charge;
+           and="&";
+       }
+       if (! maxrec.isEmpty()) {
+           request += and+ "MAXREC="+maxrec;
+           and="&";
+       }
        
-       return query+request;
-
+       return query+encodeQuery(request);
    }
 
+   private static String encodeQuery(String request) {
+	   // encode query request - only the parameters
+	   String q = request.trim();
+	   if (q.startsWith("?")) q = q.substring(1);   // tolerate a leading '?'
 
-    private void startQuery(String shortname, String query, String accessURL,  ProgressPanel progressPanel) throws InterruptedException {
+	   StringBuilder sb = new StringBuilder();
+	   for (String pair : q.split("&")) {
+		   if (pair.isEmpty()) continue;
+		   int eq = pair.indexOf('=');               // first '=' only
+		   String key = eq < 0 ? pair : pair.substring(0, eq);
+		   String val = eq < 0 ? ""   : pair.substring(eq + 1);
+
+		   if (sb.length() > 0) sb.append('&');
+		   sb.append(encodeRequest(key.trim()));
+		   if (eq >= 0) {
+			   sb.append('=').append(encodeRequest(val.trim()));
+		   }
+	   }
+
+	   return sb.toString();
+   }
+   private static String encodeRequest(String s) {
+	    try {
+	        return URLEncoder.encode(s, "UTF-8");
+	    } catch (UnsupportedEncodingException e) {
+	        // cannot happen: every JVM must support UTF-8
+	        throw new IllegalStateException(e);
+	    }
+	}
+
+   private void startQuery(String shortname, String query, String accessURL,  ProgressPanel progressPanel) throws InterruptedException {
 
       
         URLConnection con = null;
-        StarTable startable = null;
-        
-      
+        StarTable startable = null; 
 
         try {  
-            if (linesQuery.isLinetapSelected()) {
-            	  StarTableFactory tfact = new StarTableFactory();
-                  // Initializes TapQuery       
-                  TapQueryWithDatalink tq =  new TapQueryWithDatalink( new URL(accessURL), query,  null );
-                  startable =  tq.executeSync( tfact.getStoragePolicy(), ContentCoding.NONE ); // to do check storagepolicy              
-            	
-            } else {
-            	  con = checkAndConnect(  query,  progressPanel);
+            	con = checkAndConnect(  query,  progressPanel);
             	if ( linesQuery.isSLAPSelected()) {            	
             		con.connect();
             		startable = new StarTableFactory(true).makeStarTable( con.getInputStream(), new VOTableBuilder() );
@@ -605,8 +543,7 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
                   if (con != null)
                 	  startable = vamdc.getResultStarTable(query, con.getInputStream());
             	}
-            }
-            // reset zoom 
+
             zoomcol=-1;
             
         } catch (IOException e) {
@@ -637,7 +574,8 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
        
     }
     
-    private URLConnection checkAndConnect(String query, ProgressPanel progressPanel) {
+   public URLConnection checkAndConnect(String query, ProgressPanel progressPanel) {
+
     	
     	URL queryURL = null;
     	URLConnection con = null;
@@ -701,18 +639,20 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
         
 		return con;
 	}
-    public void addLinesandDisplay( LineIDSpecDataImpl impl, StarTable table, String name) {
+   
+   public void addLinesandDisplay( LineIDSpecDataImpl impl, StarTable table, String name) {
     	  
     	addLinesTable(table, name);
    	    displayLines(table, (LineIDTableSpecDataImpl) impl);
    }
-    public void addLinesandDisplay( LineIDTableSpecDataImpl impl, StarTable table, String name) {
+   
+   public void addLinesandDisplay( LineIDTableSpecDataImpl impl, StarTable table, String name) {
   	  
     	addLinesTable(table, name);
    	    displayLines(table, impl);
    }
     
-    protected void addLinesTable( StarTable table, String name) {
+   protected void addLinesTable( StarTable table, String name) {
     	
        
       	 StarPopupTable ptable = new StarPopupTable( table, true ); 
@@ -723,7 +663,7 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
       }
     
     
-    protected void displayLineSelection(StarJTable table) {
+   protected void displayLineSelection(StarJTable table) {
         
                 StarTable startable;
                 try {
@@ -815,11 +755,11 @@ private  String makeVamdcQuery( ArrayList<int[]> ranges, ArrayList<double[]> lam
         	LineIDTableSpecDataImpl impl = null;
         	
         	if (lineImpl == null ) {
-        		if (linesQuery.isLinetapSelected()) {
+        	/*	if (linesQuery.isLinetapSelected()) {
         			impl = new LineIDTableSpecDataImpl(table, "vacuum_wavelength", null, "title");
         		
         		}        
-        		else 
+        		else */
         			impl = new LineIDTableSpecDataImpl(table);
         	}
         	else
@@ -913,11 +853,11 @@ protected void displayOneLine(StarJTable table, int row) {
         
         try {
         	LineIDTableSpecDataImpl impl = null;
-        	if (linesQuery.isLinetapSelected()) 
+       /* 	if (linesQuery.isLinetapSelected()) 
         		impl = new LineIDTableSpecDataImpl(subtable, "vacuum_wavelength", null, "title");
-        	else {
+        	else {*/
         		impl = new LineIDTableSpecDataImpl(subtable);
-        	}
+        	//}
         	
 
         	DescribedValue xval= subtable.getParameterByName("xlabel");
@@ -957,9 +897,9 @@ protected void displayOneLine(StarJTable table, int row) {
 		  return;
 	  try {
 		  LineIDTableSpecDataImpl impl = null;
-		  if (linesQuery.isLinetapSelected()) 
+/*		  if (linesQuery.isLinetapSelected()) 
 			  impl = new LineIDTableSpecDataImpl(subtable, "vacuum_wavelength", null, "title");
-		  else 
+		  else */
 			  impl = new LineIDTableSpecDataImpl(subtable);
 
 		  LineIDSpecData data = new LineIDSpecData(impl, hovermode);    
@@ -1179,6 +1119,8 @@ protected void displayOneLine(StarJTable table, int row) {
 		} else if ( pce.getPropertyName().equals("zoomOptions")) {
 	
 				prepareZoomParameters();
+		} else if (pce.getPropertyName().equals("selectionChanged")) {
+			
 		}
 	}
 
@@ -1323,17 +1265,25 @@ protected void displayOneLine(StarJTable table, int row) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		  
-		  
+		    
 	  }
-	  
-	//  BitSet rowmask = BitSet.valueOf(selection);
-	//  RowSubsetStarTable subtable =  new RowSubsetStarTable( table.getStarTable(), rowmask ) ;
 	  resultsPanel.addTab("Selection", new StarPopupTable(subtable, table.hasRowHeader()));
 	  
 	}
+	
 
+	public LinesQueryPanel getLinesQueryPanel() {
+		return linesQuery;
+		
+	}
 
+/*	public void propertyChange(PropertyChangeEvent pvt)
+	{
+	        // trigger a metadata update if metadata has been added
+	        if (pvt.getPropertyName().equals("changeQuery")) {
+	            updateQueryText();
+	        }
+*/
     //
     // LocalAction to encapsulate all trivial local Actions into one class.
     //
@@ -1400,6 +1350,12 @@ protected void displayOneLine(StarJTable table, int row) {
        
 		
     }
+
+	public void makeAdvancedSLAPQuery(String query) {
+		// execute advanced SLAP query
+		
+		
+	}
 
 
  
