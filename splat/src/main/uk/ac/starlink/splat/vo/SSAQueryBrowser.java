@@ -1601,7 +1601,6 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
 
     	URL queryURL = null;
 
-    	logger.info( "Querying: " + queryURL );
     	progressPanel.logMessage( ssaQuery.getBaseURL() );
 
     	try {             
@@ -1627,6 +1626,8 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
 
 
     		URLConnection con =  queryURL.openConnection();
+    		con.setConnectTimeout(10 * 1000); // 10 seconds
+    		con.setReadTimeout(30*1000);
     		//  Handle redirects
     		if ( con instanceof HttpURLConnection ) {
     			int code = ((HttpURLConnection)con).getResponseCode();
@@ -1643,8 +1644,7 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
 
     		}
 
-    		con.setConnectTimeout(10 * 1000); // 10 seconds
-    		con.setReadTimeout(30*1000);
+    		
     		con.connect();
 
     		InputSource inSrc = new InputSource( con.getInputStream() );
