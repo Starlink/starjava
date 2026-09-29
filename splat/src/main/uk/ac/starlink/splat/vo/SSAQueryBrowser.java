@@ -1071,16 +1071,22 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
         JPanel timePanel = new JPanel( new GridBagLayout() );
 
         GridBagConstraints gbc4 = new GridBagConstraints();
+        gbc4.gridy = 0;
+        gbc4.gridx = 0;
         gbc4.weightx = 1.0;
         gbc4.fill = GridBagConstraints.HORIZONTAL;
         timePanel.add( lowerTimeField, gbc4 );
 
         GridBagConstraints gbc5 = new GridBagConstraints();
+        gbc5.gridy = 0;
+        gbc5.gridx = 1;
         gbc5.weightx = 0.0;
         gbc5.fill = GridBagConstraints.NONE;
         timePanel.add( new JLabel( "/" ), gbc5 );
 
         GridBagConstraints gbc6 = new GridBagConstraints();
+        gbc6.gridy = 0;
+        gbc6.gridx = 2;
         gbc6.weightx = 1.0;
         gbc6.fill = GridBagConstraints.HORIZONTAL;
         timePanel.add( upperTimeField, gbc6 );
