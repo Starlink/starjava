@@ -1,5 +1,12 @@
 1 Starlink SPLAT news.
 
+   4.1
+   ===
+   - SLAP2 prototype implementation
+   - removed LineTap implementation
+   - bugfixes
+   - choice of spectral/light curve services selection in SSAP browser
+
    4.0 
    ===
    - LineTAP prototype implementation

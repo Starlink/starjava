@@ -16,9 +16,9 @@
  Copyright \copyright\ 2013 German Astrophysical Virtual Observatory (GAVO)}
 \stardocnumber      {243.42}
 \stardocauthors     {Peter W. Draper, Margarida Castro Neves \& Mark Taylor}
-\stardocdate        {1 Apr 2018}
+\stardocdate        {29 Sep 2026}
 \stardoctitle       {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\stardocversion     {3.15}
+\stardocversion     {4.1}
 \stardocmanual      {User's Manual}
 \stardocabstract {
 \xlabel{abstract}
@@ -911,7 +911,7 @@ the display area.\\
   for instance time of observation.
   
    \item[] \inline{speclines} Shows the  \SPLAT\ Line Browser window, which allows to search for 
-  spectral lines using the VO (SLAP)  and VAMDC, and display chosen lines into the spectrum.
+  spectral lines using the SLAP2, VAMDC and display chosen lines into the spectrum.
 
  \end{itemize}
 
@@ -982,7 +982,7 @@ the display area.\\
 
 \item \subsubmenuitem{Options}{Line identifiers}{Line Browser}
   This option opens the  \SPLAT\ Line Browser window, which allows to search for 
-  spectral lines using the VO (SLAP)  and VAMDC.
+  spectral lines using the SLAP2 and VAMDC.
 
   \item \subsubmenuitem{Options}{Line identifiers}{Load all matching line identifiers}
   If you select this option then all line identifiers known to \SPLAT\
@@ -1239,6 +1239,9 @@ wavelengths or times. Addtional \labelitem{Optional Parameters} are also
 provided for even more refinement, but note that these may not be supported by all
 SSAP servers.
 
+As SSAP has been used to publish light curves as well, SPLAT can also query, read
+and display light curves accordingly.
+
 \mainfigure{ssapwindow}
 
 The figure above shows the window after a query has been made.  The window is
@@ -1253,7 +1256,7 @@ area, showing the query results.
 You can select one or more servers from the \labelitem{SSAP Servers} list by clicking
 on them.
 It's  also possible to select a subset of servers based on their given metadata. Selection can be
-made according to data source (observation or theory data), and waveband.
+made according to data type (spectra or light curves), data source (observation or theory data), and waveband.
 It's also possible to add tags to one or more servers,  so only the tagged servers will be
 queried if the tag is selected.
 When right-clicking on a server in the \labelitem{SSAP Servers} list you get a popup menu
@@ -1349,7 +1352,7 @@ appear with following options:
 
 \subheading{Implementation status}
 
-SSAP, OBSCore, DataLink, SLAP are  being developed by the IVOA
+SSAP, OBSCore, DataLink and  SLAP2  are  being developed by the IVOA
 (\htmladdnormallinkfoot{International Virtual Observatory Alliance}
 {http://www.ivoa.net/}).
 
@@ -1481,35 +1484,76 @@ copy the row, or just the access url to the clipboard, which can be used to open
 \subsection{Spectral lines query\xlabel{lines_browser}}
 
 To start the spectral lines browser window, click on the \inline{speclines} symbol from
-a plot.
-In this window, spectral lines  can be searched using SLAP and VAMDC services
-and displayed into a plot. First of all, one or more wavelength ranges have to
-be added to the ranges list by clicking on the {Add} Button and selecting a region
-in the plot. The selected region will be marked by a gray rectangle. After the query, 
-or when it's not needed anymore, it can be removed from  the plot using the {Delete} button.
+a plot. In this window, spectral lines  can be searched using SLAP2 or VAMDC services
+and displayed into a plot. 
 To search use this window with a different plot, use the plot selection box.
+
+Like the SSAP and OBScore browser windows, this window has a query part
+and a results list part.
 
 
 \mainfigure{spectrallineswindow}
 
-
-The query options that can be added are element symbol and stage/ion charge. Most SLAP 
-services do not support (yet) the later, but it's supported by VAMDC services.
-
-The selection of the services to be queried is similar to  SSAP and Obscore browsers intrfaces.
-In this case, there are two services tabs, one for SLAP services, and other for VAMDC services.
-
-The \textbf{Search} Button sends the query to the selected services. The results will appear on the
-results area on the right side of the window. To display selected lines on the plot use the
-use the buttons on the lower right side, or right-click on the line you want to display.
-The \textbf{Remove lines} button removes all lines from the plot.
-
+\subheading{Plot Selection}
+\begin{quote}
 The lines browser window is linked to the plot which started it. Wavelength range selection 
 can be done only in this plot, as well as spectral lines can be only displayed in this plot.
+To display in another plot, the \textbf{Select Plot} option can be used, and the browser will be linked to 
+the selected plot.
 
-SLAP (Simple Line Access Protocol) is   being developed by the IVOA
+\end{quote}
+
+\subheading{Range selection}
+\begin{quote}
+One or more wavelength ranges have to be added to the ranges list by clicking on the {Add} button and selecting a region
+in the plot. The selected region will be marked by a gray rectangle. After the query,  or when it's not needed anymore, it can be removed from  the plot using the {Delete} button. If you want to search the full range of the plot, click the \textbf{Full Range} button. 
+\end{quote}
+
+\subheading{Service selection}
+\begin{quote}
+In this case, there are two services tabs, one for SLAP2 services, another 
+for VAMDC services. SLAP2 offers also an advanced mode tab, where an SLAP2 query can be entered,
+for more flexibility and use of all parameters offered by SLAP2.
+\end{quote}
+
+
+
+\subheading{Query options}
+\begin{quote}
+
+\textbf{Species selection}: There are two options, molecule or atom search. 
+Species  can be searched by name or formula.  Ion charge is the numeric charge, e.g. HI has ion charge 0, FeII has ion charge 1.
+Maxrec is the maximal number of records that will be returned.\\
+If one or more SLAP2 services are selected, a list of Species provided by this services will be used to autofill the molecule text choice.
+For atoms, a pre-compiled list of all elements will be used to autofill.
+ \\
+\textbf{Advanced}:  Users with SLAP2 knowledge can enter a SLAP2 query here. More flexible than the simple guided query input.
+Checking "Show info" will display a window with a list of all SLAP2 parameters, units, descriptions and examples of use.
+\end{quote}
+
+
+The \textbf{Search} Button sends the query to the selected services. The results will appear on the
+results area on the right side of the window. To display selected lines on the plot
+use the buttons on the lower right side, or right-click on the line you want to display.
+The lines can also be sorted by clicking the column name. For example, to sort them by wavelength,
+click on the wavelength column.
+
+The \textbf{Remove lines} button removes all lines from the plot.
+
+When the  \textbf{hover mode} button is selected, you can hover with the mouse through the list of lines and
+the line that is under the mouse pointer will be displayed on the plot.
+
+When the \textbf{zoom lines} button is activated, at first the 5 lines with higher probability will appear. By increasing the zoom, more lines will appear - the next ones in probability. Two probability modes can be chosen, the Einstein A probability and the temperature probability - in this case a star temperature needs to be given. Note that not all services return Einstein A probabilities. The zoom options can be set using the \textbf{options} at the menubar.
+
+Using \textbf{Options  $\rightarrow$ Subtable} a subtable can be created containing  selected lines from the results table.
+
+A lines table can be saved for later reference by selecting  \textbf{File} $\rightarrow$ \textbf{Save}. A saved lines table can be 
+reopened using  \textbf{File} $\rightarrow$ \textbf{Open}. Tables will be saved using VOTable format.
+
+
+SLAP2 (Simple Line Access Protocol, Version 2)  is being developed by the IVOA
 (\htmladdnormallinkfoot{International Virtual Observatory Alliance}
-{http://www.ivoa.net/}), and VAMDC services are provided by the 
+{http://www.ivoa.net/}).  VAMDC services are provided by the 
 (\htmladdnormallinkfoot{VAMDC Consortium}{http://www.vamdc.org/}).
 
 

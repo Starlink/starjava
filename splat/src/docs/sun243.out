@@ -1,0 +1,35 @@
+\BOOKMARK [1][-]{section.1}{Overview}{}% 1
+\BOOKMARK [1][-]{section.2}{Getting started}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Displaying a spectrum}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Displaying more than one spectrum}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{Basic control of a plot view}{section.2}% 5
+\BOOKMARK [1][-]{section.3}{Help for individual windows}{}% 6
+\BOOKMARK [2][-]{subsection.3.1}{The browser window}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.2}{A plot window}{section.3}% 8
+\BOOKMARK [2][-]{subsection.3.3}{The query VO for spectra window}{section.3}% 9
+\BOOKMARK [2][-]{subsection.3.4}{Query VO using ObsCore TAP}{section.3}% 10
+\BOOKMARK [2][-]{subsection.3.5}{DataLink - more information about the data}{section.3}% 11
+\BOOKMARK [2][-]{subsection.3.6}{Spectral lines query}{section.3}% 12
+\BOOKMARK [2][-]{subsection.3.7}{The animation window}{section.3}% 13
+\BOOKMARK [2][-]{subsection.3.8}{The view and modify spectral values window}{section.3}% 14
+\BOOKMARK [2][-]{subsection.3.9}{The spectral coordinate system attributes window}{section.3}% 15
+\BOOKMARK [2][-]{subsection.3.10}{The data units window}{section.3}% 16
+\BOOKMARK [2][-]{subsection.3.11}{The simple binary maths window}{section.3}% 17
+\BOOKMARK [2][-]{subsection.3.12}{The simple constant maths window}{section.3}% 18
+\BOOKMARK [2][-]{subsection.3.13}{The panner window}{section.3}% 19
+\BOOKMARK [2][-]{subsection.3.14}{The plot configuration window}{section.3}% 20
+\BOOKMARK [2][-]{subsection.3.15}{The region extraction window}{section.3}% 21
+\BOOKMARK [2][-]{subsection.3.16}{The polynomial fitting window}{section.3}% 22
+\BOOKMARK [2][-]{subsection.3.17}{The generate spectra from interpolated lines window}{section.3}% 23
+\BOOKMARK [2][-]{subsection.3.18}{The spectral line fitting window}{section.3}% 24
+\BOOKMARK [3][-]{subsubsection.3.18.1}{Saving the results}{subsection.3.18}% 25
+\BOOKMARK [2][-]{subsection.3.19}{The filter spectrum window}{section.3}% 26
+\BOOKMARK [2][-]{subsection.3.20}{Quick change of coordinate or data units window}{section.3}% 27
+\BOOKMARK [2][-]{subsection.3.21}{Flip or shift or redshift a spectrum}{section.3}% 28
+\BOOKMARK [2][-]{subsection.3.22}{Region statistics window}{section.3}% 29
+\BOOKMARK [2][-]{subsection.3.23}{Display stacked spectra}{section.3}% 30
+\BOOKMARK [1][-]{section.4}{Supported data formats}{}% 31
+\BOOKMARK [2][-]{subsection.4.1}{Handling 2 and 3D data}{section.4}% 32
+\BOOKMARK [1][-]{section.5}{Command-line control and tools}{}% 33
+\BOOKMARK [1][-]{section.6}{Using SAMP to exchange spectra}{}% 34
+\BOOKMARK [1][-]{section.7}{Acknowledgements}{}% 35
