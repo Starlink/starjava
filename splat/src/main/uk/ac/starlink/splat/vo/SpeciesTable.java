@@ -49,7 +49,6 @@ public class SpeciesTable {
 			    String colName = speciesTable.getColumnInfo(i).getName();
 			    if (colName.equalsIgnoreCase("species_name"))     nameIndex = i;
 			    if (colName.equalsIgnoreCase("stoichiometric_formula"))  formulaIndex= i;
->>>>>>> splat4.1doc
 			    if (colName.equalsIgnoreCase("inchikey")) inchikeyIndex = i;
 			}
 	      if (nameIndex < 0 || formulaIndex < 0 || inchikeyIndex < 0) {
