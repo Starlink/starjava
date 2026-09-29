@@ -11,6 +11,7 @@ import java.awt.event.ItemListener;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -462,7 +463,7 @@ public class SSAServerTable extends AbstractServerPanel  implements PropertyChan
         	sorter.setRowFilter(typeFilter);
    
         } else if ( band_all.isSelected()) {
-        	sorter.setRowFilter(sourceFilter);
+        	sorter.setRowFilter(RowFilter.andFilter(Arrays.asList(typeFilter, sourceFilter)));
         }
         else {
         	filters.add(typeFilter);
@@ -508,15 +509,13 @@ public class SSAServerTable extends AbstractServerPanel  implements PropertyChan
             }
             
             logger.info("Selected: "+selected);
-            if (filters.size() >0) {  
-              RowFilter<DefaultTableModel,Object> orFilter =  RowFilter.orFilter(bandfilters);
-              //filters.add(RowFilter.orFilter(bandfilters));
-              filters.add(orFilter);
-              sorter.setRowFilter(RowFilter.andFilter(filters));
-            }
-            
+            if (!bandfilters.isEmpty()) {
+                filters.add(RowFilter.orFilter(bandfilters));
+            }    
+            sorter.setRowFilter(RowFilter.andFilter(filters));
         } 
-       setTableRowSorter(sorter);
+       
+        setTableRowSorter(sorter);
             
     }
 
