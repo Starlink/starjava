@@ -75,6 +75,12 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
     private  String serviceType="";
     private  int WIDTH;
     private  int HEIGHT;
+    
+    @Override
+    public Dimension getMaximumSize() {
+        return new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE);
+    }
+
   
   //  private AbstractServerList serverList;
     
@@ -86,7 +92,8 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
     private  String MANUALLY_ADDED_STR = "ManuallyAdded";
     private static boolean ManuallyAddPossible = true;
 
-  
+    abstract public int getDefaultWidth();
+    abstract public int getDefaultHeight();
     
     /**
      * File chooser for storing and restoring server lists.
@@ -111,7 +118,6 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
        // tagsFile = getTagsFilename();
         serviceType = getServiceType();        
         serverTags = new ServerTags(getTagsFilename());
-        serverTable = new ServerPopupTable();
        //tagsMap = new HashMap<String,ArrayList<String>>();
        // serverTagsMap = new HashMap<String,ArrayList<String>>();     
         
@@ -188,11 +194,11 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
      */
     protected void initUI(JComponent optionsComponent, JComponent serverPanel)
     {
-        WIDTH=getWidth();
-        HEIGHT=getHeight(); 
+        int prefWidth = getDefaultWidth();
+        int prefHeight = getDefaultHeight();
       // this.setPreferredSize(new Dimension(this.WIDTH,this.HEIGHT));
-       setMinimumSize(new Dimension(WIDTH-100,HEIGHT-300));
-       setPreferredSize(new Dimension(WIDTH,HEIGHT));
+       setMinimumSize(new Dimension(prefWidth-100,prefHeight-300));
+       setPreferredSize(new Dimension(prefWidth,prefHeight));
    
        
         setLayout(new GridBagLayout());
@@ -245,12 +251,6 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
         
         jsp.getAccessibleContext().setAccessibleName("Services");
         
-      //  jsp.setViewportView(serverTable);
-   //     jsp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-   //     jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        //jsp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-
-       
         GridBagConstraints gbcServer=new GridBagConstraints();
         gbcServer.gridx=0;
         gbcServer.gridy=0;
@@ -567,8 +567,10 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
      *
      */
     protected void updateServers () {
-        updateServers( makeRegistryQuery() );
+    	StarTable table = makeRegistryQuery();
+        updateServers( table );
     }
+    
     public void updateServers (StarTable table) {
         TableRowSorter<DefaultTableModel> savedSorter = getTableRowSorter();
         List<RowSorter.SortKey> sortKeys = (List<SortKey>) savedSorter.getSortKeys();
@@ -584,7 +586,7 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
         serverTable.updateUI();
         
         this.firePropertyChange("changeServerlist", false, true);
-      //  this.firePropertyChange("changeServerTable", false, true);
+     
     }
     
     /**
@@ -688,7 +690,7 @@ public abstract class AbstractServerPanel extends JPanel implements PropertyChan
         return serverTable.getSelectedRowCount();
         
     }
- 
+   
     
     //=================== Tags =====================  
          

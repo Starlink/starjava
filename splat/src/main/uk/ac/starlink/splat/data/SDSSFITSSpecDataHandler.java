@@ -12,6 +12,7 @@ import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.ast.MathMap;
 import uk.ac.starlink.ast.SpecFrame;
 import uk.ac.starlink.fits.FitsTableBuilder;
+import uk.ac.starlink.splat.data.SDSSLineIDTableSpecDataImpl;
 import uk.ac.starlink.splat.util.ConstrainedList;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.UnitUtilities;
@@ -96,7 +97,8 @@ public class SDSSFITSSpecDataHandler {
 	public LineIDTableSpecDataImpl getLineIDTableDataImpl() throws IOException, SplatException {
         StarTable linesTable = getLineIDStarTable();
 
-        LineIDTableSpecDataImpl lineImpl = new LineIDTableSpecDataImpl(linesTable);
+       
+        LineIDTableSpecDataImpl lineImpl = new SDSSLineIDTableSpecDataImpl(linesTable);
       
         lineImpl.astref.setLabel(1, xlabel);
 		lineImpl.astref.setUnit(1, UnitUtilities.fixUpUnits( xunits ));
@@ -123,8 +125,10 @@ public class SDSSFITSSpecDataHandler {
     	List<SpecDataImpl> specDataImpls = new ConstrainedList<SpecDataImpl>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
 
        	try {
-    		TableSpecDataImpl  specTable = getTableSpecDataImpl();
+    		SDSSTableSpecDataImpl  specTable = getTableSpecDataImpl();
     	    specDataImpls.add((TableSpecDataImpl) specTable);
+    	   
+    	    	
     	} catch (IOException ioe) {
     		logger.info( "Failed to open SDSS FITS table "+ioe.getMessage() ) ;        		
     	} catch (SplatException se) {

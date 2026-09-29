@@ -33,10 +33,12 @@ import uk.ac.starlink.vo.RegResource;
  * @author mm
  *
  */
-public abstract class AbstractServerList {
+public abstract class AbstractServerList<T extends SSAPRegResource> {
+     
+   protected HashMap<String, T> serverList = new HashMap<String, T>();
     
-    private HashMap<String, SSAPRegResource> serverList = new HashMap<String, SSAPRegResource>();
-    
+   // so it works with SSAPRegResource or other extensions
+  
     /**
      * AbstractServerList
      * read the list from the configured file
@@ -73,7 +75,7 @@ public abstract class AbstractServerList {
      * @param table star table containing service resource information
      */
     public void addNewServers(StarTable table ) {
-	addNewServers( table, null );
+    	addNewServers( table, null );
     }
 
     protected void addNewServersToServerList(StarTable table ) {
@@ -83,15 +85,17 @@ public abstract class AbstractServerList {
 
         // now add  the new ones
         if ( table instanceof BeanStarTable ) {
+        	int nrserv=0;
             Object[] resources = ((BeanStarTable)table).getData();
             for ( int i = 0; i < resources.length; i++ ) {
 
-                SSAPRegResource server = (SSAPRegResource)resources[i];
+                SSAPRegResource server = (SSAPRegResource) resources[i];
                 String shortname = server.getShortName();
                 if (shortname == null || shortname.length()==0)
                     shortname = server.getTitle(); // avoid problems if server has no name (should not happen, but it does!!!)
                 SSAPRegCapability caps[] = server.getCapabilities();
                 int nrcaps = server.getCapabilities().length;
+              
                 int nrssacaps=0;
                 // create one serverlist entry for each ssap capability  !!!! 
                 // TODO:  DO THIS ALREADY ON SSAPREGISTRYQUERY!?
@@ -106,6 +110,7 @@ public abstract class AbstractServerList {
                         name =  name + "(" + nrssacaps + ")";
                     ssapserver.setShortName(name);
                     addServer( ssapserver, false );
+                    nrserv++;
                     nrssacaps++;
                 }                    
             }
@@ -128,7 +133,7 @@ public abstract class AbstractServerList {
     public void addNewServers(StarTable table, ArrayList<String> manuallyAddedServices) {
 
 
-        HashMap<String, SSAPRegResource> newServerList = new HashMap<String, SSAPRegResource>();
+        HashMap<String, T> newServerList = new HashMap<String, T>();
         if (manuallyAddedServices != null) {
 
             for (int i=0;i<manuallyAddedServices.size(); i++) {
@@ -140,7 +145,7 @@ public abstract class AbstractServerList {
         } else {
             serverList.clear();
         }
-        addNewServersToServerList(table);
+        addNewServersToServerList(table); 
 
     }
 
@@ -152,6 +157,7 @@ public abstract class AbstractServerList {
      */
     public void addServer( SSAPRegResource server )
     {
+
         addServer( server, true );
     }
 
@@ -177,7 +183,12 @@ public abstract class AbstractServerList {
                 server.setShortName(shortname);
             }
         }
-        serverList.put( shortname, server );
+        int size1=serverList.size();
+        serverList.put( shortname, (T) server );
+        int size2=serverList.size();
+        if (size1==size2)
+        	Logger.info(this, "not put"+shortname );
+        
         if ( save ) {
             try {
                 saveServers();
@@ -319,6 +330,7 @@ public abstract class AbstractServerList {
             restored = restoreServers( inputStream );
             try {
                 inputStream.close();
+               
             }
             catch (Exception e) {
                // e.printStackTrace();
@@ -328,25 +340,12 @@ public abstract class AbstractServerList {
         //  If the restore of the user file failed, or it doesn't exist use
         //  the system default version. (only for ssa)
         if ( ! restored ) {
-         //   inputStream = SSAServerList.class.getResourceAsStream(getDefaultFile());
-        //    if ( inputStream == null ) {
-                // That's bad. Need to complain, unless this is an update
-                /// of the format. In which case skip this section.
-               throw new SplatException( "Failed to find" +
+                throw new SplatException( "Failed to find" +
                                          " a server listing file" );
-               
-        //    }  
-        //    needSave = true;
-         //   restoreServers( inputStream );
-        //    try {
-        //        inputStream.close();
-        //    }
-        //    catch (Exception e) {
-        //        e.printStackTrace();
-        //    }
-        }
 
-        // Save the current state back to disk if we're using the default list.
+        }
+               
+            // Save the current state back to disk if we're using the default list.
         if ( needSave ) {
             saveServers();
         }
@@ -396,10 +395,10 @@ public abstract class AbstractServerList {
     {
         XMLDecoder decoder = new XMLDecoder( inputStream );
         boolean ok = true;
-        SSAPRegResource server = null;
+        T server = null;
         while ( true ) {
             try {
-                server = (SSAPRegResource) decoder.readObject();
+                server =  (T) decoder.readObject();
                 if (server != null)
                     addServer(server, false);
 
@@ -461,19 +460,19 @@ public abstract class AbstractServerList {
             throws SplatException
     {
         XMLEncoder encoder = new XMLEncoder( outputStream );
-        Iterator<SSAPRegResource> i = serverList.values().iterator();
+        Iterator<T> i = serverList.values().iterator();
 
         //  Note these have to be SSAPRegResource instances, not RegResource.
         //  So that they can be serialised as beans.
-        SSAPRegResource server = null;
+        T server = null;
 
         while ( i.hasNext() ) {
-            server = (SSAPRegResource) i.next();
+            server =  i.next();
             if (server != null) {
                 try {
-                    SSAPRegResource resource = new SSAPRegResource( server );
-                    encoder.writeObject( resource );
-                    //   encoder.writeObject( resource.getMetadata());
+                    
+                    encoder.writeObject( server );
+                   
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -511,7 +510,7 @@ public abstract class AbstractServerList {
                 }
             }
             srv.setMetadata(srvmeta);
-            serverList.put(servers.get(i), srv);
+            serverList.put(servers.get(i), (T) srv);
         }
     }
 

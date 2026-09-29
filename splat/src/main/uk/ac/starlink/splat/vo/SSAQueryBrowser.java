@@ -70,6 +70,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.xml.sax.InputSource;
@@ -307,6 +308,17 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
     protected boolean theoryQuery = false;
     
     /**
+     * it's a light-curve query
+     */
+	private boolean lightCurveQuery;
+
+	/**
+     * it's a spectrum query
+     */
+	private boolean spectraQuery;
+
+    
+    /**
      * Make the query to all known servers
      * @uml.property  name="goButton"
      * @uml.associationEnd  
@@ -442,6 +454,7 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
   //  protected JTabbedPane resultsPane = null;
      
      protected ArrayList<JLabel> observationLabels = null;
+     protected ArrayList<Component> spectralLabels = null;
 
     /**
      * The list of StarJTables in use
@@ -560,6 +573,9 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
      */
     private DataLinkQueryFrame dataLinkFrame = null;
 
+	private JSplitPane splitPanel;
+
+
     // private JPopupMenu specPopupMenu;
 
     /**
@@ -588,6 +604,14 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
         initUI();
         this.pack();
         this.setVisible(true);
+        SwingUtilities.invokeLater(() -> {
+            splitPanel.setDividerLocation(0.3);
+            splitPanel.revalidate();
+            splitPanel.repaint();
+        });
+ 
+        
+        this.setVisible(true);
         initMenusAndToolbar();
         initFrame(); 
                
@@ -602,25 +626,29 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
      */
     private void initUI()
     {
+    	this.setMinimumSize(new Dimension(650, 400)); 
        
         JPanel contentPane = (JPanel) getContentPane();
       
         contentPane.setPreferredSize(new Dimension(800,720));
         contentPane.setMinimumSize(new Dimension(600,400));
-                
-        JSplitPane splitPanel = new JSplitPane();
+        splitPanel = new JSplitPane();
         splitPanel.setOneTouchExpandable(true);
         splitPanel.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
-        splitPanel.setDividerLocation(0.3);
+        splitPanel.setResizeWeight(0.0);   
+        //splitPanel.setDividerLocation(0.3);
       
        
         this.add(splitPanel);
         leftPanel = initServerComponents();
+        leftPanel.setMinimumSize(new Dimension(250, 200));
+        leftPanel.setPreferredSize(new Dimension(250, 200));
+        leftPanel.setMaximumSize(new Dimension(500, Integer.MAX_VALUE));
          
     //    tabPane.addTab("Server selection", leftPanel);
       
         centrePanel = new JPanel( new GridBagLayout() );
-        centrePanel.setMinimumSize(new Dimension(400,200));
+        centrePanel.setMinimumSize(new Dimension(150,200));
         gbcentre=new GridBagConstraints();
         gbcentre.anchor=GridBagConstraints.NORTHWEST;
         gbcentre.gridx=0;
@@ -645,9 +673,10 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
 
     public JPanel initServerComponents()
     {
-    	JPanel sp = new JPanel();
-    	sp.setLayout(new BoxLayout(sp, BoxLayout.Y_AXIS));
-    	sp.setAlignmentY((float) 1.);
+    //	JPanel sp = new JPanel();
+    	JPanel sp = new JPanel(new BorderLayout());
+    //	sp.setLayout(new BoxLayout(sp, BoxLayout.Y_AXIS));
+    //	sp.setAlignmentY((float) 1.);
 
     	if (serverList==null) {
     		SSAServerTable tmp = new SSAServerTable();
@@ -659,7 +688,7 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
     		serverPanel=new SSAServerTable( serverList );
 
     	serverPanel.addPropertyChangeListener(this);
-    	sp.add(serverPanel);
+    	sp.add(serverPanel,BorderLayout.CENTER);
     	return sp;
     }
 
@@ -983,6 +1012,7 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
         observationLabels.add(decLabel);
         observationLabels.add(radiusLabel);
         
+      
 
         //  Band fields.
         JLabel bandLabel = new JLabel( "Band:" );
@@ -995,9 +1025,14 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
         upperBandField.addActionListener( this );
         upperBandField.getDocument().putProperty("owner", upperBandField); //set the owner
         upperBandField.getDocument().addDocumentListener( this );
-
+        
 
         JPanel bandPanel = new JPanel( new GridBagLayout() );
+        
+        spectralLabels = new ArrayList<Component>();
+        spectralLabels.add(bandLabel); 
+        spectralLabels.add(bandPanel); 
+        
         GridBagConstraints gbc2 = new GridBagConstraints();
 
         gbc2.weightx = 1.0;
@@ -1974,12 +2009,21 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
             	queryLine.setRadius(-1); // setting radius < 0 will remove it from query            	
             else 
             	queryLine.setRadius(defaultRadius);
+            
+            if (spectraQuery)
+            	queryLine.setRadius(defaultRadius);
+                  	
+            else 
+        		queryLine.setBand("-1","-1");   
+            	
+
             	
             queryLine.setMaxrec(0);
             updateQueryText();
 
             return;
         } 
+        
         if ( source.equals( nameLookup ) /*|| source.equals( nameField ) */) {
            
             resolveName();
@@ -2212,6 +2256,20 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
             updateParameters();
             metaPanel.updateUI();
         }
+        else if (pvt.getPropertyName().equals("changeToSpectra")) {
+            spectraQuery=true;
+            activateSpecParameters();
+            updateQueryText();
+            updateParameters();
+            metaPanel.updateUI();
+        }
+        else if (pvt.getPropertyName().equals("changeToLightCurves")) {
+            lightCurveQuery=true;
+            deactivateSpecParameters();
+            updateQueryText();
+            updateParameters();
+            metaPanel.updateUI();
+        }
     
        
     }
@@ -2236,25 +2294,47 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
             l.setVisible(true);
         }
     }
-
     private void deactivateObsParameters() {
-       nameLookup.setEnabled(false);
-       raField.setEnabled(false);
-       decField.setEnabled(false);
-       radiusField.setText("");
-       radiusField.setEnabled(false);
-       nameLookup.setVisible(false);
-       raField.setVisible(false);
-       decField.setVisible(false);
-       radiusField.setVisible(false);
-       queryLine.setNoPosition();
-       queryLine.setRadius(-1);// negative radius will remove it from line
-       for (JLabel l:observationLabels) {
+        nameLookup.setEnabled(false);
+        raField.setEnabled(false);
+        decField.setEnabled(false);
+        radiusField.setText("");
+        radiusField.setEnabled(false);
+        nameLookup.setVisible(false);
+        raField.setVisible(false);
+        decField.setVisible(false);
+        radiusField.setVisible(false);
+        queryLine.setNoPosition();
+        queryLine.setRadius(-1);// negative radius will remove it from line
+        for (JLabel l:observationLabels) {
+            //l.setForeground(Color.gray);
+            l.setVisible(false);
+        }
+            
+     }
+
+
+    private void deactivateSpecParameters() {
+       lowerBandField.setVisible(false);
+       upperBandField.setVisible(false);
+       queryLine.setBand(null,null);
+       for (Component l:spectralLabels) {
            //l.setForeground(Color.gray);
-           l.setVisible(false);
+           ((Component) l).setVisible(false);
        }
+    
            
     }
+    private void activateSpecParameters() {
+    	 lowerBandField.setVisible(true);
+         upperBandField.setVisible(true);
+         queryLine.setBand("","");
+         for (Component l:spectralLabels) {
+             //l.setForeground(Color.gray);
+             l.setVisible(true);
+         }
+       
+     }
 
     private void updateQueryText() {
         
@@ -2574,7 +2654,7 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
      * adds the parameters to a hashmap. Every parameter should be unique, 
      * and a counter shows how many servers support each parameter  
      * Exclude the parameters that are already included in the main menues of splat query browser
-     * @param - metadata the parameters read from all servers 
+     * @param - metadata  the parameters read from all servers 
      * 
      */
     private synchronized static void processMetadata( ParamElement[] metadata, SSAPRegResource server) {
@@ -2586,10 +2666,8 @@ implements VOBrowser, ActionListener, DocumentListener, PropertyChangeListener
         while ( i < metadata.length ) {
             String paramName = metadata[i].getName();
             if (    ! paramName.equalsIgnoreCase("INPUT:REQUEST") &&  // these parameters should be ignored
-                    ! paramName.equalsIgnoreCase("INPUT:COLLECTION") && 
                     ! paramName.equalsIgnoreCase("INPUT:COMPRESS") && 
                     ! paramName.equalsIgnoreCase("INPUT:OUTPUTFORMAT") &&
-                    ! paramName.equalsIgnoreCase("INPUT:COLLECTION") && 
                     ! paramName.equalsIgnoreCase("INPUT:POS") &&        // these parameters should be entered in the main browser
                     ! paramName.equalsIgnoreCase("INPUT:SIZE") &&
                     ! paramName.equalsIgnoreCase("INPUT:MAXREC") &&

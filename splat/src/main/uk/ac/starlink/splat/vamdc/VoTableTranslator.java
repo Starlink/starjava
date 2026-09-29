@@ -28,16 +28,16 @@ public class VoTableTranslator {
      */
     
     ArrayList<String> tableLines;
-    String[] columns   = { "title", "wavelength", "element", "initial energy", "final energy", 
-                           "stage", "einsteinA", "initial level", "final level", "air wavelength", "oscillator strength","weighted oscillator strength"}; 
+    String[] columns   = { "title", "wavelength", "error", "element", "initial energy", "final energy", 
+                           "ion charge", "einsteinA", "initial level", "final level", "air wavelength", "oscillator strength","weighted oscillator strength", "strength","intensity"}; 
     
-    String[] ucds      = { "em.line", "em.wl", "phys.atmol.element", "phys.energy;phys.atmol.initial;phys.atmol.level", "phys.energy;phys.atmol.final;phys.atmol.level", 
-                           "phys.atmol.ionStage", "phys.atmol.transProb", "phys.atmol.initial;phys.atmol.level", "phys.atmol.final;phys.atmol.level", "em.wl", "phys.atmol.oscStrength","phys.atmol.wOscStrength"}; 
+    String[] ucds      = { "em.line", "em.wl", "", "phys.atmol.element", "phys.energy;phys.atmol.initial;phys.atmol.level", "phys.energy;phys.atmol.final;phys.atmol.level", 
+                           "phys.atmol.ionCharge", "phys.atmol.transProb", "phys.atmol.initial;phys.atmol.level", "phys.atmol.final;phys.atmol.level", "em.wl", "phys.atmol.oscStrength","phys.atmol.wOscStrength", "spect.line.strength","spect.line.intensity"}; 
 
-    String[] utypes    = { "ssldm:line.title", "ssldm:line.wavelength.value", "ssldm:line.species", "ssldm:line.initialLevel.energy.value", "ssldm:line.finalLevel.energy.value", 
-                           "", "ssldm:line.einsteinA.value", "ssldm:line.initialLevel", "ssldm:line.finalalLevel", "ssldm:line.airWavelength.value", "ssldm:line.oscillatorStrength","ssldm:line.weightedOscillatorStrength"}; 
+    String[] utypes    = { "ssldm:line.title", "ssldm:line.wavelength.value", "", "ssldm:line.species", "ssldm:line.initialLevel.energy.value", "ssldm:line.finalLevel.energy.value", 
+                           "", "ssldm:line.einsteinA.value", "ssldm:line.initialLevel", "ssldm:line.finalalLevel", "ssldm:line.airWavelength.value", "ssldm:line.oscillatorStrength","ssldm:line.weightedOscillatorStrength","ssldm:line.strength", "ssldm:line.intensity"}; 
 
-    String[] datatypes = { "char", "double", "char", "double", "double", 
+    String[] datatypes = { "char", "double", "double", "char", "double", "double", 
                            "char", "double", "char", "char", "double", "double", "double"}; 
 
     ArrayList<SpectralLine> data;
@@ -97,7 +97,7 @@ public class VoTableTranslator {
         for (int i=0;i<columns.length;i++) {
             if (datatypes[i].equals("char"))
                 tableLines.add("<FIELD ucd=\""+ucds[i]+"\" name=\""+columns[i]+"\" utype=\""+utypes[i]+"\" datatype=\""+datatypes[i]+"\" arraysize=\"*\"/>");  
-            else {
+            else {		
                 tableLines.add("<FIELD ucd=\""+ucds[i]+"\" name=\""+columns[i]+"\" utype=\""+utypes[i]+"\" datatype=\""+datatypes[i]+"\""+units[i]+"\"/>");  
             }
         }
@@ -126,19 +126,23 @@ public class VoTableTranslator {
             SpectralLine line = data.get(i);
             tableLines.add("<TR>");
             tableLines.add("<TD>"+ line.getTitle()+"</TD>"); 
-            tableLines.add("<TD>"+ line.getWavelength().getValue() +"</TD>"); 
+            tableLines.add(String.format("<TD> %,.3f </TD>",  line.getWavelength().getValue())); 
+            tableLines.add(String.format("<TD> %,.3f </TD>", line.getWavelength().getError())); 
             tableLines.add("<TD>"+ line.getInitialElement().getElementName()+"</TD>"); 
-            tableLines.add("<TD>"+ line.getInitialLevel().getEnergy().getValue()+"</TD>"); 
-            tableLines.add("<TD>"+ line.getFinalLevel().getEnergy().getValue() +"</TD>");
-            if (line.getInitialElement().getIonizationStage() >= 0)
-            	tableLines.add("<TD>"+ line.getInitialElement().getIonizationStageRoman() +"</TD>");   
-            else tableLines.add("<TD></TD>");
-            tableLines.add("<TD>"+ line.getEinsteinA().getValue()+"</TD>"); 
+            tableLines.add(String.format("<TD> %,.5f </TD>", line.getInitialLevel().getEnergy().getValue())); 
+            tableLines.add(String.format("<TD> %,.5f </TD>", line.getFinalLevel().getEnergy().getValue() ));
+            //if (line.getInitialElement().getIonizationStage() >= 0)
+            //	tableLines.add("<TD>"+ line.getInitialElement().getIonizationStageRoman() +"</TD>");   
+            tableLines.add("<TD>"+ line.getInitialElement().getIonizationStage() +"</TD>"); 
+           // else tableLines.add("<TD></TD>");
+            tableLines.add(String.format("<TD> %,.5f </TD>", line.getEinsteinA().getValue())); 
             tableLines.add("<TD>"+ line.getInitialLevel().getConfiguration()+"</TD>"); 
             tableLines.add("<TD>"+ line.getFinalLevel().getConfiguration()+"</TD>"); 
-            tableLines.add("<TD>"+ line.getAirWavelength().getValue()+"</TD>"); 
-            tableLines.add("<TD>"+ line.getOscillatorStrength().getValue()+"</TD>"); 
-            tableLines.add("<TD>"+ line.getWeightedOscillatorStrength().getValue()+"</TD>"); 
+            tableLines.add(String.format("<TD> %,.3f </TD>", line.getAirWavelength().getValue())); 
+            tableLines.add(String.format("<TD> %,.3f </TD>", line.getOscillatorStrength().getValue())); 
+            tableLines.add(String.format("<TD> %,.3f </TD>", line.getWeightedOscillatorStrength().getValue())); 
+            tableLines.add(String.format("<TD> %,.3f </TD>", line.getStrength().getValue())); 
+      //      tableLines.add("<TD>"+ line.getIntensity().getValue()+"</TD>"); 
             tableLines.add("</TR>");
         }
         tableLines.add("</TABLEDATA></DATA>");

@@ -6,16 +6,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
+//import javax.xml.bind.JAXBException;
 
 import org.vamdc.xsams.io.JAXBContextFactory;
+import org.vamdc.xsams.schema.AccuracyType;
 import org.vamdc.xsams.schema.AtomType;
 import org.vamdc.xsams.schema.AtomicIonType;
 import org.vamdc.xsams.schema.AtomicStateType;
 import org.vamdc.xsams.schema.Atoms;
 import org.vamdc.xsams.schema.ChemicalElementType;
 import org.vamdc.xsams.schema.DataType;
+import org.vamdc.xsams.schema.EnergyWavelengthType;
+import org.vamdc.xsams.schema.EnvironmentType;
+import org.vamdc.xsams.schema.Environments;
 import org.vamdc.xsams.schema.IsotopeType;
+import org.vamdc.xsams.schema.MethodType;
+import org.vamdc.xsams.schema.Methods;
 import org.vamdc.xsams.schema.MolecularChemicalSpeciesType;
 import org.vamdc.xsams.schema.MolecularStateCharacterisationType;
 import org.vamdc.xsams.schema.MolecularStateType;
@@ -28,6 +34,8 @@ import org.vamdc.xsams.schema.XSAMSData;
 
 
 import jsky.util.Logger;
+import uk.ac.starlink.ast.Frame;
+import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.data.ssldm.Level;
 import uk.ac.starlink.splat.data.ssldm.SpectralLine;
 
@@ -42,17 +50,14 @@ public class XSAMSParser  {
 
 
     XSAMSData xsams;
+    HashMap <String,String> elements= new HashMap<String,String>();
 
-    public XSAMSParser(InputStream inps) throws JAXBException, Exception {
+    public XSAMSParser(InputStream inps) throws  Exception {
 
         try {
 
             xsams = (XSAMSData)JAXBContextFactory.getUnmarshaller().unmarshal(inps);
-        } catch (JAXBException e) {
-            // TODO Auto-generated catch block
-            Logger.info(this, "JABException when parsing XSAMS input ");
-            //e.printStackTrace();
-            throw e;
+        
         } catch (Exception e) {
             Logger.info(this, "Exception when parsing XSAMS input: "+e.getMessage());
             throw e;
@@ -60,21 +65,13 @@ public class XSAMSParser  {
 
 
     }
-    // to do : constructors with other kind of input parameters (file name, url, etc)
-
-    /*
-     * Reads the XSAMSData returned from a VAMDC Database, and transform it to
-     * SpectralLine objects
-     */
-    public ArrayList<SpectralLine> getSpectralLines() {
-
-        ArrayList<SpectralLine> lines = new ArrayList<SpectralLine>();
-
-        HashMap <String,String> elements= new HashMap<String,String>();
-
-        // get the atom/species symbol and put into a hashmap
+    
+    // get the atoms from XSAMS data model and create a hashmap with reference ids
+    
+    private  List<AtomType> getAtoms() {
+    	 // get the atom/species symbol and put into a hashmap
         List<AtomType> atoms = null;
-        List<MoleculeType> molecules = null;
+      
         try {
             atoms = xsams.getSpecies().getAtoms().getAtoms();
 
@@ -86,7 +83,7 @@ public class XSAMSParser  {
             	for (IsotopeType iso : atom.getIsotopes()) {
             		//    IsotopeParametersType isop = iso.getIsotopeParameters();
             		for (AtomicIonType ion:iso.getIons()) {
-            			System.out.println("Ion: "+ ion.getIonCharge() + " - "+ion.getSpeciesID());
+   //         			System.out.println("Ion: "+ ion.getIonCharge() + " - "+ion.getSpeciesID());
             			String symbol="";
             			try {
             				symbol = atom.getChemicalElement().getElementSymbol().value();
@@ -95,7 +92,7 @@ public class XSAMSParser  {
             				symbol = "";
             			}
 
-            			System.out.println("Atom: "+ symbol);
+       //     			System.out.println("Atom: "+ symbol);
             			elements.put(ion.getSpeciesID(), symbol);
             		}
             	}
@@ -103,12 +100,21 @@ public class XSAMSParser  {
         } catch (NullPointerException npe) {
 
         }
+        return atoms;
+    	
+    }
+    
+ // get the molecules from XSAMS data model and create a hashmap with reference ids
+    
+    private  List<MoleculeType> getMolecules() {
+    	// get the molecule symbol and put into a hashmap
+        List<MoleculeType> molecules = null;
         try {
         	molecules = xsams.getSpecies().getMolecules().getMolecules();
 
         	for (MoleculeType molecule : molecules) {
 
-        		System.out.println("Molecule: "+ molecule.getMolecularChemicalSpecies().getStoichiometricFormula() + " - ");
+       // 		System.out.println("Molecule: "+ molecule.getMolecularChemicalSpecies().getStoichiometricFormula() + " - ");
         		//  System.out.println( "Charge: "+ atom.getChemicalElement().getNuclearCharge() + " - ");
 
         		//          for (IsotopeType iso : atom.getIsotopes()) {
@@ -123,24 +129,81 @@ public class XSAMSParser  {
         			symbol = "";
         		}
 
-        		System.out.println("Molecule: "+ symbol);
+     //   		System.out.println("Molecule: "+ symbol);
         		elements.put(molecule.getSpeciesID(), symbol);
-        		//            }
-        		//        }
+        		
         	}
         } catch (NullPointerException npe) {
 
         }
+        
+        return molecules;
+    }
+    
+// get the atoms from XSAMS data model and create a hashmap with reference ids
+    /*   
+    private  HashMap <String, EnvironmentType> getEnvironment() {
+    	
+		 get the molecule symbol and put into a hashmap
+    	
+    	HashMap <String, EnvironmentType> envMap = new HashMap<String, EnvironmentType>();
+          
+        List<EnvironmentType> environments = null;
+        try {
+        	Environments envs = xsams.getEnvironments();
+        	environments =  envs.getEnvironments();
+    
+
+        	for ( EnvironmentType env : environments) {
+        		
+        		System.out.println("Env: T "+ env.getTemperature().getValue().getValue()+" "+env.getTemperature().getValue().getUnits()+
+        							" P "+ env.getTotalPressure().getValue().getUnits() + " "+ env.getTotalPressure().getValue().getUnits());
+        		envMap.put( env.getEnvID(), env);
+
+        	}
+        } catch (NullPointerException npe) {
+        	
+        }
+        
+        return envMap;
+    }
+ */   
+    /*
+     * Reads the XSAMSData returned from a VAMDC Database, and transform it to
+     * SpectralLine objects
+     */
+    public ArrayList<SpectralLine> getSpectralLines() {
+
+        ArrayList<SpectralLine> lines = new ArrayList<SpectralLine>();
+
+     //   HashMap <String,String> elements= new HashMap<String,String>();
+        
+        List<AtomType> atoms = getAtoms();
+        List<MoleculeType> molecules = getMolecules();
+  //      HashMap <String, EnvironmentType> environments = getEnvironment();
+      
+       
         if (molecules == null && atoms == null) {
         	return lines;
         }
 
+       // List<MethodType> methods = xsams.getMethods().getMethods();
+       /* HashMap<MethodRefType, MethodCategoryType> methodCategories;
+        for (MethodType method: methods )
+        	System.out.println( "Method:  "+method.getgetCategory().value()toString());
+        method.getMethodRef().
+        
+        
+        */
         for ( RadiativeTransitionType radtrans: xsams.getProcesses().getRadiative().getRadiativeTransitions() ) { 
 
             Level initialLevel=null;
             Level finalLevel = null;
             boolean atom=false;
             SpectralLine line=null;
+            
+            
+            
             //SpeciesType specref = (SpeciesType) radtrans.getSpeciesRef();
             // SpeciesStateRefType spectype = (SpeciesStateRefType) radtrans.getSpeciesRef();
             if (radtrans.getLowerStateRef() != null && radtrans.getLowerStateRef().getClass().equals(MolecularStateType.class)) {
@@ -227,6 +290,14 @@ public class XSAMSParser  {
                 if (os != null) {
                     line.setEinsteinA( os.getValue().getValue(), os.getValue().getUnits());
                 }
+                os = prob.getLineStrength();
+                if (os != null) {
+                    line.setStrength( os.getValue().getValue(), os.getValue().getUnits());
+                }
+                os = prob.getIdealisedIntensity();
+             //   if (os != null) {
+             //       line.setIntensity( os.getValue().getValue(), os.getValue().getUnits());
+             //   }
             } catch (Exception e) {
 
             }
@@ -234,38 +305,94 @@ public class XSAMSParser  {
             //   String elSymbol=null;
             //   if (id != null)
             //       elSymbol=elements.get(id);
+            EnergyWavelengthType energyWavelength = null;
+          //  EnergyWavenumberType energyWavenumber = null;
+          //  EnergyFrequencyType  energyFrequency = null;
+            
+            Boolean hasWaveLength = false;
+            Boolean hasWaveNumber = false;
+            Boolean hasFrequency = false;
+            double error=-9999999;
+    	    boolean error_set=false;
+    	    energyWavelength = radtrans.getEnergyWavelength();
+    	    WlType wl = null;
+    	    DataType wn = null; 
+    	    AccuracyType er = null;
+            
            
-            try {
-              
-            		WlType wl =  radtrans.getEnergyWavelength().getWavelengths().get(0);
-            		String unit = wl.getValue().getUnits();
+            ArrayList  wls =  (ArrayList<?>) energyWavelength.getWavelengths();
+            ArrayList  wns =  (ArrayList<?>) energyWavelength.getWavenumbers();
+        	List <DataType> freqs = energyWavelength.getFrequencies();
+            if (wls!= null &&  wls.size()>0) {
+            	wl =  (WlType) wls.get(0);   
+    			try {
+    				er = wl.getAccuracies().get(0);
+    			} catch (Exception e) {}
+    			  		
+    			if (er != null) {
+    				error = er.getValue();
+    				error_set=true;
+    			}
+    			//MethodType method = (MethodType) wl.getMethodRef();            		
+    			String unit = wl.getValue().getUnits();
+   		
+    			if (unit.equals("A"))
+    				unit="Angstrom"; // correct unit for AST 
 
-            		if (unit.equals("A"))
-            			unit="Angstrom"; // correct unit for AST 
-            		if (wl.isVacuum()) { // ?!!!!!! check if it's correct
-            			line.setWavelength(wl.getValue().getValue(), unit);
+    			if (wl.isVacuum()) { // ?!!!!!! check if it's correct
+    				line.setWavelength(wl.getValue().getValue(), unit);
 
-            		} else {
-            			line.setAirWavelength(wl.getValue().getValue(), unit);                          
-            			line.setWavelength(wl.getValue().getValue()*wl.getAirToVacuum().getValue().getValue(), unit);
-            		}
-            	
-            } catch (Exception e) {
-            	// if no wavelenghts are present, try  wavenumbers instead
+    			} else {
+    				line.setAirWavelength(wl.getValue().getValue(), unit);    
+    			if (error_set)
+    			    line.setWavelength(wl.getValue().getValue()*wl.getAirToVacuum().getValue().getValue(), error, unit);
+    			else
+    				line.setWavelength(wl.getValue().getValue()*wl.getAirToVacuum().getValue().getValue(), unit);
+    			}
+        	} else  if (wns!= null &&  wns.size()>0) {
+        		wn = (DataType) wns.get(0);
+        		
+    		//	MethodType method = (MethodType) wn.getMethodRef();            		
+    			String unit = wl.getValue().getUnits();
+
+        		Double wavelength = 1/wn.getValue().getValue()*1e8;            
+        		// convert 1/cm to angstrom
+        		unit = "Angstrom";
+        		//String unit = wn.getValue().getUnits();
+        		//unit = unit.replaceAll("1/", "");//!!!
+        		System.out.println("WaveNumber: "+wn.getValue().getValue()+" "+wn.getValue().getUnits() + " Wavelength: "+wavelength+" "+unit);
+        		try {
+    				er = wl.getAccuracies().get(0);
+    			} catch (Exception e) {}
+    			  		
+    			if (er != null) {
+    				error = er.getValue();
+    			
+    				line.setWavelength(wavelength, error, unit);
+    			} else 
+    				line.setWavelength(wavelength, unit);  
+        		
+        	} else if (freqs!= null &&  freqs.size()>0)  {
+        		
+        		DataType freq=freqs.get(0);
+        		Double  frequency=freq.getValue().getValue();
+            	String unit=freq.getValue().getUnits();
+            	//MethodType method = (MethodType) freq.getMethodRef(); 
             	try {
-            		DataType wn = radtrans.getEnergyWavelength().getWavenumbers().get(0);
-            		Double wavelength = 1/wn.getValue().getValue();
-            		String unit = wn.getValue().getUnits();
-            		unit = unit.replaceAll("1/", "");//!!!
-            		System.out.println("WaveNumber: "+wn.getValue().getValue()+" "+wn.getValue().getUnits() + " Wavelength: "+wavelength+" "+unit);
-            		line.setWavelength(wavelength, unit);  
-            		
-            	}
-            	catch (Exception ee) {
-
-            	}
+    				er = wl.getAccuracies().get(0);
+    			} catch (Exception e) {}
+    			  		
+    			if (er != null) {
+    				error = er.getValue();
+    			
+    				line.setWavelength(frequency, error, unit);
+    			} else      
+    				line.setWavelength(frequency, unit);
+         		
             }
-            /*                try {
+            
+        
+              /*                try {
                     String e1 = null;
                     String e2 = null;
                    if ( line.getInitialLevel().getEnergy() != null ) 

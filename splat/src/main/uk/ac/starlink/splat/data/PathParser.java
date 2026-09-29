@@ -179,6 +179,9 @@ public class PathParser
         if ( type_.equals( ".sdf" ) ) {
             return "NDF";
         }
+        if ( type_.equals(".gz" ) ||
+        	 type_.equals(".gzip"))
+        	return "GZIP";
 
         //  If the file type matches a string in NDF_FORMATS_IN, that's great,
         //  the NDF library will process this for us. Note this needs to be

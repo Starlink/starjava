@@ -28,6 +28,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -274,6 +275,11 @@ public class PlotControl
      *  Position of the legend.
      */
     protected Point legendAnchor = null;
+    
+    /** 
+     * property change support for line id zooming 
+     */
+    private PropertyChangeSupport statusChange; 
 
     /**
      * Create a PlotControl, adding spectra later.
@@ -333,6 +339,7 @@ public class PlotControl
         else {
             this.spectra = spectra;
         }
+        statusChange= new PropertyChangeSupport(this);  
         initUI( identifier );
     }
 
@@ -918,6 +925,7 @@ public class PlotControl
     {
     	double[] centre = getCentre();
         zoomAbout( xIncrement, yIncrement, centre[0], centre[1] );
+    
     }
 
     /**
@@ -1198,6 +1206,8 @@ public class PlotControl
             throw e;
         }
     }
+    
+    
 
     /**
      * Add a list of SpecData references to the list of displayed spectra.
@@ -1365,6 +1375,19 @@ public class PlotControl
         spectra.remove( LineIDSpecData.class );
         updatePlot();
     }
+    
+    
+    /**
+     * zoom identifiers displayed in this plot sorted by einstein A probability
+     */ 
+    public void zoomLineIDs()
+    {
+        //spectra.zoomIDProbabilities( getXScale() );
+        statusChange.firePropertyChange("zoom", 0, getXScale());
+       
+        updatePlot();
+    }
+    
 
     /**
      * Increment scales in both dimensions about a centre.
@@ -1378,11 +1401,20 @@ public class PlotControl
                            double y )
     {
     	recordOrigin( x, y );
-
-        //  Scale the plot by the increment.
-        float xs = Math.max( getXScale() + xIncrement, 1.0F );
-        float ys = Math.max( getYScale() + yIncrement, 1.0F );
+    //	float xs = Math.max( getXScale() + xIncrement, 1.0F );
+    //  float ys = Math.max( getYScale() + yIncrement, 1.0F );
+    	
+        float xs = getXScale() + xIncrement;
+        float ys = getYScale() + yIncrement;
+        //  Scale the plot by the increment. Zoom in and zoom out.
+        if (xIncrement != 0 && (xs<1.0F && xs > -2.0F))
+			xs=(xIncrement>0?Math.max(xs, 1.0F):Math.min(xs, -2.0F));
+        if (yIncrement != 0&& (xs<1.0F && xs > -2.0F) )
+			ys=(xIncrement>0?Math.max(ys, 1.0F):Math.min(ys, -2.0F));
+       
+    	
         setScale( xs, ys );
+    	zoomLineIDs();
     }
 
     /**
@@ -2369,5 +2401,11 @@ public class PlotControl
     	}
     	return false;
     }
+    
+    public void addPropertyChangeListener(PropertyChangeListener l) 
+    {
+        statusChange.addPropertyChangeListener(l);
+    }
+
 }
 

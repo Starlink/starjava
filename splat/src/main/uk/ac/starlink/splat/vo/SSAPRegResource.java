@@ -24,6 +24,7 @@ public class SSAPRegResource implements RegResource
     private String referenceUrl;
     private String version;
     private String contentType;
+    private String tableName;
     private MetadataParams metadata = null;
     private SSAPRegCapability[] capabilities;
     private String[] subjects = null;
@@ -44,6 +45,8 @@ public class SSAPRegResource implements RegResource
      */
     public SSAPRegResource( SSAPRegResource resource )
     {
+    	
+    
         shortName = resource.getShortName();
         title = resource.getTitle();
         identifier = resource.getIdentifier();
@@ -54,6 +57,7 @@ public class SSAPRegResource implements RegResource
         version = resource.getVersion();
         waveband = resource.getWaveband();
         contentType = resource.getContentType();
+        tableName = resource.getTableName();
         
         metadata = new MetadataParams();
         metadata.setParams(resource.getMetadata() );
@@ -71,6 +75,7 @@ public class SSAPRegResource implements RegResource
             contentType = capabilities[0].getDataType();
         
     }
+  
 
     /**
      * Constructor. Initialised from a {@link AddNewServerFrame}, allows
@@ -200,6 +205,16 @@ public class SSAPRegResource implements RegResource
         this.waveband = waveband;
     }
 
+    public String getTableName() 
+    {
+        return tableName;
+    }
+    
+    public void setTableName( String tableName )
+    {
+        this.tableName = tableName;
+    }
+
    
     public String getVersion() 
     {
@@ -255,4 +270,12 @@ public class SSAPRegResource implements RegResource
         }
         
     }
+
+
+
+	public void setAccessUrl(String accessUrl) {
+		capabilities = new SSAPRegCapability[1];
+		capabilities[0].setAccessUrl(accessUrl);
+		
+	}
 }

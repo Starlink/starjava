@@ -106,7 +106,7 @@ public class XGraphicsRangesView
     public XGraphicsRangesView( DivaPlot plot, JMenu menu )
     {
         setPlot( plot );
-        initUI( null, menu );
+        initUI( null, menu, false );
     }
 
     /**
@@ -140,10 +140,33 @@ public class XGraphicsRangesView
         setPlot( plot );
         setColour( colour );
         setConstrain( constrain );
-        initUI( model, menu );
+        initUI( model, menu, false );
+    }
+    
+    /**
+     * XGraphicsRange view with an additional menu item, 
+     * to select the whole spectrum
+     *      
+     * @param plot the DivaPlot that we're drawing into.
+     * @param menu a JMenu to add the local Actions to (may be null).
+     * @param colour the colour that any figures should be drawn using.
+     * @param constrain whether the figure moves just X and show a full range
+     *      in Y or not.
+     * @param fullrange - if true add option fulrange(X)  menu.
+     */
+    public XGraphicsRangesView( DivaPlot plot, JMenu menu, Color colour,
+            boolean constrain, XGraphicsRangesModel model,  boolean fullrange) {
+    	
+    	setPlot( plot );
+        setColour( colour );
+        setConstrain( constrain );
+        initUI( model, menu, true );
+       
     }
 
-    /**
+  
+
+	/**
      * Set the plot used.
      *
      * @param plot The new plot value
@@ -160,7 +183,7 @@ public class XGraphicsRangesView
     /**
      * Initialise the various user interface components.
      */
-    protected void initUI( XGraphicsRangesModel model, JMenu menu )
+    protected void initUI( XGraphicsRangesModel model, JMenu menu, boolean fullrange )
     {
         setLayout( new BorderLayout() );
 
@@ -237,6 +260,19 @@ public class XGraphicsRangesView
             mi.setState( interactive );
             menu.add( mi ).setMnemonic( KeyEvent.VK_I );
         }
+        if (fullrange) {
+        	  //  Add action for "full range" button.
+            FullRangeAction fullRangeAction = new FullRangeAction( "Full Range" );
+            JButton fullRangeButton = new JButton( fullRangeAction );
+            actionBar.add( Box.createGlue() );
+            actionBar.add( fullRangeButton );
+            fullRangeButton.setToolTipText( "Add the whole X range" );
+            actionBar.add( Box.createGlue());
+            if ( menu != null ) {
+                menu.add( fullRangeAction ).setMnemonic( KeyEvent.VK_F );
+            }
+        }
+        	
 
         //  Add components.
         setBorder( BorderFactory.createTitledBorder( "Coordinate ranges:" ) );
@@ -244,7 +280,8 @@ public class XGraphicsRangesView
         add( scroller, BorderLayout.CENTER );
         add( actionBar, BorderLayout.SOUTH );
     }
-
+    
+  
     /**
      * Invoked when the selected range changes. Should select the 
      * corresponding graphic.
@@ -464,6 +501,24 @@ public class XGraphicsRangesView
             deleteSelectedRanges();
         }
     }
+    
+    /**
+     * FillRange action. selects full range plot.
+     */
+    protected class FullRangeAction extends AbstractAction
+    {
+        public FullRangeAction( String name )
+        {
+            super( name );
+            putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( "control F" ) );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            selectFullRange();
+        }
+	
+    }
+
 
     /**
      * Interactive creation action.
@@ -480,6 +535,15 @@ public class XGraphicsRangesView
             toggleInteractive();
         }
     }
+    
+    
+	private void selectFullRange() {
+		boolean int1 = interactive;
+		interactive = false;
+		createRange();
+		interactive=int1;
+		
+	}
 
     /**
      * Set the colour of any figures.
@@ -777,4 +841,29 @@ public class XGraphicsRangesView
             }
         }
     }
+
+	public int[] extractRanges(boolean selected, boolean merge, double[] specCoords, double[] ranges4) {
+	       double[] worldRanges = ranges4;
+	        if ( worldRanges != null && worldRanges.length != 0 ) {
+	            if ( merge ) {
+	                worldRanges = Sort.sortAndMerge( worldRanges );
+	            }
+	            int[] arrayRanges = new int[worldRanges.length];
+	            int temp;
+	            for ( int i = 0; i < arrayRanges.length; i+=2 ) {
+	                arrayRanges[i] = Sort.lookup( specCoords, worldRanges[i] );
+	                arrayRanges[i+1] = Sort.lookup( specCoords, worldRanges[i+1] );
+
+	                //  Check ordering, these can be reversed.
+	                if ( arrayRanges[i] > arrayRanges[i+1] ) {
+	                    temp = arrayRanges[i];
+	                    arrayRanges[i] = arrayRanges[i+1];
+	                    arrayRanges[i+1] = temp;
+	                }
+	            }
+	            return arrayRanges;
+	        }
+// TODO Auto-generated method stub
+		return null;
+	}
 }
