@@ -10432,6 +10432,11 @@ columns in the table.
 <dt>CIRCLE</dt>
 <dd><p>3-element array (x,y,r).
     </p></dd>
+<dt>ELLIPSE</dt>
+<dd><p>5-element array (x,y,ra,rb,pa)
+    giving central position, two radii and
+    a position angle east from north in degrees.
+    </p></dd>
 <dt>POINT</dt>
 <dd><p>2-element array (x,y)
     </p></dd>
@@ -35340,6 +35345,8 @@ introduced since the last version:
         now reads multi-dimensional arrays as
         flattened 1d arrays of primitives etc rather than
         (generally unusable) arrays of Java array objects.</li>
+    <li>New area type ELLIPSE can now be used in
+        <ref id="GangLayerControl_area">Area plots</ref>.</li>
     </ul>
     </p></dd>
 

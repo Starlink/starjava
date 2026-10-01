@@ -1227,9 +1227,42 @@ public class PolygonOutliner extends PixOutliner {
                                     return NVERTEX_CIRCLE;
                                 }
                                 public boolean readDataPos( int ivert,
-                                                            double[] dpos ){
+                                                            double[] dpos ) {
                                     dpos[ 0 ] = cx + r * COSS[ ivert ];
                                     dpos[ 1 ] = cy - r * SINS[ ivert ];
+                                    return true;
+                                }
+                                public boolean isBreak( int ivert ) {
+                                    return false;
+                                }
+                            };
+                        }
+                        case ELLIPSE: {
+                            double[] ellipse = area.getDataArray();
+                            double cx = ellipse[ 0 ];
+                            double cy = ellipse[ 1 ];
+                            double ra = ellipse[ 2 ];
+                            double rb = ellipse[ 3 ];
+                            double paDeg = ellipse[ 4 ];
+                            double thetaRad = Math.toRadians( 90 - paDeg );
+                            double cosTheta = Math.cos( thetaRad );
+                            double sinTheta = Math.sin( thetaRad );
+                            double m0 = + cosTheta;
+                            double m1 = - sinTheta;
+                            double m2 = + sinTheta;
+                            double m3 = + cosTheta;
+                            return new VertexData() {
+                                public int getVertexCount() {
+                                    return NVERTEX_CIRCLE;
+                                }
+                                public boolean readDataPos( int ivert,
+                                                            double[] dpos ) {
+                                    double cosPhi = COSS[ ivert ];
+                                    double sinPhi = SINS[ ivert ];
+                                    double ex = rb * cosPhi;
+                                    double ey = ra * sinPhi;
+                                    dpos[ 0 ] = cx + ex * m0 + ey * m2;
+                                    dpos[ 1 ] = cy + ex * m1 + ey * m3;
                                     return true;
                                 }
                                 public boolean isBreak( int ivert ) {
@@ -1346,6 +1379,17 @@ public class PolygonOutliner extends PixOutliner {
                             double rDeg = circle[ 2 ];
                             return createSkyCircleVertexData( lonDeg, latDeg,
                                                               rDeg, skyGeom );
+                        }
+                        case ELLIPSE: {
+                            double[] ellipse = area.getDataArray();
+                            double lonDeg = ellipse[ 0 ];
+                            double latDeg = ellipse[ 1 ];
+                            double raDeg = ellipse[ 2 ];
+                            double rbDeg = ellipse[ 3 ];
+                            double paDeg = ellipse[ 4 ];
+                            return createSkyEllipseVertexData( lonDeg, latDeg,
+                                                               raDeg, rbDeg,
+                                                               paDeg, skyGeom );
                         }
                         case POINT: {
                             double[] point = area.getDataArray();
@@ -1551,6 +1595,41 @@ public class PolygonOutliner extends PixOutliner {
                     };
                 }
             }
+            case ELLIPSE: {
+                double[] ellipse = area.getDataArray();
+                double lonDeg = ellipse[ 0 ];
+                double latDeg = ellipse[ 1 ];
+                double raDeg = ellipse[ 2 ];
+                double rbDeg = ellipse[ 3 ];
+                double paDeg = ellipse[ 4 ];
+                VertexData unitVertexData =
+                    createSkyEllipseVertexData( lonDeg, latDeg, raDeg, rbDeg,
+                                                paDeg, SkyDataGeom.GENERIC );
+                if ( NO_VERTEX_DATA.equals( unitVertexData ) ) {
+                    return NO_VERTEX_DATA;
+                }
+                else {
+                    return new VertexData() {
+                        public int getVertexCount() {
+                            return unitVertexData.getVertexCount();
+                        }
+                        public boolean readDataPos( int ivert, double[] dpos ) {
+                            if ( unitVertexData.readDataPos( ivert, dpos ) ) {
+                                dpos[ 0 ] *= radius;
+                                dpos[ 1 ] *= radius;
+                                dpos[ 2 ] *= radius;
+                                return true;
+                            }
+                            else {
+                                return false;
+                            }
+                        }
+                        public boolean isBreak( int ivert ) {
+                            return unitVertexData.isBreak( ivert );
+                        }
+                    };
+                }
+            }
             case POINT: {
                 double[] point = area.getDataArray();
                 double[] dpos = new double[ 3 ];
@@ -1616,6 +1695,7 @@ public class PolygonOutliner extends PixOutliner {
      * @param  latDeg0  central latitude in degrees
      * @param  rDeg    small circle radius in degrees
      * @param  skyGeom  geometry optionally specifying sky system rotation
+     * @return   vertex data for circle
      */
     private static VertexData
             createSkyCircleVertexData( double lonDeg0, double latDeg0,
@@ -1668,6 +1748,103 @@ public class PolygonOutliner extends PixOutliner {
                 dpos[ 0 ] = r0 * x1 + r1 * y1 + r2 * z1;
                 dpos[ 1 ] = r3 * x1 + r4 * y1 + r5 * z1;
                 dpos[ 2 ] = r6 * x1 + r7 * y1 + r8 * z1;
+                return true;
+            }
+            public boolean isBreak( int iv ) {
+                return false;
+            }
+        };
+    }
+
+    /**
+     * Returns a VertexData that yields sky positions (unit 3-vectors)
+     * on a sky ellipse.
+     *
+     * @param  lonDeg0  central longitude in degrees
+     * @param  latDeg0  central latitude in degrees
+     * @param  raDeg    primary radius in degrees
+     * @param  rbDeg    secondary radius in degrees
+     * @param  paDeg    position angle in degrees east from north
+     * @param  skyGeom  geometry optionally specifying sky system rotation
+     * @return  vertex data for ellipse
+     */
+    private static VertexData
+            createSkyEllipseVertexData( double lonDeg0, double latDeg0,
+                                        double raDeg, double rbDeg,
+                                        double paDeg, SkyDataGeom skyGeom ) {
+
+        /* Convert center to unit vector v0. */
+        double[] vec = new double[ 3 ];
+        if ( ! toSky( lonDeg0, latDeg0, skyGeom, vec ) ) {
+            return NO_VERTEX_DATA;
+        }
+        final double x0 = vec[ 0 ];
+        final double y0 = vec[ 1 ];
+        final double z0 = vec[ 2 ];
+
+        /* Calculate an axial rotation matrix which will rotate
+         * any vector around v0 by the position angle;
+         * the algebra is from SAL_DAV2M in SLALIB. */
+        double theta = - Math.toRadians( 90 - paDeg );
+        double st = Math.sin( theta );
+        double ct = Math.cos( theta );
+        double w = 1.0 - ct;
+        double p0 = x0 * x0 * w + ct;
+        double p1 = x0 * y0 * w + z0 * st;
+        double p2 = x0 * z0 * w - y0 * st;
+        double p3 = x0 * y0 * w - z0 * st;
+        double p4 = y0 * y0 * w + ct;
+        double p5 = y0 * z0 * w + x0 * st;
+        double p6 = x0 * z0 * w + y0 * st;
+        double p7 = y0 * z0 * w - x0 * st;
+        double p8 = z0 * z0 * w + ct;
+
+        return new VertexData() {
+            public int getVertexCount() {
+                return NVERTEX_CIRCLE;
+            }
+            public boolean readDataPos( int iv, double[] dpos ) {
+                double si = SINS[ iv ];
+                double ci = COSS[ iv ];
+
+                /* For this vertex (position around the edge of the ellipse),
+                 * locate a position at the right radius which is either
+                 * above or below the center, going up or down a meridian. */
+                double rDeg = Math.hypot( ci * raDeg, si * rbDeg );
+                double latDeg1 = latDeg0 > 0 ? latDeg0 - rDeg : latDeg0 + rDeg;
+                if ( ! toSky( lonDeg0, latDeg1, skyGeom, vec ) ) {
+                    return false;
+                }
+                double x1 = vec[ 0 ];
+                double y1 = vec[ 1 ];
+                double z1 = vec[ 2 ];
+
+                /* Calculate an axial rotation matrix which will rotate
+                 * this vertex to its position on the edge of the
+                 * ellipse before it has been rotated by the position angle.
+                 * The algebra is from SAL_DAV2M in SLALIB. */
+                double ce = ci * rbDeg / rDeg;
+                double se = si * raDeg / rDeg;
+                double w = 1.0 - ce;
+                double r0 = x0 * x0 * w + ce;
+                double r1 = x0 * y0 * w + z0 * se;
+                double r2 = x0 * z0 * w - y0 * se;
+                double r3 = x0 * y0 * w - z0 * se;
+                double r4 = y0 * y0 * w + ce;
+                double r5 = y0 * z0 * w + x0 * se;
+                double r6 = x0 * z0 * w + y0 * se;
+                double r7 = y0 * z0 * w - x0 * se;
+                double r8 = z0 * z0 * w + ce;
+
+                /* Find the location of this vertex in the unrotated ellipse. */
+                double xr = r0 * x1 + r1 * y1 + r2 * z1;
+                double yr = r3 * x1 + r4 * y1 + r5 * z1;
+                double zr = r6 * x1 + r7 * y1 + r8 * z1;
+
+                /* Rotate that vertex by the position angle. */
+                dpos[ 0 ] = p0 * xr + p1 * yr + p2 * zr;
+                dpos[ 1 ] = p3 * xr + p4 * yr + p5 * zr;
+                dpos[ 2 ] = p6 * xr + p7 * yr + p8 * zr;
                 return true;
             }
             public boolean isBreak( int iv ) {

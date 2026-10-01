@@ -59,6 +59,9 @@ public class AreaDomain implements Domain<AreaMapper> {
     /** Mapper for single HEALPix UNIQ values. */
     public static final AreaMapper UNIQ_MAPPER = createUniqMapper();
 
+    /** Mapper for ellipses. */
+    public static final AreaMapper ELLIPSE_MAPPER = createEllipseMapper();
+
     /** Mapper for TFCat strings. */
     public static final AreaMapper TFCAT_MAPPER = createTfcatMapper();
 
@@ -99,6 +102,7 @@ public class AreaDomain implements Domain<AreaMapper> {
         return new AreaMapper[] {
             POINT_MAPPER,
             CIRCLE_MAPPER,
+            ELLIPSE_MAPPER,
             POLYGON_MAPPER,
             ASCIIMOC_MAPPER,
             UNIQ_MAPPER,
@@ -425,6 +429,32 @@ public class AreaDomain implements Domain<AreaMapper> {
                 return skyDescrip;
             }
         };
+    }
+
+    /**
+     * Returns a mapper that turns a 5-element numeric array into an ellipse.
+     * The array may be float or double and gives
+     * central position, two radii and a position angle, all in degrees
+     * where applicable.
+     *
+     * @return  ellipse mapper
+     */
+    private static AreaMapper createEllipseMapper() {
+        String descrip =
+              "5-element array giving center, 2 radii, "
+            + "and position angle in degrees from the Y axis to the "
+            + "primary axis of the ellipse in the direction of increasing X "
+            + "(<code>x</code>, <code>y</code>, "
+            + "<code>r_a</code>, <code>r_b</code>, <code>pa</code>)";
+        String skyDescrip =
+              "5-element array giving center, 2 radii, "
+            + "and position angle in degrees from the North pole to the "
+            + "primary axis of the ellipse in the direction of increasing "
+            + "longitude "
+            + "(<code>ra</code>, <code>dec</code>, "
+            + "<code>r_a</code>, <code>r_b</code>, <code>pa</code>)";
+        return createSimpleNumericDaliMapper( Area.Type.ELLIPSE, descrip,
+                                              skyDescrip );
     }
 
     /**

@@ -16326,6 +16326,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         now reads multi-dimensional arrays as
         flattened 1d arrays of primitives etc rather than
         (generally unusable) arrays of Java array objects.</li>
+    <li>New <code>areatype</code> value <code>ELLIPSE</code> can be used
+        in <ref id="layer-area"><code>area</code></ref> (and similar)
+        plot layer types.</li>
+    <li>New <code>shape</code> value <code>ellipse</code> can be used in
+        <ref id="mocshape"><code>mocshape</code></ref> command.</li>
     </ul>
     </p></dd>
 

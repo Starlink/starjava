@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools;
 
 import cds.healpix.Healpix;
 import cds.healpix.HealpixNestedBMOC;
+import cds.healpix.NestedEllipticalConeComputerApprox;
 import cds.healpix.HealpixNestedPolygonComputer;
 import java.util.Arrays;
 import uk.ac.starlink.ttools.cone.CdsHealpixUtil;
@@ -309,6 +310,47 @@ public class Area {
                            .newConeComputer( Math.toRadians( rDeg ) )
                            .overlappingCells( Math.toRadians( lonDeg ),
                                               Math.toRadians( latDeg ) );
+                long[] uniqs = new long[ bmoc.size() ];
+                int i = 0;
+                for ( HealpixNestedBMOC.CurrentValueAccessor access : bmoc ) {
+                    uniqs[ i++ ] = Coverage.mocUniq( access.getDepth(),
+                                                     access.getHash() );
+                }
+                assert i == bmoc.size();
+                return uniqs;
+            }
+        },
+
+        /**
+         * Ellipse defined by a central point, 2 radii, and a position
+         * angle in degrees. (x, y, ra, rb, pa). */
+        ELLIPSE() {
+            private final NestedEllipticalConeComputerApprox.Mode ELLIPSE_MODE =
+                NestedEllipticalConeComputerApprox.Mode.OVERLAPPING_CELLS;
+            public boolean isLegalArrayLength( int n ) {
+                return n == 5;
+            }
+            public void writePlaneCoords2( double[] data, double[] buffer ) {
+                buffer[ 0 ] = data[ 0 ];
+                buffer[ 1 ] = data[ 1 ];
+            }
+            public void writeSkyCoords3( double[] data, double[] buffer ) {
+                writeLonLatSky3( data[ 0 ], data[ 1 ], buffer );
+            }
+            public long[] toMocUniqs( double[] data, int level ) {
+                double lonDeg = data[ 0 ];
+                double latDeg = data[ 1 ];
+                double raDeg = data[ 2 ];
+                double rbDeg = data[ 3 ];
+                double paDeg = data[ 4 ];
+                HealpixNestedBMOC bmoc =
+                    Healpix.getNested( level )
+                           .newEllipticalConeComputer( Math.toRadians( raDeg ),
+                                                       Math.toRadians( rbDeg ),
+                                                       Math.toRadians( paDeg ) )
+                           .overlapping( Math.toRadians( lonDeg ),
+                                         Math.toRadians( latDeg ),
+                                         ELLIPSE_MODE );
                 long[] uniqs = new long[ bmoc.size() ];
                 int i = 0;
                 for ( HealpixNestedBMOC.CurrentValueAccessor access : bmoc ) {
