@@ -1192,7 +1192,7 @@ public class PolygonOutliner extends PixOutliner {
             return new AreaVertexReader( coord_, icArea_ ) {
                 public VertexData createVertexData( Area area ) {
                     switch ( area.getType() ) {
-                        case POLYGON:
+                        case POLYGON: {
                             final double[] vertices = area.getDataArray();
                             return new VertexData() {
                                 public int getVertexCount() {
@@ -1216,7 +1216,8 @@ public class PolygonOutliner extends PixOutliner {
                                     }
                                 }
                             };
-                        case CIRCLE:
+                        }
+                        case CIRCLE: {
                             double[] circle = area.getDataArray();
                             final double cx = circle[ 0 ];
                             final double cy = circle[ 1 ];
@@ -1235,12 +1236,14 @@ public class PolygonOutliner extends PixOutliner {
                                     return false;
                                 }
                             };
-                        case POINT:
+                        }
+                        case POINT: {
                             double[] point = area.getDataArray();
                             double[] dpos =
                                 new double[] { point[ 0 ], point[ 1 ] };
                             return createPointVertexData( dpos );
-                        case MOC:
+                        }
+                        case MOC: {
                             double[] duniqs = area.getDataArray();
                             return new MocVertexData( duniqs, 0 ) {
                                 void copyLonlat( double lonRad, double latRad,
@@ -1251,7 +1254,8 @@ public class PolygonOutliner extends PixOutliner {
                                     dpos[ 1 ] = latDeg;
                                 }
                             };
-                        case MULTISHAPE:
+                        }
+                        case MULTISHAPE: {
                             double[] data = area.getDataArray();
                             VertexData[] vds =
                                 Arrays
@@ -1259,6 +1263,7 @@ public class PolygonOutliner extends PixOutliner {
                                .map( s -> createVertexData( s ) )
                                .toArray( n -> new VertexData[ n ] );
                             return new MultiVertexData( vds );
+                        }
                         default:
                             assert false;
                             return NO_VERTEX_DATA;
@@ -1311,7 +1316,7 @@ public class PolygonOutliner extends PixOutliner {
             return new AreaVertexReader( coord_, icArea_ ) {
                 public VertexData createVertexData( Area area ) {
                     switch ( area.getType() ) {
-                        case POLYGON:
+                        case POLYGON: {
                             final double[][] dps =
                                 toSkyVertices( area.getDataArray(), skyGeom );
                             return new VertexData() {
@@ -1333,20 +1338,23 @@ public class PolygonOutliner extends PixOutliner {
                                     return dps[ ivert ] == null;
                                 }
                             };
-                        case CIRCLE:
+                        }
+                        case CIRCLE: {
                             double[] circle = area.getDataArray();
                             double lonDeg = circle[ 0 ];
                             double latDeg = circle[ 1 ];
                             double rDeg = circle[ 2 ];
                             return createSkyCircleVertexData( lonDeg, latDeg,
                                                               rDeg, skyGeom );
-                        case POINT:
+                        }
+                        case POINT: {
                             double[] point = area.getDataArray();
                             double[] dpos = new double[ 3 ];
                             return toSky( point[ 0 ], point[ 1 ], skyGeom, dpos)
                                  ? createPointVertexData( dpos )
                                  : NO_VERTEX_DATA;
-                        case MOC:
+                        }
+                        case MOC: {
                             double[] duniqs = area.getDataArray();
                             // MOCs are always equatorial.
                             final Rotation rotation =
@@ -1362,7 +1370,8 @@ public class PolygonOutliner extends PixOutliner {
                                     rotation.rotate( dpos );
                                 }
                             };
-                        case MULTISHAPE:
+                        }
+                        case MULTISHAPE: {
                             double[] data = area.getDataArray();
                             VertexData[] vds =
                                 Arrays
@@ -1370,6 +1379,7 @@ public class PolygonOutliner extends PixOutliner {
                                .map( s -> createVertexData( s ) )
                                .toArray( n -> new VertexData[ n ] );
                             return new MultiVertexData( vds );
+                        }
                         default:
                             assert false;
                             return NO_VERTEX_DATA;
@@ -1485,7 +1495,7 @@ public class PolygonOutliner extends PixOutliner {
     private static VertexData createSphereAreaVertexData( Area area,
                                                           double radius ) {
         switch ( area.getType() ) {
-            case POLYGON:
+            case POLYGON: {
                 final double[] vertices = area.getDataArray();
                 return new VertexData() {
                     public int getVertexCount() {
@@ -1507,7 +1517,8 @@ public class PolygonOutliner extends PixOutliner {
                         }
                     }
                 };
-            case CIRCLE:
+            }
+            case CIRCLE: {
                 double[] circle = area.getDataArray();
                 double lonDeg = circle[ 0 ];
                 double latDeg = circle[ 1 ];
@@ -1539,13 +1550,15 @@ public class PolygonOutliner extends PixOutliner {
                         }
                     };
                 }
-            case POINT:
+            }
+            case POINT: {
                 double[] point = area.getDataArray();
                 double[] dpos = new double[ 3 ];
                 return toSphere( point[ 0 ], point[ 1 ], radius, dpos )
                      ? createPointVertexData( dpos )
                      : NO_VERTEX_DATA;
-            case MOC:
+            }
+            case MOC: {
                 double[] duniqs = area.getDataArray();
                 return new MocVertexData( duniqs, HPX_INTERPOLATE_LEVEL ) {
                     void copyLonlat( double lonRad, double latRad,
@@ -1553,13 +1566,15 @@ public class PolygonOutliner extends PixOutliner {
                         CdsHealpixUtil.lonlatToVector( lonRad, latRad, dpos );
                     }
                 };
-            case MULTISHAPE:
+            }
+            case MULTISHAPE: {
                 VertexData[] vds =
                     Arrays
                    .stream( Area.deserializeMultishape( area.getDataArray() ) )
                    .map( s -> createSphereAreaVertexData( s, radius ) )
                    .toArray( n -> new VertexData[ n ] );
                 return new MultiVertexData( vds );
+            }
             default:
                 assert false;
                 return NO_VERTEX_DATA;
