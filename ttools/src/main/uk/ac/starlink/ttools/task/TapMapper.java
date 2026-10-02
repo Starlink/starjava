@@ -14,6 +14,7 @@ import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
+import uk.ac.starlink.task.LineEnvironment;
 import uk.ac.starlink.task.LongParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
@@ -39,7 +40,7 @@ import uk.ac.starlink.votable.VOTableWriter;
 public class TapMapper implements TableMapper {
 
     private final TapServiceParams tapserviceParams_;
-    private final StringParameter adqlParam_;
+    private final StringMultiParameter adqlParam_;
     private final BooleanParameter parseParam_;
     private final BooleanParameter syncParam_;
     private final StringParameter langParam_;
@@ -69,13 +70,23 @@ public class TapMapper implements TableMapper {
             paramList.addAll( tapserviceParams_.getOtherParameters() );
         }
 
-        adqlParam_ = new StringParameter( "adql" );
+        adqlParam_ = new StringMultiParameter( "adql", '\n' );
         adqlParam_.setPrompt( "ADQL query text" );
+        String indir = String.valueOf( LineEnvironment.INDIRECTION_CHAR );
         adqlParam_.setDescription( new String[] {
             "<p>Astronomical Data Query Language string specifying the",
             "TAP query to execute.",
             "ADQL/S resembles SQL, so this string will likely start with",
-            "\"SELECT\".",
+            "\"<code>SELECT</code>\".",
+            "</p>",
+            "<p>This parameter may be supplied multiple times to split",
+            "the query into lines; the actual submitted query is just the",
+            "concatenation of all the values joined using newlines.",
+            "The query may alternatively be supplied in an external file,",
+            "by using the indirection character '<code>" + indir + "</code>'.",
+            "Thus a value of \"<code>" + indir + "query.txt</code>\"",
+            "causes the file <code>query.txt</code> to be read",
+            "for the ADQL to be submitted.",
             "</p>",
         } );
         adqlParam_.setUsage( "<query-text>" );
@@ -326,7 +337,7 @@ public class TapMapper implements TableMapper {
      *
      * @return  adql parameter
      */
-    public Parameter<String> getAdqlParameter() {
+    public Parameter<String[]> getAdqlParameter() {
         return adqlParam_;
     }
 

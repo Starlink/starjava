@@ -621,8 +621,10 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog
         /* ADQL setting. */
         SettingGroup adqlGroup = new SettingGroup( 1, new Setting[] {
             pset( tapMapper.getAdqlParameter(),
-                  isOneLineAdql ? adql.trim().replaceAll( "\\s+", " " )
-                                : adql ),
+                  new String[] {
+                      isOneLineAdql ? adql.trim().replaceAll( "\\s+", " " )
+                                : adql
+                  } ),
         } );
 
         /* Option settings. */

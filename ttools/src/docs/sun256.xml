@@ -16331,6 +16331,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         plot layer types.</li>
     <li>New <code>shape</code> value <code>ellipse</code> can be used in
         <ref id="mocshape"><code>mocshape</code></ref> command.</li>
+    <li>The <ref id="tapquery-adql"><code>adql</code></ref> parameter
+        of <ref id="tapquery"><code>tapquery</code></ref>
+        may now be supplied multiple times, or may point
+        (using the <code>@</code> prefix) to an external file
+        containing the ADQL to execute.</li>
     </ul>
     </p></dd>
 
