@@ -233,41 +233,32 @@ public class LineEnvironment implements Environment {
                     valueList.add( word.getValue() );
                 }
             }
-            if ( valueList.size() == 1 ) {
-                String value = valueList.get( 0 );
+            StringBuffer sbuf = new StringBuffer();
+            for ( String value : valueList ) {
                 if ( value.length() > 0 &&
                      value.charAt( 0 ) == INDIRECTION_CHAR ) {
-                    String[] lines;
+                    final String[] lines;
                     try {
                         lines = readLines( value.substring( 1 ) );
                     }
                     catch ( IOException e ) {
                         throw new TaskException( e.getMessage(), e );
                     }
-                    StringBuffer val = new StringBuffer();
-                    for ( int i = 0; i < lines.length; i++ ) {
-                        if ( i > 0 ) {
-                            val.append( separator );
+                    for ( String line : lines ) {
+                        if ( sbuf.length() > 0 ) {
+                            sbuf.append( separator );
                         }
-                        val.append( lines[ i ].trim() );
+                        sbuf.append( line.trim() );
                     }
-                    return val.toString();
                 }
                 else {
-                    return value;
-                }
-            }
-            else if ( valueList.size() > 1 ) {
-                StringBuffer val = new StringBuffer();
-                for ( Iterator<String> it = valueList.iterator();
-                      it.hasNext(); ) {
-                    val.append( it.next() );
-                    if ( it.hasNext() ) {
-                        val.append( separator );
+                    if ( sbuf.length() > 0 ) {
+                        sbuf.append( separator );
                     }
+                    sbuf.append( value );
                 }
-                return val.toString();
             }
+            return sbuf.toString();
         }
 
         /* Otherwise, just take the first one with a matching name or
