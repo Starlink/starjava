@@ -15,6 +15,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
+import uk.ac.starlink.ttools.Area;
+import uk.ac.starlink.ttools.AreaDomain;
 import uk.ac.starlink.ttools.build.HideDoc;
 import uk.ac.starlink.ttools.cone.AsciiMocCoverage;
 import uk.ac.starlink.ttools.cone.Coverage.Amount;
@@ -170,6 +172,162 @@ public class Coverage {
         return cov == null || ( cov.getAmount() == Amount.NO_DATA )
              ? 0
              : cov.getMoc().getNbCoding();
+    }
+
+    /**
+     * Returns the ASCII MOC representation of a small circle on the sky.
+     *
+     * @param  order  MOC order
+     * @param  ra   right acension of circle center in degrees
+     * @param  dec  declination of circle center in degrees
+     * @param  radiusDeg  radius of circle in degrees
+     * @return   ASCII MOC covering the circle at the given order
+     */
+    public static String asciiMocCircle( int order, double ra, double dec,
+                                         double radiusDeg ) {
+        return asciiMocCircle( order, new double[] { ra, dec, radiusDeg } );
+    }
+
+    /**
+     * Returns the ASCII MOC representation of a small circle on the sky.
+     *
+     * @param  order  MOC order
+     * @param  array3   3-element array giving right ascension of center,
+     *                  declination of center, and radius of circle,
+     *                  all in degrees
+     * @return   ASCII MOC covering the circle at the given order
+     */
+    public static String asciiMocCircle( int order, double[] array3 ) {
+        return asciiMoc( Area.Type.CIRCLE, order, array3 );
+    }
+
+    @HideDoc
+    public static String asciiMocCircle( int order, float[] array3 ) {
+        return asciiMocCircle( order, toDoubleArray( array3 ) );
+    }
+
+    /**
+     * Returns the ASCII MOC representation of an ellipse on the sky.
+     *
+     * @param  order  MOC order
+     * @param  ra   right acension of ellipse center in degrees
+     * @param  dec  declination of ellipse center in degrees
+     * @param  rmajDeg  major radius in degrees
+     * @param  rminDeg  minor radius in degrees
+     * @param  posAngDeg  position angle as degrees east of north to the
+     *                    major axis
+     * @return   ASCII MOC covering the ellipse at the given order
+     */
+    public static String asciiMocEllipse( int order,
+                                          double ra, double dec,
+                                          double rmajDeg, double rminDeg,
+                                          double posAngDeg ) {
+        return asciiMocEllipse( order,
+                                new double[] { ra, dec, rmajDeg, rminDeg,
+                                               posAngDeg } );
+    }
+
+    /**
+     * Returns the ASCII MOC representation of an ellipse on the sky.
+     *
+     * @param  order  MOC order
+     * @param  array5  5-element array giving right ascension of center,
+     *                 declination of center, major radius, minor radius
+     *                 and position angle east of north, all in degrees
+     * @return   ASCII MOC covering the ellipse at the given order
+     */
+    public static String asciiMocEllipse( int order, double[] array5 ) {
+        return asciiMoc( Area.Type.ELLIPSE, order, array5 );
+    }
+
+    @HideDoc
+    public static String asciiMocEllipse( int order, float[] array5 ) {
+        return asciiMocEllipse( order, toDoubleArray( array5 ) );
+    }
+
+    /**
+     * Returns the ASCII MOC representation of a polygon on the sky.
+     *
+     * @param  order  MOC order
+     * @param  vertices   polygon vertices (ra1,dec1, ra2,dec2, ...),
+     *                    either as multiple arguments or supplied as
+     *                    a single array
+     * @return   ASCII MOC covering the polygon at the given order
+     */
+    public static String asciiMocPolygon( int order, double... vertices ) {
+        return asciiMoc( Area.Type.POLYGON, order, vertices );
+    }
+
+    @HideDoc
+    public static String asciiMocPolygon( int order, float... vertices ) {
+        return asciiMocPolygon( order, toDoubleArray( vertices ) );
+    }
+
+    /**
+     * Returns the ASCII MOC representation of an STC-S area specification.
+     * STC-S is a somewhat obsolete region description syntax,
+     * but still used in some places.
+     *
+     * @param  order  MOC order
+     * @param  stcs  STC-S string
+     * @return   ASCII MOC covering the STC-S region
+     */
+    public static String asciiMocStcs( int order, String stcs ) {
+        if ( stcs == null || stcs.trim().length() == 0 ) {
+            return null;
+        }
+        Area area = AreaDomain.stcsArea( stcs, true );
+        return area == null
+             ? null
+             : uniqsToMocAscii( order, area.toMocUniqs( order ) );
+    }
+
+    /**
+     * Returns the ASCII MOC representation of an area with a given type.
+     *
+     * @param  areaType  area type
+     * @param  order    order of MOC
+     * @param  areaData   areaType-specific array defining the shape coords
+     * @return   ASCII MOC covering the shape at the given order
+     */
+    private static String asciiMoc( Area.Type areaType, int order,
+                                    double[] areaData ) {
+        if ( areaType == null || areaData == null ||
+             ! areaType.isLegalArrayLength( areaData.length ) ) {
+            return null;
+        }
+        return uniqsToMocAscii( order, areaType.toMocUniqs( areaData, order ) );
+    }
+
+    /**
+     * Converts an array of not-necessarily-normalised uniq values to
+     * an ASCII MOC.
+     *
+     * @param  order  output MOC order
+     * @param  mocUniqs   array of uniq values
+     * @return  ASCII MOC
+     */
+    private static String uniqsToMocAscii( int order, long[] mocUniqs ) {
+        MocBuilder mocBuilder = MocImpl.AUTO.createMocBuilder( order );
+        for ( long uniq : mocUniqs ) {
+            mocBuilder.addTile( uniqToOrder( uniq ), uniqToIndex( uniq ) );
+        }
+        mocBuilder.endTiles();
+        long[] orderCounts = mocBuilder.getOrderCounts();
+        long ntile = 0;
+        for ( int io = 0; io < orderCounts.length; io++ ) {
+            ntile += orderCounts[ io ];
+        }
+        try ( ByteArrayOutputStream out = new ByteArrayOutputStream() ) {
+            MocStreamFormat.ASCII
+                           .writeMoc( mocBuilder.createOrderedUniqIterator(),
+                                      ntile, order, out );
+            return new String( out.toByteArray(), StandardCharsets.UTF_8 )
+                  .trim();
+        }
+        catch ( IOException e ) {
+            return null;
+        }
     }
 
     /**
@@ -357,6 +515,26 @@ public class Coverage {
                   .trim();
         }
         catch ( IOException e ) {
+            return null;
+        }
+    }
+
+    /**
+     * Converts a float[] array to its double[] equivalent.
+     *
+     * @param  farray  input array
+     * @return  double array with the same values as farray
+     */
+    private static double[] toDoubleArray( float[] farray ) {
+        if ( farray != null ) {
+            int n = farray.length;
+            double[] darray = new double[ n ];
+            for ( int i = 0; i < n; i++ ) {
+                darray[ i ] = farray[ i ];
+            }
+            return darray;
+        }
+        else {
             return null;
         }
     }

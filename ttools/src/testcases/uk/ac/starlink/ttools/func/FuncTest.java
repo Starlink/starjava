@@ -588,6 +588,19 @@ public class FuncTest extends TestCase {
             "0/6 1/39 42-43",
             Coverage
            .indicesToMocAscii( 1, new int[] { 42,26,43,39,25,27,24,43 } ) );
+
+        // Regression at least
+        assertEquals( "5/497 6/1993 1995-1998 2017 2020",
+                      Coverage.asciiMocEllipse(6, 78.2, 58.3, 0.9, 0.1, -34.) );
+        assertEquals( "6/1996 7/7975 7981 7992-7994",
+                      Coverage.asciiMocCircle(7, 78.2, 58.3, 0.5 ) );
+        assertEquals( "6/1996 7/7975 7981 7992-7994",
+                      Coverage.asciiMocStcs(7, "CIRCLE 78.2 58.3 0.5") );
+        assertEquals( "6/1996 7/7975 7981 7992-7994",
+                      Coverage.asciiMocStcs(7, "CIRCLE 78.2 58.3 0.5") );
+        assertEquals( "6/1996 7/7975 7981 7992-7994",
+                      Coverage.asciiMocStcs(7, "UNION (CIRCLE 78.2 58.3 0.5 " 
+                                             + "CIRCLE 78 58. .1)") );
     }
 
     public void testDistances() {

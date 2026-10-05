@@ -16337,6 +16337,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (using the <code>@</code> prefix) to an external file
         containing the ADQL to execute.</li>
     <li>Fix STC-S numeric parsing bug.</li>
+    <li>New functions <code>asciiMocCircle</code>,
+        <code>asciiMocEllipse</code>, <code>asciiMocPolygon</code>,
+        <code>asciiMocStcs</code>
+        in class <ref id="Coverage">Coverage</ref>.</li>
     </ul>
     </p></dd>
 

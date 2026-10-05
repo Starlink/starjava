@@ -573,7 +573,7 @@ public class AreaDomain implements Domain<AreaMapper> {
      * @param   allowPoint  true if POINT type is acceptable
      * @return   area specified, or null
      */
-    private static Area stcsArea( CharSequence stcs, boolean allowPoint ) {
+    public static Area stcsArea( CharSequence stcs, boolean allowPoint ) {
         Matcher w0matcher = WORDS_PATTERN.matcher( stcs );
         if ( w0matcher.lookingAt() ) {
             String word0 = w0matcher.group( 1 ).toUpperCase();

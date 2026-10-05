@@ -35348,6 +35348,10 @@ introduced since the last version:
     <li>New area type ELLIPSE can now be used in
         <ref id="GangLayerControl_area">Area plots</ref>.</li>
     <li>Fix STC-S numeric parsing bug.</li>
+    <li>New functions <code>asciiMocCircle</code>,
+        <code>asciiMocEllipse</code>, <code>asciiMocPolygon</code>,
+        <code>asciiMocStcs</code>
+        in class <ref id="Coverage">Coverage</ref>.</li>
     </ul>
     </p></dd>
 
