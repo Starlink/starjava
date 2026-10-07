@@ -36,6 +36,9 @@ public enum ColFlag {
      */
     WEBREF,
 
+    /** Column (probably) contains an ASCII MOC. */
+    MOC,
+
     /** Column (probably) contains a MIME type. */
     MIME;
 

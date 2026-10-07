@@ -152,6 +152,7 @@ public class TopcatModelInfo {
             String ucd = info.getUCD();
             String name = info.getName();
             String utype = info.getUtype();
+            String xtype = info.getXtype();
             Class<?> clazz = info.getContentClass();
             boolean isString = String.class.equals( clazz );
             boolean isDatalink = false;
@@ -162,6 +163,7 @@ public class TopcatModelInfo {
             boolean isSpectrum = false;
             boolean isWebref = false;
             boolean isMime = false;
+            boolean isMoc = false;
             if ( isString ) {
                 if ( ucd != null &&
                      ucd.toLowerCase().startsWith( "meta.ref.url" ) ) {
@@ -233,6 +235,13 @@ public class TopcatModelInfo {
                 if ( isUrl && name.toLowerCase().indexOf( "image" ) >= 0 ) {
                     isImage = true;
                 }
+                if ( isString &&
+                     ( "moc".equalsIgnoreCase( xtype ) ||
+                       "moc".equalsIgnoreCase( name ) ||
+                       ( ucd != null && ucd.toLowerCase()
+                                       .startsWith( "meta.coverage" ) ) ) ) {
+                    isMoc = true;
+                }
                 colMasks[ icol ] = ColFlag.STRING.toMask( isString )
                                  | ColFlag.DATALINK.toMask( isDatalink )
                                  | ColFlag.URL.toMask( isUrl )
@@ -241,6 +250,7 @@ public class TopcatModelInfo {
                                  | ColFlag.VOTABLE.toMask( isVotable )
                                  | ColFlag.SPECTRUM.toMask( isSpectrum )
                                  | ColFlag.WEBREF.toMask( isWebref )
+                                 | ColFlag.MOC.toMask( isMoc )
                                  | ColFlag.MIME.toMask( isMime );
             }
         }
