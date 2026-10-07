@@ -327,6 +327,7 @@
            '&figs;SendSpectrumActivationType.png'>
   <!ENTITY FIG.SendTableActivationType '&figs;SendTableActivationType.png'>
   <!ENTITY FIG.SendIndexActivationType '&figs;SendIndexActivationType.png'>
+  <!ENTITY FIG.SendMocActivationType '&figs;SendMocActivationType.png'>
   <!ENTITY FIG.LoadTableActivationType '&figs;LoadTableActivationType.png'>
   <!ENTITY FIG.BrowserActivationType '&figs;BrowserActivationType.png'>
   <!ENTITY FIG.ViewUrlActivationType '&figs;ViewUrlActivationType.png'>
@@ -3648,6 +3649,17 @@ unless you are a tool developer you can probably ignore these.
     to a suitable spectrum analysis application for loading or display.
     </p>
     <p>SAMP MType: <code>spectrum.load.ssa-generic</code>
+    </p>
+    </dd>
+
+<dt>Transmit MOC</dt>
+<dd><p>The <ref id="SendMocActivationType">Send MOC</ref> activation action
+    can send an ASCII 
+    <webref url="https://www.ivoa.net/documents/MOC">MOC</webref>
+    string from a nominated column or expression to a suitable client,
+    for instance to display the MOC on the sky.
+    </p>
+    <p>SAMP MType: <code>coverage.moc.load.ascii</code>
     </p>
     </dd>
 
@@ -25781,6 +25793,56 @@ will highlight the corresponding plotted point in some way.
 
 </subsubsubsect>
 
+<subsubsubsect id="SendMocActivationType">
+<subhead><title>Send MOC</title></subhead>
+
+<figure>
+<caption><px>Configuration for Send MOC action</px></caption>
+<figureimage src="&FIG.SendMocActivationType;"/>
+</figure>
+
+<p>The <label>Send MOC</label> action sends a message to other
+<ref id="interop">SAMP</ref> applications containing an ASCII MOC string.
+A MOC is a 
+<webref url="https://www.ivoa.net/documents/MOC/"
+        >HEALPix Multi-Order Coverage Map</webref>,
+representating a region on the sky,
+and in its ASCII representation might look something
+like "<code>4/2225 2227-2228 2230</code>".
+The MOC is sent with the MType <code>coverage.load.moc.ascii</code>,
+so at least one external SAMP client subscribed to such messages
+must be registered.
+Sufficiently recent versions of
+<webref url="https://aladin.cds.unistra.fr/">Aladin</webref> 
+for instance are suitable.
+</p>
+
+<p>Configuration:
+<dl>
+<dt>ASCII MOC</dt>
+<dd><p>Gives the ASCII MOC string value to send for each row.
+    A column name may be selected from the drop-down list,
+    or the <ref id="jel">expression language</ref> may be used
+    to assemble a location string from other columns.
+    Some functions in the <ref id="Coverage">Coverage</ref> class
+    can be used to construct these from existing columns,
+    for instance
+    <ref id="Coverage-asciiMocCircle"><code>asciiMocCircle</code></ref> and
+    <ref id="Coverage-asciiMocPolygon"><code>asciiMocPolygon</code></ref>.
+    </p></dd>
+<dt>Target Application</dt>
+<dd><p>Determines which external client(s) to send the messages to.
+    The default is "All Clients" which will send it to all eligible
+    applications, but you can select just one.  Clicking the selector
+    can also show you which clients capable of acting on this
+    message type are currently registered.  If there are none,
+    the action will be disabled.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="LoadTableActivationType">
 <subhead><title>Load Table</title></subhead>
 
@@ -35352,6 +35414,8 @@ introduced since the last version:
         <code>asciiMocEllipse</code>, <code>asciiMocPolygon</code>,
         <code>asciiMocStcs</code>
         in class <ref id="Coverage">Coverage</ref>.</li>
+    <li>New activation action
+        <ref id="SendMocActivationType">Send MOC</ref>.</li>
     </ul>
     </p></dd>
 
