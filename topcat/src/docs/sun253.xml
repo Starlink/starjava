@@ -25306,7 +25306,7 @@ to show imagery at the sky coordinates corresponding to that row.
 <dd><p>Determines which external client(s) to send the messages to.
     The default is "All Clients" which will send it to all eligible
     applications, but you can select just one.  Clicking the selector
-    also serves to indicate which clients capable of acting on this
+    can also show you which clients capable of acting on this
     message type are currently registered.  If there are none,
     the action will be disabled.
     </p></dd>
@@ -25456,7 +25456,7 @@ to communicate with it.
 <dd><p>Determines which external client(s) to send the image URLs to.
     The default is "All Clients" which will send it to all eligible
     applications, but you can select just one.  Clicking the selector
-    also serves to indicate which clients capable of acting on this
+    can also show you which clients capable of acting on this
     message type are currently registered.  If there are none,
     the action will be disabled.
     </p></dd>
@@ -25629,7 +25629,7 @@ and
 <dd><p>Determines which external client(s) to send the image URLs to.
     The default is "All Clients" which will send it to all eligible
     applications, but you can select just one.  Clicking the selector
-    also serves to indicate which clients capable of acting on this
+    can also show you which clients capable of acting on this
     message type are currently registered.  If there are none,
     the action will be disabled.
     </p></dd>
@@ -25674,7 +25674,7 @@ must be registered.
 <dd><p>Determines which external client(s) to send the spectrum URLs to.
     The default is "All Clients" which will send it to all eligible
     applications, but you can select just one.  Clicking the selector
-    also serves to indicate which clients capable of acting on this
+    can also show you which clients capable of acting on this
     message type are currently registered.  If there are none,
     the action will be disabled.
     </p></dd>
@@ -25719,7 +25719,7 @@ or SAMP-enabled Python scripts.
 <dd><p>Determines which external client(s) to send the VOTable URLs to.
     The default is "All Clients" which will send it to all eligible
     applications, but you can select just one.  Clicking the selector
-    also serves to indicate which clients capable of acting on this
+    can also show you which clients capable of acting on this
     message type are currently registered.  If there are none,
     the action will be disabled.
     </p></dd>
@@ -25772,7 +25772,7 @@ will highlight the corresponding plotted point in some way.
 <dd><p>Determines which external client(s) to send the row indices to.
     The default is "All Clients" which will send it to all eligible
     applications, but you can select just one.  Clicking the selector
-    also serves to indicate which clients capable of acting on this
+    can also show you which clients capable of acting on this
     message type are currently registered.  If there are none,
     the action will be disabled.
     </p></dd>
@@ -26383,7 +26383,7 @@ for the message that you want to send.
     Only those which declare support for the chosen MType are listed.
     The default is "All Clients" which will send it to all eligible
     applications, but you can select just one.  Clicking the selector
-    also serves to indicate which clients capable of acting on the
+    can also show you which clients capable of acting on the
     supplied MType are currently registered.  If there are none,
     the action will be disabled.
     </p></dd>
