@@ -35347,6 +35347,7 @@ introduced since the last version:
         (generally unusable) arrays of Java array objects.</li>
     <li>New area type ELLIPSE can now be used in
         <ref id="GangLayerControl_area">Area plots</ref>.</li>
+    <li>Fix STC-S numeric parsing bug.</li>
     </ul>
     </p></dd>
 

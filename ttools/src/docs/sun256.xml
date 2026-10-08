@@ -16336,6 +16336,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         may now be supplied multiple times, or may point
         (using the <code>@</code> prefix) to an external file
         containing the ADQL to execute.</li>
+    <li>Fix STC-S numeric parsing bug.</li>
     </ul>
     </p></dd>
 

@@ -68,7 +68,7 @@ public class AreaDomain implements Domain<AreaMapper> {
     private static final String WORDS_REGEX =
         "\\s*([A-Za-z]+)\\s+([A-Za-z][A-Za-z0-9]*\\s+)*";
     private static final String NUMBER_REGEX =
-        "\\s*([-+]?[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?)";
+        "\\s*([-+]?(?:[0-9]*\\.[0-9]+|[0-9]+\\.?)(?:[eE][-+]?[0-9]+)?)";
     private static final Pattern WORDS_PATTERN =
         Pattern.compile( WORDS_REGEX );
     private static final Pattern NUMBER_PATTERN =
