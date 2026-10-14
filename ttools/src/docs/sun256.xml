@@ -16341,6 +16341,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>asciiMocEllipse</code>, <code>asciiMocPolygon</code>,
         <code>asciiMocStcs</code>
         in class <ref id="Coverage">Coverage</ref>.</li>
+    <li><ref id="votlint"><code>votlint</code></ref>
+        now correctly reports a mismatch between
+        <code>TD</code> and <code>FIELD</code> count
+        in VOTables version &gt;=1.1 as an ERROR not a WARNING.</li>
     </ul>
     </p></dd>
 

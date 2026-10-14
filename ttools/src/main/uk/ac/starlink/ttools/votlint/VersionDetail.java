@@ -165,7 +165,7 @@ public abstract class VersionDetail {
                 return new DataHandler();
             }
             else if ( "TR".equals( name ) ) {
-                return new TrHandler();
+                return new TrHandler( false );
             }
             else if ( "TD".equals( name ) ) {
                 return new TdHandler( false );
@@ -314,9 +314,8 @@ public abstract class VersionDetail {
         }
 
         protected ElementHandler createElementHandler( String name ) {
-            ElementHandler handler = V10.createElementHandler( name );
-            if ( handler != null ) {
-                return handler;
+            if ( "TR".equals( name ) ) {
+                return new TrHandler( true );
             }
             else if ( "GROUP".equals( name ) ||
                       "FIELDref".equals( name ) ||
@@ -324,7 +323,7 @@ public abstract class VersionDetail {
                 return new ElementHandler();
             }
             else {
-                return null;
+                return V10.createElementHandler( name );
             }
         }
 

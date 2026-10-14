@@ -48,11 +48,11 @@ public class VotLintTest extends TestCase {
         /* In other cases we can check the content of the error messages
          * themselves, since they are output by votlint itself. */
         ex.validate_ = false;
-        assertCodes( new String[] { "I-AR1", "W-CH1", "W-TR9", "E-NRM" },
+        assertCodes( new String[] { "I-AR1", "W-CH1", "E-TR9", "E-NRM" },
                      ex.execute( datsrc ) );
 
         ex.forceVersion_ = VOTableVersion.V11;
-        assertCodes( new String[] { "I-AR1", "W-CH1", "W-TR9", "E-NRM" },
+        assertCodes( new String[] { "I-AR1", "W-CH1", "E-TR9", "E-NRM" },
                      ex.execute( datsrc ) );
 
         ex.forceVersion_ = VOTableVersion.V10;

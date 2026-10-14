@@ -8,6 +8,19 @@ package uk.ac.starlink.ttools.votlint;
  */
 public class TrHandler extends ElementHandler {
 
+    private final boolean requireExactTdCount_;
+
+    /**
+     * Constructor.
+     *
+     * @param  requireExactTdCount  if true, the number of TDs in a TR
+     *             MUST match the number of declared FIELDs;
+     *             otherwise they SHOULD match
+     */
+    public TrHandler( boolean requireExactTdCount ) {
+        requireExactTdCount_ = requireExactTdCount;
+    }
+
     public void endElement() {
         Ancestry family = getAncestry();
 
@@ -17,9 +30,15 @@ public class TrHandler extends ElementHandler {
             int ncol = data.getColumnCount();
             int nchild = family.getChildCount();
             if ( ncol != nchild ) {
-                warning( new VotLintCode( "TR9" ),
-                         "Wrong number of TDs in row" +
-                         " (expecting " + ncol + " found " + nchild + ")" );
+                String msg = "Wrong number of TDs in row"
+                           + " (expecting " + ncol + " found " + nchild + ")";
+                VotLintCode code = new VotLintCode( "TR9" );
+                if ( requireExactTdCount_ ) {
+                    error( code, msg );
+                }
+                else {
+                    warning( code, msg );
+                }
             }
         }
         else {
