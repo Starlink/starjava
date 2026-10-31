@@ -592,6 +592,9 @@ public class FuncTest extends TestCase {
         // Regression at least
         assertEquals( "5/497 6/1993 1995-1998 2017 2020",
                       Coverage.asciiMocEllipse(6, 78.2, 58.3, 0.9, 0.1, -34.) );
+        assertEquals( "5/497 6/1993 1995-1998 2017 2020",
+                      Coverage.asciiMocEllipse(6, 78.2, 58.3, 0.1, 0.9, 56. ) );
+
         assertEquals( "6/1996 7/7975 7981 7992-7994",
                       Coverage.asciiMocCircle(7, 78.2, 58.3, 0.5 ) );
         assertEquals( "6/1996 7/7975 7981 7992-7994",

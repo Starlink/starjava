@@ -340,9 +340,19 @@ public class Area {
             public long[] toMocUniqs( double[] data, int level ) {
                 double lonDeg = data[ 0 ];
                 double latDeg = data[ 1 ];
-                double raDeg = data[ 2 ];
-                double rbDeg = data[ 3 ];
-                double paDeg = data[ 4 ];
+                final double raDeg;
+                final double rbDeg;
+                final double paDeg;
+                if ( data[ 3 ] > data[ 2 ] ) {
+                    raDeg = data[ 3 ];
+                    rbDeg = data[ 2 ];
+                    paDeg = data[ 4 ] + 90.;
+                }
+                else {
+                    raDeg = data[ 2 ];
+                    rbDeg = data[ 3 ];
+                    paDeg = data[ 4 ];
+                }
                 HealpixNestedBMOC bmoc =
                     Healpix.getNested( level )
                            .newEllipticalConeComputer( Math.toRadians( raDeg ),
