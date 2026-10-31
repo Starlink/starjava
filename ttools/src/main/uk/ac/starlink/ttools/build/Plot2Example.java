@@ -1227,7 +1227,12 @@ public class Plot2Example {
      * The labels refer to names referenced in the user documents,
      * generally based on stilts/plot2 UI elements (plot layer types etc).
      *
-     * @return  examples list for use in user documentation
+     * <p>Not all of the plots in this list are actually referenced in
+     * user documentation however.  Some are just there as regression
+     * tests so that when the relevant build target is invoked,
+     * changes in the pixel-exact rendering can be noticed.
+     *
+     * @return  examples list that can be referenced in user documentation
      */
     private static Plot2Example[] createExamples( Context c ) {
         return new Plot2Example[] {
@@ -1841,6 +1846,40 @@ public class Plot2Example {
                                    "leglabel4=symlog(1,1,x)",
                                    "color4=orange", null,
                 "seq=1,4,3,2",
+            } ),
+
+            // This one provides a good test (by visual inspection, and
+            // subsequently by pixel-exact regression testing) that the
+            // Coverage.asciiMoc* functions match what's being done by
+            // the PolygonOutliner class used for Area plotting.
+            // Implementation changes (for instance more accurate MOCisation
+            // of geometric shapes) might legitimately lead to the
+            // pixel-exact rendering changing, but if that happens the
+            // generated graphic should be examined by eye to check that
+            // the plotted MOCs still include, and are a good approximation
+            // to, the plotted shapes.
+            new Plot2Example( "shapes", c, PlotTask.SKY, new String[] {
+                "in=" + Plot2Example.class.getResource( "shapes.vot" ), null,
+                "sex=false", "legend=false",
+                "clon=79.5", "clat=58.72", "radius=2.7", "xpix=500", "ypix=500",
+                null,
+                "color_m=red", "color_a=cyan", "thick_a=1",
+                "layer_ac=area", "areatype_ac=circle", "area_ac=circle", null,
+                "layer_ae=area", "areatype_ae=ellipse", "area_ae=ellipse", null,
+                "layer_ap=area", "areatype_ap=polygon", "area_ap=polygon", null,
+                "layer_as=area", "areatype_as=stc-s", "area_as=stcs", null,
+                "layer_mc=area", "areatype_mc=moc-ascii",
+                "area_mc='asciiMocCircle(9,circle[0],circle[1],circle[2])'",
+                null,
+                "layer_me=area", "areatype_me=moc-ascii",
+                "area_me='asciiMocEllipse(9,ellipse[0],ellipse[1],ellipse[2],"
+                                         + "ellipse[3],ellipse[4])'", null,
+                "layer_mp=area", "areatype_mp=moc-ascii",
+                "area_mp='asciiMocPolygon(9,polygon[0],polygon[1],polygon[2],"
+                                         + "polygon[3],polygon[4],polygon[5])'",
+                null,
+                "layer_ms=area", "areatype_ms=moc-ascii",
+                "area_ms='asciiMocStcs(8,stcs)'",
             } ),
         };
     }
