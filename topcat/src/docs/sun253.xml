@@ -89,6 +89,7 @@
   <!ENTITY FIG.Splat '&figs;Splat.png'>
   <!ENTITY FIG.HelpWindow '&figs;HelpWindow.png'>
   <!ENTITY FIG.ColumnSearchWindow '&figs;ColumnSearchWindow.png'>
+  <!ENTITY FIG.CellViewWindow '&figs;CellViewWindow.png'>
   <!ENTITY FIG.ParameterQueryWindow '&figs;ParameterQueryWindow.png'>
   <!ENTITY FIG.SyntheticColumnQueryWindow 
            '&figs;SyntheticColumnQueryWindow.png'>
@@ -6293,13 +6294,21 @@ by clicking on the relevant header.
 <p>As well as the normal menu, right-clicking over one of the columns
 in the displayed table will present a
 <label>Column Popup Menu</label>, which provides a convenient
-way to do some things with the column in question:
+way to do some things with the column, or in some cases cell, in question:
 <dl>
+
+<dt>&IMG.MAGNIFY; View Cell</dt>
+<dd><p>Opens a new <ref id="CellViewWindow">Cell View Window</ref>
+    that displays in full the contents of indicated cell.
+    This can be useful for cells with overlong text or array values,
+    which are otherwise hard to see in the normal table display,
+    and which may also be truncated if they are too long.
+    </p></dd>
 
 <dt>&IMG.MODIFY; Replace Column</dt>
 <dd><p>Pops up a
     <ref id="SyntheticColumnQueryWindow">Synthetic Column dialogue</ref>
-    to replace this column with a new synthetic one.
+    to replace the indicated column with a new synthetic one.
     The dialogue is initialised with the same name, units etc as the
     selected column, and with an expression that evaluates to its value.
     You can alter any of these, and the new column will replace the
@@ -27543,6 +27552,71 @@ using the <label>Stop</label> button.
 
 </subsubsect>
 
+<subsubsect id="CellViewWindow">
+<subhead><title>Cell View Window</title></subhead>
+
+<figure>
+<caption><px>Cell View window</px></caption>
+<figureimage src="&FIG.CellViewWindow;"/>
+</figure>
+
+<p>The <label>Cell View Window</label>
+displays the content of a single table cell
+in a window of its own.  This is useful for columns with long entries,
+for instance lengthy text items or arrays with many elements,
+which are otherwise difficult to see in the normal
+<ref id="TableViewerWindow">Data Window</ref>.
+</p>
+
+<p>It can be opened from the popup menu in the
+<ref id="TableViewerWindow">Data Window</ref>,
+which you get by right-clicking on a cell of the table.
+You then choose the <label>View Cell</label> (&IMG.MAGNIFY;) item,
+and a new instance of this window will appear,
+displaying the contents of the cell the mouse was on when the
+popup menu was invoked.
+By default, if you <ref id="activation">activate</ref> another row
+(e.g. by clicking on it)
+the cell displayed will change to the value from the same column,
+but the newly activated row.
+</p>
+
+<p>You can modify which cells are displayed in this window using the
+controls at the top:
+<dl>
+<dt>Column</dt>
+<dd><p>This selector changes which table column the displayed value
+    is taken from:
+    when the window is first displayed it will be the column the mouse was on,
+    but you can change it to another one if required.
+    As usual you can type in an <ref id="jel">expression</ref>
+    instead of selecting from the drop-down column list if you prefer.
+    </p></dd>
+<dt>Row</dt>
+<dd><p>These radio buttons allow you to choose between
+    two settings for which table row
+    the displayed value is taken from.
+    <dl>
+    <dt>Activated:</dt>
+    <dd><p>Whenever a row is <ref id="activation">activated</ref>,
+        for instance by clicking on its table row or a plotted point,
+        the display will be updated to show that row.
+        </p></dd>
+    <dt>Fixed:</dt>
+    <dd><p>You can enter a row index for the row whose cell is displayed.
+        In this case activation actions will not update the display.
+        </p></dd>
+    </dl>
+    </p></dd>
+</dl>
+</p>
+
+<p>Multiple Cell View windows can be open at once.
+If you no longer need one, just close it in the usual way.
+</p>
+
+</subsubsect>
+
 <subsubsect id="ParameterQueryWindow">
 <subhead><title>New Parameter Window</title></subhead>
 
@@ -35416,6 +35490,9 @@ introduced since the last version:
         in class <ref id="Coverage">Coverage</ref>.</li>
     <li>New activation action
         <ref id="SendMocActivationType">Send MOC</ref>.</li>
+    <li>New <ref id="CellViewWindow">Cell View Window</ref>
+        available from <ref id="TableViewerWindow">Data Window</ref>
+        popup menu.</li>
     </ul>
     </p></dd>
 

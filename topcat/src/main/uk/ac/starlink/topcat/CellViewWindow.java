@@ -147,7 +147,7 @@ public class CellViewWindow extends AuxWindow {
         getBodyPanel().setLayout( new BorderLayout() );
         getBodyPanel().add( panel );
         pack();
-        addHelp( null );
+        addHelp( "CellViewWindow" );
     }
 
     /**
