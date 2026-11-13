@@ -34,8 +34,6 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
     private MetadataHolder metaHolder_;
     private Predicate<TableMeta> tableFilter_;
     private static final AdqlSyntax syntax_ = AdqlSyntax.getInstance();
-    private static final String[] KNOWN_COL_FLAGS =
-        new String[] { "indexed", "primary", "nullable" };
 
     /**
      * Constructor.
