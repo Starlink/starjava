@@ -16345,6 +16345,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         now correctly reports a mismatch between
         <code>TD</code> and <code>FIELD</code> count
         in VOTables version &gt;=1.1 as an ERROR not a WARNING.</li>
+    <li>Note VOTable 1.6 compliance corresponds to
+        PR-VOTable-1.6-20261112; there are no behaviour changes,
+        since there is no change in normative text since the
+        previous Working Draft.</li>
     </ul>
     </p></dd>
 

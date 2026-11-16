@@ -35493,6 +35493,10 @@ introduced since the last version:
     <li>New <ref id="CellViewWindow">Cell View Window</ref>
         available from <ref id="TableViewerWindow">Data Window</ref>
         popup menu.</li>
+    <li>Note VOTable 1.6 compliance corresponds to
+        PR-VOTable-1.6-20261112; there are no behaviour changes,
+        since there is no change in normative text since the
+        previous Working Draft.</li>
     </ul>
     </p></dd>
 
