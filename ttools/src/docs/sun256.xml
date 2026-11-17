@@ -16349,6 +16349,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         PR-VOTable-1.6-20261112; there are no behaviour changes,
         since there is no change in normative text since the
         previous Working Draft.</li>
+    <li>Provide more error information when <code>-debug</code> 
+        flag is used.</li>
     </ul>
     </p></dd>
 

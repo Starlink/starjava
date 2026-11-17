@@ -35497,6 +35497,8 @@ introduced since the last version:
         PR-VOTable-1.6-20261112; there are no behaviour changes,
         since there is no change in normative text since the
         previous Working Draft.</li>
+    <li>Provide more error information when <code>-debug</code>
+        flag is used.</li>
     </ul>
     </p></dd>
 

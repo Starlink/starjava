@@ -34,8 +34,13 @@ public class LineFormatter extends Formatter {
                 .append( '(' )
                 .append( record.getSourceClassName() )
                 .append( '.' )
-                .append( record.getSourceMethodName() )
-                .append( ')' );
+                .append( record.getSourceMethodName() );
+            Throwable err = record.getThrown();
+            if ( err != null ) {
+                sbuf.append( ' ' )
+                    .append( err.toString() );
+            }
+            sbuf.append( ')' );
         }
         sbuf.append( '\n' );
         return sbuf.toString();
