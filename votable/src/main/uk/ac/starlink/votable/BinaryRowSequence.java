@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.util.Base64;
 import java.util.zip.GZIPInputStream;
 import uk.ac.starlink.table.RowSequence;
-import uk.ac.starlink.util.Base64InputStream;
 import uk.ac.starlink.util.DataBufferedInputStream;
 
 /**
