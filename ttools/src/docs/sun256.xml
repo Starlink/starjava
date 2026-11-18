@@ -16351,6 +16351,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         previous Working Draft.</li>
     <li>Provide more error information when <code>-debug</code> 
         flag is used.</li>
+    <li>Upgrade JSAMP to 1.3.10.  This fixes some SAMP problems
+        encountered when user home directories contain certain
+        non-alphanumeric characters such as spaces.</li>
     </ul>
     </p></dd>
 
